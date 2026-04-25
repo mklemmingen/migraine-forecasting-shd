@@ -19,5 +19,5 @@ jobs:
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.reutlingen-university.de/YOUR_USERNAME/YOUR_REPO_NAME.git
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@https://gitlab.reutlingen-university.de/lauterba/migraine-forecasting-shd
           git push gitlab --mirror
