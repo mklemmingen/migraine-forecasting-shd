@@ -1,4 +1,3 @@
-# Marco-Dataset.md
 # Translated and Engineered Dataset — Spano (2026)
 
 ## Overview
