@@ -40,6 +40,10 @@ Bootstrap confidence intervals reported throughout.
 
 Each stage is self-contained under `experiments/<stage>/` with code, config, and results.
 
+## Baseline Model
+
+The stacked ensemble baseline (Stage 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution.
+
 ## Reproducibility
 
 Dependencies pinned per stage in `environment.yml`.  
