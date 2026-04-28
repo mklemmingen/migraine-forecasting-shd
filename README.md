@@ -6,18 +6,18 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ## Dataset
 
-62 adults with migraine · 2 Korean neurology clinics · Aug 2014 – Jan 2015  
-4,591 diary days · 1,099 labelled headache events · 5.3% positive prevalence  
-Source: Park et al. (2016) supplementary file S1. Column inventory and transformation notes in `docs/dataset.md`.
+63 adult patients · 2 Korean neurology clinics · Aug 2014 – Apr 2015  
+4,516 engineered diary days · 1,099 labelled headache events  
+Source: Park et al. (2016) supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`!
 
 ## Task
 
 Binary classification of next-day migraine occurrence per patient-day.  
-Time-forward 85/15 split · cutoff 2015-01-24 · train n = 3,717 · val n = 674
+Time-forward chronological 70/15/15 split · train n = 3,941 · val n = 439 · test n = 136.
 
 ## Evaluation Protocol
 
-Fixed across all experiments for direct comparability.
+Fixed across all experiments for direct comparability. Model tuning is strictly restricted to the Validation set; the Test set is locked for final unbiased evaluation.
 
 | Metric | Purpose |
 |--------|---------|
@@ -42,7 +42,7 @@ Each stage is self-contained under `experiments/<stage>/` with code, config, and
 
 ## Baseline Model
 
-The stacked ensemble baseline (Stage 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. See data/cc_MarcoSpano-oldSet/dataset.md for Mr Spanos approach details and the rationale for rebuilding.
+The stacked ensemble baseline (Stage 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
 
 ## Reproducibility
 
