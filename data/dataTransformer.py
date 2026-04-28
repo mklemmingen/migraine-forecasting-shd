@@ -1,141 +1,13 @@
-# Korean Smartphone Headache Diary — Source Dataset
-
-## Source Publication
-
-**Park J-W, Chu MK, Kim J-M, Park S-G, Cho S-J (2016)**  
-Analysis of Trigger Factors in Episodic Migraineurs Using a Smartphone Headache Diary Applications.  
-*PLOS ONE* 11(2): e0149577.  
-https://doi.org/10.1371/journal.pone.0149577
-
-The SHD dataset is the supplementary file S1 of the above publication, redistributed under the Creative Commons Attribution License (CC BY 4.0) under which the original article was published. Consult the original publication for usage conditions.
-
-**Related document:** For prior work on the intermediate and engineered representations of this data as produced by Marco Samuel Spano (2025–2026), see [`cc_MarcoSpano-oldSet/dataset.md`](data/cc_MarcoSpano-oldSet/dataset.md).
-
----
-
-## File
-
-`data/SHD-Dataset.xls` — 5,764,608 bytes, last modified 2026-01-19.  
-Engine required: xlrd (pin `xlrd < 2.0`).  
-Three sheets. All column headers in Korean throughout.
-
----
-
-## Study Design
-
-Sixty-two episodic migraineurs were recruited between September 2014 and January 2015 at the neurology outpatient clinics of two Korean university hospitals: 의정부성모병원 (32 patients) and 동탄성심병원 (30 patients). Inclusion criteria: age 19–55, ICHD-3 beta-defined migraine with or without aura, 2–14 headache days per month, stable headache characteristics for at least one year prior to enrolment, personal smartphone capable of running the SHD application (Park et al., 2016, p. 3).
-
-The cohort was 82.3% female, mean age 37.7 ± 8.6 years, mean illness duration 9.7 ± 8.2 years. Sixty patients had migraine without aura; two had migraine with aura. Baseline clinical instruments: HIT-6 (mean 62.4 ± 9.7), MIDAS (mean 22.0 ± 24.5), HADS-D (mean 9.5), HADS-A (mean 6.5) (Park et al., 2016, p. 5, Table 1).
-
-Participants logged the SHD application daily for approximately three months. Every day, regardless of headache presence, participants confirmed headache status. On headache days they additionally recorded: pain intensity (VAS 0–10), headache characteristics, associated symptoms, acute medication taken, headache-related functional disability, and the triggers present on the same day. Triggers from the preceding 1–3 days were explicitly excluded (Park et al., 2016, p. 4). Study compliance: 86.3% daily recording rate over 85 ± 13.4 days per patient (Park et al., 2016, p. 5).
-
-Eighteen trigger factors were assessed: stress, excessive sleep, sleep deprivation, exercise, fatigue, hormonal changes, emotional changes, weather changes, sunlight, noise, odors, fasting, overeating, caffeine, smoking, alcohol, cheese/chocolate, and traveling (Park et al., 2016, p. 3).
-
-Headache classification followed ICHD-3 beta criteria B–D for migraine without aura. Of 1,099 recorded headache days, 336 (30.6%) met migraine criteria and 763 were non-migraine headaches (Park et al., 2016, p. 4–5).
-
----
-
-## Sheet 1 — 62patients
-
-185 columns, 62 patient rows (132 raw rows; ~70 are empty or aggregate rows and should be excluded on read).
-
-**Row structure:** Row 0 is a title row ("S1 File. Dataset of 62 patients"), non-empty in 8/185 cells containing Korean group-header labels. Row 1 is the actual column header row (Korean, 177/185 non-empty). Eight spacer columns at indices 43, 113, 116, 124, 148, 172, 173, 179 are unnamed and used as visual separators.
-
-**Content groups:**
-
-| Group | Cols (approx) | Description |
-|-------|---------------|-------------|
-| Identifiers | 0–2 | 고유번호 (unique number), 등록번호 (registration ID), 연구번호 (study ID) |
-| Demographics | 3–10 | Sex, age, hospital site, height, weight, BMI (+ unknown flags) |
-| Study dates | 11–12 | Study start date, diary start date |
-| Diagnosis | 13–14 | Migraine type (without/with aura), other diagnosis |
-| Headache characteristics | 15–28 | Frequency, illness duration, diary accessibility, duration, severity (categorical + VAS), pulsating, unilateral, aggravation with movement, nausea, vomiting, photophobia, phonophobia, osmophobia |
-| Clinical instruments (baseline) | 29–32 | HIT-6, MIDAS, HADS-D, HADS-A |
-| Medication | 33–40 | Acute treatment frequency, type; preventive treatment types |
-| Trigger endorsements (baseline) | 41–66 | Self-reported trigger list from initial survey; count confirmed in diary; comparison flag; 18 binary trigger flags |
-| Attribution | 67 | Trigger attribution percentage |
-| Exercise (baseline, IPAQ) | 68–78 | Vigorous/moderate/walking frequency and duration; sedentary time |
-| End-of-study | 79–97 | Study end date, duration, weight change, completion status, end-of-study HIT-6/MIDAS, end-of-study IPAQ |
-| Compliance and satisfaction | 98–112 | Recording adherence, diary time, non-recording reasons, diary completion time, satisfaction Likert items (7 items) |
-| Aggregate diary statistics | 114–184 | Recording rate, total diary days, headache days, headache rate, per-trigger occurrence counts, per-trigger headache co-occurrence counts, exercise totals |
-
-**Selected column profiles:**
-
-| Korean | English | Profile |
-|--------|---------|---------|
-| 성별 | Sex | 여성(F): 51 / 남성(M): 11 |
-| 연령 | Age | min=19 / max=56 / mean=37.3 |
-| 병원 | Hospital | 의정부: 32 / 동탄한림: 30 |
-| 편두통 진단 | Migraine type | 무조짐(without aura): 60 / 조짐(with aura): 2 |
-| 두통빈도(일/월) | Headache freq (days/month) | min=1 / max=30 / mean=6.4 |
-| 유병기간(년) | Illness duration (years) | min=1 / max=30 / mean=9.7 |
-| 연구시작 - HIT6 | Baseline HIT-6 | mean=62.3 |
-| 연구시작 - MIDAS | Baseline MIDAS | mean=22.0 |
-| 연구기간 | Study duration (days) | min=35 / max=126 / mean=85.2 |
-| 기록 순응도 | Recording adherence | 매일(daily): 36 / ≥절반: 16 / <절반: 3 |
-
-> This sheet is not used in the Stage 0–4 modelling pipeline. It is preserved as clinical reference and is a candidate input for patient-level stratification or personalisation work.
-
----
-
-## Sheet 2 — headache diary 1099
-
-101 columns, 1,100 rows (1,099 headache events + 1 duplicate entry).
-
-**Row structure:** Row 0 is a title row. Row 1 is a group header (41/101 non-empty). Row 2 is a sub-header (74/101 non-empty). Data begins at Row 3. Multi-row headers are reconstructed as "group | subheader" for programmatic access.
-
-Each row is one headache event, covering both migraine and non-migraine headaches.
-
-**Content groups:**
-
-| Group | Cols | Description |
-|-------|------|-------------|
-| Identifiers and time | 0–7 | Entry number, registration ID, study ID, start/end datetime (YYYYMMDDHHMI), duration, date (YYYYMMDD) |
-| Severity | 8–10 | Categorical (mild/moderate/severe) + binary moderate-or-above + VAS (0–10) |
-| Pain location | 11–18 | Left/right/centre/bilateral/eye-area/neck; location count; unilateral flag |
-| Headache type | 19–24 | Pulsating/pressing/stabbing/dull; type count; pulsating flag |
-| Worsening with movement | 25–26 | Y/N text + binary |
-| Associated symptoms | 27–37 | Nausea, phonophobia, vomiting, nausea-or-vomiting, osmophobia, photophobia; counts; photo/phono combined; ICHD major/minor criterion; migraine classification flag |
-| Acute medication | 38–49 | Drug slots (6 unnamed columns); effect rating (none/partial/full); medication-taken flags |
-| Disability | 50–57 | Overall disability flag; work/school absent; work/school efficiency halved; work/school subtotal; housework unable; housework efficiency halved; housework subtotal; social/leisure missed |
-| Trigger factors | 58–84 | Presence flag; count; 18 individual trigger binary flags (internal/external/other groups) |
-| Relief factors | 86–92 | Sleep, rest, massage/stretching, exercise, other; count; free-text |
-| Exercise | 93–100 | Exercise Y/N; vigorous/moderate intensity flags; duration text; headache-free flag; headache-ongoing flag |
-
-**Disability columns — detail (cols 50–57):**
-
-| Col | Korean | English | Distribution |
-|-----|--------|---------|-------------|
-| 50 | 장애 | Overall disability | 524/1,099 positive (47.6%) |
-| 51 | 학교/직장 — 결근 | Work/school: absent | 22 severe (of 254 work-affected events) |
-| 52 | 학교/직장 — 능률 절반 이하 | Work/school: efficiency halved | 232 moderate (of 254 work-affected events) |
-| 53 | 학교/직장 합계 | Work/school affected | 254/1,099 (23.1%) |
-| 54 | 집안에서 — 전혀 못함 | Housework: unable | 84 severe (of 444 housework-affected events) |
-| 55 | 집안에서 — 능률 절반 이하 | Housework: efficiency halved | 360 moderate (of 444 housework-affected events) |
-| 56 | 집안에서 합계 | Housework affected | 444/1,099 (40.4%) |
-| 57 | 모임/여가 — 참여 못함 | Social/leisure: missed plans | 65/1,099 (5.9%) |
-
-Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe). Columns 54/55 follow the same structure for housework. Column 50 equals 1 wherever column 53, 56, or 57 equals 1. Events link to the daily diary via Patient ID and Date.
-
-**Severity distribution:**
-
-| Severity | Count | Percent |
-|----------|-------|---------|
-| Mild (약함) | 548 | 49.8% |
-| Moderate (중간) | 402 | 36.5% |
-| Severe (심함) | 117 | 10.6% |
-
-> This sheet was not used in the Spano (2025) thesis pipeline. In this benchmark it is the data source for Stage 5 (disability prediction feasibility). It links to Sheet 3 via Patient ID and Date.
-
----
-
-## Sheet 3 — total diary 4579
+"""
+Sheet 3 — total diary 4579
 
 105 columns, 4,591 rows (4,579 diary days + title row + 2-row header + 1 absorbed totals row).
 
-**Row structure:** Same multi-row structure as Sheet 2. Data begins at Row 3. Includes every diary day — headache and non-headache — for all 62 patients. This is the primary source sheet for the modelling pipeline.
+Row structure: Same multi-row structure as Sheet 2. Data begins at Row 
+3. Includes every diary day — headache and non-headache — for all 62 patients. 
+This is the primary source sheet for the modelling pipeline.
 
-**Key columns not present in Sheet 2:**
+Key columns not present in Sheet 2:
 
 | Korean | English | Profile |
 |--------|---------|---------|
@@ -144,35 +16,39 @@ Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe)
 | 타이레놀/복합/트립탄제/기타 | Medication types with dose counts | headache rows only |
 | 두통이없는날 | Headache-free day | Y: 3,491 / N: 1,002 |
 
-**Outcome column polarity:** `두통이없는날` means "headache-free day" — Y = no headache. This is directionally opposite to the benchmark target (1 = migraine present) and is inverted during translation.
+Outcome column polarity: `두통이없는날` means "headache-free day" — Y = no headache. 
+This is directionally opposite to the benchmark target (1 = migraine present) and is inverted during translation.
 
->  Known data quality issue: trigger factor columns contain a spurious row where each value equals the column-wide count of positives (e.g. `{0:795, 1:304, 304:1}`). A totals row from the original Excel was absorbed as a data row. This row is excluded before analysis by filtering on valid patient IDs.
+>  Known data quality issue: trigger factor columns contain a spurious row where each value 
+equals the column-wide count of positives (e.g. `{0:795, 1:304, 304:1}`). 
+A totals row from the original Excel was absorbed as a data row. 
+This row is excluded before analysis by filtering on valid patient IDs.
+"""
 
----
+# package imports
+import pandas as pd
+import numpy as np
+from datetime import timedelta
 
-## Benchmark Translation and Engineering Plan
+# Read in SHD-Dataset.xls Sheet 3 (daily diary data)
+raw_df = pd.read_excel('SHD-Dataset.xls', sheet_name=2)
 
-This section describes how this benchmark translates and engineers `SHD-Dataset.xls` into its training-ready feature matrix. This is an independent rebuild — not a patch of the Spano pipeline — and reads directly from the Korean source to avoid carrying forward any translation artifacts.
-
-We name the following steps in-depth, so that future work may peer-review and change approaches when found insufficient.
-
----
-
-### Step 1 — Translation
+"""
+Step 1 — Translation
 
 Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-driven and fully reproducible. Column headers are read from the Korean source and mapped programmatically.
 
-**Reading procedure:**
+Reading procedure:
 
 1. Open `data/SHD-Dataset.xls` with `xlrd<2.0`, sheet `total diary 4579`.
 2. Read with `header=[1, 2]` to capture both header rows; data begins at row 3 (zero-indexed row 2 after the title).
 3. Forward-fill the group header (row 1) across columns where Excel merged cells produced empty strings.
 4. Combine into single-level headers using the format `{group} — {subheader}` matching the verbatim Korean strings in the column mapping below.
 5. Filter rows: keep only rows where `등록번호` matches a valid patient identifier (excludes the absorbed totals row described in Sheet 3 above).
-6. Apply the column mapping below; **drop every column not listed in the mapping** (e.g. acute medication slots, raw VAS subcomponents, headache start/end times, free-text fields).
+6. Apply the column mapping below; drop every column not listed in the mapping (e.g. acute medication slots, raw VAS subcomponents, headache start/end times, free-text fields).
 7. Apply the type conversions noted below.
 
-**Type conversions during translation:**
+Type conversions during translation:
 
 | Source column | Source format | Output type |
 |---------------|---------------|-------------|
@@ -182,9 +58,9 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 | All trigger flags | int 0/1 | int 0/1 (passthrough) |
 | 격렬한운동(분), 중등도운동(분) | int (minutes) or null | int, null-filled with 0 (no exercise = 0 minutes) |
 
-**Patient ID source:** Use Sheet 3 column `등록번호` (registration ID) as `patient_id`. This is the diary-level identifier. Sheet 1's 고유번호 and 연구번호 are patient-level only and not present in Sheet 3.
+Patient ID source: Use Sheet 3 column `등록번호` (registration ID) as `patient_id`. This is the diary-level identifier. Sheet 1's 고유번호 and 연구번호 are patient-level only and not present in Sheet 3.
 
-**Naming convention:** Column names in `translated.parquet` use the base name without suffix (e.g. `stress`, `alcohol`). The engineering step renames current-day trigger features with the `_today` suffix in `engineered.parquet` (e.g. `stress_today`, `alcohol_today`) to distinguish them from derived temporal features. The translation table below shows `translated.parquet` names; the engineering tables show final `engineered.parquet` names.
+Naming convention: Column names in `translated.parquet` use the base name without suffix (e.g. `stress`, `alcohol`). The engineering step renames current-day trigger features with the `_today` suffix in `engineered.parquet` (e.g. `stress_today`, `alcohol_today`) to distinguish them from derived temporal features. The translation table below shows `translated.parquet` names; the engineering tables show final `engineered.parquet` names.
 
 | Korean header (verbatim) | Benchmark column name | Decision | Reason |
 |--------------------------|----------------------|----------|--------|
@@ -221,7 +97,7 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 | 격렬한운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
 | 중등도운동(분) | moderate_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
 
-**Key translation decisions:**
+Key translation decisions:
 
 The weather column is read directly from the Korean header `날씨/온도 변화`. This bypasses the English typo `Wheater/temperature change` introduced in Spano's Translated file, which caused all five weather features to be zeroed. All 226 weather-trigger rows (5.1% prevalence) are retained.
 
@@ -234,14 +110,22 @@ Patient IDs are uppercased on read. This resolves the `CM-004`/`cm-004` case art
 Group-sum columns (합계 columns) are not carried forward; they are derived quantities recomputed during engineering where needed.
 
 The absorbed totals row is excluded by retaining only rows where `patient_id` matches a known patient identifier.
+"""
+def translate_sheet3(raw_df):
 
----
+    return translated_df
 
-### Step 2 — Engineering
+translated_df = translate_sheet3(raw_df)
+translated_df.to_parquet('data/translated.parquet', index=False)
 
-Produces `data/engineered.parquet` from `data/translated.parquet`. All features describe the current diary day; the target describes the next day.
 
-**Operation order (script-level):**
+"""
+Step 2 — Engineering
+
+Produces `data/engineered.parquet` from `data/translated.parquet`. All features describe the current diary day; 
+the target describes the next day.
+
+Operation order (script-level):
 
 1. Sort by `(patient_id, date)` ascending.
 2. Construct `migraine_today` from `headache_free` (polarity inversion).
@@ -253,21 +137,22 @@ Produces `data/engineered.parquet` from `data/translated.parquet`. All features 
 8. Drop structural columns (`headache_ongoing`, `severity_category`, `severity_vas`).
 9. Apply train/val split.
 
-**Rolling window edge handling:** All rolling features use `min_periods=1` — partial windows at the start of each patient's series compute over available days. This avoids dropping the first 6 days per patient.
+Rolling window edge handling: All rolling features use `min_periods=1` — partial windows at the start of each patient's 
+series compute over available days. This avoids dropping the first 6 days per patient.
 
-**Train/val split:**
+Train/val split:
 
 - Train: rows where `date < 2015-01-24`
 - Validation: rows where `date >= 2015-01-24`
 - Split is applied per-row, not per-patient. Patients may appear in both splits; this is intentional for time-forward evaluation.
 
-**Target construction:**
+Target construction:
 
 `migraine_today` = `NOT headache_free` (polarity corrected).  
 `migraine_target` = `migraine_today.shift(-1)` per patient (next-day label).  
 Last diary entry per patient dropped — no next-day label available (−62 rows).
 
-**Feature groups:**
+Feature groups:
 
 *Migraine history (5) — not in Park et al.; required for time-series forecasting:*
 
@@ -364,19 +249,30 @@ Last diary entry per patient dropped — no next-day label available (−62 rows
 |---------|-------------|
 | dow | day of week (0=Monday); standard time-series context feature |
 
-**Total effective features: 40**
+Total effective features: 40
 
-**Excluded at engineering (summary):** exercise_as_trigger (p=0.78), cheese_chocolate (0.7%, insufficient counts), excessive_smoking (p=0.73), sunlight (p=0.73, 0.8%), inappropriate_lighting (not in inventory, 0.2%), other_trigger (unstructured catch-all).
+Excluded at engineering (summary): exercise_as_trigger (p=0.78), cheese_chocolate (0.7%, insufficient counts), 
+excessive_smoking (p=0.73), sunlight (p=0.73, 0.8%), inappropriate_lighting (not in inventory, 0.2%), 
+other_trigger (unstructured catch-all).
 
-**Structural columns dropped at engineering:** `headache_ongoing` (redundant with `migraine_today`), `severity_category` and `severity_vas` (populated on headache days only — mostly null on non-headache days, introducing structural missingness correlated with the target).
-
+Structural columns dropped at engineering: `headache_ongoing` (redundant with `migraine_today`), 
+`severity_category` and `severity_vas` (populated on headache days only — mostly null on non-headache days, 
+introducing structural missingness correlated with the target).
 ---
 
-### Step 3 — Stage 5 Supplement (Sheet 2 Disability)
+"""
+def engineer_features(translated_df):
+
+    return df
+engineered_df = engineer_features(translated_df)
+engineered_df.to_parquet('data/engineered.parquet', index=False)
+
+"""
+Step 3 — Stage 5 Supplement (Sheet 2 Disability)
 
 Sheet 2 is processed separately into `data/disability.parquet` and is not included in the Stage 0–4 feature matrix. It is joined to the daily diary by patient ID and date for Stage 5 experiments only.
 
-**Reading procedure for Sheet 2:**
+Reading procedure for Sheet 2:
 
 1. Open `data/SHD-Dataset.xls` with `xlrd<2.0`, sheet `headache diary 1099`.
 2. Read with `header=[1, 2]` (data begins at row 3); forward-fill the group header.
@@ -384,7 +280,7 @@ Sheet 2 is processed separately into `data/disability.parquet` and is not includ
 4. Filter rows: keep only rows where `등록번호` matches a valid patient identifier.
 5. Apply the column mapping below; drop all unlisted columns.
 
-**Korean → English column mapping for Sheet 2:**
+Korean → English column mapping for Sheet 2:
 
 | Korean header (verbatim) | Output column | Notes |
 |--------------------------|---------------|-------|
@@ -406,7 +302,7 @@ Sheet 2 is processed separately into `data/disability.parquet` and is not includ
 | 모임/여가 활동 — 예정이 있었으나 참여 할 수 없었다 | disability_social | social/leisure missed (col 57) |
 | All 18 trigger flag columns (cols 60–84) | trigger flags | retain with same names as in `translated.parquet` for join |
 
-**Columns retained:**
+Columns retained:
 
 | Feature | Description | Prevalence |
 |---------|-------------|-----------|
@@ -422,45 +318,9 @@ Sheet 2 is processed separately into `data/disability.parquet` and is not includ
 | migraine_flag | ICHD classification (migraine vs non-migraine) | 30.6% |
 
 Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `severity_category`, `trigger_count`, all 18 trigger binary flags, `headache_duration_min`.
+"""
+def process_disability_sheet(raw_df):
 
----
-
-### Row Provenance
-
-| Step | Source | Rows | Delta | Cause |
-|------|--------|------|-------|-------|
-| Raw source | SHD-Dataset.xls / Sheet 3 | 4,591 | — | Includes title, header, totals rows |
-| After cleaning | Sheet 3 data only | 4,579 | −12 | Non-data rows excluded |
-| After translation | translated.parquet | 4,579 | 0 | All diary days retained |
-| After engineering | engineered.parquet | ~4,517 | −62 | Last entry per patient dropped |
-| Train split | training set | ~3,839 | — | Rows before cutoff 2015-01-24 |
-| Validation split | validation set | ~678 | — | Rows from cutoff 2015-01-24 onward |
-| Disability set | disability.parquet | 1,099 | — | Sheet 2 headache events only |
-
-> Exact post-engineering row counts depend on per-patient edge handling and will be updated once the pipeline is run.
-
----
-
-### What This Benchmark Uses That Spano Did Not
-
-| Data | Decision | Reason |
-|------|----------|--------|
-| Weather trigger | Included | Restored after Spano pipeline bug; 9.9% of headache days (Park et al., 2016, p. 5) |
-| Physical fatigue | Included | Headache likelihood 48.5%; modifiable trigger (Park et al., 2016, p. 5–6) |
-| Emotional changes | Included | Headache likelihood 68.8% — third-highest (Park et al., 2016, p. 6) |
-| Noise | Included | OR 2.8 (p=0.002); significant regardless of preventive medication (Park et al., 2016, p. 7–8) |
-| Specific smells | Included | Headache likelihood 71.8%; significant in migraine (p<0.001) (Park et al., 2016, Table 4) |
-| Sunlight | Excluded | Not significant (p=0.73); 0.8% prevalence (Park et al., 2016, Table 4) |
-| Inappropriate lighting | Excluded | Not in Park et al. 18-trigger inventory; 0.2% prevalence |
-| Excessive smoking | Excluded | Not significant (p=0.73); insufficient counts for subgroup analysis (Park et al., 2016, Table 4–5) |
-| Cheese/chocolate | Excluded | Insufficient cell counts; 0.7% prevalence (Park et al., 2016, Table 5) |
-| Exercise as trigger | Excluded | Not significant (p=0.78) (Park et al., 2016, Table 4) |
-| Exercise duration (min) | Included | Enables exercise as behaviour (vigorous/moderate) derived separately from trigger flag |
-| Preventive medication | Included | Modifies trigger–migraine relationship significantly (Park et al., 2016, Table 5) |
-| Disability outcomes (Sheet 2) | Included (Stage 5 only) | Sheet not used by Spano; 1,099 labelled events with three-domain disability ratings |
-
----
-
-## Citation
-
-Park, J.-W., Chu, M. K., Kim, J.-M., Park, S.-G., & Cho, S.-J. (2016). Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications. *PLOS ONE*, 11(2), e0149577. https://doi.org/10.1371/journal.pone.0149577
+    return disability_df
+disability_df = process_disability_sheet(raw_df)
+disability_df.to_parquet('data/disability.parquet', index=False)
