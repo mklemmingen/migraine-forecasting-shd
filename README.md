@@ -29,14 +29,14 @@ Bootstrap confidence intervals reported throughout.
 
 ## Experiments
 
-| Stage | Approach | Status |
-|-------|----------|--------|
-| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration) | In progress |
-| 1 | Foundational tabular models (TabPFN) | Planned |
-| 2 | Explainability (SHAP, LIME) | Planned |
-| 3 | Medically pretrained models | Planned |
-| 4 | Sequence models (LSTM) | Planned |
-| 5 | Per-event disability prediction | Exploratory |
+| Stage | Approach | Package | Status |
+|-------|----------|---------|--------|
+| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration) | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress |
+| 1 | Foundational tabular models (TabPFN) | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
+| 2 | Explainability (SHAP, LIME) | [`shap`](https://shap.readthedocs.io/en/latest/) · [`lime`](https://github.com/marcotcr/lime) | Planned |
+| 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned |
+| 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) | Planned |
+| 5 | Per-event disability prediction | TBD | Exploratory |
 
 Each stage is self-contained under `experiments/<stage>/` with code, config, and results.
 
