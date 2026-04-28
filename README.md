@@ -6,8 +6,8 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ## Dataset
 
-63 adult patients · 2 Korean neurology clinics · Aug 2014 – Apr 2015  
-4,516 engineered diary days · 1,099 labelled headache events  
+62 adult patients · 2 Korean neurology clinics · Aug 2014 – Apr 2015  
+4,516 (engineered) diary days · 1,099 labelled headache events  
 Source: Park et al. (2016) supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`!
 
 ## Task
