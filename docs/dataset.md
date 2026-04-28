@@ -125,7 +125,7 @@ Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe)
 | Moderate (중간) | 402 | 36.5% |
 | Severe (심함) | 117 | 10.6% |
 
-> This sheet was not used in the Spano (2025) thesis pipeline. In this benchmark it is the data source for Stage 5 (disability prediction feasibility). It links to Sheet 3 via Patient ID and Date.
+> This sheet is the data source for Stage 5 (disability prediction feasibility). It links to Sheet 3 via Patient ID and Date. It is excluded from the Stage 0–4 predictor sets.
 
 ---
 
@@ -184,7 +184,7 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 
 **Patient ID source:** Use Sheet 3 column `등록번호` (registration ID) as `patient_id`. This is the diary-level identifier. Sheet 1's 고유번호 and 연구번호 are patient-level only and not present in Sheet 3.
 
-**Naming convention:** Column names in `translated.parquet` use the base name without suffix (e.g. `stress`, `alcohol`). The engineering step renames current-day trigger features with the `_today` suffix in `engineered.parquet` (e.g. `stress_today`, `alcohol_today`) to distinguish them from derived temporal features. The translation table below shows `translated.parquet` names; the engineering tables show final `engineered.parquet` names.
+**Naming convention:** Column names in `translated.parquet` use the base name without suffix (e.g. `stress`, `alcohol`). The engineering step renames current-day trigger features with the `_today` suffix in the engineered sets (e.g. `stress_today`, `alcohol_today`) to distinguish them from derived temporal features. The translation table below shows `translated.parquet` names; the engineering tables show final engineered names.
 
 | Korean header (verbatim) | Benchmark column name | Decision | Reason |
 |--------------------------|----------------------|----------|--------|
@@ -202,34 +202,34 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 | 내인적 요인 — 운동 | exercise_as_trigger | Excluded | Not significantly associated with migraine (p=0.78); prevalence 1.3–1.5% across both headache types (Park et al., 2016, Table 4, p. 8) |
 | 내인적 요인 — 운동 안하기 | no_exercise | Included | Part of the 18-trigger inventory; behavioural complement to exercise (Park et al., 2016, p. 3) |
 | 내인적 요인 — 육체적 피로 | physical_fatigue | Included | Common trigger on headache days 20.7%; headache likelihood 48.5%; classified by Park et al. as a modifiable migraine trigger (Park et al., 2016, p. 5–6, p. 9) |
-| 내인적 요인 — 생리주기:월경기 | menstruation | Included | OR 3.5 (95% CI 2.3–5.2, p<0.001); significant regardless of preventive medication (Park et al., 2016, p. 7–9) |
-| 내인적 요인 — 생리주기:배란기 | ovulation | Included | Component of the hormonal-changes trigger domain in the SHD instrument (Park et al., 2016, p. 3) |
+| 내인적 요인 — 생리주기 : 월경기 | menstruation | Included | OR 3.5 (95% CI 2.3–5.2, p<0.001); significant regardless of preventive medication (Park et al., 2016, p. 7–9) |
+| 내인적 요인 — 생리주기 : 배란기 | ovulation | Included | Component of the hormonal-changes trigger domain in the SHD instrument (Park et al., 2016, p. 3) |
 | 내인적 요인 — 과도한 감정변화 | emotional_changes | Included | Headache likelihood when present 68.8% — third-highest of all triggers (Park et al., 2016, p. 6) |
-| 외부적 요인 — 날씨/온도 변화 | weather_change | Included | Common trigger 9.9% of headache days; read from Korean header — bypasses English typo that zeroed this feature in Spano's pipeline (Park et al., 2016, p. 5) |
+| 외부적 요인 — 날씨/온도 변화 | weather_change | Included | Common trigger 9.9% of headache days; read from Korean header (Park et al., 2016, p. 5) |
 | 외부적 요인 — 과도한 햇빛 | ~~sunlight~~ | Excluded | Not significantly associated with migraine (p=0.73); prevalence 0.8% — insufficient events for reliable modelling at this cohort size (Park et al., 2016, Table 4, p. 8) |
 | 외부적 요인 — 소음 | noise | Included | OR 2.8 (95% CI 1.4–4.9, p=0.002); significant regardless of preventive medication (Park et al., 2016, p. 7–8) |
 | 외부적 요인 — 부적절한 조명 | ~~inappropriate_lighting~~ | Excluded | Not part of Park et al.'s 18-trigger inventory; prevalence 0.2% — below the threshold for reliable modelling (Park et al., 2016, p. 3) |
-| 외부적 요인 — 특정한 냄새 | specific_smells | Included | Headache likelihood when present 71.8% — second-highest of all triggers; significantly more frequent in migraine (p<0.001) (Park et al., 2016, p. 6, Table 4) |
-| 기타 — 과도한음주 | alcohol | Included | OR 2.5 (95% CI 1.3–5.0, p=0.009); highest headache likelihood when present 78.6% (Park et al., 2016, p. 6–7) |
-| 기타 — 불규칙한 식사 | irregular_meals | Included | Significantly more frequent in migraine (p=0.003); significant in no-preventive-medication subgroup (p=0.03) (Park et al., 2016, Table 4–5, p. 8–9) |
+| 외부적 요인 — 특정한 냄새(화장품 향수 등) | specific_smells | Included | Headache likelihood when present 71.8% — second-highest of all triggers; significantly more frequent in migraine (p<0.001) (Park et al., 2016, p. 6, Table 4) |
+| 기타 — 과도한 음주 | alcohol | Included | OR 2.5 (95% CI 1.3–5.0, p=0.009); highest headache likelihood when present 78.6% (Park et al., 2016, p. 6–7) |
+| 기타 — 불규칙한 식사(공복 등) | irregular_meals | Included | Significantly more frequent in migraine (p=0.003); significant in no-preventive-medication subgroup (p=0.03) (Park et al., 2016, Table 4–5, p. 8–9) |
 | 기타 — 과식 | overeating | Included | OR 2.4 (95% CI 1.1–5.7, p=0.009) (Park et al., 2016, p. 7) |
 | 기타 — 과도한 카페인 음료 | excessive_caffeine | Included | Part of the 18-trigger inventory; not significant in stepwise regression but retained given prior literature support cited by Park et al. (Park et al., 2016, p. 3) |
 | 기타 — 과도한 흡연 | ~~excessive_smoking~~ | Excluded | Not significantly associated with migraine (p=0.73); excluded by Park et al. from subgroup analysis due to insufficient cell counts (Park et al., 2016, Table 4–5, p. 8–9) |
 | 기타 — 치즈 초콜릿 | ~~cheese_chocolate~~ | Excluded | Excluded by Park et al. from subgroup analysis due to insufficient cell counts; prevalence 0.7% — too sparse for reliable modelling (Park et al., 2016, Table 5, p. 9) |
 | 기타 — 여행 | travel | Included | Strongest migraine-associated trigger: OR 6.4 (95% CI 1.2–10.2, p=0.003) (Park et al., 2016, p. 7) |
 | 기타 — 기타 | ~~other_trigger~~ | Excluded | Catch-all free-text category; not part of the 18-trigger inventory and not analysed in Park et al. (Park et al., 2016, p. 3) |
-| 격렬한운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
+| 격렬한 운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
 | 중등도운동(분) | moderate_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
 
 **Key translation decisions:**
 
-The weather column is read directly from the Korean header `날씨/온도 변화`. This bypasses the English typo `Wheater/temperature change` introduced in Spano's Translated file, which caused all five weather features to be zeroed. All 226 weather-trigger rows (5.1% prevalence) are retained.
+The weather column is read directly from the Korean header `날씨/온도 변화`. This bypasses the English typo `Wheater/temperature change` introduced in previous work, which caused all five weather features to be zeroed. All 236 weather-trigger rows are retained.
 
 `exercise_as_trigger` is excluded from the final feature set (not significant in Park et al., p=0.78). However, `vigorous_exercise_min` and `moderate_exercise_min` are retained to derive `exercise_today` as a behaviour flag at the engineering step — these are semantically distinct and kept separate.
 
 Six columns are excluded at translation based on Park et al. statistical findings: `sunlight` (p=0.73, 0.8% prevalence), `inappropriate_lighting` (not in 18-trigger inventory, 0.2%), `excessive_smoking` (p=0.73, insufficient cell counts in Park et al. subgroup analysis), `cheese_chocolate` (insufficient cell counts, 0.7%), `exercise_as_trigger` (p=0.78), and `other_trigger` (catch-all, not analysed).
 
-Patient IDs are uppercased on read. This resolves the `CM-004`/`cm-004` case artifact, giving 62 canonical patients throughout.
+Patient IDs are uppercased on read. This resolves the `CM-004`/`cm-004` case artifact, giving 63 canonical patients throughout the translated diary.
 
 Group-sum columns (합계 columns) are not carried forward; they are derived quantities recomputed during engineering where needed.
 
@@ -239,7 +239,7 @@ The absorbed totals row is excluded by retaining only rows where `patient_id` ma
 
 ### Step 2 — Engineering
 
-Produces `data/engineered.parquet` from `data/translated.parquet`. All features describe the current diary day; the target describes the next day.
+Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `test_engineered.parquet` files from `data/translated.parquet`. All features describe the current diary day; the target describes the next day.
 
 **Operation order (script-level):**
 
@@ -251,21 +251,22 @@ Produces `data/engineered.parquet` from `data/translated.parquet`. All features 
 6. Construct stress, sleep, weather, dietary, physical-activity, other-trigger temporal features (require sorted per-patient series).
 7. Construct interaction features that require both groups (e.g. `sleep_disruption_today` needs `migraine_yesterday` from step 5).
 8. Drop structural columns (`headache_ongoing`, `severity_category`, `severity_vas`).
-9. Apply train/val split.
+9. Apply chronological 70/15/15 train/val/test split.
 
 **Rolling window edge handling:** All rolling features use `min_periods=1` — partial windows at the start of each patient's series compute over available days. This avoids dropping the first 6 days per patient.
 
-**Train/val split:**
+**Train/Val/Test Split (Chronological 70/15/15):**
 
-- Train: rows where `date < 2015-01-24`
-- Validation: rows where `date >= 2015-01-24`
-- Split is applied per-row, not per-patient. Patients may appear in both splits; this is intentional for time-forward evaluation.
+- **Train:** First 70% of unique chronological dates.
+- **Validation:** Next 15% of unique dates (used for hyperparameter tuning).
+- **Test:** Final 15% of unique dates (held out for final unbiased evaluation).
+- Split is applied per-row chronologically, not per-patient. Patients may appear in multiple splits; this is intentional for time-forward clinical evaluation simulating real-world forecasting.
 
 **Target construction:**
 
 `migraine_today` = `NOT headache_free` (polarity corrected).  
 `migraine_target` = `migraine_today.shift(-1)` per patient (next-day label).  
-Last diary entry per patient dropped — no next-day label available (−62 rows).
+Last diary entry per patient dropped — no next-day label available (−63 rows).
 
 **Feature groups:**
 
@@ -303,7 +304,7 @@ Last diary entry per patient dropped — no next-day label available (−62 rows
 
 | Feature | Description |
 |---------|-------------|
-| weather_change_today | direct (read from Korean header — 226 positives, 5.1%) |
+| weather_change_today | direct |
 | consecutive_weather_changes | rolling count of weather_change=1 |
 | weather_instability_3day | sum of weather_change in rolling 3-day window |
 | weather_change_yesterday | weather_change.shift(+1) per patient |
@@ -374,7 +375,10 @@ Last diary entry per patient dropped — no next-day label available (−62 rows
 
 ### Step 3 — Stage 5 Supplement (Sheet 2 Disability)
 
-Sheet 2 is processed separately into `data/disability.parquet` and is not included in the Stage 0–4 feature matrix. It is joined to the daily diary by patient ID and date for Stage 5 experiments only.
+Sheet 2 is processed separately into separated Train, Val, and Test Parquet files and is not included in the Stage 0–4 feature matrix. It is joined to the daily diary by patient ID and date for Stage 5 experiments only.
+
+**Train/Val/Test Split Alignment:**
+To ensure zero data leakage and exact temporal alignment with the daily diary features, the disability dataset is split into chronologically identical Train (70%), Validation (15%), and Test (15%) sets using the exact date cutoffs established in Step 2. Orphan patients without daily diary logs are filtered out. Outputs are physically separated into `train_disability.parquet`, `val_disability.parquet`, and `test_disability.parquet`.
 
 **Reading procedure for Sheet 2:**
 
@@ -432,12 +436,14 @@ Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `s
 | Raw source | SHD-Dataset.xls / Sheet 3 | 4,591 | — | Includes title, header, totals rows |
 | After cleaning | Sheet 3 data only | 4,579 | −12 | Non-data rows excluded |
 | After translation | translated.parquet | 4,579 | 0 | All diary days retained |
-| After engineering | engineered.parquet | ~4,517 | −62 | Last entry per patient dropped |
-| Train split | training set | ~3,839 | — | Rows before cutoff 2015-01-24 |
-| Validation split | validation set | ~678 | — | Rows from cutoff 2015-01-24 onward |
-| Disability set | disability.parquet | 1,099 | — | Sheet 2 headache events only |
-
-> Exact post-engineering row counts depend on per-patient edge handling and will be updated once the pipeline is run.
+| After engineering | engineered combined | 4,516 | −63 | Last entry per patient dropped |
+| Train split | train_engineered.parquet | 3,941 | — | First 70% of chronological timeline |
+| Validation split | val_engineered.parquet | 439 | — | Next 15% of chronological timeline |
+| Test split | test_engineered.parquet | 136 | — | Final 15% of chronological timeline |
+| Disability raw | SHD-Dataset.xls / Sheet 2 | 1,099 | — | Sheet 2 headache events only |
+| Disability train | train_disability.parquet | 981 | — | Aligned with engineered Train dates |
+| Disability val | val_disability.parquet | 97 | — | Aligned with engineered Val dates |
+| Disability test | test_disability.parquet | 21 | — | Aligned with engineered Test dates |
 
 ---
 
@@ -463,4 +469,4 @@ Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `s
 
 ## Citation
 
-Park, J.-W., Chu, M. K., Kim, J.-M., Park, S.-G., & Cho, S.-J. (2016). Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications. *PLOS ONE*, 11(2), e0149577. https://doi.org/10.1371/journal.pone.0149577
+Park, J.-W., Chu, M. K., Kim, J.-M., Park, S.-G., & Cho, S.-J. (2016). Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications. *PLOS ONE*, 11(2), e0149577. [https://doi.org/10.1371/journal.pone.0149577](https://doi.org/10.1371/journal.pone.0149577)
