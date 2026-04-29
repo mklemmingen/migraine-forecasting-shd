@@ -222,3 +222,8 @@ __marimo__/
 /.idea/modules.xml
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
+
+experiment/1/stage1_model.joblib
+experiment/0_Spano2026FeatureSet/stage0_model_old.joblib
+experiment/0_FullSHD18TriggerFeatureSet/stage0_model_old.joblib
+experiment/0_FullSHD18TriggerFeatureSet/stage0_model.joblib
