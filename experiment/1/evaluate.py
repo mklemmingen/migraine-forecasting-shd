@@ -124,7 +124,7 @@ def main():
         "=" * 60,
         f"Validation Set Derived Thresholds:",
         f" -> MCC-Optimal Threshold:          {opt_mcc_thresh:.3f}",
-        f" -> Threshold for Sens >= 0.50:     {sens_05_thresh:.3f}",
+        f" -> Threshold for Sens >= 0.5:     {sens_05_thresh:.3f}",
         "-" * 60,
         f"{'Metric':<25} | Mean [95% CI]",
         "-" * 60

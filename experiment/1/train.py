@@ -31,14 +31,14 @@ def main():
     # 1. Initialize Foundation Model (TabPFN)
     # The dataset (n=3941, cols=40) fits perfectly within TabPFN's scaling limits.
     print("Initializing TabPFN Foundation Model...")
-    tabpfn_base = TabPFNClassifier()
+    tabpfn_base = TabPFNClassifier(device='cuda')
 
     # 2. "Fit" the model (In-context learning mapping)
     print("Fitting TabPFN on training set...")
     tabpfn_base.fit(X_train, y_train)
 
     # 3. Isotonic Calibration on Validation Set
-    # Maintains the exact benchmark protocol established in Stage 0
+    # Maintains the exact benchmark protocol established in Stage 0_FullSHD18TriggerFeatureSet
     print("Applying Isotonic Calibration using Validation set...")
     calibrated_model = CalibratedClassifierCV(
         estimator=tabpfn_base,
