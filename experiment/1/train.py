@@ -37,12 +37,14 @@ def main():
     print("Fitting TabPFN on training set...")
     tabpfn_base.fit(X_train, y_train)
 
-    # 3. Isotonic Calibration on Validation Set
-    # Maintains the exact benchmark protocol established in Stage 0_FullSHD18TriggerFeatureSet
-    print("Applying Isotonic Calibration using Validation set...")
+    # 3. Platt (Sigmoid) Calibration on Validation Set
+    # Isotonic regression requires ≥1000 samples (Caruana et al. 2005); with val n=439
+    # and 93 positives, a two-parameter sigmoid fit avoids overfitting the calibration
+    # step. Matches the rationale in Stage 0_FullSHD18TriggerFeatureSet/train.py.
+    print("Applying Platt (Sigmoid) Calibration using Validation set...")
     calibrated_model = CalibratedClassifierCV(
         estimator=tabpfn_base,
-        method='isotonic',
+        method='sigmoid',
         cv='prefit'
     )
 
