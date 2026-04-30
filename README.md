@@ -31,14 +31,14 @@ Bootstrap confidence intervals reported throughout.
 
 | Stage | Approach | Package | Status |
 |-------|----------|---------|--------|
-| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration) | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress |
-| 1 | Foundational tabular models (TabPFN) | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
+| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration). Organised under `experiment/0/<feature_set>/<architecture>/`: `full_features/{clean_stack,spano_blend}` and `spano_features/spano_blend`. Clean architecture eval by CV. | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
+| 1 | Foundational tabular models (TabPFN), under `experiment/1/full_features/tabpfn/`. Architecture eval by CV. | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
 | 2 | Explainability (SHAP, LIME) | [`shap`](https://shap.readthedocs.io/en/latest/) · [`lime`](https://github.com/marcotcr/lime) | Planned |
 | 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned |
 | 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) | Planned |
 | 5 | Per-event disability prediction | TBD | Exploratory |
 
-Each stage is self-contained under `experiments/<stage>/` with code, config, and results.
+Each stage is self-contained under `experiment/<stage>/<feature_set>/<architecture>/` with code, model, and results.
 
 ## Baseline Model
 
@@ -46,9 +46,7 @@ The stacked ensemble baseline (Stage 0) is based on the architecture originally 
 
 ## Reproducibility
 
-Dependencies pinned per stage in `environment.yml`.  
-Random seeds recorded in `config.yaml`.  
-Aggregated metrics in `results/` are regenerated from per-experiment outputs — not manually edited.
+Aggregated metrics in each stages `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
 
 ## Citation
 

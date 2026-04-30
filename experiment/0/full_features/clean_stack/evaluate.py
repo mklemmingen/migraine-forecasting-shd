@@ -6,8 +6,6 @@ from datetime import datetime
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.isotonic import IsotonicRegression
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
     brier_score_loss,
@@ -17,45 +15,15 @@ from sklearn.metrics import (
 )
 
 # Configuration
-DATA_DIR = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
 TEST_PATH  = os.path.join(DATA_DIR, "test_engineered.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage0_model_old.joblib")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
-RESULT_PREFIX = "results_old"
-TITLE         = "STAGE 0_FullSHD18TriggerFeatureSet: SPANO BLEND ARCHITECTURE on new Feature Set(train_old.py)"
-
-
-# ---------------------------------------------------------------------------
-# Calibrator classes — must match train_old.py exactly for pickle to resolve
-# ---------------------------------------------------------------------------
-
-class IsoCalibrator:
-    def __init__(self):
-        self._iso = IsotonicRegression(out_of_bounds='clip')
-
-    def fit(self, proba, y):
-        self._iso.fit(proba, y)
-        return self
-
-    def transform(self, proba):
-        return self._iso.predict(proba)
-
-
-class PlattCalibrator:
-    def __init__(self):
-        self._lr = LogisticRegression(fit_intercept=True, solver='lbfgs', max_iter=1000)
-
-    def fit(self, proba, y):
-        logit = np.log(np.clip(proba, 1e-8, 1 - 1e-8) / (1 - np.clip(proba, 1e-8, 1 - 1e-8)))
-        self._lr.fit(logit.reshape(-1, 1), y)
-        return self
-
-    def transform(self, proba):
-        logit = np.log(np.clip(proba, 1e-8, 1 - 1e-8) / (1 - np.clip(proba, 1e-8, 1 - 1e-8)))
-        return self._lr.predict_proba(logit.reshape(-1, 1))[:, 1]
+RESULT_PREFIX = "results"
+TITLE         = "STAGE 0 / full_features / clean_stack: STACKED ENSEMBLE (train.py)"
 
 
 # ---------------------------------------------------------------------------
@@ -122,17 +90,12 @@ def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_i
 # ---------------------------------------------------------------------------
 
 def _calibrated_proba(bundle, X):
-    """Spano parallel blend: XGB + LR → per-model calibrators → alpha blend → final calibrator."""
-    p_x_raw = bundle['xgb'].predict_proba(X)[:, 1]
-    p_l_raw = bundle['lr_pipe'].predict_proba(X)[:, 1]
-    if bundle['which_base_cal'] == 'iso+iso':
-        p_x = bundle['cal_x_iso'].transform(p_x_raw)
-        p_l = bundle['cal_l_iso'].transform(p_l_raw)
-    else:
-        p_x = bundle['cal_x_pl'].transform(p_x_raw)
-        p_l = bundle['cal_l_pl'].transform(p_l_raw)
-    p_blend = bundle['alpha'] * p_x + (1 - bundle['alpha']) * p_l
-    return bundle['final_calibrator'].transform(p_blend)
+    """Stacked ensemble + Platt (or isotonic) calibrator saved by train.py."""
+    raw = bundle['stacker'].predict_proba(X)[:, 1]
+    cal = bundle['calibrator']
+    if hasattr(cal, 'predict_proba'):
+        return cal.predict_proba(raw.reshape(-1, 1))[:, 1]
+    return cal.predict(raw)
 
 
 # ---------------------------------------------------------------------------

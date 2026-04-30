@@ -223,7 +223,11 @@ __marimo__/
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
 
-experiment/1/stage1_model.joblib
-experiment/0_Spano2026FeatureSet/stage0_model_old.joblib
-experiment/0_FullSHD18TriggerFeatureSet/stage0_model_old.joblib
-experiment/0_FullSHD18TriggerFeatureSet/stage0_model.joblib
+experiment/0/full_features/clean_stack/model.joblib
+experiment/0/full_features/spano_blend/model.joblib
+experiment/0/spano_features/spano_blend/model.joblib
+experiment/1/full_features/tabpfn/model.joblib
+/experiment/0/full_features/clean_stack/stage0_model.joblib
+/experiment/0/full_features/spano_blend/stage0_model_old.joblib
+/experiment/0/spano_features/spano_blend/stage0_model_old.joblib
+/experiment/1/full_features/tabpfn/stage1_model.joblib

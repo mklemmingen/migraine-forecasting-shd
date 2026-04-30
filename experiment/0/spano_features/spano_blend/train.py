@@ -8,6 +8,7 @@ by a final calibrator also selected by val MCC.
 Kept separate from train.py to allow direct metric comparison.
 """
 import os
+import sys
 
 import joblib
 import numpy as np
@@ -21,13 +22,18 @@ from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
 
 # Configuration
-DATA_DIR = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 TRAIN_PATH = os.path.join(DATA_DIR, "train_engineered.parquet")
 VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage0_model_old.joblib")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
-ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0_FullSHD18TriggerFeatureSet.00, 0_FullSHD18TriggerFeatureSet.05, ..., 1.00  (Spano config.py)
+# Cleaner of Trigger columns that were not in Spano 2026, to ensure a fair
+# comparison with the original architecture. See ../filter_to_spano_features.py.
+sys.path.insert(0, os.path.join(EXPERIMENT_DIR, ".."))
+from filter_to_spano_features import remove_non_spano_features
+
+ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0, 0.05, ..., 1.00  (Spano config.py)
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +42,7 @@ ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0_FullSHD18TriggerFeatureSet.00, 0_Fu
 
 def load_and_prep_data(filepath):
     """Load a Parquet split and return (X, y) with identifier columns stripped."""
-    df = pd.read_parquet(filepath)
+    df = remove_non_spano_features(filepath)
     cols_to_drop = ['entry_id', 'patient_id', 'date', 'migraine_target']
     X = df.drop(columns=cols_to_drop)
     y = df['migraine_target']

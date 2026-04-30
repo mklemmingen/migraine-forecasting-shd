@@ -14,12 +14,12 @@ from sklearn.metrics import (
 )
 
 # Configuration
-DATA_DIR = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH = os.path.join(DATA_DIR, "val_engineered.parquet")
 TEST_PATH = os.path.join(DATA_DIR, "test_engineered.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage1_model.joblib")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
 def load_and_prep_data(filepath):
@@ -120,7 +120,7 @@ def main():
     # Build the formatted output string
     output_lines = [
         "=" * 60,
-        "STAGE 1: FOUNDATIONAL TABULAR MODELS (TABPFN) RESULTS",
+        "STAGE 1 / full_features / tabpfn: FOUNDATIONAL TABULAR MODELS (TABPFN) RESULTS",
         "=" * 60,
         f"Validation Set Derived Thresholds:",
         f" -> MCC-Optimal Threshold:          {opt_mcc_thresh:.3f}",

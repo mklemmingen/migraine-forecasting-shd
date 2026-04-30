@@ -1,0 +1,21 @@
+# ---- Data pipeline -------------------------------------------------------------------------------------
+pandas>=2.0
+numpy>=1.26
+pyarrow>=14.0           # parquet read/write (pandas backend)
+xlrd<2.0                # pd.read_excel on .xls — xlrd 2.0+ dropped .xls support entirely
+
+# ---- Machine learning ----------------------------------------------------------------------------------
+scikit-learn>=1.4       # StackingClassifier, KFold, TimeSeriesSplit,
+                        # CalibratedClassifierCV, LogisticRegression, Pipeline,
+                        # SimpleImputer, StandardScaler, IsotonicRegression
+xgboost>=2.0            # XGBClassifier (tree_method='hist' is default in 2.x)
+joblib>=1.3             # model serialisation; also a scikit-learn dep
+
+# ---- Foundation model -----------------------------------------------------------------------------------
+tabpfn>=2.0             # Prior Labs release — TabPFNClassifier(device='cuda')
+                        # pulls in torch as a transitive dependency;
+                        # for GPU inference install torch with CUDA extras first:
+                        #   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# ---- Visualisation ---------------------------------------------------------------------------------------
+matplotlib>=3.8         # calibration_check.py reliability diagrams (Agg backend)
