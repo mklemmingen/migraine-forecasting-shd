@@ -1,0 +1,23 @@
+============================================================
+STAGE 0_FullSHD18TriggerFeatureSet: STACKED ENSEMBLE — 5-Fold Time-Series CV (train.py)
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split — NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.581    0.539    0.633    0.650    0.518 | 0.584    0.051  
+AUPRC                     |   0.357    0.271    0.323    0.390    0.211 | 0.310    0.064  
+Brier Score               |   0.201    0.177    0.149    0.159    0.131 | 0.164    0.024  
+ECE10                     |   0.042    0.056    0.040    0.028    0.079 | 0.049    0.017  
+MCC (Cal-Optimal)         |   0.088    0.085    0.142    0.213   -0.003 | 0.105    0.071  
+Sensitivity (>=0.5)       |   0.533    0.371    0.536    0.614    0.391 | 0.489    0.093  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.520  thresh_sens=0.310
+  F2: 1213 /  545 / 1187   thresh_mcc=0.380  thresh_sens=0.260
+  F3: 2272 /  673 /  883   thresh_mcc=0.230  thresh_sens=0.220
+  F4: 3121 /  707 /  530   thresh_mcc=0.310  thresh_sens=0.180
+  F5: 3809 /  549 /  158   thresh_mcc=0.290  thresh_sens=0.230
+============================================================

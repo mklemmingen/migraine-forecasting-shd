@@ -13,11 +13,42 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage1_model.joblib")
 
 
 def load_and_prep_data(filepath):
-    """Loads Parquet file and splits into features and target."""
+    """Load a Parquet split and return (X, y) with identifier columns stripped."""
     df = pd.read_parquet(filepath)
-    X = df.drop(columns=['entry_id', 'patient_id', 'date', 'migraine_target'])
+    return prep_split(df)
+
+
+def prep_split(df):
+    """Return (X, y) from an already-loaded engineered DataFrame.
+
+    Drops all non-feature columns so the same logic works for both the
+    70/15/15 parquet files and the cv_engineered.parquet (which adds cv_fold).
+    """
+    drop_cols = ['entry_id', 'patient_id', 'date', 'migraine_target', 'cv_fold']
+    X = df.drop(columns=[c for c in drop_cols if c in df.columns])
     y = df['migraine_target']
     return X, y
+
+
+def build_tabpfn(X_train, y_train, X_cal, y_cal):
+    """Fit TabPFN on training data and Platt-calibrate on a separate calibration set.
+
+    Extracted from main() so evaluate_cv.py can re-train per fold without
+    duplicating model configuration.
+
+    Calibration uses a held-out cal set (not the evaluation fold) so that
+    the evaluation fold is completely unseen at fit time.
+    """
+    tabpfn_base = TabPFNClassifier(device='cuda')
+    tabpfn_base.fit(X_train, y_train)
+
+    calibrated = CalibratedClassifierCV(
+        estimator=tabpfn_base,
+        method='sigmoid',
+        cv='prefit',
+    )
+    calibrated.fit(X_cal, y_cal)
+    return calibrated
 
 
 def main():
@@ -28,30 +59,9 @@ def main():
     print(f"Train set: X={X_train.shape}, y={y_train.shape}")
     print(f"Val set:   X={X_val.shape}, y={y_val.shape}")
 
-    # 1. Initialize Foundation Model (TabPFN)
-    # The dataset (n=3941, cols=40) fits perfectly within TabPFN's scaling limits.
-    print("Initializing TabPFN Foundation Model...")
-    tabpfn_base = TabPFNClassifier(device='cuda')
+    print("Fitting TabPFN + Platt calibration...")
+    calibrated_model = build_tabpfn(X_train, y_train, X_val, y_val)
 
-    # 2. "Fit" the model (In-context learning mapping)
-    print("Fitting TabPFN on training set...")
-    tabpfn_base.fit(X_train, y_train)
-
-    # 3. Platt (Sigmoid) Calibration on Validation Set
-    # Isotonic regression requires ≥1000 samples (Caruana et al. 2005); with val n=439
-    # and 93 positives, a two-parameter sigmoid fit avoids overfitting the calibration
-    # step. Matches the rationale in Stage 0_FullSHD18TriggerFeatureSet/train.py.
-    print("Applying Platt (Sigmoid) Calibration using Validation set...")
-    calibrated_model = CalibratedClassifierCV(
-        estimator=tabpfn_base,
-        method='sigmoid',
-        cv='prefit'
-    )
-
-    # Fit calibration ONLY on validation data
-    calibrated_model.fit(X_val, y_val)
-
-    # 4. Save the pipeline
     os.makedirs(EXPERIMENT_DIR, exist_ok=True)
     joblib.dump(calibrated_model, MODEL_PATH)
     print(f"Model successfully saved to: {MODEL_PATH}")
