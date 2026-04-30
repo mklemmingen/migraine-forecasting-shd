@@ -31,7 +31,7 @@ TRAIN_PATH = os.path.join(DATA_DIR, "train_engineered.parquet")
 VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "../0_Spano2026FeatureSet/stage0_model_old.joblib")
 
-ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0_FullSHD18TriggerFeatureSet.00, 0_FullSHD18TriggerFeatureSet.05, ..., 1.00  (Spano config.py)
+ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0, 0.05, ..., 1.00  (Spano config.py)
 
 
 # ---------------------------------------------------------------------------

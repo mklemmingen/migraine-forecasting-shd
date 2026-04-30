@@ -27,6 +27,29 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage0_model_old.joblib")
 RESULT_PREFIX = "results_old"
 TITLE         = "STAGE 0_FullSHD18TriggerFeatureSet: SPANO BLEND ARCHITECTURE on new Feature Set(train_old.py)"
 
+# ---------------------------------------------------------------------------
+# VALIDITY WARNING
+# The Spano blend architecture uses the validation set for four sequential
+# optimisation steps in train_old.py: fitting per-model isotonic and Platt
+# calibrators, alpha grid search, and final calibrator selection. This script
+# then reuses the same validation set for operating-threshold selection.
+#
+# Because the isotonic calibrators are fitted ON the val set they effectively
+# memorise it — val probabilities after calibration approach the empirical
+# positive rate within each predicted-probability group on val. Thresholds
+# derived from these memorised probabilities are poorly matched to the test
+# distribution, and ECE10 computed by resampling val-calibrated scores will be
+# artificially low.
+#
+# Consequence: Sensitivity (>=0.5) and MCC (Optimal) metrics on test are
+# unreliable. AUROC and AUPRC are rank-based and unaffected by calibration, so
+# they remain the most trustworthy outputs of this script.
+#
+# The methodologically sound baseline for this benchmark is the stacked
+# ensemble in evaluate.py (train.py), which uses only Platt (two-parameter)
+# calibration on val and keeps threshold selection as the sole second use.
+# ---------------------------------------------------------------------------
+
 
 # ---------------------------------------------------------------------------
 # Calibrator classes — must match train_old.py exactly for pickle to resolve
