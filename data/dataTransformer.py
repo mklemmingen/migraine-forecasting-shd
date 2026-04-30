@@ -29,6 +29,7 @@ This row is excluded before analysis by filtering on valid patient IDs.
 import pandas as pd
 import numpy as np
 from datetime import timedelta
+from sklearn.model_selection import TimeSeriesSplit
 
 # Timesplit Variables
 global DATE_70, DATE_85
@@ -565,6 +566,47 @@ def process_disability_sheet(raw_df):
     return df
 
 
+def assign_cv_folds(df, n_splits=5):
+    """Assign expanding-window (walk-forward) CV fold labels to the engineered DataFrame.
+
+    Operates on unique chronological dates so that every row belonging to the
+    same date lands in the same fold — consistent with the date-based 70/15/15
+    split already used for the benchmark.
+
+    cv_fold=0  — always train: dates that fall before the first val window, or
+                 after the last (they appear in training for later folds but
+                 never as a validation window).
+    cv_fold=k  — validation data for fold k  (k = 1 .. n_splits).
+
+    Usage in experiment scripts
+    ---------------------------
+        cv = pd.read_parquet('cv_engineered.parquet')
+        for fold in range(1, n_splits + 1):
+            train = cv[cv['cv_fold'] < fold]   # folds 0 .. k-1 (expanding)
+            val   = cv[cv['cv_fold'] == fold]  # fold k
+
+    Why CV instead of a fixed val split?
+    -------------------------------------
+    With n_test=136 and 19 positives the 70/15/15 test set is too small to
+    reliably rank models (95% CI on AUROC spans ~0.3). Using 5-fold
+    time-series CV on the full dataset averages evaluation over 5 val windows
+    (~830 rows each), dramatically reducing variance in model comparison.
+    The 70/15/15 files remain the locked benchmark for final reporting;
+    CV is for model selection only.
+    """
+    unique_dates = np.sort(df['date'].unique())
+    tss = TimeSeriesSplit(n_splits=n_splits)
+
+    date_to_fold = {d: 0 for d in unique_dates}
+    for fold_idx, (_, val_indices) in enumerate(tss.split(unique_dates), start=1):
+        for i in val_indices:
+            date_to_fold[unique_dates[i]] = fold_idx
+
+    out = df.copy()
+    out['cv_fold'] = out['date'].map(date_to_fold).astype(int)
+    return out
+
+
 def print_data_insights(raw_df, translated_df,
                                    train_engineered, val_engineered, test_engineered,
                                    train_disability, val_disability, test_disability):
@@ -678,6 +720,12 @@ val_engineered.to_parquet('val_engineered.parquet', index=False)
 test_engineered.to_parquet('test_engineered.parquet', index=False)
 
 print(f"Engineered -> Train: {len(train_engineered)} | Val: {len(val_engineered)} | Test: {len(test_engineered)}")
+
+# CV version — full engineered data with expanding-window fold labels (no 70/15/15 split)
+cv_engineered = assign_cv_folds(engineered_df.drop(columns=['split', 'migraine_today'], errors='ignore'))
+cv_engineered.to_parquet('cv_engineered.parquet', index=False)
+fold_dist = cv_engineered['cv_fold'].value_counts().sort_index()
+print(f"CV       -> Full: {len(cv_engineered)} rows | fold distribution: { {k: v for k, v in fold_dist.items()} }")
 
 # Step 3 — Stage 5 Supplement (Sheet 2 Disability) -- -- -- -- -- -- -- -- -- -- -- -- -- --
 # Note: sheet_name=1 is the 2nd sheet (0-indexed).
