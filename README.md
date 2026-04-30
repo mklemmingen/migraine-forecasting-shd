@@ -31,8 +31,8 @@ Bootstrap confidence intervals reported throughout.
 
 | Stage | Approach | Package | Status |
 |-------|----------|---------|--------|
-| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration) | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress |
-| 1 | Foundational tabular models (TabPFN) | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
+| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration) -> seperated in Using 1. the Full Feature Set on A: Spano and B: Clean Architecture 2. Small Feature Set on Spano Blend ; Clean Architecture eval by CV| [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
+| 1 | Foundational tabular models (TabPFN) ; Architecture eval by CV | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
 | 2 | Explainability (SHAP, LIME) | [`shap`](https://shap.readthedocs.io/en/latest/) · [`lime`](https://github.com/marcotcr/lime) | Planned |
 | 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned |
 | 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) | Planned |
