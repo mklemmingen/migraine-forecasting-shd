@@ -5,11 +5,11 @@ from tabpfn import TabPFNClassifier
 from sklearn.calibration import CalibratedClassifierCV
 
 # Configuration
-DATA_DIR = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 TRAIN_PATH = os.path.join(DATA_DIR, "train_engineered.parquet")
 VAL_PATH = os.path.join(DATA_DIR, "val_engineered.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage1_model.joblib")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
 def load_and_prep_data(filepath):

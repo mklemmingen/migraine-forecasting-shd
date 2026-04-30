@@ -1,0 +1,23 @@
+============================================================
+STAGE 1 / full_features / tabpfn: TABPFN — 5-Fold Time-Series CV (train.py)
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split — NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.657    0.618    0.649    0.656    0.530 | 0.622    0.048  
+AUPRC                     |   0.428    0.333    0.340    0.400    0.204 | 0.341    0.077  
+Brier Score               |   0.191    0.169    0.147    0.155    0.127 | 0.158    0.022  
+ECE10                     |   0.041    0.027    0.031    0.018    0.045 | 0.032    0.010  
+MCC (Cal-Optimal)         |   0.223    0.102    0.192    0.295   -0.013 | 0.160    0.107  
+Sensitivity (>=0.5)       |   0.396    0.367    0.482    0.623    0.261 | 0.426    0.121  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.330  thresh_sens=0.410
+  F2: 1213 /  545 / 1187   thresh_mcc=0.320  thresh_sens=0.250
+  F3: 2272 /  673 /  883   thresh_mcc=0.270  thresh_sens=0.210
+  F4: 3121 /  707 /  530   thresh_mcc=0.280  thresh_sens=0.170
+  F5: 3809 /  549 /  158   thresh_mcc=0.300  thresh_sens=0.210
+============================================================

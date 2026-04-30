@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 from collections import defaultdict
 from datetime import datetime
@@ -16,25 +17,26 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-# Cleaner of Trigger columns that were not in Spano 2026, to ensure a fair comparison with the original architecture.
-# See parquetFilterToOldFeatureSet.py for details.
-from parquetFilterToOldFeatureSet import remove_non_spano_features
-
 # Configuration
-DATA_DIR = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
 TEST_PATH  = os.path.join(DATA_DIR, "test_engineered.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "stage0_model_old.joblib")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
-RESULT_PREFIX = "results_old"
-TITLE         = "STAGE 0_Spano2026FeatureSet: SPANO BLEND ARCHITECTURE on old Feature Set(train_old.py)"
+RESULT_PREFIX = "results"
+TITLE         = "STAGE 0 / spano_features / spano_blend: SPANO BLEND ARCHITECTURE (train.py)"
+
+# Cleaner of Trigger columns that were not in Spano 2026, to ensure a fair
+# comparison with the original architecture. See ../filter_to_spano_features.py.
+sys.path.insert(0, os.path.join(EXPERIMENT_DIR, ".."))
+from filter_to_spano_features import remove_non_spano_features
 
 # ---------------------------------------------------------------------------
 # VALIDITY WARNING
 # The Spano blend architecture uses the validation set for four sequential
-# optimisation steps in train_old.py: fitting per-model isotonic and Platt
+# optimisation steps in train.py: fitting per-model isotonic and Platt
 # calibrators, alpha grid search, and final calibrator selection. This script
 # then reuses the same validation set for operating-threshold selection.
 #
@@ -50,14 +52,14 @@ TITLE         = "STAGE 0_Spano2026FeatureSet: SPANO BLEND ARCHITECTURE on old Fe
 # they remain the most trustworthy outputs of this script.
 #
 # The methodologically sound baseline for this benchmark is the stacked
-# ensemble in experiment/0_FullSHD18TriggerFeatureSet/evaluate.py (train.py),
+# ensemble in experiment/0/full_features/clean_stack/evaluate.py (train.py),
 # which uses only Platt (two-parameter) calibration on val and keeps threshold
 # selection as the sole second use.
 # ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
-# Calibrator classes — must match train_old.py exactly for pickle to resolve
+# Calibrator classes — must match train.py exactly for pickle to resolve
 # ---------------------------------------------------------------------------
 
 class IsoCalibrator:

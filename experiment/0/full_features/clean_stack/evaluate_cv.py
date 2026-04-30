@@ -1,22 +1,22 @@
 """
-5-fold time-series cross-validation — TabPFN (Stage 1).
+5-fold time-series cross-validation — Stacked Ensemble (Stage 0).
 
 1. Reads cv_engineered.parquet (produced by dataTransformer.py).
 
-2. Imports build_tabpfn and prep_split from train.py so model configuration
-is never duplicated.
+2. Imports build_stacker and fit_sigmoid_calibrator from train.py so model
+configuration is never duplicated.
 
 Fold structure per iteration k (k = 1 .. 5)
 --------------------------------------------
   training fold : cv_fold < k          (expanding window)
-  ->train_sub  : first 80% of training dates  → fit TabPFN
+  -> train_sub  : first 80% of training dates  → fit stacker
   -> cal_sub    : last  20% of training dates  → fit Platt calibrator
-                                                + select thresholds
+                                                  + select thresholds
   evaluation    : cv_fold == k                 → score only, never touched
-                                                during fitting or selection
+                                                  during fitting or selection
 
 Threshold selection on cal_sub (not on the evaluation fold) means there is
-no val-contamination of the kind documented in evaluate_old.py.
+no val-contamination of the kind documented in spano_blend/evaluate.py.
 
 Results: mean ± std across 5 folds, plus a per-fold breakdown.
 Result files are named results_cv_<timestamp>_<uuid>.txt to distinguish them
@@ -39,14 +39,14 @@ from sklearn.metrics import (
 )
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from train import build_tabpfn, prep_split
+from train import build_stacker, fit_sigmoid_calibrator, prep_split
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-DATA_DIR       = "../../data"
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR       = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
 RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
 CV_PATH        = os.path.join(DATA_DIR, "cv_engineered.parquet")
 
@@ -55,7 +55,8 @@ CAL_RATIO      = 0.20   # fraction of training-fold dates held out for cal_sub
 
 RESULT_PREFIX  = "results_cv"
 TITLE          = (
-    f"STAGE 1: TABPFN — {N_SPLITS}-Fold Time-Series CV (train.py)"
+    "STAGE 0 / full_features / clean_stack: STACKED ENSEMBLE — "
+    f"{N_SPLITS}-Fold Time-Series CV (train.py)"
 )
 
 
@@ -105,9 +106,9 @@ def main():
     print(f"  Total rows: {len(cv):,}  |  cv_fold distribution: "
           f"{ dict(cv['cv_fold'].value_counts().sort_index()) }")
 
-    fold_metrics    = defaultdict(list)
-    fold_thresholds = []
-    fold_sizes      = []
+    fold_metrics  = defaultdict(list)   # metric → [fold1_val, fold2_val, ...]
+    fold_thresholds = []                # (opt_mcc, sens_05) per fold
+    fold_sizes    = []                  # (n_train_sub, n_cal_sub, n_val) per fold
 
     for fold in range(1, N_SPLITS + 1):
         print(f"\n--- Fold {fold}/{N_SPLITS} ---")
@@ -134,10 +135,15 @@ def main():
         print(f"  Positive rates — train_sub: {y_train_sub.mean():.3f}  "
               f"cal_sub: {y_cal_sub.mean():.3f}  val: {y_val.mean():.3f}")
 
-        print(f"  Fitting TabPFN on train_sub, calibrating on cal_sub ...")
-        model = build_tabpfn(X_train_sub, y_train_sub, X_cal_sub, y_cal_sub)
+        print(f"  Fitting stacker on train_sub ...")
+        stacker = build_stacker(X_train_sub, y_train_sub)
 
-        p_cal = model.predict_proba(X_cal_sub)[:, 1]
+        print(f"  Fitting Platt calibrator on cal_sub ...")
+        calibrator = fit_sigmoid_calibrator(stacker, X_cal_sub, y_cal_sub)
+
+        p_cal = calibrator.predict_proba(
+            stacker.predict_proba(X_cal_sub)[:, 1].reshape(-1, 1)
+        )[:, 1]
 
         if len(np.unique(y_cal_sub)) < 2:
             print(f"  WARNING: cal_sub has only one class — using default thresholds.")
@@ -147,7 +153,10 @@ def main():
         fold_thresholds.append((opt_thresh, sens_thresh))
         print(f"  Thresholds — MCC-optimal: {opt_thresh:.3f}  Sens>=0.5: {sens_thresh:.3f}")
 
-        p_val  = model.predict_proba(X_val)[:, 1]
+        p_val = calibrator.predict_proba(
+            stacker.predict_proba(X_val)[:, 1].reshape(-1, 1)
+        )[:, 1]
+
         scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
         for metric, value in scores.items():
             fold_metrics[metric].append(value)
