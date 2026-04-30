@@ -46,9 +46,7 @@ The stacked ensemble baseline (Stage 0) is based on the architecture originally 
 
 ## Reproducibility
 
-Dependencies pinned per stage in `environment.yml`.  
-Random seeds recorded in `config.yaml`.  
-Aggregated metrics in `results/` are regenerated from per-experiment outputs — not manually edited.
+Aggregated metrics in each stages `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
 
 ## Citation
 
