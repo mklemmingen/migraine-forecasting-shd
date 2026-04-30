@@ -1,0 +1,218 @@
+"""
+5-fold time-series cross-validation — Stacked Ensemble (Stage 0).
+
+Reads cv_engineered.parquet (produced by dataTransformer.py).
+Imports build_stacker and fit_sigmoid_calibrator from train.py so model
+configuration is never duplicated.
+
+Fold structure per iteration k (k = 1 .. 5)
+--------------------------------------------
+  training fold : cv_fold < k          (expanding window)
+  ├─ train_sub  : first 80% of training dates  → fit stacker
+  └─ cal_sub    : last  20% of training dates  → fit Platt calibrator
+                                                  + select thresholds
+  evaluation    : cv_fold == k                 → score only, never touched
+                                                  during fitting or selection
+
+Threshold selection on cal_sub (not on the evaluation fold) means there is
+no val-contamination of the kind documented in evaluate_old.py.
+
+Results: mean ± std across 5 folds, plus a per-fold breakdown.
+Result files are named results_cv_<timestamp>_<uuid>.txt to distinguish them
+from the 70/15/15 results_*.txt files in the same results/ directory.
+"""
+import os
+import sys
+import uuid
+from collections import defaultdict
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    matthews_corrcoef,
+    recall_score,
+    roc_auc_score,
+)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from train import build_stacker, fit_sigmoid_calibrator, prep_split
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+DATA_DIR       = "../../data"
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
+CV_PATH        = os.path.join(DATA_DIR, "cv_engineered.parquet")
+
+N_SPLITS       = 5
+CAL_RATIO      = 0.20   # fraction of training-fold dates held out for cal_sub
+
+RESULT_PREFIX  = "results_cv"
+TITLE          = (
+    "STAGE 0_FullSHD18TriggerFeatureSet: STACKED ENSEMBLE — "
+    f"{N_SPLITS}-Fold Time-Series CV (train.py)"
+)
+
+
+# ---------------------------------------------------------------------------
+# Metrics
+# ---------------------------------------------------------------------------
+
+def expected_calibration_error(y_true, y_prob, n_bins=10):
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    binned    = np.digitize(y_prob, bin_edges[1:-1])
+    ece = 0.0
+    for i in range(n_bins):
+        mask = binned == i
+        if mask.sum() > 0:
+            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
+    return ece / len(y_true)
+
+
+def find_operating_thresholds(y_true, y_prob):
+    thresholds = np.linspace(0.01, 0.99, 99)
+    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
+    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
+    opt_mcc_thresh = thresholds[np.argmax(mccs)]
+    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
+    sens_05_thresh = max(valid) if valid else 0.50
+    return opt_mcc_thresh, sens_05_thresh
+
+
+def score_fold(y_val, p_val, opt_thresh, sens_thresh):
+    return {
+        'AUROC':              roc_auc_score(y_val, p_val),
+        'AUPRC':              average_precision_score(y_val, p_val),
+        'Brier Score':        brier_score_loss(y_val, p_val),
+        'ECE10':              expected_calibration_error(y_val, p_val),
+        'MCC (Cal-Optimal)':  matthews_corrcoef(y_val, (p_val >= opt_thresh).astype(int)),
+        'Sensitivity (>=0.5)':recall_score(y_val,      (p_val >= sens_thresh).astype(int)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    print(f"Loading {CV_PATH} ...")
+    cv = pd.read_parquet(CV_PATH)
+    print(f"  Total rows: {len(cv):,}  |  cv_fold distribution: "
+          f"{ dict(cv['cv_fold'].value_counts().sort_index()) }")
+
+    fold_metrics  = defaultdict(list)   # metric → [fold1_val, fold2_val, ...]
+    fold_thresholds = []                # (opt_mcc, sens_05) per fold
+    fold_sizes    = []                  # (n_train_sub, n_cal_sub, n_val) per fold
+
+    for fold in range(1, N_SPLITS + 1):
+        print(f"\n--- Fold {fold}/{N_SPLITS} ---")
+
+        train_fold = cv[cv['cv_fold'] < fold].copy()
+        val_fold   = cv[cv['cv_fold'] == fold].copy()
+
+        # Split training fold chronologically: train_sub / cal_sub
+        unique_train_dates = np.sort(train_fold['date'].unique())
+        cal_cutoff_idx     = int(len(unique_train_dates) * (1.0 - CAL_RATIO))
+        cal_cutoff_date    = unique_train_dates[cal_cutoff_idx]
+
+        train_sub = train_fold[train_fold['date'] < cal_cutoff_date]
+        cal_sub   = train_fold[train_fold['date'] >= cal_cutoff_date]
+
+        X_train_sub, y_train_sub = prep_split(train_sub)
+        X_cal_sub,   y_cal_sub   = prep_split(cal_sub)
+        X_val,       y_val       = prep_split(val_fold)
+
+        fold_sizes.append((len(train_sub), len(cal_sub), len(val_fold)))
+        print(f"  train_sub: {len(train_sub):>4} rows  |  "
+              f"cal_sub: {len(cal_sub):>4} rows  |  "
+              f"val: {len(val_fold):>4} rows")
+        print(f"  Positive rates — train_sub: {y_train_sub.mean():.3f}  "
+              f"cal_sub: {y_cal_sub.mean():.3f}  val: {y_val.mean():.3f}")
+
+        print(f"  Fitting stacker on train_sub ...")
+        stacker = build_stacker(X_train_sub, y_train_sub)
+
+        print(f"  Fitting Platt calibrator on cal_sub ...")
+        calibrator = fit_sigmoid_calibrator(stacker, X_cal_sub, y_cal_sub)
+
+        p_cal = calibrator.predict_proba(
+            stacker.predict_proba(X_cal_sub)[:, 1].reshape(-1, 1)
+        )[:, 1]
+
+        if len(np.unique(y_cal_sub)) < 2:
+            print(f"  WARNING: cal_sub has only one class — using default thresholds.")
+            opt_thresh, sens_thresh = 0.50, 0.50
+        else:
+            opt_thresh, sens_thresh = find_operating_thresholds(y_cal_sub.values, p_cal)
+        fold_thresholds.append((opt_thresh, sens_thresh))
+        print(f"  Thresholds — MCC-optimal: {opt_thresh:.3f}  Sens>=0.5: {sens_thresh:.3f}")
+
+        p_val = calibrator.predict_proba(
+            stacker.predict_proba(X_val)[:, 1].reshape(-1, 1)
+        )[:, 1]
+
+        scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
+        for metric, value in scores.items():
+            fold_metrics[metric].append(value)
+        print(f"  AUROC: {scores['AUROC']:.3f}  AUPRC: {scores['AUPRC']:.3f}  "
+              f"MCC: {scores['MCC (Cal-Optimal)']:.3f}")
+
+    # ---------------------------------------------------------------------------
+    # Format output
+    # ---------------------------------------------------------------------------
+    metric_names = list(fold_metrics.keys())
+    col_w = 7
+
+    header_folds   = "  ".join(f"F{k:<{col_w-2}}" for k in range(1, N_SPLITS + 1))
+    header_summary = f"{'Mean':<{col_w}}  {'Std':<{col_w}}"
+
+    separator = "-" * 60
+
+    output_lines = [
+        "=" * 60,
+        TITLE,
+        "=" * 60,
+        f"CV scheme    : expanding-window TimeSeriesSplit, n_splits={N_SPLITS}",
+        f"Cal sub-split: last {int(CAL_RATIO*100)}% of each training fold's dates",
+        "Thresholds   : selected on cal sub-split — NOT on evaluation fold",
+        separator,
+        f"{'Metric':<25} | {header_folds} | {header_summary}",
+        separator,
+    ]
+
+    for metric in metric_names:
+        vals = fold_metrics[metric]
+        per_fold = "  ".join(f"{v:>{col_w}.3f}" for v in vals)
+        mean_str = f"{np.mean(vals):<{col_w}.3f}"
+        std_str  = f"{np.std(vals):<{col_w}.3f}"
+        output_lines.append(f"{metric:<25} | {per_fold} | {mean_str}  {std_str}")
+
+    output_lines.append(separator)
+    output_lines.append("Fold sizes (train_sub / cal_sub / val rows):")
+    for i, (n_tr, n_cal, n_v) in enumerate(fold_sizes, 1):
+        opt, sens = fold_thresholds[i - 1]
+        output_lines.append(
+            f"  F{i}: {n_tr:>4} / {n_cal:>4} / {n_v:>4}   "
+            f"thresh_mcc={opt:.3f}  thresh_sens={sens:.3f}"
+        )
+    output_lines.append("=" * 60)
+
+    output_text = "\n".join(output_lines)
+    print("\n" + output_text)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+    filename  = f"{RESULT_PREFIX}_{timestamp}_{uuid.uuid4()}.txt"
+    filepath  = os.path.join(RESULTS_DIR, filename)
+    with open(filepath, "w") as f:
+        f.write(output_text)
+    print(f"\nResults saved to: {filepath}")
+
+
+if __name__ == "__main__":
+    main()
