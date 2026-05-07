@@ -6,19 +6,22 @@ import uuid
 from datetime import datetime
 from collections import defaultdict
 from sklearn.metrics import (
-    roc_auc_score,
+    accuracy_score,
     average_precision_score,
     brier_score_loss,
+    f1_score,
     matthews_corrcoef,
-    recall_score
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
-VAL_PATH = os.path.join(DATA_DIR, "val_engineered.parquet")
-TEST_PATH = os.path.join(DATA_DIR, "test_engineered.parquet")
+VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
+TEST_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
@@ -90,6 +93,10 @@ def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_i
 
         preds_sens = (y_p >= sens_05_thresh).astype(int)
         metrics['Sensitivity (>=0.5)'].append(recall_score(y_t, preds_sens))
+        metrics['Accuracy'].append(accuracy_score(y_t, preds_mcc))
+        metrics['Precision'].append(precision_score(y_t, preds_mcc, zero_division=0))
+        metrics['Recall'].append(recall_score(y_t, preds_mcc, zero_division=0))
+        metrics['F1'].append(f1_score(y_t, preds_mcc, zero_division=0))
 
     results = {}
     for metric_name, values in metrics.items():

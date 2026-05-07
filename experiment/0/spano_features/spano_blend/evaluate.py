@@ -10,19 +10,22 @@ import pandas as pd
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
+    accuracy_score,
     average_precision_score,
     brier_score_loss,
+    f1_score,
     matthews_corrcoef,
+    precision_score,
     recall_score,
     roc_auc_score,
 )
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
-VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
-TEST_PATH  = os.path.join(DATA_DIR, "test_engineered.parquet")
+VAL_PATH   = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
+TEST_PATH  = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
@@ -137,10 +140,14 @@ def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_i
         metrics['AUPRC'].append(average_precision_score(y_t, y_p))
         metrics['Brier Score'].append(brier_score_loss(y_t, y_p))
         metrics['ECE10'].append(expected_calibration_error(y_t, y_p))
-        metrics['MCC (Optimal)'].append(
-            matthews_corrcoef(y_t, (y_p >= opt_mcc_thresh).astype(int)))
+        preds_mcc = (y_p >= opt_mcc_thresh).astype(int)
+        metrics['MCC (Optimal)'].append(matthews_corrcoef(y_t, preds_mcc))
         metrics['Sensitivity (>=0.5)'].append(
             recall_score(y_t, (y_p >= sens_05_thresh).astype(int)))
+        metrics['Accuracy'].append(accuracy_score(y_t, preds_mcc))
+        metrics['Precision'].append(precision_score(y_t, preds_mcc, zero_division=0))
+        metrics['Recall'].append(recall_score(y_t, preds_mcc, zero_division=0))
+        metrics['F1'].append(f1_score(y_t, preds_mcc, zero_division=0))
     return {
         name: f"{np.mean(v):.3f} [{np.percentile(v, 2.5):.3f} - {np.percentile(v, 97.5):.3f}]"
         for name, v in metrics.items()

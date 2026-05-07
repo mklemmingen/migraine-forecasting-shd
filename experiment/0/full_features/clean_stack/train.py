@@ -10,9 +10,9 @@ from xgboost import XGBClassifier
 # ---------------------------------------------------------------------------
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
-TRAIN_PATH = os.path.join(DATA_DIR, "train_engineered.parquet")
-VAL_PATH = os.path.join(DATA_DIR, "val_engineered.parquet")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
+TRAIN_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_train.parquet")
+VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 # ---------------------------------------------------------------------------
 
