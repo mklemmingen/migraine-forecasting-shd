@@ -23,18 +23,19 @@ Fixed across all experiments for direct comparability. Model tuning is strictly 
 |--------|---------|
 | AUROC, AUPRC | Discrimination |
 | Brier score, ECE10 | Calibration |
-| MCC-optimal threshold, sensitivity ≥ 0.50 | Operating point |
+| MCC, Sensitivity ≥ 0.50 (at respective thresholds) | Operating point |
+| Accuracy, Precision, Recall, F1 (at MCC-optimal threshold) | Operating point |
 
 Bootstrap confidence intervals reported throughout.
 
 ## Experiments
 
-| Nr of Addition | Approach | Package | Status |
-|-------|----------|---------|--------|
-| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration). Organised under `experiment/0/<feature_set>/<architecture>/`: `full_features/{clean_stack,spano_blend}` and `spano_features/spano_blend`. Clean architecture eval by CV. ; hyperparameter training | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
+| Nr of Addition | Approach                                                                                                                                                                                                                                                                                | Package | Status |
+|-------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|--------|
+| 0 | Two-Fold: Stacked ensemble baseline of: (1) XGBoost + L1-LR, isotonic calibration and (2) clean XGBoost. Organised under `experiment/0/<feature_set>/<architecture>/`: `full_features/{clean_stack,spano_blend}` and `spano_features/spano_blend`. Clean architecture eval by CV. ; hyperparameter training | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
 | 1 | Foundational tabular models (TabPFN), under `experiment/1/full_features/tabpfn/`. Architecture eval by CV. | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/); hyperparameter training ; multiple tabpfn model types evaluated incl. Real-TabPFN ; Additionally added in-built interpretability Extension: Explain TabPFN predictions with SHAP values and feature selection (TabPFN Paper) | In progress |
 | 2 | Explainability (SHAP, LIME) | [`shap`](https://shap.readthedocs.io/en/latest/) · [`lime`](https://github.com/marcotcr/lime) | Planned |
-| 3 | Data Analysis and Data Possibilities | per patient, clusters, medians ; Establishing with Bakir & Janosch : do migraines depend on past migraines / is it fully independent between migraines (outcomes), or is it depended on the amount of migraines in the last week / month. : -> yes for time series models ; If Yes, research if other datasets have had research done on it | Planned | 
+| 3 | Data Analysis and Data Possibilities   | per patient, clusters, medians ; Establishing with Bakir & Janosch : do migraines depend on past migraines / is it fully independent between migraines (outcomes), or is it depended on the amount of migraines in the last week / month. : -> yes for time series models ; If Yes, research if other datasets have had research done on it | Planned | 
 | 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) ; Additionally time series with pretrained | Planned |
 
 <!--- | 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned | --->

@@ -1,7 +1,7 @@
 """
 5-fold time-series cross-validation — TabPFN (Stage 1).
 
-1. Reads cv_engineered.parquet (produced by dataTransformer.py).
+1. Reads diary_cv5_timeseries.parquet (produced by data/run_pipeline_*.py).
 
 2. Imports build_tabpfn and prep_split from train.py so model configuration
 is never duplicated.
@@ -32,9 +32,12 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
+    accuracy_score,
     average_precision_score,
     brier_score_loss,
+    f1_score,
     matthews_corrcoef,
+    precision_score,
     recall_score,
     roc_auc_score,
 )
@@ -47,9 +50,9 @@ from train import build_tabpfn, prep_split
 # ---------------------------------------------------------------------------
 
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR       = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
+DATA_DIR       = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
 RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
-CV_PATH        = os.path.join(DATA_DIR, "cv_engineered.parquet")
+CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
 
 N_SPLITS       = 5
 CAL_RATIO      = 0.20   # fraction of training-fold dates held out for cal_sub
@@ -86,13 +89,18 @@ def find_operating_thresholds(y_true, y_prob):
 
 
 def score_fold(y_val, p_val, opt_thresh, sens_thresh):
+    preds_opt = (p_val >= opt_thresh).astype(int)
     return {
-        'AUROC':              roc_auc_score(y_val, p_val),
-        'AUPRC':              average_precision_score(y_val, p_val),
-        'Brier Score':        brier_score_loss(y_val, p_val),
-        'ECE10':              expected_calibration_error(y_val, p_val),
-        'MCC (Cal-Optimal)':  matthews_corrcoef(y_val, (p_val >= opt_thresh).astype(int)),
-        'Sensitivity (>=0.5)':recall_score(y_val,      (p_val >= sens_thresh).astype(int)),
+        'AUROC':               roc_auc_score(y_val, p_val),
+        'AUPRC':               average_precision_score(y_val, p_val),
+        'Brier Score':         brier_score_loss(y_val, p_val),
+        'ECE10':               expected_calibration_error(y_val, p_val),
+        'MCC (Cal-Optimal)':   matthews_corrcoef(y_val, preds_opt),
+        'Sensitivity (>=0.5)': recall_score(y_val, (p_val >= sens_thresh).astype(int)),
+        'Accuracy':            accuracy_score(y_val, preds_opt),
+        'Precision':           precision_score(y_val, preds_opt, zero_division=0),
+        'Recall':              recall_score(y_val, preds_opt, zero_division=0),
+        'F1':                  f1_score(y_val, preds_opt, zero_division=0),
     }
 
 

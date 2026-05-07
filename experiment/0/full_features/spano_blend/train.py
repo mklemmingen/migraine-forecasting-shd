@@ -22,9 +22,9 @@ from xgboost import XGBClassifier
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data")
-TRAIN_PATH = os.path.join(DATA_DIR, "train_engineered.parquet")
-VAL_PATH   = os.path.join(DATA_DIR, "val_engineered.parquet")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
+TRAIN_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_train.parquet")
+VAL_PATH   = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0.00, 0.05, ..., 1.00  (Spano config.py)
