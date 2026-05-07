@@ -29,16 +29,24 @@ Bootstrap confidence intervals reported throughout.
 
 ## Experiments
 
-| Stage | Approach | Package | Status |
+| Nr of Addition | Approach | Package | Status |
 |-------|----------|---------|--------|
-| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration). Organised under `experiment/0/<feature_set>/<architecture>/`: `full_features/{clean_stack,spano_blend}` and `spano_features/spano_blend`. Clean architecture eval by CV. | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
-| 1 | Foundational tabular models (TabPFN), under `experiment/1/full_features/tabpfn/`. Architecture eval by CV. | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/) | Planned |
+| 0 | Stacked ensemble baseline (XGBoost + L1-LR, isotonic calibration). Organised under `experiment/0/<feature_set>/<architecture>/`: `full_features/{clean_stack,spano_blend}` and `spano_features/spano_blend`. Clean architecture eval by CV. ; hyperparameter training | [`xgboost`](https://xgboost.readthedocs.io/en/stable/) · [`scikit-learn`](https://scikit-learn.org/stable/) | In progress  |
+| 1 | Foundational tabular models (TabPFN), under `experiment/1/full_features/tabpfn/`. Architecture eval by CV. | [`tabpfn`](https://priorlabs.ai/tabpfn-documentation/); hyperparameter training ; multiple tabpfn model types evaluated incl. Real-TabPFN ; Additionally added in-built interpretability Extension: Explain TabPFN predictions with SHAP values and feature selection (TabPFN Paper) | In progress |
 | 2 | Explainability (SHAP, LIME) | [`shap`](https://shap.readthedocs.io/en/latest/) · [`lime`](https://github.com/marcotcr/lime) | Planned |
-| 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned |
-| 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) | Planned |
-| 5 | Per-event disability prediction | TBD | Exploratory |
+| 3 | Data Analysis and Data Possibilities | per patient, clusters, medians ; Establishing with Bakir & Janosch : do migraines pretend on past migraines / is it fully independent between migraines (outcomes), or is it depended on the amount of migraines in the last week / month. : -> yes for time series models ; Yes, research if other datasets have had research done on it | Planned | 
+| 4 | Sequence models (LSTM) | [`torch`](https://pytorch.org/docs/stable/index.html) ; Additionally time series with pretrained | Planned |
 
-Each stage is self-contained under `experiment/<stage>/<feature_set>/<architecture>/` with code, model, and results.
+<!--- | 3 | Medically pretrained models | [`transformers`](https://huggingface.co/docs/transformers/index) | Planned | --->
+<!--- | 5 | Per-event disability prediction | TBD | Exploratory | ---> 
+
+(small) Sparse Data - Research if this dataset counts as "sparse" | or the possibly highly imbalance 
+
+(small) Does it make sense to split time-based against random based if we have / dont have dates or patient id inside one row
+
+----
+
+Each Rough topical Addition is self-contained under `experiment/<stage>/<feature_set>/<architecture>/` with code, model, and results.
 
 ## Baseline Model
 
