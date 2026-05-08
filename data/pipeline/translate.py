@@ -12,8 +12,8 @@ The polarity is then corrected to migraine_today at the engineering step.
 Known data quality issue: trigger factor columns contain a spurious row where each value equals
 the column-wide count of positives. This totals row is excluded by filtering on valid patient IDs.
 """
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def _flatten_multiindex_columns(df: pd.DataFrame) -> pd.DataFrame:

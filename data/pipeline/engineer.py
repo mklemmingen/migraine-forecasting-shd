@@ -20,7 +20,6 @@ other_trigger (unstructured). Structural columns headache_ongoing, severity_cate
 severity_vas, headache_free also dropped.
 """
 import pandas as pd
-import numpy as np
 
 
 def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:

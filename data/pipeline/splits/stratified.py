@@ -10,9 +10,9 @@ Rows are shuffled while preserving class proportions in each fold via
 stratified splitting. This breaks temporal ordering intentionally.
 # See data/processed/dataset_characterization.pdf for current positive rate.
 """
-import numpy as np
-import pandas as pd
 from typing import Optional
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 SPLIT_NAME: str = "stratified"

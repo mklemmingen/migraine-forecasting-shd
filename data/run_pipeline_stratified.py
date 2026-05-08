@@ -8,14 +8,11 @@ Rows are shuffled while preserving class proportions per fold (stratified split)
 """
 import os
 import sys
-
-import pandas as pd
 import run_base
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from pipeline import (translate_sheet3, engineer_features, assign_cv_folds,
-                      process_disability_sheet, print_data_insights)
+from pipeline import (print_data_insights)
 from pipeline.splits.stratified import apply_split, SPLIT_NAME
 
 DATA_DIR      = os.path.dirname(os.path.abspath(__file__))
