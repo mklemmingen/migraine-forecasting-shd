@@ -47,11 +47,11 @@ Bootstrap confidence intervals reported throughout.
 
 ----
 
-Each Rough topical Addition is self-contained under `experiment/<stage>/<feature_set>/<architecture>/` with code, model, and results.
+Each Rough topical Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<feature_set>/<architecture>/<*dataSplit>/<*SplitType>` with code, model, and results.
 
 ## Baseline Model
 
-The stacked ensemble baseline (Stage 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
+The stacked ensemble baseline (Addition 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
 
 ## Reproducibility
 
