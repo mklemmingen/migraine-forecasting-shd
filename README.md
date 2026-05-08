@@ -51,11 +51,13 @@ Each Rough topical Addition is self-contained under (*where applicable) `experim
 
 ## Baseline Model
 
-The stacked ensemble baseline (Addition 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
+The stacked ensemble XGBoost with L1 with isotonic calib [sic] baseline (Addition 0) is based on the architecture originally conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University (2026). 
+The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. 
+See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
 
 ## Reproducibility
 
-Aggregated metrics in each additions `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
+Aggregated metrics in each sub-additions `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
 
 ## Citation
 

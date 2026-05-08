@@ -244,15 +244,15 @@ Reported validation metrics (thesis):
 
 ## Summary: What the Benchmark Changes
 
-| Aspect | Spano (2026)                | This Benchmark |
-|--------|-----------------------------|----------------|
-| Weather features | All zero (typo)             | Restored (226 positives) |
-| Duplicate columns | 3 pairs present             | Removed |
-| Dropped triggers | 6 categories absent         | Absent (not restored) |
-| days_since_last_migraine nulls | 1,861 null                  | Filled with 61 |
-| Calibration | Fitted on validation window | Fitted on separate split |
-| Reproducibility | Merge conflicts in source   | Resolved |
-| Feature count (effective) | 38 (incl. duplicates)       | 35 |
-| Direct metric comparability | Thesis baseline             | ⚠ Not directly comparable — different feature set and evaluation protocol |
+| Aspect | Spano (2026)                | This Benchmark                                                                                                                             |
+|--------|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Weather features | All zero (typo) | Restored (226 positives)                                                                                                                   |
+| Duplicate columns | 3 pairs present  | Removed                                                                                                                                    |
+| Dropped triggers | 6 categories absent | Absent (not restored)                                                                                                                      |
+| days_since_last_migraine nulls | 1,861 null | Filled with 61                                                                                                                             |
+| Calibration | Fitted on validation window | Fitted on separate split                                                                                                                   |
+| Reproducibility | Merge conflicts in source | Resolved                                                                                                                                   |
+| Feature count (effective) | 38 (incl. duplicates) | 35                                                                                                                                         |
+| Direct metric comparability | Thesis baseline | ⚠ Not directly comparable — different feature set and evaluation protocol - therefore, see marco blend and feature for individual baseline |
 
 Because the weather correction changes the feature set, no metric from this benchmark is directly numerically comparable to the Spano thesis baseline. The difference is reported explicitly in all experiment result tables.
