@@ -18,18 +18,17 @@ Outputs written to data/processed/:
 """
 import os
 import sys
-
-import pandas as pd
+import run_base
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from pipeline import (translate_sheet3, engineer_features, assign_cv_folds,
-                      process_disability_sheet, print_data_insights)
+from pipeline import (print_data_insights)
 from pipeline.splits.chrono import apply_split, SPLIT_NAME
 
 DATA_DIR      = os.path.dirname(os.path.abspath(__file__))
 RAW_XLS       = os.path.join(DATA_DIR, "raw", "SHD-Dataset.xls")
-PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
+BASE_PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
+PROCESSED_DIR = None
 
 SPLIT_RATIOS = {
     "70_15_15": {"cutpoints": (0.70, 0.85), "folds": ("train", "val", "test")},
@@ -39,66 +38,53 @@ SPLIT_RATIOS = {
 
 
 def main():
-    # Step 1 — Translation
-    raw_df = pd.read_excel(RAW_XLS, sheet_name=2, header=[1, 2])
-    translated_df = translate_sheet3(raw_df)
-    translated_df.to_parquet(os.path.join(PROCESSED_DIR, "translated.parquet"), index=False)
-    print("Saved: translated.parquet")
 
-    # Step 2 — Engineering (no split inside)
-    engineered_df = engineer_features(translated_df)
-    (engineered_df
-     .drop(columns=['migraine_today'], errors='ignore')
-     .to_parquet(os.path.join(PROCESSED_DIR, "diary.parquet"), index=False))
-    print(f"Saved: diary.parquet  ({len(engineered_df)} rows)")
+    for target_mode in ("headache", "migraine"):
 
-    # CV — split-agnostic, idempotent across run scripts
-    cv_df = assign_cv_folds(engineered_df.drop(columns=['migraine_today'], errors='ignore'))
-    cv_df.to_parquet(os.path.join(PROCESSED_DIR, "diary_cv5_timeseries.parquet"), index=False)
-    print(f"Saved: diary_cv5_timeseries.parquet  ({len(cv_df)} rows)  folds: {dict(cv_df['cv_fold'].value_counts().sort_index())}")
+        PROCESSED_DIR = os.path.join(BASE_PROCESSED_DIR, target_mode)
 
-    # Step 3 — Disability (full, unsplit)
-    raw_dis_df = pd.read_excel(RAW_XLS, sheet_name=1, header=[1, 2])
-    disability_df = process_disability_sheet(raw_dis_df)
-    disability_df.to_parquet(os.path.join(PROCESSED_DIR, "disability.parquet"), index=False)
-    print(f"Saved: disability.parquet  ({len(disability_df)} rows)")
+        print(f"\n=== Processing target_mode: {target_mode} ===\n")
 
-    # Step 4 — Generate splits for every ratio
-    for ratio_name, cfg in SPLIT_RATIOS.items():
-        split_dir = os.path.join(PROCESSED_DIR, ratio_name, SPLIT_NAME)
-        os.makedirs(split_dir, exist_ok=True)
+        run_base.runBase(target_mode)
 
-        diary_split, boundaries = apply_split(
-            engineered_df,
-            cutpoints=cfg["cutpoints"],
-            fold_names=cfg["folds"],
-        )
-        for fold in cfg["folds"]:
-            subset = (diary_split[diary_split['split'] == fold]
-                      .drop(columns=['split', 'migraine_today'], errors='ignore'))
-            subset.to_parquet(os.path.join(split_dir, f"diary_{fold}.parquet"), index=False)
-            print(f"Saved: {ratio_name}/{SPLIT_NAME}/diary_{fold}.parquet  ({len(subset)} rows)")
+        # Step 4 — Generate splits for every ratio
+        for ratio_name, cfg in SPLIT_RATIOS.items():
+            split_dir = os.path.join(PROCESSED_DIR, ratio_name, SPLIT_NAME)
+            os.makedirs(split_dir, exist_ok=True)
 
-        dis_split, _ = apply_split(disability_df, boundaries=boundaries)
-        for fold in cfg["folds"]:
-            subset = (dis_split[dis_split['split'] == fold]
-                      .drop(columns=['split'], errors='ignore'))
-            subset.to_parquet(os.path.join(split_dir, f"disability_{fold}.parquet"), index=False)
-            print(f"Saved: {ratio_name}/{SPLIT_NAME}/disability_{fold}.parquet  ({len(subset)} rows)")
+            diary_split, boundaries = apply_split(
+                run_base.engineered_df,
+                cutpoints=cfg["cutpoints"],
+                fold_names=cfg["folds"],
+            )
+            for fold in cfg["folds"]:
+                subset = (diary_split[diary_split['split'] == fold]
+                          .drop(columns=['split', 'migraine_today'], errors='ignore'))
+                subset.to_parquet(os.path.join(split_dir, f"diary_{fold}.parquet"), index=False)
+                print(f"Saved: {ratio_name}/{SPLIT_NAME}/diary_{fold}.parquet  ({len(subset)} rows)")
 
-        has_val = 'val' in cfg["folds"]
-        print_data_insights(
-            raw_df, translated_df,
-            diary_split[diary_split['split'] == 'train'].drop(columns=['split', 'migraine_today'], errors='ignore'),
-            diary_split[diary_split['split'] == 'test'].drop(columns=['split', 'migraine_today'], errors='ignore'),
-            dis_split[dis_split['split'] == 'train'].drop(columns=['split'], errors='ignore'),
-            dis_split[dis_split['split'] == 'test'].drop(columns=['split'], errors='ignore'),
-            val_diary=diary_split[diary_split['split'] == 'val'].drop(columns=['split', 'migraine_today'], errors='ignore') if has_val else None,
-            val_disability=dis_split[dis_split['split'] == 'val'].drop(columns=['split'], errors='ignore') if has_val else None,
-            label=ratio_name,
-        )
+            dis_split, _ = apply_split(run_base.disability_df, boundaries=boundaries)
+            for fold in cfg["folds"]:
+                subset = (dis_split[dis_split['split'] == fold]
+                          .drop(columns=['split'], errors='ignore'))
+                subset.to_parquet(os.path.join(split_dir, f"disability_{fold}.parquet"), index=False)
+                print(f"Saved: {ratio_name}/{SPLIT_NAME}/disability_{fold}.parquet  ({len(subset)} rows)")
 
-    print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
+            has_val = 'val' in cfg["folds"]
+            print_data_insights(
+                run_base.raw_df, run_base.translated_df,
+                diary_split[diary_split['split'] == 'train'].drop(columns=['split', 'migraine_today'], errors='ignore'),
+                diary_split[diary_split['split'] == 'test'].drop(columns=['split', 'migraine_today'], errors='ignore'),
+                dis_split[dis_split['split'] == 'train'].drop(columns=['split'], errors='ignore'),
+                dis_split[dis_split['split'] == 'test'].drop(columns=['split'], errors='ignore'),
+                val_diary=diary_split[diary_split['split'] == 'val'].drop(columns=['split', 'migraine_today'], errors='ignore') if has_val else None,
+                val_disability=dis_split[dis_split['split'] == 'val'].drop(columns=['split'], errors='ignore') if has_val else None,
+                label=ratio_name,
+            )
+
+        print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
+
+        print(f"\n=== Processing finished for target_mode: {target_mode} ===\n")
 
 
 if __name__ == "__main__":

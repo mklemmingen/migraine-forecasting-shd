@@ -1,7 +1,7 @@
 """
 engineer.py — Step 2: Feature engineering on the translated diary DataFrame.
 
-Builds all 40 temporal/rolling features. Does NOT apply any split — returns the
+Builds all 47 temporal/rolling features. Does NOT apply any split — returns the
 full engineered DataFrame. The caller (a run_pipeline_*.py script) applies the
 appropriate split strategy from data/pipeline/splits/.
 
@@ -12,19 +12,29 @@ dropping the first 6 days per patient.
 Feature groups and counts:
   Migraine history (5), Stress (3), Sleep (7), Weather (5),
   Dietary & Travel (6), Physical Activity (6), Other triggers (6),
-  Hormonal (2), Preventive medication (1), Context / dow (1)  → 40 features total
+  Hormonal (2), Preventive medication (1), Context / dow (1) , (2) days since last record and recording gap,
+  (5) previously removed because of low count but added back for base (important: park et all had them excluded
+  from sub-analysis)
+  → 47 features total
 
-Excluded at engineering: exercise_as_trigger (p=0.78), cheese_chocolate (0.7%),
-excessive_smoking (p=0.73), sunlight (p=0.73, 0.8%), inappropriate_lighting (0.2%),
-other_trigger (unstructured). Structural columns headache_ongoing, severity_category,
-severity_vas, headache_free also dropped.
+Excluded at engineering: Structural columns headache_ongoing, severity_category,
+severity_vas, headache_free dropped.
 """
 import pandas as pd
-import numpy as np
 
 
-def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
+def engineer_features(
+    translated_df: pd.DataFrame,
+    target_mode: str = "headache",
+    disability_df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     """Build all temporal/rolling features from the translated diary DataFrame.
+
+    Args:
+        target_mode: "headache" (any headache, default) or "migraine"
+            (ICHD-3 migraine only, requires disability_df).
+        disability_df: Sheet 2 DataFrame with migraine_flag column.
+            Required when target_mode="migraine".
 
     Returns the full engineered DataFrame including migraine_today and migraine_target.
     No 'split' column is added here.
@@ -36,8 +46,23 @@ def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
         blocks = (is_val == 0).cumsum()
         return is_val.groupby(blocks).cumsum()
 
-    # Target construction
-    df['migraine_today'] = (df['headache_free'] == 0).astype(int)
+    # --- Target construction (mode-dependent) ---
+    if target_mode == "headache":
+        df['migraine_today'] = (df['headache_free'] == 0).astype(int)
+    elif target_mode == "migraine":
+        if disability_df is None:
+            raise ValueError("disability_df required for target_mode='migraine'")
+        # Any headache day first (needed for structural columns)
+        df['_any_headache'] = (df['headache_free'] == 0).astype(int)
+        # Join migraine_flag from Sheet 2
+        migraine_days = disability_df[['patient_id', 'date', 'migraine_flag']].copy()
+        migraine_days['migraine_flag'] = migraine_days['migraine_flag'].astype(int)
+        df = df.merge(migraine_days, on=['patient_id', 'date'], how='left')
+        df['migraine_today'] = df['migraine_flag'].fillna(0).astype(int)
+        df = df.drop(columns=['migraine_flag', '_any_headache'])
+    else:
+        raise ValueError(f"Unknown target_mode: {target_mode}")
+
     df['migraine_target'] = df.groupby('patient_id')['migraine_today'].shift(-1)
     df = df.dropna(subset=['migraine_target']).copy()
 
@@ -74,6 +99,11 @@ def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
                                          .groupby(df['patient_id'])
                                          .rolling(7, min_periods=1).sum()
                                          .reset_index(0, drop=True))
+    df['exercise_as_trigger_today'] = df['exercise_as_trigger']
+    df['sunlight_today'] = df['sunlight']
+    df['inappropriate_lighting_today'] = df['inappropriate_lighting']
+    df['excessive_smoking_today'] = df['excessive_smoking']
+    df['cheese_chocolate_today'] = df['cheese_chocolate']
 
     # --- Weather ---
     df['weather_change_today'] = df['weather_change']
@@ -98,6 +128,12 @@ def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
     df['consecutive_exercise_days'] = grp['exercise_today'].apply(lambda x: count_consecutive(x, 1)).reset_index(0, drop=True)
     df['consecutive_sedentary_days'] = grp['exercise_today'].apply(lambda x: count_consecutive(x, 0)).reset_index(0, drop=True)
     df['exercise_days_7day'] = grp['exercise_today'].rolling(7, min_periods=1).sum().reset_index(0, drop=True)
+
+    # --- Gap awareness ---
+    df["days_since_last_record"] = (
+        grp["date"].diff().dt.days.fillna(1).astype(int)
+    )
+    df["recording_gap_flag"] = (df["days_since_last_record"] > 1).astype(int)
 
     # --- Other triggers & Hormonal ---
     for col in ['physical_fatigue', 'emotional_changes', 'noise', 'specific_smells', 'menstruation', 'ovulation']:

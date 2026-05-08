@@ -9,9 +9,10 @@ Supports any number of folds via the `cutpoints` parameter:
 Patients are sorted by row count then randomly permuted (seed=42). A greedy
 walk assigns patients to folds as cumulative row proportion crosses each cutpoint.
 """
+from typing import Optional
+
 import numpy as np
 import pandas as pd
-from typing import Optional
 
 SPLIT_NAME: str = "patient"
 

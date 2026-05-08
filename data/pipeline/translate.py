@@ -12,8 +12,8 @@ The polarity is then corrected to migraine_today at the engineering step.
 Known data quality issue: trigger factor columns contain a spurious row where each value equals
 the column-wide count of positives. This totals row is excluded by filtering on valid patient IDs.
 """
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def _flatten_multiindex_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -41,13 +41,14 @@ def translate_sheet3(raw_df: pd.DataFrame) -> pd.DataFrame:
     'split' column — splitting is handled by the splits sub-package.
 
     Column selection rationale (Park et al. 2016):
-    - exercise_as_trigger excluded: p=0.78
-    - sunlight excluded: p=0.73, 0.8% prevalence
-    - inappropriate_lighting excluded: not in 18-trigger inventory, 0.2%
-    - excessive_smoking excluded: p=0.73, insufficient cell counts
-    - cheese_chocolate excluded: insufficient cell counts, 0.7%
-    - other_trigger excluded: unstructured catch-all
-    - weather column read from Korean header to bypass Spano pipeline typo that zeroed 226 rows
+    - All 18 Park et al. trigger factors retained for model-driven selection.
+      Low-prevalence triggers (sunlight 0.8%, cheese_chocolate 0.7%,
+      inappropriate_lighting 0.2%, exercise_as_trigger 1.3%, excessive_smoking)
+      are included so that SHAP (Addition 2) can assess their contribution
+      empirically rather than pre-filtering on same-day p-values from a
+      different analytical question.
+    - other_trigger excluded: unstructured catch-all, not a validated instrument item.
+    - weather column read from Korean header to bypass Spano 2026 pipeline typo that zeroed 226 rows
     """
     df = raw_df.copy()
     df = _flatten_multiindex_columns(df)
@@ -79,6 +80,11 @@ def translate_sheet3(raw_df: pd.DataFrame) -> pd.DataFrame:
         '기타 — 여행': 'travel',
         '격렬한 운동(분)': 'vigorous_exercise_min',
         '중등도운동(분)': 'moderate_exercise_min',
+        '내인적 요인 — 운동': 'exercise_as_trigger',  # p=0.78 in Park; 1.3% prevalence
+        '외부적 요인 — 과도한 햇빛': 'sunlight',  # p=0.73; 0.8% prevalence
+        '외부적 요인 — 부적절한 조명': 'inappropriate_lighting',  # 0.2% prevalence
+        '기타 — 과도한 흡연': 'excessive_smoking',  # p=0.73
+        '기타 — 치즈 초콜릿': 'cheese_chocolate',  # 0.7% prevalence
     }
 
     keep_cols = {k: v for k, v in col_map.items() if k in df.columns}

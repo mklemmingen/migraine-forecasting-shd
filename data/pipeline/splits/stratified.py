@@ -6,13 +6,13 @@ Supports any number of folds via the `cutpoints` parameter:
   cutpoints=(0.80,)      → train / test         (80/20)
   cutpoints=(0.70,)      → train / test         (70/30)
 
-Rows are shuffled while preserving the ~5.1% positive rate in each fold.
-This breaks temporal ordering intentionally — it is used as a comparison baseline
-to measure the cost of ignoring temporal structure.
+Rows are shuffled while preserving class proportions in each fold via
+stratified splitting. This breaks temporal ordering intentionally.
+# See data/processed/dataset_characterization.pdf for current positive rate.
 """
-import numpy as np
-import pandas as pd
 from typing import Optional
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 SPLIT_NAME: str = "stratified"
