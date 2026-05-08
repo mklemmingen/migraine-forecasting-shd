@@ -237,3 +237,7 @@ experiment/1/full_features/tabpfn/model.joblib
 /experiment/0/spano_features/spano_blend/70_15_15/model.joblib
 /experiment/1/full_features/tabpfn/version_2-6/70_15_15/model.joblib
 /experiment/1/full_features/tabpfn/version_2-6/70_15_15/chrono/model.joblib
+/experiment/0/headache/full_features/clean_stack/70_15_15/chrono/model.joblib
+/experiment/0/headache/full_features/spano_blend/70_15_15/chrono/model.joblib
+/experiment/0/headache/spano_features/spano_blend/70_15_15/model.joblib
+/experiment/1/headache/full_features/tabpfn/version_2-6/70_15_15/chrono/model.joblib
