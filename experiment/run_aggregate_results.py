@@ -30,6 +30,11 @@ but not in the results/ folders latest result txt.  - and will give any user run
 in their terminal where supported.
 """
 
+# imports all packages needed for parsing and interactive html creation
+
+# getContract and getContract_CV
+
+# create dynamic html with ascending and jumping table to table views until results
 
 
 

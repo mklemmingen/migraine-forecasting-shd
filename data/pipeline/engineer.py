@@ -22,8 +22,18 @@ severity_vas, headache_free also dropped.
 import pandas as pd
 
 
-def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
+def engineer_features(
+    translated_df: pd.DataFrame,
+    target_mode: str = "headache",
+    disability_df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     """Build all temporal/rolling features from the translated diary DataFrame.
+
+    Args:
+        target_mode: "headache" (any headache, default) or "migraine"
+            (ICHD-3 migraine only, requires disability_df).
+        disability_df: Sheet 2 DataFrame with migraine_flag column.
+            Required when target_mode="migraine".
 
     Returns the full engineered DataFrame including migraine_today and migraine_target.
     No 'split' column is added here.
@@ -35,8 +45,23 @@ def engineer_features(translated_df: pd.DataFrame) -> pd.DataFrame:
         blocks = (is_val == 0).cumsum()
         return is_val.groupby(blocks).cumsum()
 
-    # Target construction
-    df['migraine_today'] = (df['headache_free'] == 0).astype(int)
+    # --- Target construction (mode-dependent) ---
+    if target_mode == "headache":
+        df['migraine_today'] = (df['headache_free'] == 0).astype(int)
+    elif target_mode == "migraine":
+        if disability_df is None:
+            raise ValueError("disability_df required for target_mode='migraine'")
+        # Any headache day first (needed for structural columns)
+        df['_any_headache'] = (df['headache_free'] == 0).astype(int)
+        # Join migraine_flag from Sheet 2
+        migraine_days = disability_df[['patient_id', 'date', 'migraine_flag']].copy()
+        migraine_days['migraine_flag'] = migraine_days['migraine_flag'].astype(int)
+        df = df.merge(migraine_days, on=['patient_id', 'date'], how='left')
+        df['migraine_today'] = df['migraine_flag'].fillna(0).astype(int)
+        df = df.drop(columns=['migraine_flag', '_any_headache'])
+    else:
+        raise ValueError(f"Unknown target_mode: {target_mode}")
+
     df['migraine_target'] = df.groupby('patient_id')['migraine_today'].shift(-1)
     df = df.dropna(subset=['migraine_target']).copy()
 
