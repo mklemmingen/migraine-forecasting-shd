@@ -15,6 +15,15 @@ fyi: the aggregate result runner will fill out N/A under values not found, and w
 in their terminal where supported.
 """
 
+
+_getHeaderContract()
+
+_getFooterContract()
+
+_getMetricsContract()
+
+_getMetricsContract_CV()
+
 getContract()
     getHeaderContract()
     getMetricsContract()
@@ -24,11 +33,3 @@ getContract_cv()
     getHeaderContract
     getMetricsContract_CV()
     getFooterContract()
-
-_getHeaderContract()
-
-_getFooterContract()
-
-_getMetricsContract()
-
-_getMetricsContract_CV()
