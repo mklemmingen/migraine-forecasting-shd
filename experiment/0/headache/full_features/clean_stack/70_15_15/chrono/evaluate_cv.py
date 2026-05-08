@@ -49,7 +49,7 @@ from train import build_stacker, fit_sigmoid_calibrator, prep_split
 # ---------------------------------------------------------------------------
 
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR       = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "data", "processed")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "data", "processed", "headache")
 RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
 CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
 

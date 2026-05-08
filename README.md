@@ -12,8 +12,12 @@ Current row counts, positive rate, and split statistics are reported in `data/pr
 
 ## Task
 
-Binary classification of next-day migraine occurrence per patient-day.  
-Three split strategies (chrono, patient, stratified) × three ratios (70/15/15, 80/20, 70/30) — see `data/processed/` package reports for per-split statistics.
+Binary classification of next-day headache/migraine occurrence per patient-day.
+
+Two split categories headache/(subamount) migraines x Three split strategies (chrono, patient, stratified) × three ratios (70/15/15, 80/20, 70/30)
+
+- see `data/processed/` package reports for per-split data statistics.
+- see upcoming result aggregator html and pdf for all model results across target, splits and ratios. 
 
 ## Evaluation Protocol
 

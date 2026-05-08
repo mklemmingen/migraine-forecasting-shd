@@ -35,6 +35,22 @@ Headache classification followed ICHD-3 beta criteria B–D for migraine without
 
 ---
 
+# Patient Count Reconciliation
+
+Park et al. reported: 62 patients
+Translated (Sheet 3): 63 unique
+Diary (engineered):   63 unique
+Disability (Sheet 2): 64 unique
+
+In disability but not diary: {'DHA-0045'}
+In diary but not disability: set()
+In translated but not diary: set()
+
+Patients with only 1 diary entry: 0
+Patient IDs: []
+
+---
+
 ## Sheet 1 — 62patients
 
 185 columns, 62 patient rows (132 raw rows; ~70 are empty or aggregate rows and should be excluded on read).
@@ -186,40 +202,56 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 
 **Naming convention:** Column names in `translated.parquet` use the base name without suffix (e.g. `stress`, `alcohol`). The engineering step renames current-day trigger features with the `_today` suffix in the engineered sets (e.g. `stress_today`, `alcohol_today`) to distinguish them from derived temporal features. The translation table below shows `translated.parquet` names; the engineering tables show final engineered names.
 
-| Korean header (verbatim) | Benchmark column name | Decision | Reason |
-|--------------------------|----------------------|----------|--------|
-| 번호 | entry_id | Included | identifier |
-| 고유번호 / 연구번호 | patient_id | Included | unified, uppercased — resolves CM-004/cm-004 artifact |
-| 날짜 | date | Included | parsed to datetime |
-| 두통이없는날 | headache_free | Included | Y=1; inverted to migraine=1 at engineering step |
-| 두통지속중여부 | headache_ongoing | Included | structural diary field |
-| 예방약 사용 | preventive_medication | Included | Park et al. demonstrate preventive medication significantly modifies trigger–migraine relationship for stress, overeating, alcohol, and travel (Table 5, p. 9) |
-| 정도 | severity_category | Included | structural headache characteristic |
-| Pain intensity (VAS) | severity_vas | Included | structural headache characteristic |
-| 내인적 요인 — 스트레스 | stress | Included | OR 1.8 (95% CI 1.4–2.4, p<0.001); most common trigger on headache days 27.6% (Park et al., 2016, p. 5–7) |
-| 내인적 요인 — 수면과다 | oversleeping | Included | Part of the 18-trigger inventory; included for symmetry within the sleep-disturbance domain (Park et al., 2016, p. 3) |
-| 내인적 요인 — 수면부족 | lack_of_sleep | Included | Common headache trigger 20.4% of days; headache likelihood when present 55.1% (Park et al., 2016, p. 5–6) |
-| 내인적 요인 — 운동 | exercise_as_trigger | Excluded | Not significantly associated with migraine (p=0.78); prevalence 1.3–1.5% across both headache types (Park et al., 2016, Table 4, p. 8) |
-| 내인적 요인 — 운동 안하기 | no_exercise | Included | Part of the 18-trigger inventory; behavioural complement to exercise (Park et al., 2016, p. 3) |
-| 내인적 요인 — 육체적 피로 | physical_fatigue | Included | Common trigger on headache days 20.7%; headache likelihood 48.5%; classified by Park et al. as a modifiable migraine trigger (Park et al., 2016, p. 5–6, p. 9) |
-| 내인적 요인 — 생리주기 : 월경기 | menstruation | Included | OR 3.5 (95% CI 2.3–5.2, p<0.001); significant regardless of preventive medication (Park et al., 2016, p. 7–9) |
-| 내인적 요인 — 생리주기 : 배란기 | ovulation | Included | Component of the hormonal-changes trigger domain in the SHD instrument (Park et al., 2016, p. 3) |
-| 내인적 요인 — 과도한 감정변화 | emotional_changes | Included | Headache likelihood when present 68.8% — third-highest of all triggers (Park et al., 2016, p. 6) |
-| 외부적 요인 — 날씨/온도 변화 | weather_change | Included | Common trigger 9.9% of headache days; read from Korean header (Park et al., 2016, p. 5) |
-| 외부적 요인 — 과도한 햇빛 | ~~sunlight~~ | Excluded | Not significantly associated with migraine (p=0.73); prevalence 0.8% — insufficient events for reliable modelling at this cohort size (Park et al., 2016, Table 4, p. 8) |
-| 외부적 요인 — 소음 | noise | Included | OR 2.8 (95% CI 1.4–4.9, p=0.002); significant regardless of preventive medication (Park et al., 2016, p. 7–8) |
-| 외부적 요인 — 부적절한 조명 | ~~inappropriate_lighting~~ | Excluded | Not part of Park et al.'s 18-trigger inventory; prevalence 0.2% — below the threshold for reliable modelling (Park et al., 2016, p. 3) |
-| 외부적 요인 — 특정한 냄새(화장품 향수 등) | specific_smells | Included | Headache likelihood when present 71.8% — second-highest of all triggers; significantly more frequent in migraine (p<0.001) (Park et al., 2016, p. 6, Table 4) |
-| 기타 — 과도한 음주 | alcohol | Included | OR 2.5 (95% CI 1.3–5.0, p=0.009); highest headache likelihood when present 78.6% (Park et al., 2016, p. 6–7) |
-| 기타 — 불규칙한 식사(공복 등) | irregular_meals | Included | Significantly more frequent in migraine (p=0.003); significant in no-preventive-medication subgroup (p=0.03) (Park et al., 2016, Table 4–5, p. 8–9) |
-| 기타 — 과식 | overeating | Included | OR 2.4 (95% CI 1.1–5.7, p=0.009) (Park et al., 2016, p. 7) |
-| 기타 — 과도한 카페인 음료 | excessive_caffeine | Included | Part of the 18-trigger inventory; not significant in stepwise regression but retained given prior literature support cited by Park et al. (Park et al., 2016, p. 3) |
-| 기타 — 과도한 흡연 | ~~excessive_smoking~~ | Excluded | Not significantly associated with migraine (p=0.73); excluded by Park et al. from subgroup analysis due to insufficient cell counts (Park et al., 2016, Table 4–5, p. 8–9) |
-| 기타 — 치즈 초콜릿 | ~~cheese_chocolate~~ | Excluded | Excluded by Park et al. from subgroup analysis due to insufficient cell counts; prevalence 0.7% — too sparse for reliable modelling (Park et al., 2016, Table 5, p. 9) |
-| 기타 — 여행 | travel | Included | Strongest migraine-associated trigger: OR 6.4 (95% CI 1.2–10.2, p=0.003) (Park et al., 2016, p. 7) |
-| 기타 — 기타 | ~~other_trigger~~ | Excluded | Catch-all free-text category; not part of the 18-trigger inventory and not analysed in Park et al. (Park et al., 2016, p. 3) |
-| 격렬한 운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
-| 중등도운동(분) | moderate_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger |
+| Korean header (verbatim) | Benchmark column name | Decision | Reason                                                                                                                                                                   |
+|--------------------------|------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 번호 | entry_id | Included | identifier                                                                                                                                                               |
+| 고유번호 / 연구번호 | patient_id | Included | unified, uppercased — resolves CM-004/cm-004 artifact                                                                                                                    |
+| 날짜 | date | Included | parsed to datetime                                                                                                                                                       |
+| 두통이없는날 | headache_free | Included | Y=1; inverted to migraine=1 at engineering step                                                                                                                          |
+| 두통지속중여부 | headache_ongoing | Included | structural diary field                                                                                                                                                   |
+| 예방약 사용 | preventive_medication | Included | Park et al. demonstrate preventive medication significantly modifies trigger–migraine relationship for stress, overeating, alcohol, and travel (Table 5, p. 9)           |
+| 정도 | severity_category | Included | structural headache characteristic                                                                                                                                       |
+| Pain intensity (VAS) | severity_vas | Included | structural headache characteristic                                                                                                                                       |
+| 내인적 요인 — 스트레스 | stress | Included | OR 1.8 (95% CI 1.4–2.4, p<0.001); most common trigger on headache days 27.6% (Park et al., 2016, p. 5–7)                                                                 |
+| 내인적 요인 — 수면과다 | oversleeping | Included | Part of the 18-trigger inventory; included for symmetry within the sleep-disturbance domain (Park et al., 2016, p. 3)                                                    |
+| 내인적 요인 — 수면부족 | lack_of_sleep | Included | Common headache trigger 20.4% of days; headache likelihood when present 55.1% (Park et al., 2016, p. 5–6)                                                                |
+| 내인적 요인 — 운동 | exercise_as_trigger | Included | associated with migraine at p=0.78; prevalence 1.3–1.5% across both headache types (Park et al., 2016, Table 4, p. 8)                                                    |
+| 내인적 요인 — 운동 안하기 | no_exercise | Included | Part of the 18-trigger inventory; behavioural complement to exercise (Park et al., 2016, p. 3)                                                                           |
+| 내인적 요인 — 육체적 피로 | physical_fatigue | Included | Common trigger on headache days 20.7%; headache likelihood 48.5%; classified by Park et al. as a modifiable migraine trigger (Park et al., 2016, p. 5–6, p. 9)           |
+| 내인적 요인 — 생리주기 : 월경기 | menstruation | Included | OR 3.5 (95% CI 2.3–5.2, p<0.001); significant regardless of preventive medication (Park et al., 2016, p. 7–9)                                                            |
+| 내인적 요인 — 생리주기 : 배란기 | ovulation | Included | Component of the hormonal-changes trigger domain in the SHD instrument (Park et al., 2016, p. 3)                                                                         |
+| 내인적 요인 — 과도한 감정변화 | emotional_changes | Included | Headache likelihood when present 68.8% — third-highest of all triggers (Park et al., 2016, p. 6)                                                                         |
+| 외부적 요인 — 날씨/온도 변화 | weather_change | Included | Common trigger 9.9% of headache days; read from Korean header (Park et al., 2016, p. 5)                                                                                  |
+| 외부적 요인 — 과도한 햇빛 | sunlight | Included | Not significantly associated with migraine (p=0.73); prevalence 0.8%(Park et al., 2016, Table 4, p. 8)                                                                   |
+| 외부적 요인 — 소음 | noise | Included | OR 2.8 (95% CI 1.4–4.9, p=0.002); significant regardless of preventive medication (Park et al., 2016, p. 7–8)                                                            |
+| 외부적 요인 — 부적절한 조명 | inappropriate_lighting | Included | Not part of Park et al.'s 18-trigger inventory; prevalence 0.2%  (Park et al., 2016, p. 3)                                                                               |
+| 외부적 요인 — 특정한 냄새(화장품 향수 등) | specific_smells | Included | Headache likelihood when present 71.8% — second-highest of all triggers; significantly more frequent in migraine (p<0.001) (Park et al., 2016, p. 6, Table 4)            |
+| 기타 — 과도한 음주 | alcohol | Included | OR 2.5 (95% CI 1.3–5.0, p=0.009); highest headache likelihood when present 78.6% (Park et al., 2016, p. 6–7)                                                             |
+| 기타 — 불규칙한 식사(공복 등) | irregular_meals | Included | Significantly more frequent in migraine (p=0.003); significant in no-preventive-medication subgroup (p=0.03) (Park et al., 2016, Table 4–5, p. 8–9)                      |
+| 기타 — 과식 | overeating | Included | OR 2.4 (95% CI 1.1–5.7, p=0.009) (Park et al., 2016, p. 7)                                                                                                               |
+| 기타 — 과도한 카페인 음료 | excessive_caffeine | Included | Part of the 18-trigger inventory; not significant in stepwise regression but retained given prior literature support cited by Park et al. (Park et al., 2016, p. 3)      |
+| 기타 — 과도한 흡연 | excessive_smoking | Included | Not significantly associated with migraine (p=0.73); excluded by Park et al. from subgroup analysis due to insufficient cell counts (Park et al., 2016, Table 4–5, p. 8–9) |
+| 기타 — 치즈 초콜릿 | cheese_chocolate | Included | Excluded by Park et al. from subgroup analysis due to insufficient cell counts; prevalence 0.7% (Park et al., 2016, Table 5, p. 9)                                       |
+| 기타 — 여행 | travel | Included | Strongest migraine-associated trigger: OR 6.4 (95% CI 1.2–10.2, p=0.003) (Park et al., 2016, p. 7)                                                                       |
+| 기타 — 기타 | ~~other_trigger~~ | Excluded | Catch-all free-text category; not part of the 18-trigger inventory and not analysed in Park et al. (Park et al., 2016, p. 3)                                             |
+| 격렬한 운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger                                                                                          |
+| 중등도운동(분) | moderate_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger                                                                                          |
+
+### Previously Excluded, Now Retained
+
+| Feature | Prevalence | Park p-value | Retention rationale |
+|---------|-----------|--------------|---------------------|
+| exercise_as_trigger_today | 1.3% | 0.78 | Model-driven selection; delayed inflammatory response possible at 1-day lag |
+| sunlight_today | 0.8% | 0.73 | Model-driven selection; photophobia is a known migraine feature |
+| inappropriate_lighting_today | 0.2% | N/A | Model-driven selection; retained for completeness |
+| excessive_smoking_today | — | 0.73 | Model-driven selection |
+| cheese_chocolate_today | 0.7% | N/A | Model-driven selection; tyramine hypothesis in migraine literature |
+
+These features were previously excluded based on Park et al.'s same-day
+significance tests. They are now retained because: (1) same-day p-values
+do not measure next-day predictive power, (2) the models used (XGBoost,
+TabPFN) handle irrelevant features through regularization, and (3) SHAP
+(Addition 2) will empirically assess their contribution.
 
 **Key translation decisions:**
 
@@ -254,6 +286,21 @@ Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `te
 9. Apply chronological 70/15/15 train/val/test split.
 
 **Rolling window edge handling:** All rolling features use `min_periods=1` — partial windows at the start of each patient's series compute over available days. This avoids dropping the first 6 days per patient.
+
+### Gap Awareness
+
+208 of ~4,453 consecutive-day transitions have gaps > 1 day (max 37 days).
+Rolling features (`*_last3`, `*_last7`, `*_3day`, `*_7day`) use
+`min_periods=1` and compute over whatever data is available, which may be
+a single day after a long gap. Two gap-awareness features are provided:
+
+- `days_since_last_record`: number of calendar days since the patient's
+  previous diary entry. 1 = continuous; > 1 = gap.
+- `recording_gap_flag`: binary indicator (1 if gap > 1 day).
+
+Models should learn to discount rolling features when gap indicators are
+high. For LSTM (Addition 4), consider masking or segmenting sequences at
+gaps > N days.
 
 **Train/Val/Test Split (Chronological 70/15/15):**
 
@@ -346,6 +393,25 @@ Last diary entry per patient dropped — no next-day label available (−63 rows
 | sunlight_today | N! excluded | Not significant (p=0.73); 0.8% prevalence — too sparse for reliable modelling (Park et al., 2016, Table 4) |
 | inappropriate_lighting_today | N! excluded | Not part of Park et al. 18-trigger inventory; 0.2% prevalence (Park et al., 2016, p. 3) |
 
+### Prodromal Contamination Risk
+
+Noise, specific smells, and emotional changes are known migraine prodromal
+symptoms (Giffin et al., 2003; Schoonman et al., 2006). Park et al. measured
+same-day co-occurrence, where prodrome and headache overlap by definition.
+Under the next-day shift, these features describe today's state — if the
+patient is already in prodrome, they predict *today's* headache, not
+tomorrow's.
+
+These features are retained because:
+1. They may still carry next-day signal via multi-day prodrome windows.
+2. Empirical importance (SHAP, Addition 2) will reveal whether they
+   contribute to next-day prediction or are noise under the shift.
+3. Removing them preemptively would discard potentially valid signal.
+
+Interpretation guidance: if SHAP ranks noise/smells/emotional_changes near
+zero for next-day prediction but high for same-day, prodromal contamination
+is the explanation.
+
 *Hormonal (2) — included; OR 3.5 (Park et al., 2016, p. 7):*
 
 | Feature | Description |
@@ -365,9 +431,8 @@ Last diary entry per patient dropped — no next-day label available (−63 rows
 |---------|-------------|
 | dow | day of week (0=Monday); standard time-series context feature |
 
-**Total effective features: 40**
-
-**Excluded at engineering (summary):** exercise_as_trigger (p=0.78), cheese_chocolate (0.7%, insufficient counts), excessive_smoking (p=0.73), sunlight (p=0.73, 0.8%), inappropriate_lighting (not in inventory, 0.2%), other_trigger (unstructured catch-all).
+**Total effective features: 47**
+(added 2 gap features detailing days since last record)
 
 **Structural columns dropped at engineering:** `headache_ongoing` (redundant with `migraine_today`), `severity_category` and `severity_vas` (populated on headache days only — mostly null on non-headache days, introducing structural missingness correlated with the target).
 
@@ -426,6 +491,27 @@ To ensure zero data leakage and exact temporal alignment with the daily diary fe
 | migraine_flag | ICHD classification (migraine vs non-migraine) | 30.6% |
 
 Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `severity_category`, `trigger_count`, all 18 trigger binary flags, `headache_duration_min`.
+
+---
+
+## Target Definitions
+
+Two independent parquet trees exist under `data/processed/`:
+
+| Directory | Target | Definition | Positive rate | Source |
+|-----------|--------|------------|---------------|--------|
+| `headache/` | Any headache | `headache_free == 0` | ~23.5% | Sheet 3 |
+| `migraine/` | ICHD-3 migraine | `migraine_flag == 1` | ~7-8% | Sheet 2 join |
+
+Both trees use identical column names (`migraine_today`, `migraine_target`,
+etc.). The directory disambiguates. Lag features (`migraine_yesterday`,
+`migraine_rate_last3`, etc.) are recomputed per target mode — in the
+migraine tree, they reflect migraine-only history.
+
+Park et al.'s trigger ORs (Table 4) are migraine-specific. The `migraine/`
+tree is the appropriate match for validating against those findings. The
+`headache/` tree provides higher event counts and may yield better-calibrated
+models due to more training signal.
 
 ---
 

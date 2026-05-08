@@ -39,8 +39,6 @@ def main():
 
         run_base.runBase(target_mode)
 
-        run_base.runBase()
-
         for ratio_name, cfg in SPLIT_RATIOS.items():
             split_dir = os.path.join(PROCESSED_DIR, ratio_name, SPLIT_NAME)
             os.makedirs(split_dir, exist_ok=True)
