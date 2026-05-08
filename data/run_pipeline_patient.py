@@ -12,6 +12,7 @@ import os
 import sys
 
 import pandas as pd
+import run_base
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,32 +32,15 @@ SPLIT_RATIOS = {
 
 
 def main():
-    raw_df = pd.read_excel(RAW_XLS, sheet_name=2, header=[1, 2])
-    translated_df = translate_sheet3(raw_df)
-    translated_df.to_parquet(os.path.join(PROCESSED_DIR, "translated.parquet"), index=False)
-    print("Saved: translated.parquet")
 
-    engineered_df = engineer_features(translated_df)
-    (engineered_df
-     .drop(columns=['migraine_today'], errors='ignore')
-     .to_parquet(os.path.join(PROCESSED_DIR, "diary.parquet"), index=False))
-    print(f"Saved: diary.parquet  ({len(engineered_df)} rows)")
-
-    cv_df = assign_cv_folds(engineered_df.drop(columns=['migraine_today'], errors='ignore'))
-    cv_df.to_parquet(os.path.join(PROCESSED_DIR, "diary_cv5_timeseries.parquet"), index=False)
-    print(f"Saved: diary_cv5_timeseries.parquet  ({len(cv_df)} rows)  folds: {dict(cv_df['cv_fold'].value_counts().sort_index())}")
-
-    raw_dis_df = pd.read_excel(RAW_XLS, sheet_name=1, header=[1, 2])
-    disability_df = process_disability_sheet(raw_dis_df)
-    disability_df.to_parquet(os.path.join(PROCESSED_DIR, "disability.parquet"), index=False)
-    print(f"Saved: disability.parquet  ({len(disability_df)} rows)")
+    run_base.runBase()
 
     for ratio_name, cfg in SPLIT_RATIOS.items():
         split_dir = os.path.join(PROCESSED_DIR, ratio_name, SPLIT_NAME)
         os.makedirs(split_dir, exist_ok=True)
 
         diary_split, boundaries = apply_split(
-            engineered_df,
+            run_base.engineered_df,
             cutpoints=cfg["cutpoints"],
             fold_names=cfg["folds"],
             seed=42,
@@ -67,7 +51,7 @@ def main():
             subset.to_parquet(os.path.join(split_dir, f"diary_{fold}.parquet"), index=False)
             print(f"Saved: {ratio_name}/{SPLIT_NAME}/diary_{fold}.parquet  ({len(subset)} rows)")
 
-        dis_split, _ = apply_split(disability_df, boundaries=boundaries)
+        dis_split, _ = apply_split(run_base.disability_df, boundaries=boundaries)
         for fold in cfg["folds"]:
             subset = (dis_split[dis_split['split'] == fold]
                       .drop(columns=['split'], errors='ignore'))
@@ -76,7 +60,7 @@ def main():
 
         has_val = 'val' in cfg["folds"]
         print_data_insights(
-            raw_df, translated_df,
+            run_base.raw_df, run_base.translated_df,
             diary_split[diary_split['split'] == 'train'].drop(columns=['split', 'migraine_today'], errors='ignore'),
             diary_split[diary_split['split'] == 'test'].drop(columns=['split', 'migraine_today'], errors='ignore'),
             dis_split[dis_split['split'] == 'train'].drop(columns=['split'], errors='ignore'),
