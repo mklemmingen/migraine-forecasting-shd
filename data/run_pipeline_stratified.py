@@ -1,7 +1,8 @@
 """
 run_pipeline_stratified.py — Full pipeline with class-balanced random shuffle split.
 
-Rows are shuffled while preserving the ~5.1% positive rate per fold.
+Rows are shuffled while preserving class proportions per fold (stratified split).
+# See data/processed/dataset_characterization.pdf for current positive rate.
 
 
 """

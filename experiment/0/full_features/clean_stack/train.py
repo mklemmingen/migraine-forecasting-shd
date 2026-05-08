@@ -72,10 +72,10 @@ def fit_sigmoid_calibrator(stacker, X_cal, y_cal):
     calibrated_prob(x) ≈ P(y=1 | x).  Using a separate calibration set
     prevents training-data leakage into the calibration step.
 
-    Sigmoid (Platt scaling) is preferred over isotonic regression when
-    calibration samples are scarce.  Isotonic regression requires ≥1000 samples
-    (Caruana et al. 2005); with val n=439 and ~5% positive rate (~23 positives),
-    a two-parameter sigmoid fit is the statistically appropriate choice.
+    Sigmoid (Platt scaling) is preferred over isotonic regression when the
+    number of calibration samples is below the ~1000-sample threshold identified
+    by Caruana et al. (2005); verify the current val-set event count against
+    that threshold before switching to isotonic.
     """
     probs = stacker.predict_proba(X_cal)[:, 1].reshape(-1, 1)
     # C=1e10 ≈ no regularisation — standard Platt scaling parameterisation

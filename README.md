@@ -7,13 +7,13 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 ## Dataset
 
 62 adult patients · 2 Korean neurology clinics · Aug 2014 – Apr 2015  
-4,516 (engineered) diary days · 1,099 labelled headache events  
-Source: Park et al. (2016) supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`!
+Source: Park et al. (2016) supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`.
+Current row counts, positive rate, and split statistics are reported in `data/processed/dataset_characterization.pdf`.
 
 ## Task
 
 Binary classification of next-day migraine occurrence per patient-day.  
-Time-forward chronological 70/15/15 split · train n = 3,941 · val n = 439 · test n = 136.
+Three split strategies (chrono, patient, stratified) × three ratios (70/15/15, 80/20, 70/30) — see `data/processed/` package reports for per-split statistics.
 
 ## Evaluation Protocol
 
@@ -55,7 +55,7 @@ The stacked ensemble baseline (Stage 0) is based on the architecture originally 
 
 ## Reproducibility
 
-Aggregated metrics in each stages `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
+Aggregated metrics in each additions `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) — not manually edited.
 
 ## Citation
 

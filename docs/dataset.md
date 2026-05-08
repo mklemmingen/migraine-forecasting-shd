@@ -431,19 +431,18 @@ Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `s
 
 ### Row Provenance
 
+Upstream counts are stable facts about the source file. Split counts vary by
+ratio and strategy — authoritative figures are in `data/processed/dataset_characterization.pdf`
+and the per-package `package_report.pdf` files.
+
 | Step | Source | Rows | Delta | Cause |
 |------|--------|------|-------|-------|
 | Raw source | SHD-Dataset.xls / Sheet 3 | 4,591 | — | Includes title, header, totals rows |
 | After cleaning | Sheet 3 data only | 4,579 | −12 | Non-data rows excluded |
 | After translation | translated.parquet | 4,579 | 0 | All diary days retained |
-| After engineering | engineered combined | 4,516 | −63 | Last entry per patient dropped |
-| Train split | train_engineered.parquet | 3,941 | — | First 70% of chronological timeline |
-| Validation split | val_engineered.parquet | 439 | — | Next 15% of chronological timeline |
-| Test split | test_engineered.parquet | 136 | — | Final 15% of chronological timeline |
+| After engineering | diary.parquet | 4,516 | −63 | Last entry per patient dropped (target shift) |
 | Disability raw | SHD-Dataset.xls / Sheet 2 | 1,099 | — | Sheet 2 headache events only |
-| Disability train | train_disability.parquet | 981 | — | Aligned with engineered Train dates |
-| Disability val | val_disability.parquet | 97 | — | Aligned with engineered Val dates |
-| Disability test | test_disability.parquet | 21 | — | Aligned with engineered Test dates |
+| Split outputs | `data/processed/<ratio>/<scheme>/` | varies | — | See package reports for per-split row counts |
 
 ---
 
