@@ -19,3 +19,5 @@ tabpfn>=2.0             # Prior Labs release — TabPFNClassifier(device='cuda')
 
 # ---- Visualisation ---------------------------------------------------------------------------------------
 matplotlib>=3.8         # calibration_check.py reliability diagrams (Agg backend)
+seaborn>=0.13           # analytics reports (dataset_analysis.pdf, class_balance.pdf)
+statsmodels>=0.14       # ACF computation in temporal dependence page
