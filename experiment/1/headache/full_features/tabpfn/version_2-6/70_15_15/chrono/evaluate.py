@@ -1,10 +1,12 @@
 import os
+import sys
+import uuid
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
 import joblib
 import numpy as np
-import pandas as pd
-import uuid
-from datetime import datetime
-from collections import defaultdict
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -16,6 +18,13 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import load_and_prep_data  # noqa: E402
+
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "..", "data", "processed", "headache")
@@ -23,13 +32,6 @@ RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 TEST_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-
-
-def load_and_prep_data(filepath):
-    df = pd.read_parquet(filepath)
-    X = df.drop(columns=['entry_id', 'patient_id', 'date', 'migraine_target'])
-    y = df['migraine_target']
-    return X, y
 
 
 def expected_calibration_error(y_true, y_prob, n_bins=10):

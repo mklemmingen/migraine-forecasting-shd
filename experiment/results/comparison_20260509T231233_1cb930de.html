@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Comparison Table — 2026-05-09T23:12:33</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    margin: 20px; background: #f8f8f8; color: #222; font-size: 0.83em;
+  }
+  h1   { font-size: 1.2em; margin-bottom: 3px; }
+  .meta { color: #777; font-size: 0.82em; margin-bottom: 18px; }
+  .wrap { overflow-x: auto; }
+
+  table { border-collapse: collapse; }
+  th, td { border: 1px solid #c8c8c8; padding: 0; vertical-align: top; }
+
+  .corner {
+    background: #c8d3df; padding: 8px 12px;
+    text-align: left; min-width: 160px; vertical-align: middle;
+    font-size: 0.78em; position: sticky; left: 0; z-index: 2;
+  }
+  .corner-axis { display: block; line-height: 1.5; color: #1a3550; }
+  .add-hdr {
+    background: #1a3550; color: #fff; text-align: center;
+    font-weight: bold; font-size: 0.88em; letter-spacing: 0.04em;
+    padding: 4px 10px; border-bottom: 2px solid #6f8aa6;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .col-hdr {
+    background: #dde3ea; text-align: center;
+    padding: 6px 10px; min-width: 120px;
+    position: sticky; top: 28px; z-index: 1;
+  }
+  .c-arch { font-weight: bold; font-size: 0.92em; display: block; }
+  .c-ver  { color: #444; font-size: 0.78em; display: block; }
+  .c-fs   {
+    color: #5a3300; background: #fff3d4; font-size: 0.74em; display: inline-block;
+    padding: 0 6px; margin-top: 4px; border-radius: 3px; font-weight: bold;
+  }
+
+  .row-hdr {
+    background: #dde3ea; padding: 6px 10px; font-weight: bold;
+    font-size: 0.83em; min-width: 140px; vertical-align: middle;
+    text-align: left; position: sticky; left: 0; z-index: 1;
+  }
+  .rh-target { font-size: 1.05em; font-weight: bold; color: #1a3550; }
+  .rh-line { font-weight: normal; color: #444; font-size: 0.92em; margin-top: 1px; }
+  .rh-key { color: #888; font-weight: normal; }
+
+  /* Axis-info panel above the table */
+  .axis-info {
+    margin-bottom: 14px; padding: 10px 14px; background: #fff;
+    border: 1px solid #c8d3df; border-radius: 4px; font-size: 0.85em;
+  }
+  .axis-info h2 { margin: 0 0 8px; font-size: 0.95em; color: #1a3550; }
+  .axis-info dl { margin: 0; }
+  .axis-info dt { font-weight: bold; color: #1a3550; margin-top: 6px; }
+  .axis-info dt:first-of-type { margin-top: 0; }
+  .axis-info dd { margin: 2px 0 0 18px; color: #444; }
+
+  .dcell { padding: 0; min-width: 120px; background: #fff; }
+  .src-tag {
+    font-size: 0.65em; color: #888; text-align: right;
+    padding: 1px 4px; background: #f0f0f0; border-bottom: 1px solid #ddd;
+  }
+  .mrow {
+    display: flex; justify-content: space-between;
+    padding: 2px 6px; border-bottom: 1px solid rgba(0,0,0,0.07);
+    font-size: 0.79em;
+  }
+  .mrow:last-child { border-bottom: none; }
+  .ml { color: #555; }
+  .mv { font-weight: bold; }
+  .mv.na { color: #b00; font-style: italic; font-weight: normal; }
+
+  .empty {
+    background: #f2f2f2; text-align: center; color: #ccc;
+    font-size: 1.3em; padding: 18px; min-width: 120px;
+  }
+
+  /* Legend */
+  .legend {
+    margin-top: 22px; max-width: 600px;
+    border: 1px solid #ddd; border-radius: 3px;
+    padding: 10px 14px; background: #fff;
+  }
+  .legend h3 { font-size: 0.88em; margin: 0 0 7px; }
+  .legend table { border-collapse: collapse; width: 100%; }
+  .legend td { border: 1px solid #eee; padding: 3px 7px; font-size: 0.76em; vertical-align: middle; }
+  .sw {
+    display: inline-block; padding: 1px 5px;
+    border-radius: 2px; border: 1px solid rgba(0,0,0,0.12);
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+<h1>Architecture Comparison Table</h1>
+<div class="meta">
+  Generated: 2026-05-09T23:12:33 &nbsp;·&nbsp; ID: 1cb930de
+</div>
+
+<div class="axis-info">
+  <h2>How to read this table</h2>
+  <dl>
+    <dt>Rows (Y-axis) — Data Package</dt>
+    <dd>Each row is one (target × split-ratio × split-strategy) combination.
+        <b>target</b> = headache or migraine.
+        <b>ratio</b> = train/val/test split sizes (e.g. 70_15_15 or 70_30 / 80_20 with chronological cal sub-split).
+        <b>split</b> = how rows are assigned: <i>chrono</i> (date-percentile cuts), <i>stratified</i> (class-balanced random shuffle), <i>patient</i> (whole-patient holdout).</dd>
+    <dt>Columns (X-axis) — Architecture</dt>
+    <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
+    <dt>Cells</dt>
+    <dd>Top-5 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
+  </dl>
+</div>
+
+<div class="wrap">
+<table>
+  <thead><tr><th class="corner" rowspan="2"><div class="corner-axis">rows ↓ Data Package</div><div class="corner-axis">cols → Architecture</div></th><th class="add-hdr" colspan="4">Addition 0</th><th class="add-hdr" colspan="1">Addition 1</th></tr><tr><th class="col-hdr"><span class="c-arch">blended xgb lr spano2026</span><br><span class="c-fs">[spano]</span></th><th class="col-hdr"><span class="c-arch">stacked 2xgb meta lr</span><br><span class="c-fs">[full]</span></th><th class="col-hdr"><span class="c-arch">stacked 2xgb meta lr</span><br><span class="c-fs">[no_rolling]</span></th><th class="col-hdr"><span class="c-arch">stacked 2xgb meta lr</span><br><span class="c-fs">[spano]</span></th><th class="col-hdr"><span class="c-arch">tabpfn</span><br><span class="c-ver">v2-6</span><br><span class="c-fs">[full]</span></th></tr></thead>
+  <tbody>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_15_15</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="dcell"><div class="mrow" style="background:hsl(11, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.544</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.194</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.056</span></div><div class="mrow" style="background:hsl(44, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.366</span></div><div class="mrow" style="background:hsl(56, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.133</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(2, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.507</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.189</span></div><div class="mrow" style="background:hsl(4, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.016</span></div><div class="mrow" style="background:hsl(50, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.417</span></div><div class="mrow" style="background:hsl(58, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.129</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(4, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.518</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.189</span></div><div class="mrow" style="background:hsl(4, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.015</span></div><div class="mrow" style="background:hsl(70, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.584</span></div><div class="mrow" style="background:hsl(60, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.126</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.495</span></div><div class="mrow" style="background:hsl(22, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.187</span></div><div class="mrow" style="background:hsl(24, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.101</span></div><div class="mrow" style="background:hsl(32, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.263</span></div><div class="mrow" style="background:hsl(58, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.129</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(5, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.521</span></div><div class="mrow" style="background:hsl(20, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.169</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.083</span></div><div class="mrow" style="background:hsl(19, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.158</span></div><div class="mrow" style="background:hsl(59, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.128</span></div></td></tr>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_15_15</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(41, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.669</span></div><div class="mrow" style="background:hsl(52, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.434</span></div><div class="mrow" style="background:hsl(58, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.240</span></div><div class="mrow" style="background:hsl(69, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.579</span></div><div class="mrow" style="background:hsl(40, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.166</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(17, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.571</span></div><div class="mrow" style="background:hsl(34, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.285</span></div><div class="mrow" style="background:hsl(30, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.123</span></div><div class="mrow" style="background:hsl(71, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.594</span></div><div class="mrow" style="background:hsl(35, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.178</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_30</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(33, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.639</span></div><div class="mrow" style="background:hsl(46, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.383</span></div><div class="mrow" style="background:hsl(59, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.246</span></div><div class="mrow" style="background:hsl(76, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.633</span></div><div class="mrow" style="background:hsl(49, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.148</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(13, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.553</span></div><div class="mrow" style="background:hsl(30, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.246</span></div><div class="mrow" style="background:hsl(16, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.065</span></div><div class="mrow" style="background:hsl(94, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.785</span></div><div class="mrow" style="background:hsl(45, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.156</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_30</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(39, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.662</span></div><div class="mrow" style="background:hsl(51, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.427</span></div><div class="mrow" style="background:hsl(48, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.200</span></div><div class="mrow" style="background:hsl(114, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.950</span></div><div class="mrow" style="background:hsl(29, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.189</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.435</span></div><div class="mrow" style="background:hsl(26, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.214</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.032</span></div><div class="mrow" style="background:hsl(73, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.612</span></div><div class="mrow" style="background:hsl(27, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.193</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 80_20</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(8, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.534</span></div><div class="mrow" style="background:hsl(28, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.233</span></div><div class="mrow" style="background:hsl(16, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.068</span></div><div class="mrow" style="background:hsl(48, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.403</span></div><div class="mrow" style="background:hsl(60, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.125</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.475</span></div><div class="mrow" style="background:hsl(17, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.141</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.043</span></div><div class="mrow" style="background:hsl(45, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.372</span></div><div class="mrow" style="background:hsl(57, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.131</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">headache</div><div class="rh-line"><span class="rh-key">ratio:</span> 80_20</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(43, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.679</span></div><div class="mrow" style="background:hsl(53, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.444</span></div><div class="mrow" style="background:hsl(59, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.244</span></div><div class="mrow" style="background:hsl(100, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.837</span></div><div class="mrow" style="background:hsl(32, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.183</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.432</span></div><div class="mrow" style="background:hsl(25, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.206</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.038</span></div><div class="mrow" style="background:hsl(66, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.546</span></div><div class="mrow" style="background:hsl(28, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.192</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_15_15</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="dcell"><div class="mrow" style="background:hsl(20, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.584</span></div><div class="mrow" style="background:hsl(7, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.057</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.072</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.000</span></div><div class="mrow" style="background:hsl(99, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.044</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(26, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.610</span></div><div class="mrow" style="background:hsl(28, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.236</span></div><div class="mrow" style="background:hsl(51, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.213</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.190</span></div><div class="mrow" style="background:hsl(101, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.039</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.420</span></div><div class="mrow" style="background:hsl(8, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.066</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.043</span></div><div class="mrow" style="background:hsl(72, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.598</span></div><div class="mrow" style="background:hsl(102, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.038</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(27, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.613</span></div><div class="mrow" style="background:hsl(18, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.148</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.017</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.190</span></div><div class="mrow" style="background:hsl(101, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.040</span></div></td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_15_15</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(52, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.716</span></div><div class="mrow" style="background:hsl(27, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.225</span></div><div class="mrow" style="background:hsl(34, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.142</span></div><div class="mrow" style="background:hsl(56, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.470</span></div><div class="mrow" style="background:hsl(90, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.062</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(12, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.549</span></div><div class="mrow" style="background:hsl(13, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.109</span></div><div class="mrow" style="background:hsl(1, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.004</span></div><div class="mrow" style="background:hsl(110, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.920</span></div><div class="mrow" style="background:hsl(88, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.067</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_30</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(66, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.777</span></div><div class="mrow" style="background:hsl(38, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.320</span></div><div class="mrow" style="background:hsl(70, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.292</span></div><div class="mrow" style="background:hsl(85, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.712</span></div><div class="mrow" style="background:hsl(93, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.057</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(29, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.619</span></div><div class="mrow" style="background:hsl(19, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.155</span></div><div class="mrow" style="background:hsl(17, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.072</span></div><div class="mrow" style="background:hsl(82, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.682</span></div><div class="mrow" style="background:hsl(91, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.060</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 70_30</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(44, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.682</span></div><div class="mrow" style="background:hsl(26, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.214</span></div><div class="mrow" style="background:hsl(52, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.216</span></div><div class="mrow" style="background:hsl(32, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.264</span></div><div class="mrow" style="background:hsl(88, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.066</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.427</span></div><div class="mrow" style="background:hsl(8, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.066</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.047</span></div><div class="mrow" style="background:hsl(97, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.806</span></div><div class="mrow" style="background:hsl(87, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.069</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 80_20</div><div class="rh-line"><span class="rh-key">split:</span> chrono</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(22, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.592</span></div><div class="mrow" style="background:hsl(11, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.091</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.036</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.193</span></div><div class="mrow" style="background:hsl(99, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.044</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(18, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.573</span></div><div class="mrow" style="background:hsl(19, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.157</span></div><div class="mrow" style="background:hsl(34, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.142</span></div><div class="mrow" style="background:hsl(109, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.908</span></div><div class="mrow" style="background:hsl(100, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.041</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+<tr><td class="row-hdr"><div class="rh-target">migraine</div><div class="rh-line"><span class="rh-key">ratio:</span> 80_20</div><div class="rh-line"><span class="rh-key">split:</span> stratified</div></td><td class="empty">—</td><td class="dcell"><div class="mrow" style="background:hsl(47, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.695</span></div><div class="mrow" style="background:hsl(25, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.212</span></div><div class="mrow" style="background:hsl(39, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.163</span></div><div class="mrow" style="background:hsl(48, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.401</span></div><div class="mrow" style="background:hsl(89, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.065</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(7, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.530</span></div><div class="mrow" style="background:hsl(10, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.086</span></div><div class="mrow" style="background:hsl(9, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.039</span></div><div class="mrow" style="background:hsl(37, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.308</span></div><div class="mrow" style="background:hsl(87, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.068</span></div></td><td class="empty">—</td><td class="empty">—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="legend">
+  <h3>Feature-set glossary</h3>
+  <table>
+    <tr><th>Tag</th><th>Meaning</th></tr>
+    <tr><td><b>[full]</b></td><td>all engineered features (today's triggers + rolling/lag/interaction)</td></tr><tr><td><b>[no_rolling]</b></td><td>today's triggers only — no temporal aggregation, lag, or streaks</td></tr><tr><td><b>[spano]</b></td><td>Spano (2026) feature subset — matches the prior-work replication</td></tr>
+  </table>
+</div>
+
+<div class="legend">
+  <h3>Colour legend (per-metric scale)</h3>
+  <table>
+    <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
+    <tr><td><b>AUROC</b></td><td>↑ higher = better</td><td>0.5 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>AUPRC</b></td><td>↑ higher = better</td><td>0.0 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>MCC</b></td><td>↑ higher = better</td><td>0.0 … 0.5</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>Sens≥0.5</b></td><td>↑ higher = better</td><td>0.0 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>Brier ↓</b></td><td>↓ lower = better</td><td>0.0 … 0.25</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr>
+  </table>
+</div>
+
+</body>
+</html>

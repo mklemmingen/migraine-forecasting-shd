@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Experiment Results — 2026-05-09T15:37:10</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    max-width: 1200px; margin: 24px auto; padding: 0 20px;
+    background: #fafafa; color: #222;
+  }
+  h1 { font-size: 1.25em; margin-bottom: 4px; }
+  .meta { color: #777; font-size: 0.8em; margin-bottom: 20px; }
+  .breadcrumb { margin-bottom: 14px; font-size: 0.9em; }
+  .breadcrumb .sep { color: #bbb; margin: 0 4px; }
+  .breadcrumb a { color: #1a73e8; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 12px; }
+  th, td { border: 1px solid #ddd; padding: 6px 12px; text-align: left; font-size: 0.87em; }
+  th { background: #f0f4f8; font-weight: bold; }
+  tr.nav-row { cursor: pointer; }
+  tr.nav-row:hover { background: #e8f0fe; }
+  td.nav-label::after { content: " a"; color: #aaa; }
+  .na { color: #c00; font-style: italic; }
+  .result-block {
+    margin-bottom: 22px; border: 1px solid #e0e0e0;
+    border-radius: 4px; padding: 14px 16px; background: #fff;
+  }
+  .result-block h3 { font-size: 0.95em; margin: 0 0 12px; color: #333; }
+  .result-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .result-section h4 { font-size: 0.82em; margin: 0 0 5px; color: #555; }
+  .thresh { font-size: 0.77em; color: #888; margin-bottom: 5px; }
+  .ts { font-size: 0.78em; color: #999; font-weight: normal; }
+  @media (max-width: 700px) { .result-pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>Experiment Results</h1>
+<div class="meta">Generated: 2026-05-09T15:37:10 &nbsp;&middot;&nbsp; ID: 5d1ab3e6</div>
+<div class="breadcrumb" id="breadcrumb"></div>
+<div id="content"></div>
+<script>
+
+const DATA = [
+  {
+    "path": {
+      "addition": "0",
+      "target": "headache",
+      "feature_set": "full_features",
+      "architecture": "clean_stack",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": {
+      "AUROC": "0.507 [0.364 - 0.642]",
+      "AUPRC": "0.190 [0.094 - 0.319]",
+      "Brier Score": "0.129 [0.096 - 0.163]",
+      "ECE10": "0.071 [0.027 - 0.121]",
+      "MCC (Optimal)": "0.039 [-0.114 - 0.243]",
+      "Sensitivity (>=0.5)": "0.313 [0.111 - 0.524]",
+      "Accuracy": "0.809 [0.743 - 0.868]",
+      "Precision": "0.185 [0.000 - 0.455]",
+      "Recall": "0.108 [0.000 - 0.263]",
+      "F1": "0.132 [0.000 - 0.308]"
+    },
+    "cv": {
+      "AUROC": "0.584 ± 0.051",
+      "AUPRC": "0.310 ± 0.064",
+      "Brier Score": "0.164 ± 0.024",
+      "ECE10": "0.049 ± 0.017",
+      "MCC (Cal-Optimal)": "0.105 ± 0.071",
+      "Sensitivity (>=0.5)": "0.489 ± 0.093",
+      "Accuracy": "0.739 ± 0.033",
+      "Precision": "0.339 ± 0.122",
+      "Recall": "0.193 ± 0.113",
+      "F1": "0.220 ± 0.079"
+    },
+    "threshold_mcc": "0.320",
+    "threshold_sens": "0.220",
+    "holdout_ts": "2026-05-09 14:25:42",
+    "cv_ts": "2026-05-08 20:08:26"
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "headache",
+      "feature_set": "full_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": {
+      "AUROC": "0.501 [0.367 - 0.634]",
+      "AUPRC": "0.152 [0.086 - 0.234]",
+      "Brier Score": "0.136 [0.102 - 0.175]",
+      "ECE10": "0.087 [0.044 - 0.137]",
+      "MCC (Optimal)": "-0.033 [-0.134 - 0.139]",
+      "Sensitivity (>=0.5)": "0.366 [0.158 - 0.583]",
+      "Accuracy": "0.802 [0.735 - 0.868]",
+      "Precision": "0.098 [0.000 - 0.333]",
+      "Recall": "0.050 [0.000 - 0.167]",
+      "F1": "0.064 [0.000 - 0.214]"
+    },
+    "cv": null,
+    "threshold_mcc": "0.270",
+    "threshold_sens": "0.260",
+    "holdout_ts": "2026-05-08 20:05:52",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "headache",
+      "feature_set": "spano_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": {
+      "AUROC": "0.561 [0.416 - 0.705]",
+      "AUPRC": "0.187 [0.098 - 0.304]",
+      "Brier Score": "0.138 [0.102 - 0.180]",
+      "ECE10": "0.083 [0.037 - 0.135]",
+      "MCC (Optimal)": "-0.091 [-0.130 - -0.052]",
+      "Sensitivity (>=0.5)": "0.262 [0.067 - 0.471]",
+      "Accuracy": null,
+      "Precision": null,
+      "Recall": null,
+      "F1": null
+    },
+    "cv": null,
+    "threshold_mcc": "0.290",
+    "threshold_sens": "0.280",
+    "holdout_ts": "2026-04-30 23:07:44",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "architecture": "clean_stack",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "spano_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "1",
+      "target": "headache",
+      "feature_set": "full_features",
+      "architecture": "tabpfn",
+      "version": "version_2-6",
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": {
+      "AUROC": "0.521 [0.377 - 0.668]",
+      "AUPRC": "0.169 [0.092 - 0.268]",
+      "Brier Score": "0.128 [0.092 - 0.166]",
+      "ECE10": "0.056 [0.024 - 0.097]",
+      "MCC (Optimal)": "-0.083 [-0.124 - -0.045]",
+      "Sensitivity (>=0.5)": "0.158 [0.000 - 0.333]",
+      "Accuracy": "0.817 [0.750 - 0.875]",
+      "Precision": "0.000 [0.000 - 0.000]",
+      "Recall": "0.000 [0.000 - 0.000]",
+      "F1": "0.000 [0.000 - 0.000]"
+    },
+    "cv": {
+      "AUROC": "0.622 ± 0.056",
+      "AUPRC": "0.343 ± 0.080",
+      "Brier Score": "0.157 ± 0.021",
+      "ECE10": "0.033 ± 0.007",
+      "MCC (Cal-Optimal)": "0.174 ± 0.102",
+      "Sensitivity (>=0.5)": "0.434 ± 0.107",
+      "Accuracy": "0.762 ± 0.055",
+      "Precision": "0.381 ± 0.133",
+      "Recall": "0.269 ± 0.140",
+      "F1": "0.305 ± 0.134"
+    },
+    "threshold_mcc": "0.360",
+    "threshold_sens": null,
+    "holdout_ts": "2026-05-08 20:54:31",
+    "cv_ts": "2026-05-08 20:54:10"
+  }
+];
+const METRICS_HOLDOUT = ["AUROC", "AUPRC", "Brier Score", "ECE10", "MCC (Optimal)", "Sensitivity (>=0.5)", "Accuracy", "Precision", "Recall", "F1"];
+const METRICS_CV = ["AUROC", "AUPRC", "Brier Score", "ECE10", "MCC (Cal-Optimal)", "Sensitivity (>=0.5)", "Accuracy", "Precision", "Recall", "F1"];
+
+const DIMS = ["addition", "target", "feature_set", "arch_ver"];
+const DIM_LABELS = {
+  addition: "Addition", target: "Target",
+  feature_set: "Feature Set", arch_ver: "Architecture"
+};
+
+let navPath = [];
+
+function archVer(e) {
+  return e.path.version
+    ? e.path.architecture + " (" + e.path.version + ")"
+    : e.path.architecture;
+}
+function splitKey(e) {
+  return e.path.splittype
+    ? e.path.datasplit + " / " + e.path.splittype
+    : e.path.datasplit;
+}
+function getVal(e, dim) {
+  return dim === "arch_ver" ? archVer(e) : e.path[dim];
+}
+function filterData() {
+  return DATA.filter(e => navPath.every(s => getVal(e, s.dim) === s.val));
+}
+function uniqueVals(data, dim) {
+  return [...new Set(data.map(e => getVal(e, dim)))].sort();
+}
+
+function renderBreadcrumb() {
+  const bc = document.getElementById("breadcrumb");
+  if (!navPath.length) { bc.innerHTML = ""; return; }
+  const parts = ['<a href="#" onclick="navTo(-1);return false">All</a>'];
+  navPath.forEach(function(s, i) {
+    parts.push('<span class="sep">›</span>');
+    if (i < navPath.length - 1)
+      parts.push('<a href="#" onclick="navTo(' + i + ');return false">' + esc(s.val) + '</a>');
+    else
+      parts.push('<strong>' + esc(s.val) + '</strong>');
+  });
+  bc.innerHTML = parts.join(" ");
+}
+
+function navTo(idx) { navPath = idx < 0 ? [] : navPath.slice(0, idx + 1); render(); }
+function navigate(dim, val) { navPath.push({dim: dim, val: val}); render(); }
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderNavTable(data, dim) {
+  const vals = uniqueVals(data, dim);
+  let h = '<table><tr><th>' + DIM_LABELS[dim] + '</th><th>Experiments</th></tr>';
+  vals.forEach(function(val) {
+    const count = data.filter(function(e) { return getVal(e, dim) === val; }).length;
+    h += '<tr class="nav-row"><td class="nav-label">' + esc(val) + '</td><td>' + count + '</td></tr>';
+  });
+  h += '</table>';
+  return { html: h, vals: vals };
+}
+
+function renderValue(v) {
+  if (v === null || v === undefined)
+    return '<span class="na">N/A</span>';
+  return esc(v);
+}
+
+function renderMetricsTable(metrics, names) {
+  let h = '<table><tr><th>Metric</th><th>Value</th></tr>';
+  names.forEach(function(m) {
+    const v = metrics ? metrics[m] : null;
+    h += '<tr><td>' + esc(m) + '</td><td>' + renderValue(v) + '</td></tr>';
+  });
+  return h + '</table>';
+}
+
+function renderLeaf(data) {
+  const splits = [...new Set(data.map(e => splitKey(e)))].sort();
+  let h = '';
+  splits.forEach(function(sk) {
+    const entry = data.find(function(e) { return splitKey(e) === sk; });
+    const hot = entry.holdout_ts ? ' <span class="ts">(' + esc(entry.holdout_ts) + ')</span>' : '';
+    const cvt = entry.cv_ts     ? ' <span class="ts">(' + esc(entry.cv_ts)      + ')</span>' : '';
+    let thresh = '';
+    if (entry.threshold_mcc || entry.threshold_sens) {
+      thresh = '<div class="thresh">MCC threshold: ' + esc(entry.threshold_mcc || 'N/A') +
+               ' &nbsp;··· sens≥0.5 threshold: ' + esc(entry.threshold_sens || 'N/A') + '</div>';
+    }
+    h += '<div class="result-block">';
+    h += '<h3>' + esc(sk) + '</h3>';
+    h += '<div class="result-pair">';
+    h += '<div class="result-section"><h4>Hold-out Test' + hot + '</h4>';
+    h += thresh;
+    h += renderMetricsTable(entry.holdout, METRICS_HOLDOUT);
+    h += '</div>';
+    h += '<div class="result-section"><h4>Cross-Validation (5-Fold)' + cvt + '</h4>';
+    h += renderMetricsTable(entry.cv, METRICS_CV);
+    h += '</div>';
+    h += '</div></div>';
+  });
+  return h || '<p style="color:#888">No result files found for this path.</p>';
+}
+
+function render() {
+  renderBreadcrumb();
+  const filtered = filterData();
+  const level    = navPath.length;
+  const content  = document.getElementById("content");
+  if (level >= DIMS.length) {
+    content.innerHTML = renderLeaf(filtered);
+  } else {
+    const result = renderNavTable(filtered, DIMS[level]);
+    content.innerHTML = result.html;
+    document.querySelectorAll('.nav-row').forEach(function(row, i) {
+      row.addEventListener('click', function() { navigate(DIMS[level], result.vals[i]); });
+    });
+  }
+}
+
+render();
+
+</script>
+</body>
+</html>

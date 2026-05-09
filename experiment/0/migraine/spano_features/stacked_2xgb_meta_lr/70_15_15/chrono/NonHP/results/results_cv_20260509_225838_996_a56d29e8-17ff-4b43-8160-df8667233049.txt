@@ -1,0 +1,27 @@
+============================================================
+STAGE 0 / spano_features / stacked_2xgb_meta_lr: STACKED ENSEMBLE — 5-Fold Time-Series CV (train.py)
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split — NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.551    0.704    0.690    0.778    0.604 | 0.666    0.080  
+AUPRC                     |   0.113    0.163    0.229    0.292    0.101 | 0.180    0.072  
+Brier Score               |   0.080    0.064    0.063    0.063    0.034 | 0.061    0.015  
+ECE10                     |   0.059    0.007    0.017    0.027    0.036 | 0.029    0.018  
+MCC (Cal-Optimal)         |   0.031    0.201    0.201    0.297   -0.047 | 0.137    0.126  
+Sensitivity (>=0.5)       |   0.276    0.518    0.422    0.718    0.200 | 0.427    0.183  
+Accuracy                  |   0.895    0.878    0.815    0.821    0.658 | 0.813    0.084  
+Precision                 |   0.128    0.232    0.185    0.231    0.020 | 0.159    0.079  
+Recall                    |   0.051    0.306    0.453    0.615    0.200 | 0.325    0.196  
+F1                        |   0.073    0.264    0.262    0.336    0.036 | 0.194    0.118  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.310  thresh_sens=0.090
+  F2: 1213 /  545 / 1187   thresh_mcc=0.130  thresh_sens=0.080
+  F3: 2272 /  673 /  883   thresh_mcc=0.130  thresh_sens=0.140
+  F4: 3121 /  707 /  530   thresh_mcc=0.100  thresh_sens=0.070
+  F5: 3809 /  549 /  158   thresh_mcc=0.080  thresh_sens=0.130
+============================================================
