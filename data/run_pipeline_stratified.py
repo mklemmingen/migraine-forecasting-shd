@@ -6,13 +6,20 @@ Rows are shuffled while preserving class proportions per fold (stratified split)
 
 
 """
+import logging
 import os
 import sys
+from pathlib import Path
+
+import pandas as pd
 import run_base
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from pipeline import (print_data_insights)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
+from pipeline import print_data_insights
+from pipeline.analytics import run_dataset_analysis, run_class_balance
 from pipeline.splits.stratified import apply_split, SPLIT_NAME
 
 DATA_DIR      = os.path.dirname(os.path.abspath(__file__))
@@ -74,6 +81,15 @@ def main():
             )
 
         print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
+
+        # Step 5 — Analytics reports
+        PROCESSED = Path(DATA_DIR) / "processed"
+        tm_dir = PROCESSED / target_mode
+        diary_df = pd.read_parquet(tm_dir / "diary.parquet")
+        run_dataset_analysis(diary_df=diary_df, target_mode=target_mode,
+                             output_path=tm_dir / "dataset_analysis.pdf")
+        run_class_balance(processed_dir=tm_dir, target_mode=target_mode,
+                          output_path=tm_dir / "class_balance.pdf")
 
         print(f"\n=== Processing finished for target_mode: {target_mode} ===\n")
 
