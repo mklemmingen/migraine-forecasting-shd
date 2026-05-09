@@ -1,11 +1,17 @@
 import os
+import sys
 
 import joblib
 import pandas as pd
-from sklearn.ensemble import StackingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold
-from xgboost import XGBClassifier
+
+# ---------------------------------------------------------------------------
+# Architecture import
+_EXP0 = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       '..', '..', '..', '..', '..'))
+sys.path.insert(0, _EXP0)
+from _model_architecture.clean_stack.model import (  # noqa: E402
+    build_stacker, fit_sigmoid_calibrator,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -32,56 +38,6 @@ def prep_split(df):
     X = df.drop(columns=[c for c in drop_cols if c in df.columns])
     y = df['migraine_target']
     return X, y
-
-
-def build_stacker(X_train, y_train):
-    """Construct and fit the stacked ensemble on the supplied training data.
-
-    Extracted from main() so evaluate_cv.py can re-train per fold without
-    duplicating model configuration.
-    """
-    scale_pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
-
-    base_estimators = [
-        ('xgb_shallow', XGBClassifier(
-            n_estimators=100, max_depth=3, learning_rate=0.1,
-            scale_pos_weight=scale_pos_weight, random_state=42)),
-        ('xgb_deep', XGBClassifier(
-            n_estimators=100, max_depth=6, learning_rate=0.05,
-            scale_pos_weight=scale_pos_weight, random_state=42)),
-    ]
-
-    meta_model = LogisticRegression(
-        l1_ratio=1.0, solver='saga', C=1.0,
-        class_weight='balanced', random_state=42, max_iter=500)
-
-    stacker = StackingClassifier(
-        estimators=base_estimators,
-        final_estimator=meta_model,
-        cv=KFold(n_splits=5, shuffle=False),
-        n_jobs=-1,
-    )
-    stacker.fit(X_train, y_train)
-    return stacker
-
-
-def fit_sigmoid_calibrator(stacker, X_cal, y_cal):
-    """Fit a Platt scaling calibrator on held-out probabilities from a pre-fitted stacker.
-
-    Maps raw stacker probabilities via logistic regression so that
-    calibrated_prob(x) ≈ P(y=1 | x).  Using a separate calibration set
-    prevents training-data leakage into the calibration step.
-
-    Sigmoid (Platt scaling) is preferred over isotonic regression when the
-    number of calibration samples is below the ~1000-sample threshold identified
-    by Caruana et al. (2005); verify the current val-set event count against
-    that threshold before switching to isotonic.
-    """
-    probs = stacker.predict_proba(X_cal)[:, 1].reshape(-1, 1)
-    # C=1e10 ≈ no regularisation — standard Platt scaling parameterisation
-    calibrator = LogisticRegression(C=1e10, solver='lbfgs', max_iter=1000)
-    calibrator.fit(probs, y_cal)
-    return calibrator
 
 
 def main():
