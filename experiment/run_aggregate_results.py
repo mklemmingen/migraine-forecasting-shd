@@ -52,12 +52,18 @@ RESET = "\033[0m"
 # ---------------------------------------------------------------------------
 
 def find_results_dirs():
-    """Return all results/ directories that are not inside _-prefixed folders."""
+    """Return all leaf results/ directories that are not inside _-prefixed folders.
+
+    Skips the top-level experiment/results/ directory itself — that's where THIS
+    aggregator writes its own HTML output, not where leaves write their txt files.
+    """
     found = []
     for p in EXPERIMENT_DIR.rglob("results"):
         if not p.is_dir():
             continue
         rel = p.relative_to(EXPERIMENT_DIR)
+        if rel == Path("results"):
+            continue  # top-level output folder — not a leaf
         if not any(part.startswith("_") for part in rel.parts):
             found.append(p)
     return sorted(found)
@@ -418,9 +424,30 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
     Source: hold-out test results (fall back to CV mean if hold-out absent).
     """
 
+    # Feature-set short labels — explicit map so adding new sets requires a
+    # one-line edit. Previous heuristic `"full" if "full" in fs else "spano"`
+    # silently mislabelled `no_rolling_features` as `[spano]`, hiding it
+    # behind the actual spano column in the rendered table.
+    FS_LABELS = {
+        "full_features": "full",
+        "no_rolling_features": "no_rolling",
+        "spano_features": "spano",
+    }
+    FS_GLOSS = {
+        "full": "all engineered features (today's triggers + rolling/lag/interaction)",
+        "no_rolling": "today's triggers only — no temporal aggregation, lag, or streaks",
+        "spano": "Spano (2026) feature subset — matches the prior-work replication",
+    }
+
+    # Column sort order: (addition, architecture, version, feature_set).
+    # — addition first so all columns from the same experiment number cluster.
+    # — architecture alphabetical inside each addition.
+    # — version is the natural sub-sort within an architecture (tabpfn 2-6 vs 2-7).
+    # — feature_set as the final tiebreaker so [full] / [no_rolling] / [spano]
+    #   variants of the same architecture stay adjacent.
     def col_key(e):
         p = e["path"]
-        return (p["feature_set"], p["architecture"], p["version"] or "")
+        return (p["addition"], p["architecture"], p["version"] or "", p["feature_set"])
 
     def row_key(e):
         p = e["path"]
@@ -431,25 +458,56 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
     lookup   = {(row_key(e), col_key(e)): e for e in all_entries}
 
     # ---- column headers ----
-    header_cells = ['<th class="corner">Data Package</th>']
-    for fs, arch, ver in col_keys:
+    # Two-row header: row 1 is the addition group spanning its columns,
+    # row 2 has the per-column architecture / version / feature-set labels.
+    addition_groups: list[tuple[str, int]] = []
+    last_addition = None
+    for addition, _arch, _ver, _fs in col_keys:
+        if last_addition is None or addition != last_addition:
+            addition_groups.append([addition, 1])
+            last_addition = addition
+        else:
+            addition_groups[-1][1] += 1
+
+    group_row_cells = [
+        '<th class="corner" rowspan="2">'
+        '<div class="corner-axis">rows ↓ Data Package</div>'
+        '<div class="corner-axis">cols → Architecture</div></th>'
+    ]
+    for addition, span in addition_groups:
+        group_row_cells.append(
+            f'<th class="add-hdr" colspan="{span}">Addition {addition}</th>'
+        )
+
+    detail_row_cells = []
+    for addition, arch, ver, fs in col_keys:
         arch_disp = arch.replace("_", " ")
         ver_disp  = ver.replace("version_", "") if ver else ""
-        fs_short  = "full" if "full" in fs else "spano"
-        header_cells.append(
+        fs_short  = FS_LABELS.get(fs, fs)
+        detail_row_cells.append(
             f'<th class="col-hdr">'
             f'<span class="c-arch">{arch_disp}</span>'
-            + (f'<br><span class="c-ver">{ver_disp}</span>' if ver_disp else "")
+            + (f'<br><span class="c-ver">v{ver_disp}</span>' if ver_disp else "")
             + f'<br><span class="c-fs">[{fs_short}]</span>'
             f'</th>'
         )
+
+    header_html = (
+        f'<tr>{"".join(group_row_cells)}</tr>'
+        f'<tr>{"".join(detail_row_cells)}</tr>'
+    )
 
     # ---- data rows ----
     rows_html = ""
     for rk in row_keys:
         target, ds, st = rk
-        row_label = "<br>".join(filter(None, [target, ds, st]))
-        cells = f'<td class="row-hdr">{row_label}</td>'
+        # Label each row component so a reader knows which axis is which.
+        parts = []
+        parts.append(f'<div class="rh-target">{target}</div>')
+        parts.append(f'<div class="rh-line"><span class="rh-key">ratio:</span> {ds}</div>')
+        if st:
+            parts.append(f'<div class="rh-line"><span class="rh-key">split:</span> {st}</div>')
+        cells = f'<td class="row-hdr">{"".join(parts)}</td>'
 
         for ck in col_keys:
             entry = lookup.get((rk, ck))
@@ -508,7 +566,13 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
             f'</td></tr>'
         )
 
-    header_html = "".join(header_cells)
+    # Glossary rows for feature-set abbreviations actually present in the table.
+    # col_keys is now (addition, architecture, version, feature_set) — feature_set is element [3].
+    fs_present_short = sorted({FS_LABELS.get(ck[3], ck[3]) for ck in col_keys})
+    fs_glossary_rows = "".join(
+        f'<tr><td><b>[{s}]</b></td><td>{FS_GLOSS.get(s, "(no description)")}</td></tr>'
+        for s in fs_present_short
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -528,24 +592,48 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
   th, td {{ border: 1px solid #c8c8c8; padding: 0; vertical-align: top; }}
 
   .corner {{
-    background: #dde3ea; padding: 8px 12px;
-    text-align: center; min-width: 130px; vertical-align: middle;
-    font-size: 0.8em; position: sticky; left: 0; z-index: 2;
+    background: #c8d3df; padding: 8px 12px;
+    text-align: left; min-width: 160px; vertical-align: middle;
+    font-size: 0.78em; position: sticky; left: 0; z-index: 2;
+  }}
+  .corner-axis {{ display: block; line-height: 1.5; color: #1a3550; }}
+  .add-hdr {{
+    background: #1a3550; color: #fff; text-align: center;
+    font-weight: bold; font-size: 0.88em; letter-spacing: 0.04em;
+    padding: 4px 10px; border-bottom: 2px solid #6f8aa6;
+    position: sticky; top: 0; z-index: 1;
   }}
   .col-hdr {{
     background: #dde3ea; text-align: center;
     padding: 6px 10px; min-width: 120px;
-    position: sticky; top: 0; z-index: 1;
+    position: sticky; top: 28px; z-index: 1;
   }}
   .c-arch {{ font-weight: bold; font-size: 0.92em; display: block; }}
   .c-ver  {{ color: #444; font-size: 0.78em; display: block; }}
-  .c-fs   {{ color: #888; font-size: 0.7em;  display: block; }}
+  .c-fs   {{
+    color: #5a3300; background: #fff3d4; font-size: 0.74em; display: inline-block;
+    padding: 0 6px; margin-top: 4px; border-radius: 3px; font-weight: bold;
+  }}
 
   .row-hdr {{
     background: #dde3ea; padding: 6px 10px; font-weight: bold;
-    font-size: 0.83em; min-width: 130px; vertical-align: middle;
-    text-align: right; position: sticky; left: 0; z-index: 1;
+    font-size: 0.83em; min-width: 140px; vertical-align: middle;
+    text-align: left; position: sticky; left: 0; z-index: 1;
   }}
+  .rh-target {{ font-size: 1.05em; font-weight: bold; color: #1a3550; }}
+  .rh-line {{ font-weight: normal; color: #444; font-size: 0.92em; margin-top: 1px; }}
+  .rh-key {{ color: #888; font-weight: normal; }}
+
+  /* Axis-info panel above the table */
+  .axis-info {{
+    margin-bottom: 14px; padding: 10px 14px; background: #fff;
+    border: 1px solid #c8d3df; border-radius: 4px; font-size: 0.85em;
+  }}
+  .axis-info h2 {{ margin: 0 0 8px; font-size: 0.95em; color: #1a3550; }}
+  .axis-info dl {{ margin: 0; }}
+  .axis-info dt {{ font-weight: bold; color: #1a3550; margin-top: 6px; }}
+  .axis-info dt:first-of-type {{ margin-top: 0; }}
+  .axis-info dd {{ margin: 2px 0 0 18px; color: #444; }}
 
   .dcell {{ padding: 0; min-width: 120px; background: #fff; }}
   .src-tag {{
@@ -587,19 +675,41 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
 <h1>Architecture Comparison Table</h1>
 <div class="meta">
   Generated: {iso_timestamp} &nbsp;·&nbsp; ID: {uid}
-  &nbsp;·&nbsp; Hold-out test results (cells tagged "CV" use CV mean ± std as fallback)
+</div>
+
+<div class="axis-info">
+  <h2>How to read this table</h2>
+  <dl>
+    <dt>Rows (Y-axis) — Data Package</dt>
+    <dd>Each row is one (target × split-ratio × split-strategy) combination.
+        <b>target</b> = headache or migraine.
+        <b>ratio</b> = train/val/test split sizes (e.g. 70_15_15 or 70_30 / 80_20 with chronological cal sub-split).
+        <b>split</b> = how rows are assigned: <i>chrono</i> (date-percentile cuts), <i>stratified</i> (class-balanced random shuffle), <i>patient</i> (whole-patient holdout).</dd>
+    <dt>Columns (X-axis) — Architecture</dt>
+    <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
+    <dt>Cells</dt>
+    <dd>Top-5 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
+  </dl>
 </div>
 
 <div class="wrap">
 <table>
-  <thead><tr>{header_html}</tr></thead>
+  <thead>{header_html}</thead>
   <tbody>
 {rows_html}  </tbody>
 </table>
 </div>
 
 <div class="legend">
-  <h3>Colour legend</h3>
+  <h3>Feature-set glossary</h3>
+  <table>
+    <tr><th>Tag</th><th>Meaning</th></tr>
+    {fs_glossary_rows}
+  </table>
+</div>
+
+<div class="legend">
+  <h3>Colour legend (per-metric scale)</h3>
   <table>
     <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
     {legend_rows}
@@ -658,13 +768,16 @@ def main():
     short_uid     = str(uuid.uuid4())[:8]
     ts_flat       = iso_timestamp.replace(":", "").replace("-", "")
 
+    output_dir = EXPERIMENT_DIR / "results"
+    output_dir.mkdir(exist_ok=True)
+
     html = build_html(all_entries, iso_timestamp, short_uid)
-    output = EXPERIMENT_DIR / f"results_{ts_flat}_{short_uid}.html"
+    output = output_dir / f"results_{ts_flat}_{short_uid}.html"
     output.write_text(html, encoding="utf-8")
     print(f"Saved: {output}")
 
     html_cmp = build_comparison_html(all_entries, iso_timestamp, short_uid)
-    output_cmp = EXPERIMENT_DIR / f"comparison_{ts_flat}_{short_uid}.html"
+    output_cmp = output_dir / f"comparison_{ts_flat}_{short_uid}.html"
     output_cmp.write_text(html_cmp, encoding="utf-8")
     print(f"Saved: {output_cmp}")
 

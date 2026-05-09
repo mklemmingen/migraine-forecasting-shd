@@ -1,13 +1,15 @@
 import os
 import sys
+from pathlib import Path
 
 import joblib
-import pandas as pd
 
-# Architecture import
-_EXP1 = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                       '..', '..', '..', '..', '..', '..'))
-sys.path.insert(0, _EXP1)
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import load_and_prep_data, prep_split  # noqa: E402
 from _model_architecture.tabpfn.model import build_tabpfn  # noqa: E402
 
 # Configuration
@@ -16,25 +18,6 @@ DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", ".."
 TRAIN_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_train.parquet")
 VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-
-
-def load_and_prep_data(filepath):
-    """Load a Parquet split and return (X, y) with identifier columns stripped."""
-    df = pd.read_parquet(filepath)
-    return prep_split(df)
-
-
-def prep_split(df):
-    """Return (X, y) from an already-loaded engineered DataFrame.
-
-    Drops all non-feature columns so the same logic works for both the
-    70/15/15 parquet files and the cv_engineered.parquet (which adds cv_fold).
-    """
-    drop_cols = ['entry_id', 'patient_id', 'date', 'migraine_target', 'cv_fold']
-    X = df.drop(columns=[c for c in drop_cols if c in df.columns])
-    y = df['migraine_target']
-    return X, y
-
 
 
 def main():

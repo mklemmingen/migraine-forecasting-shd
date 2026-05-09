@@ -17,7 +17,7 @@ Fold structure per iteration k (k = 1 .. 5)
 
 Threshold selection on cal_sub (not on the evaluation fold) means there is
 no val-contamination of the kind documented in
-experiment/0/full_features/spano_blend/evaluate.py.
+experiment/0/full_features/blended_xgb_lr_spano2026/evaluate.py.
 
 Results: mean ± std across 5 folds, plus a per-fold breakdown.
 Result files are named results_cv_<timestamp>_<uuid>.txt to distinguish them
@@ -28,6 +28,7 @@ import sys
 import uuid
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -42,8 +43,15 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from train import build_tabpfn, prep_split
+from train import build_tabpfn  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -124,13 +132,7 @@ def main():
         train_fold = cv[cv['cv_fold'] < fold].copy()
         val_fold   = cv[cv['cv_fold'] == fold].copy()
 
-        # Split training fold chronologically: train_sub / cal_sub
-        unique_train_dates = np.sort(train_fold['date'].unique())
-        cal_cutoff_idx     = int(len(unique_train_dates) * (1.0 - CAL_RATIO))
-        cal_cutoff_date    = unique_train_dates[cal_cutoff_idx]
-
-        train_sub = train_fold[train_fold['date'] < cal_cutoff_date]
-        cal_sub   = train_fold[train_fold['date'] >= cal_cutoff_date]
+        train_sub, cal_sub = chronological_subsplit(train_fold, cal_ratio=CAL_RATIO)
 
         X_train_sub, y_train_sub = prep_split(train_sub)
         X_cal_sub,   y_cal_sub   = prep_split(cal_sub)

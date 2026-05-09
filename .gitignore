@@ -223,22 +223,5 @@ __marimo__/
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
 
-experiment/0/full_features/clean_stack/model.joblib
-experiment/0/full_features/spano_blend/model.joblib
-experiment/0/spano_features/spano_blend/model.joblib
-experiment/1/full_features/tabpfn/model.joblib
-/experiment/0/full_features/clean_stack/stage0_model.joblib
-/experiment/0/full_features/spano_blend/stage0_model_old.joblib
-/experiment/0/spano_features/spano_blend/stage0_model_old.joblib
-/experiment/1/full_features/tabpfn/stage1_model.joblib
-/experiment/1/full_features/tabpfn/version_2-6/model.joblib
-/experiment/0/full_features/spano_blend/70_15_15/chrono/model.joblib
-/experiment/0/full_features/clean_stack/70_15_15/chrono/model.joblib
-/experiment/0/spano_features/spano_blend/70_15_15/model.joblib
-/experiment/1/full_features/tabpfn/version_2-6/70_15_15/model.joblib
-/experiment/1/full_features/tabpfn/version_2-6/70_15_15/chrono/model.joblib
-/experiment/0/headache/full_features/clean_stack/70_15_15/chrono/model.joblib
-/experiment/0/headache/full_features/spano_blend/70_15_15/chrono/model.joblib
-/experiment/0/headache/spano_features/spano_blend/70_15_15/model.joblib
-/experiment/1/headache/full_features/tabpfn/version_2-6/70_15_15/chrono/model.joblib
-/experiment/0/headache/spano_features/spano_blend/70_15_15/chrono/model.joblib
+# Trained-model artefacts at every leaf depth — ignore all .joblib under experiment/.
+experiment/**/*.joblib
