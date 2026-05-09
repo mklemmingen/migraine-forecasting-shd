@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Experiment Results — 2026-05-09T14:48:01</title>
+<title>Experiment Results — 2026-05-09T15:37:10</title>
 <style>
   body {
     font-family: 'Courier New', monospace;
@@ -36,7 +36,7 @@
 </head>
 <body>
 <h1>Experiment Results</h1>
-<div class="meta">Generated: 2026-05-09T14:48:01 &nbsp;&middot;&nbsp; ID: d0f9f340</div>
+<div class="meta">Generated: 2026-05-09T15:37:10 &nbsp;&middot;&nbsp; ID: 5d1ab3e6</div>
 <div class="breadcrumb" id="breadcrumb"></div>
 <div id="content"></div>
 <script>
@@ -50,7 +50,8 @@ const DATA = [
       "architecture": "clean_stack",
       "version": null,
       "datasplit": "70_15_15",
-      "splittype": "chrono"
+      "splittype": "chrono",
+      "hyperparameter": null
     },
     "holdout": {
       "AUROC": "0.507 [0.364 - 0.642]",
@@ -89,7 +90,8 @@ const DATA = [
       "architecture": "spano_blend",
       "version": null,
       "datasplit": "70_15_15",
-      "splittype": "chrono"
+      "splittype": "chrono",
+      "hyperparameter": null
     },
     "holdout": {
       "AUROC": "0.501 [0.367 - 0.634]",
@@ -117,7 +119,8 @@ const DATA = [
       "architecture": "spano_blend",
       "version": null,
       "datasplit": "70_15_15",
-      "splittype": "chrono"
+      "splittype": "chrono",
+      "hyperparameter": null
     },
     "holdout": {
       "AUROC": "0.561 [0.416 - 0.705]",
@@ -139,13 +142,68 @@ const DATA = [
   },
   {
     "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "architecture": "clean_stack",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
+      "addition": "0",
+      "target": "migraine",
+      "feature_set": "spano_features",
+      "architecture": "spano_blend",
+      "version": null,
+      "datasplit": "70_15_15",
+      "splittype": "chrono",
+      "hyperparameter": null
+    },
+    "holdout": null,
+    "cv": null,
+    "threshold_mcc": null,
+    "threshold_sens": null,
+    "holdout_ts": "",
+    "cv_ts": ""
+  },
+  {
+    "path": {
       "addition": "1",
       "target": "headache",
       "feature_set": "full_features",
       "architecture": "tabpfn",
       "version": "version_2-6",
       "datasplit": "70_15_15",
-      "splittype": "chrono"
+      "splittype": "chrono",
+      "hyperparameter": null
     },
     "holdout": {
       "AUROC": "0.521 [0.377 - 0.668]",

@@ -51,7 +51,7 @@ Bootstrap confidence intervals reported throughout.
 
 ----
 
-Each Rough topical Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>` with code, model, and results.
+Each Rough topical Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>/<*HyperparameterTuned>` with code, model, and results.
 
 ## Baseline Model
 

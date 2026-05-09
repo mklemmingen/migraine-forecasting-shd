@@ -83,6 +83,9 @@ def parse_path(results_dir):
     idx      += 1
     splittype = parts[idx] if idx < len(parts) else None
 
+    idx      += 1
+    hyperparameter = parts[idx] if idx < len(parts) and parts[idx] == "HyperparameterTuned" else None
+
     return {
         "addition":     addition,
         "target":       target,
@@ -91,6 +94,7 @@ def parse_path(results_dir):
         "version":      version,
         "datasplit":    datasplit,
         "splittype":    splittype,
+        "hyperparameter": hyperparameter,
     }
 
 
