@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 from collections import defaultdict
 from datetime import datetime
@@ -16,6 +17,12 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
+
+# Architecture import
+_EXP0 = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       '..', '..', '..', '..', '..'))
+sys.path.insert(0, _EXP0)
+from _model_architecture.clean_stack.model import calibrated_proba  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -93,19 +100,6 @@ def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_i
 
 
 # ---------------------------------------------------------------------------
-# Inference
-# ---------------------------------------------------------------------------
-
-def _calibrated_proba(bundle, X):
-    """Stacked ensemble + Platt (or isotonic) calibrator saved by train.py."""
-    raw = bundle['stacker'].predict_proba(X)[:, 1]
-    cal = bundle['calibrator']
-    if hasattr(cal, 'predict_proba'):
-        return cal.predict_proba(raw.reshape(-1, 1))[:, 1]
-    return cal.predict(raw)
-
-
-# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -116,8 +110,8 @@ def main():
     bundle = joblib.load(MODEL_PATH)
 
     print("Generating predictions...")
-    y_prob_val  = _calibrated_proba(bundle, X_val)
-    y_prob_test = _calibrated_proba(bundle, X_test)
+    y_prob_val  = calibrated_proba(bundle, X_val)
+    y_prob_test = calibrated_proba(bundle, X_test)
 
     print("Calculating optimal thresholds on Validation set...")
     opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_val, y_prob_val)

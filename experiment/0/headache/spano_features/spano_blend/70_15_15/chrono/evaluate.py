@@ -22,7 +22,7 @@ from sklearn.metrics import (
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "data", "processed", "headache")
+DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "..", "data", "processed", "headache")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH   = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 TEST_PATH  = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")

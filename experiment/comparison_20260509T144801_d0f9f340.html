@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Comparison Table — 2026-05-09T14:48:01</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    margin: 20px; background: #f8f8f8; color: #222; font-size: 0.83em;
+  }
+  h1   { font-size: 1.2em; margin-bottom: 3px; }
+  .meta { color: #777; font-size: 0.82em; margin-bottom: 18px; }
+  .wrap { overflow-x: auto; }
+
+  table { border-collapse: collapse; }
+  th, td { border: 1px solid #c8c8c8; padding: 0; vertical-align: top; }
+
+  .corner {
+    background: #dde3ea; padding: 8px 12px;
+    text-align: center; min-width: 130px; vertical-align: middle;
+    font-size: 0.8em; position: sticky; left: 0; z-index: 2;
+  }
+  .col-hdr {
+    background: #dde3ea; text-align: center;
+    padding: 6px 10px; min-width: 120px;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .c-arch { font-weight: bold; font-size: 0.92em; display: block; }
+  .c-ver  { color: #444; font-size: 0.78em; display: block; }
+  .c-fs   { color: #888; font-size: 0.7em;  display: block; }
+
+  .row-hdr {
+    background: #dde3ea; padding: 6px 10px; font-weight: bold;
+    font-size: 0.83em; min-width: 130px; vertical-align: middle;
+    text-align: right; position: sticky; left: 0; z-index: 1;
+  }
+
+  .dcell { padding: 0; min-width: 120px; background: #fff; }
+  .src-tag {
+    font-size: 0.65em; color: #888; text-align: right;
+    padding: 1px 4px; background: #f0f0f0; border-bottom: 1px solid #ddd;
+  }
+  .mrow {
+    display: flex; justify-content: space-between;
+    padding: 2px 6px; border-bottom: 1px solid rgba(0,0,0,0.07);
+    font-size: 0.79em;
+  }
+  .mrow:last-child { border-bottom: none; }
+  .ml { color: #555; }
+  .mv { font-weight: bold; }
+  .mv.na { color: #b00; font-style: italic; font-weight: normal; }
+
+  .empty {
+    background: #f2f2f2; text-align: center; color: #ccc;
+    font-size: 1.3em; padding: 18px; min-width: 120px;
+  }
+
+  /* Legend */
+  .legend {
+    margin-top: 22px; max-width: 600px;
+    border: 1px solid #ddd; border-radius: 3px;
+    padding: 10px 14px; background: #fff;
+  }
+  .legend h3 { font-size: 0.88em; margin: 0 0 7px; }
+  .legend table { border-collapse: collapse; width: 100%; }
+  .legend td { border: 1px solid #eee; padding: 3px 7px; font-size: 0.76em; vertical-align: middle; }
+  .sw {
+    display: inline-block; padding: 1px 5px;
+    border-radius: 2px; border: 1px solid rgba(0,0,0,0.12);
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+<h1>Architecture Comparison Table</h1>
+<div class="meta">
+  Generated: 2026-05-09T14:48:01 &nbsp;·&nbsp; ID: d0f9f340
+  &nbsp;·&nbsp; Hold-out test results (cells tagged "CV" use CV mean ± std as fallback)
+</div>
+
+<div class="wrap">
+<table>
+  <thead><tr><th class="corner">Data Package</th><th class="col-hdr"><span class="c-arch">clean stack</span><br><span class="c-fs">[full]</span></th><th class="col-hdr"><span class="c-arch">spano blend</span><br><span class="c-fs">[full]</span></th><th class="col-hdr"><span class="c-arch">tabpfn</span><br><span class="c-ver">2-6</span><br><span class="c-fs">[full]</span></th><th class="col-hdr"><span class="c-arch">spano blend</span><br><span class="c-fs">[spano]</span></th></tr></thead>
+  <tbody>
+<tr><td class="row-hdr">headache<br>70_15_15<br>chrono</td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(2, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.507</span></div><div class="mrow" style="background:hsl(23, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.190</span></div><div class="mrow" style="background:hsl(9, 60%, 91%)"><span class="ml">MCC</span><span class="mv">0.039</span></div><div class="mrow" style="background:hsl(38, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.313</span></div><div class="mrow" style="background:hsl(58, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.129</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.501</span></div><div class="mrow" style="background:hsl(18, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.152</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.033</span></div><div class="mrow" style="background:hsl(44, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.366</span></div><div class="mrow" style="background:hsl(55, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.136</span></div></td><td class="dcell"><div class="src-tag">H+CV</div><div class="mrow" style="background:hsl(5, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.521</span></div><div class="mrow" style="background:hsl(20, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.169</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.083</span></div><div class="mrow" style="background:hsl(19, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.158</span></div><div class="mrow" style="background:hsl(59, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.128</span></div></td><td class="dcell"><div class="mrow" style="background:hsl(15, 60%, 91%)"><span class="ml">AUROC</span><span class="mv">0.561</span></div><div class="mrow" style="background:hsl(22, 60%, 91%)"><span class="ml">AUPRC</span><span class="mv">0.187</span></div><div class="mrow" style="background:hsl(0, 60%, 91%)"><span class="ml">MCC</span><span class="mv">-0.091</span></div><div class="mrow" style="background:hsl(31, 60%, 91%)"><span class="ml">Sens≥0.5</span><span class="mv">0.262</span></div><div class="mrow" style="background:hsl(54, 60%, 91%)"><span class="ml">Brier ↓</span><span class="mv">0.138</span></div></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="legend">
+  <h3>Colour legend</h3>
+  <table>
+    <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
+    <tr><td><b>AUROC</b></td><td>↑ higher = better</td><td>0.5 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>AUPRC</b></td><td>↑ higher = better</td><td>0.0 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>MCC</b></td><td>↑ higher = better</td><td>0.0 … 0.5</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>Sens≥0.5</b></td><td>↑ higher = better</td><td>0.0 … 1.0</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr><tr><td><b>Brier ↓</b></td><td>↓ lower = better</td><td>0.0 … 0.25</td><td><span class="sw" style="background:hsl(0, 60%, 91%)">worst</span> → <span class="sw" style="background:hsl(60, 60%, 91%)">mid</span> → <span class="sw" style="background:hsl(120, 60%, 91%)">best</span></td></tr>
+  </table>
+</div>
+
+</body>
+</html>
