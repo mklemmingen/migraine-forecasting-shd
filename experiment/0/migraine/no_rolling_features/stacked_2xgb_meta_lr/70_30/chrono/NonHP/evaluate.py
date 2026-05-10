@@ -37,7 +37,7 @@ TEST_PATH  = os.path.join(DATA_DIR, "70_30", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
-TITLE         = "STAGE 0 / no_rolling_features / stacked_2xgb_meta_lr: STACKED ENSEMBLE (train.py)"
+TITLE         = "STAGE 0 / no_rolling_features / stacked_2xgb_meta_lr"
 
 # 2-way ratio: no val parquet; reproduce the same chronological subsplit
 # of train used during fitting to derive operating thresholds.

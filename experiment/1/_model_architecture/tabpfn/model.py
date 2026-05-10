@@ -1,23 +1,32 @@
-from sklearn.calibration import CalibratedClassifierCV
 from tabpfn import TabPFNClassifier
 
 
-def build_tabpfn(X_train, y_train, X_cal, y_cal, device='cuda'):
-    """Fit TabPFN on training data and Platt-calibrate on a separate calibration set.
+def build_tabpfn(X_train, y_train, *, device='cuda', random_state=0):
+    """Fit TabPFN and return the bare estimator.
 
-    Calibration uses a held-out cal set (not the evaluation fold) so that
-    the evaluation fold is completely unseen at fit time.
+    Configured per official PriorLabs guidance — see docs/tabPfn.MD for the
+    rationale and the calibration-policy asymmetry vs the XGBoost-family
+    architectures.
 
-    The device kwarg lets each version wrapper override the compute target:
-    pass device='cpu' for environments without a GPU.
+    Defaults left in place deliberately:
+      - eval_metric=None: would trigger internal threshold tuning that
+        marginally contaminates predict_proba (uses train context as an
+        internal val split). The experiment pipeline already selects the
+        MCC-optimal operating threshold externally on a held-out cal set,
+        so internal tuning would be redundant double-tuning.
+      - balance_probabilities=False: setting True directly rewrites the
+        output probability vector via class-prior reweighting, which would
+        corrupt the Brier Score and ECE10 columns reported in the paper.
+      - calibrate_temperature=True (default in inference_config): TabPFN's
+        in-house posterior-calibration step. Leave enabled.
+
+    random_state is threaded from the caller so seed sweeps actually
+    sweep — TabPFN's library default of 0 silently reuses the same
+    8-model ensemble across runs.
     """
-    base = TabPFNClassifier(device=device)
-    base.fit(X_train, y_train)
-
-    calibrated = CalibratedClassifierCV(
-        estimator=base,
-        method='sigmoid',
-        cv='prefit',
+    base = TabPFNClassifier(
+        device=device,
+        random_state=random_state,
     )
-    calibrated.fit(X_cal, y_cal)
-    return calibrated
+    base.fit(X_train, y_train)
+    return base

@@ -11,9 +11,7 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-from _model_architecture.stacked_2xgb_meta_lr.model import (  # noqa: E402
-    build_stacker, fit_sigmoid_calibrator,
-)
+from _model_architecture.stacked_2xgb_meta_lr.model import build_model  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,13 +33,9 @@ def main():
     print(f"Train sub: X={X_train.shape}, y={y_train.shape}  (positive rate: {y_train.mean():.3f})")
     print(f"Cal sub:   X={X_cal.shape}, y={y_cal.shape}  (positive rate: {y_cal.mean():.3f})")
 
-    print("Training Stacked Ensemble Baseline (XGBoost + L1-LR)...")
-    stacker = build_stacker(X_train, y_train)
-
-    print("Applying Sigmoid (Platt) Calibration using cal sub-split...")
-    calibrator = fit_sigmoid_calibrator(stacker, X_cal, y_cal)
-
-    joblib.dump({'stacker': stacker, 'calibrator': calibrator}, MODEL_PATH)
+    print("Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...")
+    bundle = build_model(X_train, y_train, X_cal, y_cal)
+    joblib.dump(bundle, MODEL_PATH)
     print(f"Model saved to: {MODEL_PATH}")
 
 

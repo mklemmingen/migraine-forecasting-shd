@@ -19,5 +19,9 @@ tabpfn>=2.0             # Prior Labs release — TabPFNClassifier(device='cuda')
 
 # ---- Visualisation ---------------------------------------------------------------------------------------
 matplotlib>=3.8         # calibration_check.py reliability diagrams (Agg backend)
+matplotlib_venn>=1.1    # 3-set Venn diagram in run_aggregate_results.py (feature-set inclusion)
+shapely>=2.0            # required by matplotlib_venn.layout.venn3.cost_based — used because spano ⊂ full ⊃ no_rolling
+                        # is a near-subset configuration the default 'pairwise' solver can't position
+                        # without violating the triangle inequality (emits "Bad circle positioning")
 seaborn>=0.13           # analytics reports (dataset_analysis.pdf, class_balance.pdf)
 statsmodels>=0.14       # ACF computation in temporal dependence page

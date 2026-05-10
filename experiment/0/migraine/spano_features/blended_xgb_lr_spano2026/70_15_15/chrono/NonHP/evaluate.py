@@ -7,8 +7,6 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from sklearn.isotonic import IsotonicRegression
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -20,86 +18,31 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402
+from _dataRead.filter_to_spano_features import remove_non_spano_features  # noqa: E402
+from _model_architecture.blended_xgb_lr_spano2026.model import calibrated_proba  # noqa: E402
+
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "..", "data", "processed", "migraine")
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "migraine")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 VAL_PATH   = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 TEST_PATH  = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
-TITLE         = "STAGE 0 / spano_features / blended_xgb_lr_spano2026: BLENDED XGB+LR (SPANO 2026) (train.py)"
-
-# Shared imports — _dataRead/ holds both the loader and the feature filter
-sys.path.insert(0, str(next(
-    p for p in Path(__file__).resolve().parents if p.name == 'experiment')))
-from _dataRead.read import load_and_prep_data as _load_and_prep_data  # noqa: E402
-from _dataRead.filter_to_spano_features import remove_non_spano_features  # noqa: E402
+TITLE         = "STAGE 0 / spano_features / blended_xgb_lr_spano2026"
 
 
 def load_and_prep_data(filepath):
     """Spano-feature variant: drop benchmark-only columns before (X, y) split."""
     return _load_and_prep_data(filepath, loader=remove_non_spano_features)
 
-# ---------------------------------------------------------------------------
-# VALIDITY WARNING
-# The Spano blend architecture uses the validation set for four sequential
-# optimisation steps in train.py: fitting per-model isotonic and Platt
-# calibrators, alpha grid search, and final calibrator selection. This script
-# then reuses the same validation set for operating-threshold selection.
-#
-# Because the isotonic calibrators are fitted ON the val set they effectively
-# memorise it — val probabilities after calibration approach the empirical
-# positive rate within each predicted-probability group on val. Thresholds
-# derived from these memorised probabilities are poorly matched to the test
-# distribution, and ECE10 computed by resampling val-calibrated scores will be
-# artificially low.
-#
-# Consequence: Sensitivity (>=0.5) and MCC (Optimal) metrics on test are
-# unreliable. AUROC and AUPRC are rank-based and unaffected by calibration, so
-# they remain the most trustworthy outputs of this script.
-#
-# The methodologically sound baseline for this benchmark is the stacked
-# ensemble in experiment/0/full_features/stacked_2xgb_meta_lr/evaluate.py (train.py),
-# which uses only Platt (two-parameter) calibration on val and keeps threshold
-# selection as the sole second use.
-# ---------------------------------------------------------------------------
-
-
-# ---------------------------------------------------------------------------
-# Calibrator classes — must match train.py exactly for pickle to resolve
-# ---------------------------------------------------------------------------
-
-class IsoCalibrator:
-    def __init__(self):
-        self._iso = IsotonicRegression(out_of_bounds='clip')
-
-    def fit(self, proba, y):
-        self._iso.fit(proba, y)
-        return self
-
-    def transform(self, proba):
-        return self._iso.predict(proba)
-
-
-class PlattCalibrator:
-    def __init__(self):
-        self._lr = LogisticRegression(fit_intercept=True, solver='lbfgs', max_iter=1000)
-
-    def fit(self, proba, y):
-        logit = np.log(np.clip(proba, 1e-8, 1 - 1e-8) / (1 - np.clip(proba, 1e-8, 1 - 1e-8)))
-        self._lr.fit(logit.reshape(-1, 1), y)
-        return self
-
-    def transform(self, proba):
-        logit = np.log(np.clip(proba, 1e-8, 1 - 1e-8) / (1 - np.clip(proba, 1e-8, 1 - 1e-8)))
-        return self._lr.predict_proba(logit.reshape(-1, 1))[:, 1]
-
-
-# ---------------------------------------------------------------------------
-# Metrics
-# ---------------------------------------------------------------------------
 
 def expected_calibration_error(y_true, y_prob, n_bins=10):
     bin_edges = np.linspace(0., 1., n_bins + 1)
@@ -149,28 +92,6 @@ def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_i
     }
 
 
-# ---------------------------------------------------------------------------
-# Inference
-# ---------------------------------------------------------------------------
-
-def _calibrated_proba(bundle, X):
-    """Spano parallel blend: XGB + LR → per-model calibrators → alpha blend → final calibrator."""
-    p_x_raw = bundle['xgb'].predict_proba(X)[:, 1]
-    p_l_raw = bundle['lr_pipe'].predict_proba(X)[:, 1]
-    if bundle['which_base_cal'] == 'iso+iso':
-        p_x = bundle['cal_x_iso'].transform(p_x_raw)
-        p_l = bundle['cal_l_iso'].transform(p_l_raw)
-    else:
-        p_x = bundle['cal_x_pl'].transform(p_x_raw)
-        p_l = bundle['cal_l_pl'].transform(p_l_raw)
-    p_blend = bundle['alpha'] * p_x + (1 - bundle['alpha']) * p_l
-    return bundle['final_calibrator'].transform(p_blend)
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
     print("Loading datasets and model...")
     X_val,  y_val  = load_and_prep_data(VAL_PATH)
@@ -178,8 +99,8 @@ def main():
     bundle = joblib.load(MODEL_PATH)
 
     print("Generating predictions...")
-    y_prob_val  = _calibrated_proba(bundle, X_val)
-    y_prob_test = _calibrated_proba(bundle, X_test)
+    y_prob_val  = calibrated_proba(bundle, X_val)
+    y_prob_test = calibrated_proba(bundle, X_test)
 
     print("Calculating optimal thresholds on Validation set...")
     opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_val, y_prob_val)

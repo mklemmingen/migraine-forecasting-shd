@@ -149,6 +149,9 @@ def engineer_features(
         'irregular_meals', 'overeating', 'excessive_caffeine', 'alcohol', 'travel',
         'no_exercise', 'physical_fatigue', 'emotional_changes', 'noise',
         'specific_smells', 'menstruation', 'ovulation',
+        # raw inputs whose *_today encodings are produced above (lines 102-106)
+        'exercise_as_trigger', 'sunlight', 'inappropriate_lighting',
+        'excessive_smoking', 'cheese_chocolate',
     ]
     df = df.drop(columns=[c for c in structural_drops + base_triggers if c in df.columns], errors='ignore')
 
