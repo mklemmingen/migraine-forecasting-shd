@@ -5,10 +5,28 @@ from typing import Optional
 def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Optional[str] = None) -> pd.DataFrame:
     """
     Reads a feature-engineered Parquet file and removes columns that the
-    current benchmark uses, but Spano (2026) did not use at all.
+    current benchmark engineers but Spano (2026) did not use.
 
-    Note: Weather features are NOT removed here because Spano did attempt
-    to use them (unsuccessfully, due to a "Wheater" typo).
+    Reference: headfree-backend/features/*.py (per-domain feature modules) and
+    headfree-backend/build_features.py (orchestrator with add_history_features).
+    Spano's full feature set ≈ 32 per-domain features + 6 history features.
+
+    Notes
+    -----
+    Weather features are NOT all removed: Spano had weather_change_today,
+    consecutive_weather_changes, and weather_instability_3day. Removed are the
+    SHD-specific weather_change_yesterday (lag) and weather_headache_interaction
+    (target-derived).
+
+    sleep_disruption_today is dropped despite both pipelines having a column of
+    that name: SHD computes it as (any_sleep_issue & migraine_yesterday) — i.e.
+    target-derived — while Spano computes it from yesterday's sleep flag only.
+    Same name, different semantics; dropping is more honest than passing
+    forward a column whose values do not match Spano's pipeline.
+
+    cheese_chocolate_today is KEPT — it is Spano's "trigger_foods_today" under
+    SHD's column name. Same values, different name; the filter strategy is
+    by-column-presence, not by-rename.
 
     Args:
         input_parquet_path (str): Path to the input Parquet file.
@@ -20,16 +38,39 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
     # 1. Load the parquet file
     df = pd.read_parquet(input_parquet_path)
 
-    # 2. Define the exact columns Spano did not use at all, but the benchmark does.
-    # (Mappings based on standard dataset naming conventions from your docs)
+    # 2. Columns SHD engineers but Spano (2026) did not use.
     columns_to_remove = [
+        # Other-trigger features Spano's diary app didn't capture
         "physical_fatigue_today",
         "emotional_changes_today",
         "noise_today",
         "specific_smells_today",
+        "exercise_as_trigger_today",
+        "sunlight_today",
+        "inappropriate_lighting_today",
+        # Raw exercise input columns (Spano had Exercise/No-Exercise booleans, not minutes)
         "vigorous_exercise_min",
         "moderate_exercise_min",
-        "preventive_medication"
+        "no_exercise_today",            # Spano resolved into a single exercise_today flag
+        # Medication
+        "preventive_medication",
+        # Migraine-history features Spano didn't compute (he has migraine_yesterday/_rate_last3/_last7/days_since_last_migraine, not these)
+        "headache_free_streak",
+        # Weather features specific to SHD (lag + target interaction)
+        "weather_change_yesterday",
+        "weather_headache_interaction",
+        # Gap awareness — Spano fills missing days, doesn't track gaps
+        "days_since_last_record",
+        "recording_gap_flag",
+        # Same name, different semantics: SHD uses (sleep & migraine_yesterday); Spano uses (sleep & sleep_yesterday)
+        "sleep_disruption_today",
+        # Raw input columns that engineer.py left in the parquet alongside their *_today encodings.
+        # Spano's pipeline has only the *_today versions; the raw columns are redundant and not in his feature set.
+        "cheese_chocolate",
+        "excessive_smoking",
+        "exercise_as_trigger",
+        "inappropriate_lighting",
+        "sunlight",
     ]
 
     # 3. Identify any disability outcome columns (introduced in Stage 5, not used by Spano)

@@ -574,150 +574,175 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
         for s in fs_present_short
     )
 
+    # Methodological caveat for the blended Spano replication — only rendered
+    # if that architecture appears in the table. Explains why it has just one
+    # cell instead of fanning out across ratios/splits like stacked does.
+    has_blended = any(ck[1] == "blended_xgb_lr_spano2026" for ck in col_keys)
+    caveat_html = ("""
+    <div class="caveat">
+      <h3>Why <code>blended_xgb_lr_spano2026</code> appears only at the canonical 70_15_15 / chrono cell</h3>
+      <p>The architecture's held-out calibration set drives <b>four sequential optimisation steps</b>: per-base isotonic + Platt calibrators, alpha grid search, final-calibrator selection, and downstream operating-threshold selection. Because the isotonic calibrators effectively memorise the calibration set, threshold-derived metrics (MCC, Sensitivity ≥ 0.5, F1) on test are unreliable; AUROC and AUPRC remain trustworthy because they are rank-based and calibration-invariant.</p>
+      <p>The architecture is preserved as a faithful replication of the prior bachelor-thesis baseline (Spano 2026, single operating point). Fanning it out across ratios and split types would add cells whose threshold metrics could not be cleanly compared. The methodologically clean comparator is <code>stacked_2xgb_meta_lr</code>, which uses two-parameter Platt calibration only and is fanned out to the full grid.</p>
+    </div>
+    """ if has_blended else "")
+
     return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Comparison Table — {iso_timestamp}</title>
-<style>
-  body {{
-    font-family: 'Courier New', monospace;
-    margin: 20px; background: #f8f8f8; color: #222; font-size: 0.83em;
-  }}
-  h1   {{ font-size: 1.2em; margin-bottom: 3px; }}
-  .meta {{ color: #777; font-size: 0.82em; margin-bottom: 18px; }}
-  .wrap {{ overflow-x: auto; }}
-
-  table {{ border-collapse: collapse; }}
-  th, td {{ border: 1px solid #c8c8c8; padding: 0; vertical-align: top; }}
-
-  .corner {{
-    background: #c8d3df; padding: 8px 12px;
-    text-align: left; min-width: 160px; vertical-align: middle;
-    font-size: 0.78em; position: sticky; left: 0; z-index: 2;
-  }}
-  .corner-axis {{ display: block; line-height: 1.5; color: #1a3550; }}
-  .add-hdr {{
-    background: #1a3550; color: #fff; text-align: center;
-    font-weight: bold; font-size: 0.88em; letter-spacing: 0.04em;
-    padding: 4px 10px; border-bottom: 2px solid #6f8aa6;
-    position: sticky; top: 0; z-index: 1;
-  }}
-  .col-hdr {{
-    background: #dde3ea; text-align: center;
-    padding: 6px 10px; min-width: 120px;
-    position: sticky; top: 28px; z-index: 1;
-  }}
-  .c-arch {{ font-weight: bold; font-size: 0.92em; display: block; }}
-  .c-ver  {{ color: #444; font-size: 0.78em; display: block; }}
-  .c-fs   {{
-    color: #5a3300; background: #fff3d4; font-size: 0.74em; display: inline-block;
-    padding: 0 6px; margin-top: 4px; border-radius: 3px; font-weight: bold;
-  }}
-
-  .row-hdr {{
-    background: #dde3ea; padding: 6px 10px; font-weight: bold;
-    font-size: 0.83em; min-width: 140px; vertical-align: middle;
-    text-align: left; position: sticky; left: 0; z-index: 1;
-  }}
-  .rh-target {{ font-size: 1.05em; font-weight: bold; color: #1a3550; }}
-  .rh-line {{ font-weight: normal; color: #444; font-size: 0.92em; margin-top: 1px; }}
-  .rh-key {{ color: #888; font-weight: normal; }}
-
-  /* Axis-info panel above the table */
-  .axis-info {{
-    margin-bottom: 14px; padding: 10px 14px; background: #fff;
-    border: 1px solid #c8d3df; border-radius: 4px; font-size: 0.85em;
-  }}
-  .axis-info h2 {{ margin: 0 0 8px; font-size: 0.95em; color: #1a3550; }}
-  .axis-info dl {{ margin: 0; }}
-  .axis-info dt {{ font-weight: bold; color: #1a3550; margin-top: 6px; }}
-  .axis-info dt:first-of-type {{ margin-top: 0; }}
-  .axis-info dd {{ margin: 2px 0 0 18px; color: #444; }}
-
-  .dcell {{ padding: 0; min-width: 120px; background: #fff; }}
-  .src-tag {{
-    font-size: 0.65em; color: #888; text-align: right;
-    padding: 1px 4px; background: #f0f0f0; border-bottom: 1px solid #ddd;
-  }}
-  .mrow {{
-    display: flex; justify-content: space-between;
-    padding: 2px 6px; border-bottom: 1px solid rgba(0,0,0,0.07);
-    font-size: 0.79em;
-  }}
-  .mrow:last-child {{ border-bottom: none; }}
-  .ml {{ color: #555; }}
-  .mv {{ font-weight: bold; }}
-  .mv.na {{ color: #b00; font-style: italic; font-weight: normal; }}
-
-  .empty {{
-    background: #f2f2f2; text-align: center; color: #ccc;
-    font-size: 1.3em; padding: 18px; min-width: 120px;
-  }}
-
-  /* Legend */
-  .legend {{
-    margin-top: 22px; max-width: 600px;
-    border: 1px solid #ddd; border-radius: 3px;
-    padding: 10px 14px; background: #fff;
-  }}
-  .legend h3 {{ font-size: 0.88em; margin: 0 0 7px; }}
-  .legend table {{ border-collapse: collapse; width: 100%; }}
-  .legend td {{ border: 1px solid #eee; padding: 3px 7px; font-size: 0.76em; vertical-align: middle; }}
-  .sw {{
-    display: inline-block; padding: 1px 5px;
-    border-radius: 2px; border: 1px solid rgba(0,0,0,0.12);
-    font-size: 0.9em;
-  }}
-</style>
-</head>
-<body>
-<h1>Architecture Comparison Table</h1>
-<div class="meta">
-  Generated: {iso_timestamp} &nbsp;·&nbsp; ID: {uid}
-</div>
-
-<div class="axis-info">
-  <h2>How to read this table</h2>
-  <dl>
-    <dt>Rows (Y-axis) — Data Package</dt>
-    <dd>Each row is one (target × split-ratio × split-strategy) combination.
-        <b>target</b> = headache or migraine.
-        <b>ratio</b> = train/val/test split sizes (e.g. 70_15_15 or 70_30 / 80_20 with chronological cal sub-split).
-        <b>split</b> = how rows are assigned: <i>chrono</i> (date-percentile cuts), <i>stratified</i> (class-balanced random shuffle), <i>patient</i> (whole-patient holdout).</dd>
-    <dt>Columns (X-axis) — Architecture</dt>
-    <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
-    <dt>Cells</dt>
-    <dd>Top-5 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
-  </dl>
-</div>
-
-<div class="wrap">
-<table>
-  <thead>{header_html}</thead>
-  <tbody>
-{rows_html}  </tbody>
-</table>
-</div>
-
-<div class="legend">
-  <h3>Feature-set glossary</h3>
-  <table>
-    <tr><th>Tag</th><th>Meaning</th></tr>
-    {fs_glossary_rows}
-  </table>
-</div>
-
-<div class="legend">
-  <h3>Colour legend (per-metric scale)</h3>
-  <table>
-    <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
-    {legend_rows}
-  </table>
-</div>
-
-</body>
-</html>"""
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <title>Comparison Table — {iso_timestamp}</title>
+    <style>
+      body {{
+        font-family: 'Courier New', monospace;
+        margin: 20px; background: #f8f8f8; color: #222; font-size: 0.83em;
+      }}
+      h1   {{ font-size: 1.2em; margin-bottom: 3px; }}
+      .meta {{ color: #777; font-size: 0.82em; margin-bottom: 18px; }}
+      .wrap {{ overflow-x: auto; }}
+    
+      table {{ border-collapse: collapse; }}
+      th, td {{ border: 1px solid #c8c8c8; padding: 0; vertical-align: top; }}
+    
+      .corner {{
+        background: #c8d3df; padding: 8px 12px;
+        text-align: left; min-width: 160px; vertical-align: middle;
+        font-size: 0.78em; position: sticky; left: 0; z-index: 2;
+      }}
+      .corner-axis {{ display: block; line-height: 1.5; color: #1a3550; }}
+      .add-hdr {{
+        background: #1a3550; color: #fff; text-align: center;
+        font-weight: bold; font-size: 0.88em; letter-spacing: 0.04em;
+        padding: 4px 10px; border-bottom: 2px solid #6f8aa6;
+        position: sticky; top: 0; z-index: 1;
+      }}
+      .col-hdr {{
+        background: #dde3ea; text-align: center;
+        padding: 6px 10px; min-width: 120px;
+        position: sticky; top: 28px; z-index: 1;
+      }}
+      .c-arch {{ font-weight: bold; font-size: 0.92em; display: block; }}
+      .c-ver  {{ color: #444; font-size: 0.78em; display: block; }}
+      .c-fs   {{
+        color: #5a3300; background: #fff3d4; font-size: 0.74em; display: inline-block;
+        padding: 0 6px; margin-top: 4px; border-radius: 3px; font-weight: bold;
+      }}
+    
+      .row-hdr {{
+        background: #dde3ea; padding: 6px 10px; font-weight: bold;
+        font-size: 0.83em; min-width: 140px; vertical-align: middle;
+        text-align: left; position: sticky; left: 0; z-index: 1;
+      }}
+      .rh-target {{ font-size: 1.05em; font-weight: bold; color: #1a3550; }}
+      .rh-line {{ font-weight: normal; color: #444; font-size: 0.92em; margin-top: 1px; }}
+      .rh-key {{ color: #888; font-weight: normal; }}
+    
+      /* Axis-info panel above the table */
+      .axis-info {{
+        margin-bottom: 14px; padding: 10px 14px; background: #fff;
+        border: 1px solid #c8d3df; border-radius: 4px; font-size: 0.85em;
+      }}
+      .axis-info h2 {{ margin: 0 0 8px; font-size: 0.95em; color: #1a3550; }}
+      .axis-info dl {{ margin: 0; }}
+      .axis-info dt {{ font-weight: bold; color: #1a3550; margin-top: 6px; }}
+      .axis-info dt:first-of-type {{ margin-top: 0; }}
+      .axis-info dd {{ margin: 2px 0 0 18px; color: #444; }}
+    
+      .dcell {{ padding: 0; min-width: 120px; background: #fff; }}
+      .src-tag {{
+        font-size: 0.65em; color: #888; text-align: right;
+        padding: 1px 4px; background: #f0f0f0; border-bottom: 1px solid #ddd;
+      }}
+      .mrow {{
+        display: flex; justify-content: space-between;
+        padding: 2px 6px; border-bottom: 1px solid rgba(0,0,0,0.07);
+        font-size: 0.79em;
+      }}
+      .mrow:last-child {{ border-bottom: none; }}
+      .ml {{ color: #555; }}
+      .mv {{ font-weight: bold; }}
+      .mv.na {{ color: #b00; font-style: italic; font-weight: normal; }}
+    
+      .empty {{
+        background: #f2f2f2; text-align: center; color: #ccc;
+        font-size: 1.3em; padding: 18px; min-width: 120px;
+      }}
+    
+      /* Legend */
+      .legend {{
+        margin-top: 22px; max-width: 600px;
+        border: 1px solid #ddd; border-radius: 3px;
+        padding: 10px 14px; background: #fff;
+      }}
+      .legend h3 {{ font-size: 0.88em; margin: 0 0 7px; }}
+      .legend table {{ border-collapse: collapse; width: 100%; }}
+      .legend td {{ border: 1px solid #eee; padding: 3px 7px; font-size: 0.76em; vertical-align: middle; }}
+      .sw {{
+        display: inline-block; padding: 1px 5px;
+        border-radius: 2px; border: 1px solid rgba(0,0,0,0.12);
+        font-size: 0.9em;
+      }}
+    
+      /* Methodological caveat block — amber to flag "read this" without alarm */
+      .caveat {{
+        margin-top: 22px; max-width: 760px;
+        border-left: 4px solid #d49b1f; border-radius: 3px;
+        padding: 10px 14px; background: #fff8e6;
+      }}
+      .caveat h3 {{ font-size: 0.88em; margin: 0 0 7px; color: #8a6314; }}
+      .caveat p {{ font-size: 0.82em; margin: 4px 0; color: #444; line-height: 1.5; }}
+      .caveat code {{
+        font-family: 'Courier New', monospace; font-size: 0.95em;
+        background: #fff; padding: 0 4px; border-radius: 2px;
+      }}
+    </style>
+    </head>
+    <body>
+    <h1>Architecture Comparison Table</h1>
+    <div class="meta">
+      Generated: {iso_timestamp} &nbsp;·&nbsp; ID: {uid}
+    </div>
+    
+    <div class="axis-info">
+      <h2>How to read this table</h2>
+      <dl>
+        <dt>Rows (Y-axis) — Data Package</dt>
+        <dd>Each row is one (target × split-ratio × split-strategy) combination.
+            <b>target</b> = headache or migraine.
+            <b>ratio</b> = train/val/test split sizes (e.g. 70_15_15 or 70_30 / 80_20 with chronological cal sub-split).
+            <b>split</b> = how rows are assigned: <i>chrono</i> (date-percentile cuts), <i>stratified</i> (class-balanced random shuffle), <i>patient</i> (whole-patient holdout).</dd>
+        <dt>Columns (X-axis) — Architecture</dt>
+        <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
+        <dt>Cells</dt>
+        <dd>Top-5 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
+      </dl>
+    </div>
+    
+    <div class="wrap">
+    <table>
+      <thead>{header_html}</thead>
+      <tbody>
+    {rows_html}  </tbody>
+    </table>
+    </div>
+    {caveat_html}
+    <div class="legend">
+      <h3>Feature-set glossary</h3>
+      <table>
+        <tr><th>Tag</th><th>Meaning</th></tr>
+        {fs_glossary_rows}
+      </table>
+    </div>
+    
+    <div class="legend">
+      <h3>Colour legend (per-metric scale)</h3>
+      <table>
+        <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
+        {legend_rows}
+      </table>
+    </div>
+    
+    </body>
+    </html>"""
 
 
 # ---------------------------------------------------------------------------

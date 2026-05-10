@@ -1,13 +1,10 @@
 """
-5-fold time-series cross-validation — Stacked Ensemble (Stage 0).
+5-fold time-series cross-validation for stacked_2xgb_meta_lr.
 
 Reads diary_cv5_timeseries.parquet (target-level, ratio-independent).
-Imports build_stacker / fit_sigmoid_calibrator from train.py so the model
-configuration is never duplicated.
-
 Per fold:
-  train_sub (first 80% of training-fold dates)  → fit stacker
-  cal_sub   (last  20% of training-fold dates)  → fit Platt calibrator + select thresholds
+  train_sub (first 80% of training-fold dates)  → fit base model
+  cal_sub   (last  20% of training-fold dates)  → fit calibrators + select thresholds
   evaluation (cv_fold == k)                     → score only
 
 Result files: results_cv_<timestamp>_<uuid>.txt
@@ -39,9 +36,7 @@ _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
 from _dataRead.filter_to_no_rolling_features import remove_rolling_features  # noqa: E402
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from train import build_stacker, fit_sigmoid_calibrator  # noqa: E402
+from _model_architecture.stacked_2xgb_meta_lr.model import build_model, calibrated_proba  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -54,8 +49,8 @@ CAL_RATIO = 0.20
 
 RESULT_PREFIX = "results_cv"
 TITLE         = (
-    "STAGE 0 / no_rolling_features / stacked_2xgb_meta_lr: STACKED ENSEMBLE — "
-    f"{N_SPLITS}-Fold Time-Series CV (train.py)"
+    "STAGE 0 / no_rolling_features / stacked_2xgb_meta_lr — "
+    f"{N_SPLITS}-Fold Time-Series CV"
 )
 
 
@@ -125,16 +120,10 @@ def main():
         print(f"  Positive rates — train_sub: {y_train_sub.mean():.3f}  "
               f"cal_sub: {y_cal_sub.mean():.3f}  val: {y_val.mean():.3f}")
 
-        print(f"  Fitting stacker on train_sub ...")
-        stacker = build_stacker(X_train_sub, y_train_sub)
+        print(f"  Building model on train_sub; calibrating on cal_sub ...")
+        bundle = build_model(X_train_sub, y_train_sub, X_cal_sub, y_cal_sub)
 
-        print(f"  Fitting Platt calibrator on cal_sub ...")
-        calibrator = fit_sigmoid_calibrator(stacker, X_cal_sub, y_cal_sub)
-
-        p_cal = calibrator.predict_proba(
-            stacker.predict_proba(X_cal_sub)[:, 1].reshape(-1, 1)
-        )[:, 1]
-
+        p_cal = calibrated_proba(bundle, X_cal_sub)
         if len(np.unique(y_cal_sub)) < 2:
             print(f"  WARNING: cal_sub has only one class — using default thresholds.")
             opt_thresh, sens_thresh = 0.50, 0.50
@@ -143,10 +132,7 @@ def main():
         fold_thresholds.append((opt_thresh, sens_thresh))
         print(f"  Thresholds — MCC-optimal: {opt_thresh:.3f}  Sens>=0.5: {sens_thresh:.3f}")
 
-        p_val = calibrator.predict_proba(
-            stacker.predict_proba(X_val)[:, 1].reshape(-1, 1)
-        )[:, 1]
-
+        p_val = calibrated_proba(bundle, X_val)
         scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
         for metric, value in scores.items():
             fold_metrics[metric].append(value)

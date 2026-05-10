@@ -35,7 +35,7 @@ TEST_PATH  = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
-TITLE         = "STAGE 0 / full_features / stacked_2xgb_meta_lr: STACKED ENSEMBLE (train.py)"
+TITLE         = "STAGE 0 / full_features / stacked_2xgb_meta_lr"
 
 
 def expected_calibration_error(y_true, y_prob, n_bins=10):
