@@ -46,6 +46,21 @@ EXPERIMENT_DIR = Path(__file__).parent
 RED   = "\033[91m"
 RESET = "\033[0m"
 
+# Output layout: the latest aggregator run lives directly under experiment/
+# (next to this script) so the current HTML/PNG set is one click away. Any
+# prior outputs matching OUTPUT_PATTERNS get moved into experiment/results/
+# at the start of each run, so history is preserved without cluttering root.
+# HTML files reference PNGs by basename, so HTML+PNG must stay co-located.
+LATEST_DIR  = EXPERIMENT_DIR
+ARCHIVE_DIR = EXPERIMENT_DIR / "results"
+OUTPUT_PATTERNS = (
+    "results_*.html",
+    "comparison_*.html",
+    "venn_counts_*.png",
+    "venn_names_*.png",
+    "tree_*.png",
+)
+
 
 # ---------------------------------------------------------------------------
 # Discovery
@@ -54,8 +69,9 @@ RESET = "\033[0m"
 def find_results_dirs():
     """Return all leaf results/ directories that are not inside _-prefixed folders.
 
-    Skips the top-level experiment/results/ directory itself — that's where THIS
-    aggregator writes its own HTML output, not where leaves write their txt files.
+    Skips the top-level experiment/results/ directory itself — that's the
+    aggregator's own archive of prior HTML/PNG outputs, not where leaves write
+    their txt files.
     """
     found = []
     for p in EXPERIMENT_DIR.rglob("results"):
@@ -391,12 +407,19 @@ def build_html(all_entries, iso_timestamp, uid):
 # ---------------------------------------------------------------------------
 
 # (key-in-holdout-dict, display-label, higher-is-better, ref-min, ref-max)
+# All 10 metrics are shown in cells. The CV-source MCC (renamed to "MCC (Cal-Optimal)"
+# under cross-validation) is auto-substituted via the lookup_key branch in build_comparison_html.
 COMPARISON_METRICS = [
     ("AUROC",               "AUROC",    True,  0.5,  1.0),
     ("AUPRC",               "AUPRC",    True,  0.0,  1.0),
+    ("Brier Score",         "Brier ↓",  False, 0.0,  0.25),  # ~baseline at 5% prevalence
+    ("ECE10",               "ECE10 ↓",  False, 0.0,  0.10),  # well-calibrated < 0.05
     ("MCC (Optimal)",       "MCC",      True,  0.0,  0.5),   # practical upper bound ~0.5
     ("Sensitivity (>=0.5)", "Sens≥0.5", True,  0.0,  1.0),
-    ("Brier Score",         "Brier ↓",  False, 0.0,  0.25),  # lower is better
+    ("Accuracy",            "Acc",      True,  0.5,  1.0),   # ~majority-class baseline
+    ("Precision",           "Prec",     True,  0.0,  1.0),
+    ("Recall",              "Recall",   True,  0.0,  1.0),
+    ("F1",                  "F1",       True,  0.0,  1.0),
 ]
 
 
@@ -415,13 +438,450 @@ def compute_color(val_str, higher_better, val_min, val_max):
     return f"hsl({round(t * 120)}, 60%, 91%)"
 
 
-def build_comparison_html(all_entries, iso_timestamp, uid):
+# ---------------------------------------------------------------------------
+# Feature-set Venn diagrams (PNGs generated alongside the HTML)
+# ---------------------------------------------------------------------------
+
+# Columns produced by data/pipeline/engineer.py via aggregation, lag, rolling
+# windows, state-change detection, or cross-feature interactions. Everything
+# else in the parquet is treated as an original SHD column (or a 1:1 rename
+# of one — e.g. `stress` → `stress_today`).
+#
+# Why hard-coded: these are determined by inspection of engineer.py, not
+# derivable from the parquet alone. Update both together.
+ENGINEERED_FEATURES = {
+    # Migraine history (rolling / lag / state-derived from migraine_today)
+    'migraine_yesterday', 'migraine_rate_last3', 'migraine_rate_last7',
+    'headache_free_streak', 'days_since_last_migraine',
+    # Stress derivatives
+    'stress_drop_today', 'consecutive_stress_days',
+    # Sleep derivatives
+    'any_sleep_issue_today', 'sleep_debt_3day', 'sleep_disruption_today',
+    'sleep_variability_7day', 'recent_weekend_sleep_issues',
+    # Weather derivatives
+    'consecutive_weather_changes', 'weather_instability_3day',
+    'weather_change_yesterday', 'weather_headache_interaction',
+    # Cross-trigger combination
+    'consecutive_trigger_days',
+    # Exercise derivatives
+    'exercise_today', 'consecutive_exercise_days',
+    'consecutive_sedentary_days', 'exercise_days_7day',
+    # Recording-gap features (engineered from date diff)
+    'days_since_last_record', 'recording_gap_flag',
+    # Calendar derivative
+    'dow',
+    # Target column: derived (sign-flipped from headache_free, or merged from
+    # disability sheet in migraine mode) — not present verbatim in raw input.
+    'migraine_today',
+}
+
+# Plot palette — kept centralised so both venns stay visually consistent.
+VENN_COLORS = {
+    'full':       '#2563eb',  # blue
+    'spano':      '#dc2626',  # red
+    'no_rolling': '#059669',  # green
+}
+CATEGORY_COLORS = {
+    'engineered': '#7c2d92',  # dark purple — derived features
+    'original':   '#14532d',  # dark green  — raw / 1:1 rename
+}
+
+
+def compute_feature_sets():
+    """Load a representative parquet and compute (full, spano, no_rolling) feature sets.
+
+    Returns dict {full, spano, no_rolling} of column-name sets, or None if no
+    parquet is found (e.g. data pipeline hasn't been run yet).
+    """
+    NON_FEATURE = {"entry_id", "patient_id", "date", "migraine_target", "cv_fold"}
+    candidates = [
+        EXPERIMENT_DIR.parent / "data" / "processed" / "headache" / "70_15_15" / "chrono" / "diary_train.parquet",
+        EXPERIMENT_DIR.parent / "data" / "processed" / "migraine"  / "70_15_15" / "chrono" / "diary_train.parquet",
+    ]
+    parquet = next((p for p in candidates if p.exists()), None)
+    if parquet is None:
+        return None
+
+    sys.path.insert(0, str(EXPERIMENT_DIR / "_dataRead"))
+    import pandas as pd
+    from filter_to_spano_features import remove_non_spano_features
+    from filter_to_no_rolling_features import remove_rolling_features
+
+    full       = set(pd.read_parquet(parquet).columns) - NON_FEATURE
+    spano      = set(remove_non_spano_features(str(parquet)).columns) - NON_FEATURE
+    no_rolling = set(remove_rolling_features(str(parquet)).columns)   - NON_FEATURE
+    return {"full": full, "spano": spano, "no_rolling": no_rolling}
+
+
+def _split_by_category(features):
+    """Return (engineered_count, original_count) for a feature set."""
+    eng = sum(1 for f in features if f in ENGINEERED_FEATURES)
+    return eng, len(features) - eng
+
+
+def generate_count_venn_png(feature_sets, out_path):
+    """Render a 3-set Venn showing region counts, split by engineered/original."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib_venn import venn3
+    from matplotlib_venn.layout.venn3 import cost_based
+
+    full       = feature_sets["full"]
+    spano      = feature_sets["spano"]
+    no_rolling = feature_sets["no_rolling"]
+
+    fig, ax = plt.subplots(figsize=(13, 10))
+    v = venn3(
+        [full, spano, no_rolling],
+        set_labels=(
+            f'full ({len(full)})',
+            f'spano ({len(spano)})',
+            f'no_rolling ({len(no_rolling)})',
+        ),
+        set_colors=(VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling']),
+        alpha=0.32,
+        ax=ax,
+        # spano ⊂ full ⊃ no_rolling is a near-subset configuration; the default
+        # pairwise solver can't satisfy the implied triangle inequality and emits
+        # "Bad circle positioning". The cost-based optimizer minimises log-area
+        # error across all 7 regions and handles this case cleanly.
+        layout_algorithm=cost_based.LayoutAlgorithm(),
+    )
+
+    regions = {
+        '100': full - spano - no_rolling,
+        '010': spano - full - no_rolling,
+        '001': no_rolling - full - spano,
+        '110': (full & spano) - no_rolling,
+        '101': (full & no_rolling) - spano,
+        '011': (spano & no_rolling) - full,
+        '111': full & spano & no_rolling,
+    }
+    for rid, feats in regions.items():
+        lbl = v.get_label_by_id(rid)
+        if lbl is None:
+            continue
+        if not feats:
+            lbl.set_text('')
+            continue
+        eng, orig = _split_by_category(feats)
+        lbl.set_text(f"{len(feats)}\n({eng} eng + {orig} orig)")
+        lbl.set_fontsize(10)
+        lbl.set_fontweight('bold')
+
+    # Pin set labels to known-good positions and colour them.
+    # Auto-placement breaks for nested subsets (spano ⊂ full ⊃ no_rolling),
+    # producing the "Bad circle positioning" warning and sometimes hiding labels.
+    set_label_positions = {
+        'full':       (-0.85,  0.65),
+        'spano':       (0.85,  0.65),
+        'no_rolling':  (0.00, -0.85),
+    }
+    for sid, color_key in zip(('A', 'B', 'C'), ('full', 'spano', 'no_rolling')):
+        s_lbl = v.get_label_by_id(sid)
+        if s_lbl is None:
+            continue
+        s_lbl.set_position(set_label_positions[color_key])
+        s_lbl.set_horizontalalignment('center')
+        s_lbl.set_fontsize(13)
+        s_lbl.set_fontweight('bold')
+        s_lbl.set_color(VENN_COLORS[color_key])
+
+    ax.set_title("Feature-set inclusion — region counts (engineered + original SHD columns)",
+                 fontsize=12, pad=14)
+
+    # Legend explaining 'eng' / 'orig'
+    ax.text(0.02, 0.02,
+            "eng = engineered (rolling / lag / interaction / state-derived)\n"
+            "orig = original SHD column or 1:1 rename",
+            transform=ax.transAxes, fontsize=8.5, color='#444',
+            verticalalignment='bottom',
+            bbox=dict(facecolor='white', edgecolor='#bbb', boxstyle='round,pad=0.4'))
+
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=110, bbox_inches='tight')
+    plt.close(fig)
+
+
+def generate_names_venn_png(feature_sets, out_path):
+    """Render a 3-set Venn whose regions list every feature name, colour-coded
+    by engineered vs original. The default count labels are hidden; we place
+    one ``ax.text`` per feature stacked vertically around each region centroid
+    so individual names can carry their own colour and weight."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib_venn import venn3
+    from matplotlib_venn.layout.venn3 import cost_based
+
+    full       = feature_sets["full"]
+    spano      = feature_sets["spano"]
+    no_rolling = feature_sets["no_rolling"]
+
+    fig, ax = plt.subplots(figsize=(18, 13))
+    v = venn3(
+        [full, spano, no_rolling],
+        set_labels=(
+            f'full  ({len(full)} features)',
+            f'spano  ({len(spano)} features)',
+            f'no_rolling  ({len(no_rolling)} features)',
+        ),
+        set_colors=(VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling']),
+        alpha=0.16,
+        ax=ax,
+        # See generate_count_venn_png — same near-subset configuration.
+        layout_algorithm=cost_based.LayoutAlgorithm(),
+    )
+
+    regions = {
+        '100': full - spano - no_rolling,
+        '010': spano - full - no_rolling,
+        '001': no_rolling - full - spano,
+        '110': (full & spano) - no_rolling,
+        '101': (full & no_rolling) - spano,
+        '011': (spano & no_rolling) - full,
+        '111': full & spano & no_rolling,
+    }
+
+    # Hide all default count labels; we'll replace them with stacked names.
+    for rid in regions:
+        lbl = v.get_label_by_id(rid)
+        if lbl is not None:
+            lbl.set_text('')
+
+    LINE_H = 0.020  # vertical spacing per name in axes coords (figure units)
+    for rid, feats in regions.items():
+        if not feats:
+            continue
+        anchor = v.get_label_by_id(rid)
+        if anchor is None:
+            continue
+        cx, cy = anchor.get_position()
+        sorted_feats = sorted(feats)
+        n = len(sorted_feats)
+        start_y = cy + (n - 1) / 2.0 * LINE_H
+        for i, f in enumerate(sorted_feats):
+            y = start_y - i * LINE_H
+            is_eng = f in ENGINEERED_FEATURES
+            ax.text(
+                cx, y, f,
+                color=CATEGORY_COLORS['engineered'] if is_eng else CATEGORY_COLORS['original'],
+                fontsize=7.2,
+                ha='center', va='center',
+                fontweight='bold' if is_eng else 'normal',
+                fontfamily='monospace',
+            )
+
+    # Set labels: pinned to fixed positions, bigger, coloured to match their circle.
+    # See generate_count_venn_png for the rationale behind manual positioning.
+    set_label_positions = {
+        'full':       (-0.85,  0.70),
+        'spano':       (0.85,  0.70),
+        'no_rolling':  (0.00, -0.85),
+    }
+    for sid, color_key in zip(('A', 'B', 'C'), ('full', 'spano', 'no_rolling')):
+        s_lbl = v.get_label_by_id(sid)
+        if s_lbl is None:
+            continue
+        s_lbl.set_position(set_label_positions[color_key])
+        s_lbl.set_horizontalalignment('center')
+        s_lbl.set_fontsize(14)
+        s_lbl.set_fontweight('bold')
+        s_lbl.set_color(VENN_COLORS[color_key])
+
+    ax.set_title(
+        "Feature-set inclusion — all feature names, colour-coded by origin",
+        fontsize=13, pad=14,
+    )
+
+    # Legend (axes-relative, top-left corner)
+    legend_text = (
+        "● original SHD column or 1:1 rename"
+    )
+    ax.text(0.01, 0.985, legend_text,
+            transform=ax.transAxes, fontsize=10,
+            color=CATEGORY_COLORS['original'], fontweight='normal',
+            verticalalignment='top', fontfamily='monospace')
+    ax.text(0.01, 0.955,
+            "● engineered (rolling / lag / interaction / state-derived)",
+            transform=ax.transAxes, fontsize=10,
+            color=CATEGORY_COLORS['engineered'], fontweight='bold',
+            verticalalignment='top', fontfamily='monospace')
+
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=120, bbox_inches='tight')
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Leaf tree visualisation (matplotlib horizontal-phylogeny rendering)
+# ---------------------------------------------------------------------------
+
+# Path-segment levels in the order they appear under experiment/.
+# Each tuple is (path_dim_key_in_parse_path, full-word column header).
+TREE_LEVELS = (
+    ('addition',       'Addition'),
+    ('target',         'Target'),
+    ('feature_set',    'Feature set'),
+    ('architecture',   'Architecture'),
+    ('version',        'Model version'),
+    ('datasplit',      'Data split ratio'),
+    ('splittype',      'Split strategy'),
+    ('hyperparameter', 'Hyperparameter tuning'),
+)
+
+# One distinct hue per level — matches each column's colour in the diagram.
+TREE_LEVEL_COLORS = [
+    '#1a3550',  # addition           — deep navy
+    '#2563eb',  # target             — blue
+    '#0891b2',  # feature_set        — teal
+    '#059669',  # architecture       — green
+    '#65a30d',  # version            — olive
+    '#ca8a04',  # datasplit          — amber
+    '#dc2626',  # splittype          — red
+    '#7c2d92',  # hyperparameter     — purple
+]
+
+
+def generate_tree_png(all_entries, out_path):
+    """Render the discovered-leaves hierarchy as a matplotlib tree diagram.
+
+    Layout: horizontal "phylogeny" — root on the left, leaves stack down on
+    the right. Each level is its own column with a colour-coded header.
+    Labels show full directory names (no truncation, no abbreviation).
+    """
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    class Node:
+        __slots__ = ('label', 'level', 'children', 'x', 'y')
+
+        def __init__(self, label, level):
+            self.label = label
+            self.level = level
+            self.children = {}
+            self.x = 0.0
+            self.y = 0.0
+
+    # --- build tree ---
+    root = Node('experiment/', -1)
+    for entry in all_entries:
+        p = entry['path']
+        node = root
+        for lvl, (key, _hdr) in enumerate(TREE_LEVELS):
+            val = p.get(key)
+            if val is None:
+                continue
+            child_key = (lvl, val)
+            if child_key not in node.children:
+                node.children[child_key] = Node(str(val), lvl)
+            node = node.children[child_key]
+
+    # --- assign y by leaf-order DFS, parents = mean of children ---
+    leaf_count = [0]
+
+    def assign_y(node):
+        if not node.children:
+            node.y = float(leaf_count[0])
+            leaf_count[0] += 1
+            return
+        for k in sorted(node.children):
+            assign_y(node.children[k])
+        ys = [node.children[k].y for k in node.children]
+        node.y = (min(ys) + max(ys)) / 2.0
+
+    assign_y(root)
+    n_leaves = leaf_count[0]
+    if n_leaves == 0:
+        return
+
+    # x = level index (root sits at -1)
+    def assign_x(node):
+        node.x = float(node.level)
+        for child in node.children.values():
+            assign_x(child)
+    assign_x(root)
+
+    # --- canvas ---
+    n_levels = len(TREE_LEVELS)
+    fig_w = max(20, n_levels * 2.6)
+    fig_h = max(7, n_leaves * 0.34 + 2)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+
+    # --- draw edges (drawn first so nodes sit on top) ---
+    def draw_edges(node):
+        for child in node.children.values():
+            ax.plot([node.x, node.x], [node.y, child.y],
+                    color='#bbb', linewidth=0.7, zorder=1)
+            ax.plot([node.x, child.x], [child.y, child.y],
+                    color='#bbb', linewidth=0.7, zorder=1)
+            draw_edges(child)
+    draw_edges(root)
+
+    # --- draw nodes + labels ---
+    def draw_nodes(node):
+        if node.level >= 0:
+            color = TREE_LEVEL_COLORS[min(node.level, len(TREE_LEVEL_COLORS) - 1)]
+            ax.scatter([node.x], [node.y], s=70, color=color, zorder=3,
+                       edgecolors='white', linewidths=1.0)
+            ax.text(node.x + 0.06, node.y, node.label,
+                    ha='left', va='center', fontsize=8.0,
+                    color=color, fontweight='bold',
+                    fontfamily='monospace', zorder=4)
+        else:
+            # Root sits at x=-1 with a black dot.
+            ax.scatter([node.x], [node.y], s=90, color='#222', zorder=3,
+                       edgecolors='white', linewidths=1.0)
+            ax.text(node.x + 0.06, node.y, node.label,
+                    ha='left', va='center', fontsize=10,
+                    color='#222', fontweight='bold',
+                    fontfamily='monospace', zorder=4)
+        for child in node.children.values():
+            draw_nodes(child)
+    draw_nodes(root)
+
+    # --- column headers (full-word, colour-matched) ---
+    header_y = -1.4
+    for lvl, (_key, header) in enumerate(TREE_LEVELS):
+        ax.text(lvl, header_y, header,
+                ha='center', va='center', fontsize=10.5,
+                color=TREE_LEVEL_COLORS[lvl], fontweight='bold',
+                fontfamily='monospace')
+        ax.axvline(lvl, ymin=0, ymax=1,
+                   color=TREE_LEVEL_COLORS[lvl], linewidth=0.4,
+                   alpha=0.10, zorder=0)
+
+    ax.set_xlim(-1.4, n_levels + 0.5)
+    ax.set_ylim(n_leaves + 0.6, header_y - 1.0)  # y inverted (top → bottom)
+    ax.axis('off')
+    ax.set_title(
+        f"Discovered experiment leaves ({len(all_entries)} total) — "
+        "experiment/<addition>/<target>/<feature_set>/<architecture>/"
+        "[<version>]/<datasplit>/<splittype>/[<hyperparameter>]",
+        fontsize=11, pad=18,
+    )
+
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=110, bbox_inches='tight')
+    plt.close(fig)
+
+
+def build_comparison_html(all_entries, iso_timestamp, uid,
+                          venn_count_filename=None,
+                          venn_names_filename=None,
+                          tree_filename=None):
     """
     One big colour-coded flat table.
     Rows  = data packages  (target / datasplit / splittype).
     Cols  = architectures  (feature_set / architecture / version).
-    Cells = top-5 metrics, each with its own hue-coded background.
+    Cells = all 10 metrics, each with its own hue-coded background.
     Source: hold-out test results (fall back to CV mean if hold-out absent).
+
+    Layout (top → bottom): table → colour legend → feature-set glossary →
+    count Venn → names Venn → leaf tree (matplotlib PNG) →
+    blended caveat (when applicable).
     """
 
     # Feature-set short labels — explicit map so adding new sets requires a
@@ -586,6 +1046,40 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
     </div>
     """ if has_blended else "")
 
+    # Venn — region counts (full / spano / no_rolling), engineered + original split
+    venn_count_html = (f"""
+    <div class="venn">
+      <h3>Feature-set inclusion (region counts)</h3>
+      <p>Computed from the canonical <code>diary_train.parquet</code> by running both filters
+         (<code>remove_non_spano_features</code>, <code>remove_rolling_features</code>) at aggregation time.
+         <b>full</b> = all engineered columns; <b>spano</b> = Spano-faithful subset; <b>no_rolling</b> = drops rolling/lag/interaction features.
+         Each region label shows <i>total (engineered + original SHD columns)</i>.</p>
+      <img src="{venn_count_filename}" alt="Feature-set Venn — region counts (full / spano / no_rolling)">
+    </div>
+    """ if venn_count_filename else "")
+
+    # Venn — every feature name, colour-coded (engineered vs original / 1:1 rename)
+    venn_names_html = (f"""
+    <div class="venn">
+      <h3>Feature-set inclusion (every feature by name)</h3>
+      <p>Same three sets as above, but each region lists the actual feature names.
+         <span style="color:{CATEGORY_COLORS['original']}">●</span> <b>green</b> = original SHD column or 1:1 rename.
+         <span style="color:{CATEGORY_COLORS['engineered']};font-weight:bold">●</span> <b>purple bold</b> = engineered (rolling, lag, interaction, or state-derived).</p>
+      <img src="{venn_names_filename}" alt="Feature-set Venn — feature names colour-coded by origin">
+    </div>
+    """ if venn_names_filename else "")
+
+    # Matplotlib tree diagram of all leaves discovered in this aggregation run.
+    tree_html = (f"""
+    <div class="tree">
+      <h3>Discovered leaves ({len(all_entries)} total)</h3>
+      <p>One row per discovered <code>results/</code> directory. Path levels mirror the directory layout:
+         <code>experiment/&lt;addition&gt;/&lt;target&gt;/&lt;feature_set&gt;/&lt;architecture&gt;/[&lt;version&gt;]/&lt;datasplit&gt;/&lt;splittype&gt;/[&lt;hyperparameter&gt;]</code>.
+         Each column has its own colour; node labels use the directory name verbatim.</p>
+      <img src="{tree_filename}" alt="Tree diagram of all discovered experiment leaves">
+    </div>
+    """ if tree_filename else "")
+
     return f"""<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -682,18 +1176,38 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
         font-size: 0.9em;
       }}
     
-      /* Methodological caveat block — amber to flag "read this" without alarm */
+      /* Methodological caveat block — neutral gray, sits at the bottom of the page */
       .caveat {{
         margin-top: 22px; max-width: 760px;
-        border-left: 4px solid #d49b1f; border-radius: 3px;
-        padding: 10px 14px; background: #fff8e6;
+        border-left: 4px solid #888; border-radius: 3px;
+        padding: 10px 14px; background: #f0f0f0; color: #222;
       }}
-      .caveat h3 {{ font-size: 0.88em; margin: 0 0 7px; color: #8a6314; }}
-      .caveat p {{ font-size: 0.82em; margin: 4px 0; color: #444; line-height: 1.5; }}
+      .caveat h3 {{ font-size: 0.88em; margin: 0 0 7px; color: #222; }}
+      .caveat p {{ font-size: 0.82em; margin: 4px 0; color: #222; line-height: 1.5; }}
       .caveat code {{
         font-family: 'Courier New', monospace; font-size: 0.95em;
         background: #fff; padding: 0 4px; border-radius: 2px;
       }}
+
+      /* Feature-set Venn diagrams (count + names variants share the same chrome) */
+      .venn {{
+        margin-top: 22px; max-width: 1100px;
+        border: 1px solid #ddd; border-radius: 3px;
+        padding: 10px 14px; background: #fff;
+      }}
+      .venn h3 {{ font-size: 0.88em; margin: 0 0 7px; }}
+      .venn p {{ font-size: 0.78em; margin: 4px 0 8px; color: #555; line-height: 1.4; }}
+      .venn img {{ max-width: 100%; height: auto; display: block; }}
+
+      /* Tree visualisation of the leaf hierarchy (matplotlib PNG) */
+      .tree {{
+        margin-top: 22px; max-width: 1400px;
+        border: 1px solid #ddd; border-radius: 3px;
+        padding: 10px 14px; background: #fff;
+      }}
+      .tree h3 {{ font-size: 0.88em; margin: 0 0 7px; }}
+      .tree p {{ font-size: 0.78em; margin: 4px 0 8px; color: #555; line-height: 1.4; }}
+      .tree img {{ max-width: 100%; height: auto; display: block; }}
     </style>
     </head>
     <body>
@@ -713,7 +1227,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
         <dt>Columns (X-axis) — Architecture</dt>
         <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
         <dt>Cells</dt>
-        <dd>Top-5 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
+        <dd>All 10 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). The MCC row substitutes "Cal-Optimal" for "Optimal" automatically when the source is CV. A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
       </dl>
     </div>
     
@@ -724,15 +1238,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
     {rows_html}  </tbody>
     </table>
     </div>
-    {caveat_html}
-    <div class="legend">
-      <h3>Feature-set glossary</h3>
-      <table>
-        <tr><th>Tag</th><th>Meaning</th></tr>
-        {fs_glossary_rows}
-      </table>
-    </div>
-    
+
     <div class="legend">
       <h3>Colour legend (per-metric scale)</h3>
       <table>
@@ -740,7 +1246,18 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
         {legend_rows}
       </table>
     </div>
-    
+
+    <div class="legend">
+      <h3>Feature-set glossary</h3>
+      <table>
+        <tr><th>Tag</th><th>Meaning</th></tr>
+        {fs_glossary_rows}
+      </table>
+    </div>
+    {venn_count_html}
+    {venn_names_html}
+    {tree_html}
+    {caveat_html}
     </body>
     </html>"""
 
@@ -748,6 +1265,24 @@ def build_comparison_html(all_entries, iso_timestamp, uid):
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+def archive_previous_outputs():
+    """Move any prior aggregator outputs from LATEST_DIR into ARCHIVE_DIR.
+
+    Uses a non-recursive glob so only files directly under experiment/ move —
+    leaf .txt files inside experiment/<.../>results/ are untouched.
+    """
+    ARCHIVE_DIR.mkdir(exist_ok=True)
+    moved = 0
+    for pattern in OUTPUT_PATTERNS:
+        for src in LATEST_DIR.glob(pattern):
+            if not src.is_file():
+                continue
+            src.rename(ARCHIVE_DIR / src.name)
+            moved += 1
+    if moved:
+        print(f"Archived {moved} prior output file{'s' if moved != 1 else ''} → {ARCHIVE_DIR}")
+
 
 def main():
     contract    = getContract()
@@ -793,16 +1328,52 @@ def main():
     short_uid     = str(uuid.uuid4())[:8]
     ts_flat       = iso_timestamp.replace(":", "").replace("-", "")
 
-    output_dir = EXPERIMENT_DIR / "results"
-    output_dir.mkdir(exist_ok=True)
+    archive_previous_outputs()
 
     html = build_html(all_entries, iso_timestamp, short_uid)
-    output = output_dir / f"results_{ts_flat}_{short_uid}.html"
+    output = LATEST_DIR / f"results_{ts_flat}_{short_uid}.html"
     output.write_text(html, encoding="utf-8")
     print(f"Saved: {output}")
 
-    html_cmp = build_comparison_html(all_entries, iso_timestamp, short_uid)
-    output_cmp = output_dir / f"comparison_{ts_flat}_{short_uid}.html"
+    # Venn PNGs — count variant + per-name variant. Skipped silently if no
+    # parquet is available yet (e.g. data pipeline hasn't been run).
+    venn_count_filename = None
+    venn_names_filename = None
+    feature_sets = compute_feature_sets()
+    if feature_sets is not None:
+        venn_count_path = LATEST_DIR / f"venn_counts_{ts_flat}_{short_uid}.png"
+        try:
+            generate_count_venn_png(feature_sets, venn_count_path)
+            venn_count_filename = venn_count_path.name
+            print(f"Saved: {venn_count_path}")
+        except Exception as e:
+            print(f"{RED}Count-Venn render failed: {e}{RESET}")
+
+        venn_names_path = LATEST_DIR / f"venn_names_{ts_flat}_{short_uid}.png"
+        try:
+            generate_names_venn_png(feature_sets, venn_names_path)
+            venn_names_filename = venn_names_path.name
+            print(f"Saved: {venn_names_path}")
+        except Exception as e:
+            print(f"{RED}Names-Venn render failed: {e}{RESET}")
+
+    # Tree diagram (matplotlib horizontal phylogeny over all leaves).
+    tree_filename = None
+    tree_path = LATEST_DIR / f"tree_{ts_flat}_{short_uid}.png"
+    try:
+        generate_tree_png(all_entries, tree_path)
+        tree_filename = tree_path.name
+        print(f"Saved: {tree_path}")
+    except Exception as e:
+        print(f"{RED}Tree render failed: {e}{RESET}")
+
+    html_cmp = build_comparison_html(
+        all_entries, iso_timestamp, short_uid,
+        venn_count_filename=venn_count_filename,
+        venn_names_filename=venn_names_filename,
+        tree_filename=tree_filename,
+    )
+    output_cmp = LATEST_DIR / f"comparison_{ts_flat}_{short_uid}.html"
     output_cmp.write_text(html_cmp, encoding="utf-8")
     print(f"Saved: {output_cmp}")
 

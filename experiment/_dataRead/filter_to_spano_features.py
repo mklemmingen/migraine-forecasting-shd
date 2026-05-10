@@ -2,6 +2,19 @@ import pandas as pd
 from typing import Optional
 
 
+# Spano-engineered features that data/pipeline/engineer.py does NOT produce.
+# These would need to be added to engineer.py for a 1:1 Spano-faithful feature
+# set on the SHD dataset. The filter cannot synthesise them — it only drops
+# columns that exist. Listed here so the gap is documented in code.
+SPANO_FEATURES_MISSING_FROM_SHD = [
+    "exercise_consistency_7day",   # rolling: ≥3 of last 7 days exercised
+    "exercise_disruption",         # |today - trailing 7-day mean| > 0.5
+    "smoking_withdrawal_today",    # 3-day excessive smoking → 0 today
+    "travel_exercise_conflict",    # travel_today AND no exercise
+    "weather_changes_3day_count",  # raw count (Spano keeps the boolean form too)
+]
+
+
 def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Optional[str] = None) -> pd.DataFrame:
     """
     Reads a feature-engineered Parquet file and removes columns that the
@@ -10,6 +23,9 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
     Reference: headfree-backend/features/*.py (per-domain feature modules) and
     headfree-backend/build_features.py (orchestrator with add_history_features).
     Spano's full feature set ≈ 32 per-domain features + 6 history features.
+
+    See `SPANO_FEATURES_MISSING_FROM_SHD` above for the 5 Spano features that
+    engineer.py does NOT produce — we cannot recover them with a filter.
 
     Notes
     -----
@@ -64,13 +80,6 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
         "recording_gap_flag",
         # Same name, different semantics: SHD uses (sleep & migraine_yesterday); Spano uses (sleep & sleep_yesterday)
         "sleep_disruption_today",
-        # Raw input columns that engineer.py left in the parquet alongside their *_today encodings.
-        # Spano's pipeline has only the *_today versions; the raw columns are redundant and not in his feature set.
-        "cheese_chocolate",
-        "excessive_smoking",
-        "exercise_as_trigger",
-        "inappropriate_lighting",
-        "sunlight",
     ]
 
     # 3. Identify any disability outcome columns (introduced in Stage 5, not used by Spano)
