@@ -1,0 +1,785 @@
+"""
+_scaffold_leaves.py — Generate train.py / evaluate.py / evaluate_cv.py for
+addition-0 leaves: stacked_2xgb_meta_lr (full grid) and blended_xgb_lr_spano2026
+(canonical 70_15_15/chrono only).
+
+Run: `.venv/bin/python experiment/0/_scaffold_leaves.py [--force]`
+
+Lives inside the addition it scaffolds for, so it can be copied into a new
+addition (1, 2, …) and adapted there without path-rewiring. The addition
+number is derived from the script's parent directory name.
+
+Architecture coverage
+---------------------
+- stacked_2xgb_meta_lr: full (target × feature_set × ratio × split_type) grid
+  across all three feature sets (full_features, no_rolling_features,
+  spano_features).
+- blended_xgb_lr_spano2026: canonical 70_15_15/chrono only. The architecture's
+  4-way reuse of the calibration set (per-base iso/Platt, alpha search, final
+  cal, threshold) makes threshold-dependent metrics unreliable, so fanning
+  out across ratios would add cells that need caveating in any comparison.
+  The single canonical slot anchors comparison against the prior bachelor-
+  thesis replication; AUROC/AUPRC at this slot remain trustworthy
+  (rank-based, calibration-invariant).
+
+Two ratio templates
+-------------------
+- 3-way (70_15_15): val parquet exists; build_model uses (train, val).
+- 2-way (70_30, 80_20): no val parquet; chronologically subsplit train into
+  train_sub (80%) for fitting and cal_sub (20%) for the val role.
+
+Three feature_set loader configs
+--------------------------------
+- full_features: no loader (default pd.read_parquet)
+- spano_features: loader = remove_non_spano_features
+- no_rolling_features: loader = remove_rolling_features
+
+Both architectures expose the same API: build_model(X_train, y_train, X_val,
+y_val) → bundle, and calibrated_proba(bundle, X) → ndarray. Templates are
+architecture-agnostic; only the {arch} substring varies between leaves.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+from typing import NamedTuple, Optional
+
+ADDITION_ROOT = Path(__file__).resolve().parent      # experiment/<addition>/
+ADDITION = ADDITION_ROOT.name                        # e.g. "0" — derived
+EXPERIMENT_ROOT = ADDITION_ROOT.parent               # experiment/
+
+STACKED = "stacked_2xgb_meta_lr"
+BLENDED = "blended_xgb_lr_spano2026"
+
+
+# ---------------------------------------------------------------------------
+# Leaf enumeration
+# ---------------------------------------------------------------------------
+
+class Leaf(NamedTuple):
+    target: str             # 'headache' | 'migraine'
+    feature_set: str        # 'full_features' | 'spano_features' | 'no_rolling_features'
+    arch: str               # 'stacked_2xgb_meta_lr' | 'blended_xgb_lr_spano2026'
+    ratio: str              # '70_15_15' | '70_30' | '80_20'
+    split_type: str         # 'chrono' | 'stratified'
+    with_cv: bool           # generate evaluate_cv.py?
+
+    @property
+    def has_val(self) -> bool:
+        return self.ratio == "70_15_15"
+
+    @property
+    def dir(self) -> Path:
+        return (ADDITION_ROOT / self.target / self.feature_set / self.arch /
+                self.ratio / self.split_type / "NonHP")
+
+
+def enumerate_leaves() -> list[Leaf]:
+    leaves: list[Leaf] = []
+    for target in ("headache", "migraine"):
+        # Stacked: full grid across all three feature sets.
+        for fs in ("full_features", "no_rolling_features", "spano_features"):
+            for ratio in ("70_15_15", "70_30", "80_20"):
+                for split_type in ("chrono", "stratified"):
+                    with_cv = (ratio == "70_15_15" and split_type == "chrono")
+                    leaves.append(Leaf(target, fs, STACKED, ratio, split_type, with_cv))
+        # Blended: canonical anchor only — see module docstring.
+        leaves.append(Leaf(target, "spano_features", BLENDED, "70_15_15", "chrono", with_cv=True))
+    return leaves
+
+
+# ---------------------------------------------------------------------------
+# Loader configuration per feature_set
+# ---------------------------------------------------------------------------
+
+class LoaderCfg(NamedTuple):
+    extra_import: Optional[str]   # additional `from … import …` line, or None
+    wrapper: Optional[str]        # local def load_and_prep_data wrapper, or None
+    raw_loader_call: str          # how to load+filter the parquet directly
+
+
+LOADERS = {
+    "full_features": LoaderCfg(
+        extra_import=None,
+        wrapper=None,
+        raw_loader_call="pd.read_parquet",
+    ),
+    "spano_features": LoaderCfg(
+        extra_import="from _dataRead.filter_to_spano_features import remove_non_spano_features",
+        wrapper=(
+            "def load_and_prep_data(filepath):\n"
+            '    """Spano-feature variant: drop benchmark-only columns before (X, y) split."""\n'
+            "    return _load_and_prep_data(filepath, loader=remove_non_spano_features)"
+        ),
+        raw_loader_call="remove_non_spano_features",
+    ),
+    "no_rolling_features": LoaderCfg(
+        extra_import="from _dataRead.filter_to_no_rolling_features import remove_rolling_features",
+        wrapper=(
+            "def load_and_prep_data(filepath):\n"
+            '    """No-rolling variant: drop temporal aggregation columns before (X, y) split."""\n'
+            "    return _load_and_prep_data(filepath, loader=remove_rolling_features)"
+        ),
+        raw_loader_call="remove_rolling_features",
+    ),
+}
+
+
+def _read_imports(loader: LoaderCfg) -> str:
+    if loader.wrapper is None:
+        return "from _dataRead.read import load_and_prep_data, prep_split  # noqa: E402"
+    return "from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402"
+
+
+def _extra_imports(loader: LoaderCfg) -> str:
+    return f"{loader.extra_import}  # noqa: E402\n" if loader.extra_import else ""
+
+
+def _wrapper_block(loader: LoaderCfg) -> str:
+    return f"\n\n{loader.wrapper}\n" if loader.wrapper else ""
+
+
+# ---------------------------------------------------------------------------
+# Templates — architecture-agnostic via {arch} substitution
+# ---------------------------------------------------------------------------
+
+TRAIN_3WAY_TPL = '''\
+import os
+import sys
+from pathlib import Path
+
+import joblib
+
+# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+{read_imports}
+{extra_imports}from _model_architecture.{arch}.model import build_model  # noqa: E402
+
+# Configuration
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
+TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
+VAL_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_val.parquet")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
+{wrapper_block}
+
+def main():
+    print("Loading data...")
+    X_train, y_train = load_and_prep_data(TRAIN_PATH)
+    X_val, y_val = load_and_prep_data(VAL_PATH)
+
+    print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
+    print(f"Val set:   X={{X_val.shape}}, y={{y_val.shape}}")
+
+    print("Training {arch} on (train); calibrating on (val)...")
+    bundle = build_model(X_train, y_train, X_val, y_val)
+    joblib.dump(bundle, MODEL_PATH)
+    print(f"Model saved to: {{MODEL_PATH}}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+TRAIN_2WAY_TPL = '''\
+import os
+import sys
+from pathlib import Path
+
+import joblib
+import pandas as pd
+
+# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+{extra_imports}from _model_architecture.{arch}.model import build_model  # noqa: E402
+
+# Configuration
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
+TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
+
+# 2-way ratio has no val parquet; subsplit train chronologically.
+CAL_RATIO = 0.20
+
+
+def main():
+    print("Loading data...")
+    df_train_full = {raw_loader}(TRAIN_PATH)
+    train_sub, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
+    X_train, y_train = prep_split(train_sub)
+    X_cal,   y_cal   = prep_split(cal_sub)
+
+    print(f"Train sub: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
+    print(f"Cal sub:   X={{X_cal.shape}}, y={{y_cal.shape}}  (positive rate: {{y_cal.mean():.3f}})")
+
+    print("Training {arch} on train_sub; calibrating on cal_sub...")
+    bundle = build_model(X_train, y_train, X_cal, y_cal)
+    joblib.dump(bundle, MODEL_PATH)
+    print(f"Model saved to: {{MODEL_PATH}}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+# Shared metrics block re-used in both evaluate variants.
+METRICS_BLOCK = '''\
+def expected_calibration_error(y_true, y_prob, n_bins=10):
+    bin_edges = np.linspace(0., 1., n_bins + 1)
+    binned = np.digitize(y_prob, bin_edges[1:-1])
+    ece = 0.0
+    for i in range(n_bins):
+        mask = (binned == i)
+        if mask.sum() > 0:
+            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
+    return ece / len(y_true)
+
+
+def find_operating_thresholds(y_true, y_prob):
+    thresholds = np.linspace(0.01, 0.99, 99)
+    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
+    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
+    opt_mcc_thresh = thresholds[np.argmax(mccs)]
+    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
+    sens_05_thresh = max(valid) if valid else 0.50
+    return opt_mcc_thresh, sens_05_thresh
+
+
+def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_iterations=1000, seed=42):
+    np.random.seed(seed)
+    y_arr = y_true.values
+    metrics = defaultdict(list)
+    for _ in range(n_iterations):
+        idx = np.random.randint(0, len(y_arr), len(y_arr))
+        y_t, y_p = y_arr[idx], y_prob[idx]
+        if len(np.unique(y_t)) < 2:
+            continue
+        metrics['AUROC'].append(roc_auc_score(y_t, y_p))
+        metrics['AUPRC'].append(average_precision_score(y_t, y_p))
+        metrics['Brier Score'].append(brier_score_loss(y_t, y_p))
+        metrics['ECE10'].append(expected_calibration_error(y_t, y_p))
+        preds_mcc = (y_p >= opt_mcc_thresh).astype(int)
+        metrics['MCC (Optimal)'].append(matthews_corrcoef(y_t, preds_mcc))
+        metrics['Sensitivity (>=0.5)'].append(
+            recall_score(y_t, (y_p >= sens_05_thresh).astype(int)))
+        metrics['Accuracy'].append(accuracy_score(y_t, preds_mcc))
+        metrics['Precision'].append(precision_score(y_t, preds_mcc, zero_division=0))
+        metrics['Recall'].append(recall_score(y_t, preds_mcc, zero_division=0))
+        metrics['F1'].append(f1_score(y_t, preds_mcc, zero_division=0))
+    return {
+        name: f"{np.mean(v):.3f} [{np.percentile(v, 2.5):.3f} - {np.percentile(v, 97.5):.3f}]"
+        for name, v in metrics.items()
+    }
+'''
+
+EVAL_3WAY_TPL = '''\
+import os
+import sys
+import uuid
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import joblib
+import numpy as np
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    f1_score,
+    matthews_corrcoef,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+{read_imports}
+{extra_imports}from _model_architecture.{arch}.model import calibrated_proba  # noqa: E402
+
+# Configuration
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
+RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
+VAL_PATH   = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_val.parquet")
+TEST_PATH  = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_test.parquet")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
+
+RESULT_PREFIX = "results"
+TITLE         = "STAGE {addition} / {feature_set} / {arch}"
+{wrapper_block}
+
+{metrics_block}
+
+def main():
+    print("Loading datasets and model...")
+    X_val,  y_val  = load_and_prep_data(VAL_PATH)
+    X_test, y_test = load_and_prep_data(TEST_PATH)
+    bundle = joblib.load(MODEL_PATH)
+
+    print("Generating predictions...")
+    y_prob_val  = calibrated_proba(bundle, X_val)
+    y_prob_test = calibrated_proba(bundle, X_test)
+
+    print("Calculating optimal thresholds on Validation set...")
+    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_val, y_prob_val)
+
+    print("Running bootstrap evaluation on locked Test set (n=1000)...")
+    results = run_bootstrap_evaluation(y_test, y_prob_test, opt_mcc_thresh, sens_05_thresh)
+
+    output_lines = [
+        "=" * 60,
+        TITLE,
+        "=" * 60,
+        "Validation Set Derived Thresholds:",
+        f" -> MCC-Optimal Threshold:          {{opt_mcc_thresh:.3f}}",
+        f" -> Threshold for Sens >= 0.50:     {{sens_05_thresh:.3f}}",
+        "-" * 60,
+        f"{{'Metric':<25}} | Mean [95% CI]",
+        "-" * 60,
+    ]
+    for metric, result_str in results.items():
+        output_lines.append(f"{{metric:<25}} | {{result_str}}")
+    output_lines.append("=" * 60)
+    output_text = "\\n".join(output_lines)
+
+    print("\\n" + output_text)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+    filename = f"{{RESULT_PREFIX}}_{{timestamp}}_{{str(uuid.uuid4())}}.txt"
+    filepath = os.path.join(RESULTS_DIR, filename)
+    with open(filepath, "w") as f:
+        f.write(output_text)
+    print(f"\\nResults successfully saved to: {{filepath}}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+EVAL_2WAY_TPL = '''\
+import os
+import sys
+import uuid
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    f1_score,
+    matthews_corrcoef,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import load_and_prep_data, prep_split, chronological_subsplit  # noqa: E402
+{extra_imports}from _model_architecture.{arch}.model import calibrated_proba  # noqa: E402
+
+# Configuration
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
+RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
+TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
+TEST_PATH  = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_test.parquet")
+MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
+
+RESULT_PREFIX = "results"
+TITLE         = "STAGE {addition} / {feature_set} / {arch}"
+
+# 2-way ratio: no val parquet; reproduce the same chronological subsplit
+# of train used during fitting to derive operating thresholds.
+CAL_RATIO = 0.20
+
+
+{metrics_block}
+
+def main():
+    print("Loading datasets and model...")
+    df_train_full = {raw_loader}(TRAIN_PATH)
+    _, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
+    X_cal, y_cal = prep_split(cal_sub)
+    X_test, y_test = load_and_prep_data(TEST_PATH{loader_kwarg})
+    bundle = joblib.load(MODEL_PATH)
+
+    print("Generating predictions...")
+    y_prob_cal  = calibrated_proba(bundle, X_cal)
+    y_prob_test = calibrated_proba(bundle, X_test)
+
+    print("Calculating optimal thresholds on cal sub-split...")
+    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_cal, y_prob_cal)
+
+    print("Running bootstrap evaluation on locked Test set (n=1000)...")
+    results = run_bootstrap_evaluation(y_test, y_prob_test, opt_mcc_thresh, sens_05_thresh)
+
+    output_lines = [
+        "=" * 60,
+        TITLE,
+        "=" * 60,
+        "Cal Sub-Split Derived Thresholds:",
+        f" -> MCC-Optimal Threshold:          {{opt_mcc_thresh:.3f}}",
+        f" -> Threshold for Sens >= 0.50:     {{sens_05_thresh:.3f}}",
+        "-" * 60,
+        f"{{'Metric':<25}} | Mean [95% CI]",
+        "-" * 60,
+    ]
+    for metric, result_str in results.items():
+        output_lines.append(f"{{metric:<25}} | {{result_str}}")
+    output_lines.append("=" * 60)
+    output_text = "\\n".join(output_lines)
+
+    print("\\n" + output_text)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+    filename = f"{{RESULT_PREFIX}}_{{timestamp}}_{{str(uuid.uuid4())}}.txt"
+    filepath = os.path.join(RESULTS_DIR, filename)
+    with open(filepath, "w") as f:
+        f.write(output_text)
+    print(f"\\nResults successfully saved to: {{filepath}}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+EVAL_CV_TPL = '''\
+"""
+5-fold time-series cross-validation for {arch}.
+
+Reads diary_cv5_timeseries.parquet (target-level, ratio-independent).
+Per fold:
+  train_sub (first 80% of training-fold dates)  → fit base model
+  cal_sub   (last  20% of training-fold dates)  → fit calibrators + select thresholds
+  evaluation (cv_fold == k)                     → score only
+
+Result files: results_cv_<timestamp>_<uuid>.txt
+"""
+import os
+import sys
+import uuid
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    f1_score,
+    matthews_corrcoef,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+
+# Shared imports
+_LEAF = Path(__file__).resolve()
+_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
+_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
+sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
+from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+{extra_imports}from _model_architecture.{arch}.model import build_model, calibrated_proba  # noqa: E402
+
+# Configuration
+EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
+RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
+CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
+
+N_SPLITS  = 5
+CAL_RATIO = 0.20
+
+RESULT_PREFIX = "results_cv"
+TITLE         = (
+    "STAGE {addition} / {feature_set} / {arch} — "
+    f"{{N_SPLITS}}-Fold Time-Series CV"
+)
+
+
+def expected_calibration_error(y_true, y_prob, n_bins=10):
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    binned    = np.digitize(y_prob, bin_edges[1:-1])
+    ece = 0.0
+    for i in range(n_bins):
+        mask = binned == i
+        if mask.sum() > 0:
+            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
+    return ece / len(y_true)
+
+
+def find_operating_thresholds(y_true, y_prob):
+    thresholds = np.linspace(0.01, 0.99, 99)
+    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
+    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
+    opt_mcc_thresh = thresholds[np.argmax(mccs)]
+    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
+    sens_05_thresh = max(valid) if valid else 0.50
+    return opt_mcc_thresh, sens_05_thresh
+
+
+def score_fold(y_val, p_val, opt_thresh, sens_thresh):
+    preds_opt = (p_val >= opt_thresh).astype(int)
+    return {{
+        'AUROC':               roc_auc_score(y_val, p_val),
+        'AUPRC':               average_precision_score(y_val, p_val),
+        'Brier Score':         brier_score_loss(y_val, p_val),
+        'ECE10':               expected_calibration_error(y_val, p_val),
+        'MCC (Cal-Optimal)':   matthews_corrcoef(y_val, preds_opt),
+        'Sensitivity (>=0.5)': recall_score(y_val, (p_val >= sens_thresh).astype(int)),
+        'Accuracy':            accuracy_score(y_val, preds_opt),
+        'Precision':           precision_score(y_val, preds_opt, zero_division=0),
+        'Recall':              recall_score(y_val, preds_opt, zero_division=0),
+        'F1':                  f1_score(y_val, preds_opt, zero_division=0),
+    }}
+
+
+def main():
+    print(f"Loading {{CV_PATH}} ...")
+    cv = {cv_load_call}
+    print(f"  Total rows: {{len(cv):,}}  |  cv_fold distribution: "
+          f"{{ dict(cv['cv_fold'].value_counts().sort_index()) }}")
+
+    fold_metrics    = defaultdict(list)
+    fold_thresholds = []
+    fold_sizes      = []
+
+    for fold in range(1, N_SPLITS + 1):
+        print(f"\\n--- Fold {{fold}}/{{N_SPLITS}} ---")
+
+        train_fold = cv[cv['cv_fold'] < fold].copy()
+        val_fold   = cv[cv['cv_fold'] == fold].copy()
+
+        train_sub, cal_sub = chronological_subsplit(train_fold, cal_ratio=CAL_RATIO)
+
+        X_train_sub, y_train_sub = prep_split(train_sub)
+        X_cal_sub,   y_cal_sub   = prep_split(cal_sub)
+        X_val,       y_val       = prep_split(val_fold)
+
+        fold_sizes.append((len(train_sub), len(cal_sub), len(val_fold)))
+        print(f"  train_sub: {{len(train_sub):>4}} rows  |  "
+              f"cal_sub: {{len(cal_sub):>4}} rows  |  "
+              f"val: {{len(val_fold):>4}} rows")
+        print(f"  Positive rates — train_sub: {{y_train_sub.mean():.3f}}  "
+              f"cal_sub: {{y_cal_sub.mean():.3f}}  val: {{y_val.mean():.3f}}")
+
+        print(f"  Building model on train_sub; calibrating on cal_sub ...")
+        bundle = build_model(X_train_sub, y_train_sub, X_cal_sub, y_cal_sub)
+
+        p_cal = calibrated_proba(bundle, X_cal_sub)
+        if len(np.unique(y_cal_sub)) < 2:
+            print(f"  WARNING: cal_sub has only one class — using default thresholds.")
+            opt_thresh, sens_thresh = 0.50, 0.50
+        else:
+            opt_thresh, sens_thresh = find_operating_thresholds(y_cal_sub.values, p_cal)
+        fold_thresholds.append((opt_thresh, sens_thresh))
+        print(f"  Thresholds — MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
+
+        p_val = calibrated_proba(bundle, X_val)
+        scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
+        for metric, value in scores.items():
+            fold_metrics[metric].append(value)
+        print(f"  AUROC: {{scores['AUROC']:.3f}}  AUPRC: {{scores['AUPRC']:.3f}}  "
+              f"MCC: {{scores['MCC (Cal-Optimal)']:.3f}}")
+
+    metric_names = list(fold_metrics.keys())
+    col_w = 7
+    header_folds   = "  ".join(f"F{{k:<{{col_w-2}}}}" for k in range(1, N_SPLITS + 1))
+    header_summary = f"{{'Mean':<{{col_w}}}}  {{'Std':<{{col_w}}}}"
+    separator = "-" * 60
+
+    output_lines = [
+        "=" * 60,
+        TITLE,
+        "=" * 60,
+        f"CV scheme    : expanding-window TimeSeriesSplit, n_splits={{N_SPLITS}}",
+        f"Cal sub-split: last {{int(CAL_RATIO*100)}}% of each training fold's dates",
+        "Thresholds   : selected on cal sub-split — NOT on evaluation fold",
+        separator,
+        f"{{'Metric':<25}} | {{header_folds}} | {{header_summary}}",
+        separator,
+    ]
+
+    for metric in metric_names:
+        vals = fold_metrics[metric]
+        per_fold = "  ".join(f"{{v:>{{col_w}}.3f}}" for v in vals)
+        mean_str = f"{{np.mean(vals):<{{col_w}}.3f}}"
+        std_str  = f"{{np.std(vals):<{{col_w}}.3f}}"
+        output_lines.append(f"{{metric:<25}} | {{per_fold}} | {{mean_str}}  {{std_str}}")
+
+    output_lines.append(separator)
+    output_lines.append("Fold sizes (train_sub / cal_sub / val rows):")
+    for i, (n_tr, n_cal, n_v) in enumerate(fold_sizes, 1):
+        opt, sens = fold_thresholds[i - 1]
+        output_lines.append(
+            f"  F{{i}}: {{n_tr:>4}} / {{n_cal:>4}} / {{n_v:>4}}   "
+            f"thresh_mcc={{opt:.3f}}  thresh_sens={{sens:.3f}}"
+        )
+    output_lines.append("=" * 60)
+
+    output_text = "\\n".join(output_lines)
+    print("\\n" + output_text)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+    filename  = f"{{RESULT_PREFIX}}_{{timestamp}}_{{uuid.uuid4()}}.txt"
+    filepath  = os.path.join(RESULTS_DIR, filename)
+    with open(filepath, "w") as f:
+        f.write(output_text)
+    print(f"\\nResults saved to: {{filepath}}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+
+# ---------------------------------------------------------------------------
+# Generation logic
+# ---------------------------------------------------------------------------
+
+def render_train(leaf: Leaf) -> str:
+    loader = LOADERS[leaf.feature_set]
+    if leaf.has_val:
+        return TRAIN_3WAY_TPL.format(
+            arch=leaf.arch,
+            target=leaf.target,
+            ratio=leaf.ratio,
+            split_type=leaf.split_type,
+            read_imports=_read_imports(loader),
+            extra_imports=_extra_imports(loader),
+            wrapper_block=_wrapper_block(loader),
+        )
+    return TRAIN_2WAY_TPL.format(
+        arch=leaf.arch,
+        target=leaf.target,
+        ratio=leaf.ratio,
+        split_type=leaf.split_type,
+        extra_imports=_extra_imports(loader),
+        raw_loader=loader.raw_loader_call,
+    )
+
+
+def render_evaluate(leaf: Leaf) -> str:
+    loader = LOADERS[leaf.feature_set]
+    if leaf.has_val:
+        return EVAL_3WAY_TPL.format(
+            addition=ADDITION,
+            arch=leaf.arch,
+            target=leaf.target,
+            feature_set=leaf.feature_set,
+            ratio=leaf.ratio,
+            split_type=leaf.split_type,
+            read_imports=_read_imports(loader),
+            extra_imports=_extra_imports(loader),
+            wrapper_block=_wrapper_block(loader),
+            metrics_block=METRICS_BLOCK,
+        )
+    loader_kwarg = (
+        f", loader={loader.raw_loader_call}"
+        if loader.extra_import is not None else ""
+    )
+    return EVAL_2WAY_TPL.format(
+        addition=ADDITION,
+        arch=leaf.arch,
+        target=leaf.target,
+        feature_set=leaf.feature_set,
+        ratio=leaf.ratio,
+        split_type=leaf.split_type,
+        extra_imports=_extra_imports(loader),
+        raw_loader=loader.raw_loader_call,
+        loader_kwarg=loader_kwarg,
+        metrics_block=METRICS_BLOCK,
+    )
+
+
+def render_evaluate_cv(leaf: Leaf) -> str:
+    """CV evaluator: load the CV parquet directly with the appropriate loader.
+
+    For full_features, this is plain pd.read_parquet. For spano/no_rolling,
+    use the filter function — it reads the parquet and drops the same columns
+    the variant excludes from train/test, keeping the CV consistent with the
+    leaf's feature set.
+    """
+    loader = LOADERS[leaf.feature_set]
+    extra_imports = (
+        f"{loader.extra_import}  # noqa: E402\n"
+        if loader.extra_import else ""
+    )
+    cv_load_call = f"{loader.raw_loader_call}(CV_PATH)"
+    return EVAL_CV_TPL.format(
+        addition=ADDITION,
+        arch=leaf.arch,
+        target=leaf.target,
+        feature_set=leaf.feature_set,
+        extra_imports=extra_imports,
+        cv_load_call=cv_load_call,
+    )
+
+
+def write_if_absent(path: Path, content: str, force: bool = False) -> str:
+    """Write content to path; returns 'wrote', 'skipped', or 'forced'."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existed = path.exists()
+    if existed and not force:
+        return "skipped"
+    path.write_text(content)
+    return "forced" if existed else "wrote"
+
+
+def main(force: bool = False) -> None:
+    leaves = enumerate_leaves()
+    print(f"Generating {len(leaves)} leaves (force={force})")
+    print("=" * 70)
+
+    counts = {"wrote": 0, "skipped": 0, "forced": 0}
+    for leaf in leaves:
+        for kind, render_fn in (
+            ("train.py", render_train),
+            ("evaluate.py", render_evaluate),
+        ):
+            target_path = leaf.dir / kind
+            content = render_fn(leaf)
+            status = write_if_absent(target_path, content, force=force)
+            counts[status] = counts.get(status, 0) + 1
+            print(f"  [{status:7}] {target_path.relative_to(EXPERIMENT_ROOT)}")
+
+        if leaf.with_cv:
+            cv_path = leaf.dir / "evaluate_cv.py"
+            content = render_evaluate_cv(leaf)
+            status = write_if_absent(cv_path, content, force=force)
+            counts[status] = counts.get(status, 0) + 1
+            print(f"  [{status:7}] {cv_path.relative_to(EXPERIMENT_ROOT)}")
+
+    print("=" * 70)
+    print(f"Summary: {counts}")
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    main(force="--force" in _sys.argv)
