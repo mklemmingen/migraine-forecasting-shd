@@ -106,7 +106,7 @@ def fit_lr_pipeline(X_tr, y_tr, class_weight):
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler',  StandardScaler()),
         ('lr',      LogisticRegression(
-            l1_ratio=1.0, solver='saga', C=1.0,
+            penalty='l1', solver='saga', C=1.0,
             class_weight=class_weight,
             random_state=42, max_iter=5000,
         )),

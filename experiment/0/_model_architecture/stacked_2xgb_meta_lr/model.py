@@ -67,3 +67,14 @@ def calibrated_proba(bundle, X):
     if hasattr(cal, 'predict_proba'):
         return cal.predict_proba(raw.reshape(-1, 1))[:, 1]
     return cal.predict(raw)
+
+
+def build_model(X_train, y_train, X_val, y_val):
+    """Unified API: fit stacker on (X_train, y_train), Platt-calibrate on (X_val, y_val).
+
+    Returned bundle matches the existing on-disk pickle layout so prior
+    model.joblib files keep loading after the API addition.
+    """
+    stacker = build_stacker(X_train, y_train)
+    calibrator = fit_sigmoid_calibrator(stacker, X_val, y_val)
+    return {'stacker': stacker, 'calibrator': calibrator}
