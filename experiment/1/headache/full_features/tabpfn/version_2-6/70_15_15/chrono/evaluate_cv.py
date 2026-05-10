@@ -1,27 +1,13 @@
 """
-5-fold time-series cross-validation — TabPFN (Stage 1).
+5-fold time-series cross-validation for tabpfn (version_2-6).
 
-1. Reads diary_cv5_timeseries.parquet (produced by data/run_pipeline_*.py).
+Reads diary_cv5_timeseries.parquet (target-level, ratio-independent).
+Per fold:
+  train_sub (first 80% of training-fold dates)  → fit base model
+  cal_sub   (last  20% of training-fold dates)  → fit calibrators + select thresholds
+  evaluation (cv_fold == k)                     → score only
 
-2. Imports build_tabpfn and prep_split from train.py so model configuration
-is never duplicated.
-
-Fold structure per iteration k (k = 1 .. 5)
---------------------------------------------
-  training fold : cv_fold < k          (expanding window)
-  ->train_sub  : first 80% of training dates  → fit TabPFN
-  -> cal_sub    : last  20% of training dates  → fit Platt calibrator
-                                                + select thresholds
-  evaluation    : cv_fold == k                 → score only, never touched
-                                                during fitting or selection
-
-Threshold selection on cal_sub (not on the evaluation fold) means there is
-no val-contamination of the kind documented in
-experiment/0/full_features/blended_xgb_lr_spano2026/evaluate.py.
-
-Results: mean ± std across 5 folds, plus a per-fold breakdown.
-Result files are named results_cv_<timestamp>_<uuid>.txt to distinguish them
-from the 70/15/15 results_*.txt files in the same results/ directory.
+Result files: results_cv_<timestamp>_<uuid>.txt
 """
 import os
 import sys
@@ -49,31 +35,23 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+from _model_architecture.tabpfn.model import build_tabpfn  # noqa: E402
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from train import build_tabpfn  # noqa: E402
-
-# ---------------------------------------------------------------------------
 # Configuration
-# ---------------------------------------------------------------------------
-
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(EXPERIMENT_DIR, "..", "..", "..", "..", "..", "..", "..", "..", "data", "processed", "headache")
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "headache")
 RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
 CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
 
-N_SPLITS       = 5
-CAL_RATIO      = 0.20   # fraction of training-fold dates held out for cal_sub
+N_SPLITS  = 5
+CAL_RATIO = 0.20
 
-RESULT_PREFIX  = "results_cv"
-TITLE          = (
-    f"STAGE 1 / full_features / tabpfn: TABPFN — {N_SPLITS}-Fold Time-Series CV (train.py)"
+RESULT_PREFIX = "results_cv"
+TITLE         = (
+    "STAGE 1 / full_features / tabpfn (version_2-6) — "
+    f"{N_SPLITS}-Fold Time-Series CV"
 )
 
-
-# ---------------------------------------------------------------------------
-# Metrics
-# ---------------------------------------------------------------------------
 
 def expected_calibration_error(y_true, y_prob, n_bins=10):
     bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
@@ -112,10 +90,6 @@ def score_fold(y_val, p_val, opt_thresh, sens_thresh):
     }
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
     print(f"Loading {CV_PATH} ...")
     cv = pd.read_parquet(CV_PATH)
@@ -145,11 +119,10 @@ def main():
         print(f"  Positive rates — train_sub: {y_train_sub.mean():.3f}  "
               f"cal_sub: {y_cal_sub.mean():.3f}  val: {y_val.mean():.3f}")
 
-        print(f"  Fitting TabPFN on train_sub, calibrating on cal_sub ...")
-        model = build_tabpfn(X_train_sub, y_train_sub, X_cal_sub, y_cal_sub)
+        print(f"  Fitting tabpfn on train_sub (no external calibrator — see docs/tabPfn.MD)...")
+        model = build_tabpfn(X_train_sub, y_train_sub)
 
         p_cal = model.predict_proba(X_cal_sub)[:, 1]
-
         if len(np.unique(y_cal_sub)) < 2:
             print(f"  WARNING: cal_sub has only one class — using default thresholds.")
             opt_thresh, sens_thresh = 0.50, 0.50
@@ -158,22 +131,17 @@ def main():
         fold_thresholds.append((opt_thresh, sens_thresh))
         print(f"  Thresholds — MCC-optimal: {opt_thresh:.3f}  Sens>=0.5: {sens_thresh:.3f}")
 
-        p_val  = model.predict_proba(X_val)[:, 1]
+        p_val = model.predict_proba(X_val)[:, 1]
         scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
         for metric, value in scores.items():
             fold_metrics[metric].append(value)
         print(f"  AUROC: {scores['AUROC']:.3f}  AUPRC: {scores['AUPRC']:.3f}  "
               f"MCC: {scores['MCC (Cal-Optimal)']:.3f}")
 
-    # ---------------------------------------------------------------------------
-    # Format output
-    # ---------------------------------------------------------------------------
     metric_names = list(fold_metrics.keys())
     col_w = 7
-
     header_folds   = "  ".join(f"F{k:<{col_w-2}}" for k in range(1, N_SPLITS + 1))
     header_summary = f"{'Mean':<{col_w}}  {'Std':<{col_w}}"
-
     separator = "-" * 60
 
     output_lines = [

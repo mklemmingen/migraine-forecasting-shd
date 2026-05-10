@@ -17,7 +17,6 @@ from _model_architecture.tabpfn.model import build_tabpfn  # noqa: E402
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "migraine")
 TRAIN_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_train.parquet")
-VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
@@ -29,13 +28,11 @@ def load_and_prep_data(filepath):
 def main():
     print("Loading data...")
     X_train, y_train = load_and_prep_data(TRAIN_PATH)
-    X_val, y_val = load_and_prep_data(VAL_PATH)
 
     print(f"Train set: X={X_train.shape}, y={y_train.shape}")
-    print(f"Val set:   X={X_val.shape}, y={y_val.shape}")
 
-    print("Fitting tabpfn (version_2-6) on (train); calibrating on (val)...")
-    model = build_tabpfn(X_train, y_train, X_val, y_val)
+    print("Fitting tabpfn (version_2-6) on train (no external calibrator — see docs/tabPfn.MD)...")
+    model = build_tabpfn(X_train, y_train)
 
     os.makedirs(EXPERIMENT_DIR, exist_ok=True)
     joblib.dump(model, MODEL_PATH)

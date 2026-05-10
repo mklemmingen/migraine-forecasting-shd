@@ -119,8 +119,8 @@ def main():
         print(f"  Positive rates — train_sub: {y_train_sub.mean():.3f}  "
               f"cal_sub: {y_cal_sub.mean():.3f}  val: {y_val.mean():.3f}")
 
-        print(f"  Fitting tabpfn on train_sub; calibrating on cal_sub ...")
-        model = build_tabpfn(X_train_sub, y_train_sub, X_cal_sub, y_cal_sub)
+        print(f"  Fitting tabpfn on train_sub (no external calibrator — see docs/tabPfn.MD)...")
+        model = build_tabpfn(X_train_sub, y_train_sub)
 
         p_cal = model.predict_proba(X_cal_sub)[:, 1]
         if len(np.unique(y_cal_sub)) < 2:
