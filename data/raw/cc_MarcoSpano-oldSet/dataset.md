@@ -1,4 +1,4 @@
-# Translated and Engineered Dataset — Spano (2026)
+# Translated and Engineered Dataset - Spano (2026)
 
 ## Overview
 
@@ -13,7 +13,7 @@ This document describes the two intermediate dataset files produced by Marco Sam
 | File | Size | Creator | Created | Modified |
 |------|------|---------|---------|---------|
 | `data/Translated-Dataset.xlsx` | 1,645,395 bytes | Spano, Marco Samuel | 2025-09-22 | 2025-11-03 |
-| `data/Engineered-Dataset.xlsx` | 511,815 bytes | — | 2025-11-05 | 2025-12-09 |
+| `data/Engineered-Dataset.xlsx` | 511,815 bytes | - | 2025-11-05 | 2025-12-09 |
 
 ---
 
@@ -23,9 +23,9 @@ This document describes the two intermediate dataset files produced by Marco Sam
 
 Spano manually translated Sheet 3 ("total diary 4579") of `SHD-Dataset.xls` from Korean into English, producing a flat single-sheet working file. The translation covers column headers and categorical string values. All numeric values and binary flags are carried over unchanged from the source.
 
-A second sheet — Mapings — was added as a patient ID cross-reference table mapping EM-prefixed study identifiers to DHA-prefixed diary identifiers. This sheet has no real header row and must be read with `header=None`. It contains one Korean token (`번호`, meaning "number") which pandas misdetects as a column header.
+A second sheet - Mapings - was added as a patient ID cross-reference table mapping EM-prefixed study identifiers to DHA-prefixed diary identifiers. This sheet has no real header row and must be read with `header=None`. It contains one Korean token (`번호`, meaning "number") which pandas misdetects as a column header.
 
-The Translated file contains 4,454 rows — 137 fewer than the 4,591 raw rows in Sheet 3. The reduction reflects the exclusion of the title row, the two-row header, and aggregate/totals rows that were embedded in the original Excel file.
+The Translated file contains 4,454 rows - 137 fewer than the 4,591 raw rows in Sheet 3. The reduction reflects the exclusion of the title row, the two-row header, and aggregate/totals rows that were embedded in the original Excel file.
 
 ### Column Structure
 
@@ -34,7 +34,7 @@ All 34 columns are fully populated (4,454/4,454 non-null) except where noted. Al
 | Idx | Column | Profile | Notes |
 |-----|--------|---------|-------|
 | 0 | Entry ID | unique 3,114; min=3 / max=5,140 | |
-| 1 | Patient ID | unique 63 raw strings | ⚠ case artifact — see below |
+| 1 | Patient ID | unique 63 raw strings | ⚠ case artifact - see below |
 | 2 | Gender | F: 3,629 / M: 825 | |
 | 3 | Date | int64 YYYYMMDD; 20140813→20150414 | |
 | 4 | Year | 2014: 3,297 / 2015: 1,157 | |
@@ -45,14 +45,14 @@ All 34 columns are fully populated (4,454/4,454 non-null) except where noted. Al
 | 9 | Stress | 0: 3,942 / 1: 512 (11.5%) | |
 | 10 | Oversleeping | 0: 4,384 / 1: 70 (1.6%) | |
 | 11 | Lack of sleep | 0: 4,073 / 1: 381 (8.6%) | |
-| 12 | Exercise | 0: 4,326 / 1: 128 (2.9%) | ⚠ semantic shift — see below |
+| 12 | Exercise | 0: 4,326 / 1: 128 (2.9%) | ⚠ semantic shift - see below |
 | 13 | No Exercise | 0: 4,287 / 1: 167 (3.7%) | |
 | 14 | Physical fatigue | 0: 4,013 / 1: 441 (9.9%) | dropped in Engineered |
 | 15 | Menstrual cycle: menstruation | 0: 4,263 / 1: 191 (4.3%) | |
 | 16 | Menstrual cycle: ovulation | 0: 4,395 / 1: 59 (1.3%) | |
 | 17 | Exessive emotional changes | 0: 4,370 / 1: 84 (1.9%) | ⚠ spelling error; dropped in Engineered |
 | 18 | Total (internal triggers) | group sum cols 9–17 | dropped in Engineered |
-| 19 | Wheater/temperature change | 0: 4,228 / 1: 226 (5.1%) | ⚠ spelling error — causes weather bug |
+| 19 | Wheater/temperature change | 0: 4,228 / 1: 226 (5.1%) | ⚠ spelling error - causes weather bug |
 | 20 | Excessive sunlight | 0: 4,419 / 1: 35 (0.8%) | dropped in Engineered |
 | 21 | Noise | 0: 4,347 / 1: 107 (2.4%) | dropped in Engineered |
 | 22 | Inappropriate Lighting | 0: 4,447 / 1: 7 (0.2%) | dropped in Engineered |
@@ -70,15 +70,15 @@ All 34 columns are fully populated (4,454/4,454 non-null) except where noted. Al
 
 ### Known Issues
 
-**Col 17 — spelling error:** `Exessive` should be `Excessive`. Carried forward from translation; the value is correct.
+**Col 17 - spelling error:** `Exessive` should be `Excessive`. Carried forward from translation; the value is correct.
 
-**Col 19 — spelling error:** `Wheater/temperature change` should be `Weather/temperature change`. The value is correct (226 positive rows, 5.1% prevalence). This typo is the direct cause of all five weather features being zero in the Engineered file. The feature-engineering code looks up the correctly spelled column name `Weather/temperature change`, fails to find it, and silently fills all weather rows with zero via a zero-guard. Fix: single-character edit to `features/weather.py:3`.
+**Col 19 - spelling error:** `Wheater/temperature change` should be `Weather/temperature change`. The value is correct (226 positive rows, 5.1% prevalence). This typo is the direct cause of all five weather features being zero in the Engineered file. The feature-engineering code looks up the correctly spelled column name `Weather/temperature change`, fails to find it, and silently fills all weather rows with zero via a zero-guard. Fix: single-character edit to `features/weather.py:3`.
 
 **Patient ID case artifact:** `df["Patient ID"].nunique()` returns 63. `df["Patient ID"].str.upper().nunique()` returns 62. The identifiers `CM-004` and `cm-004` both appear as distinct raw strings; all other patient IDs appear in a single case. This is a data-entry artifact from the source. The cohort contains 62 patients as stated in Park et al. (2016). The Engineered file carries this artifact unchanged.
 
 **Polarity of outcome column:** In `SHD-Dataset.xls`, the column `두통이없는날` means "headache-free day" (Y = no headache). In the Translated file, `Migraine (Yes/No)` uses 1 = migraine present. The polarity was correctly inverted during translation.
 
-**Col 12 — Exercise semantic ambiguity:** In the Original, this column records whether exercise was reported as a migraine trigger on a given day. In the Translated file the header reads simply "Exercise," which is ambiguous between "exercise occurred" and "exercise was a trigger." The Engineered pipeline treats it as a behaviour flag (exercise occurred). This is a semantic shift documented further in the Engineered section below.
+**Col 12 - Exercise semantic ambiguity:** In the Original, this column records whether exercise was reported as a migraine trigger on a given day. In the Translated file the header reads simply "Exercise," which is ambiguous between "exercise occurred" and "exercise was a trigger." The Engineered pipeline treats it as a behaviour flag (exercise occurred). This is a semantic shift documented further in the Engineered section below.
 
 ---
 
@@ -92,7 +92,7 @@ Spano ran the feature-engineering pipeline (`headfree-backend/model/build_featur
 
 **Target construction:** `migraine_target` = `migraine_today.shift(-1)` per patient group. The model predicts whether a migraine will occur on the next day, not the current day. The 29-row difference between `migraine_today` (260 positive) and `migraine_target` (231 positive) represents the last-row drops.
 
-**Feature engineering — 26 new features added across 5 domains:**
+**Feature engineering - 26 new features added across 5 domains:**
 
 | Domain | New features |
 |--------|-------------|
@@ -140,7 +140,7 @@ Spano ran the feature-engineering pipeline (`headfree-backend/model/build_featur
 
 | Feature | Profile |
 |---------|---------|
-| Stress / stress_today | 0: 3,888 / 1: 503 (11.5%) — ⚠ duplicate pair |
+| Stress / stress_today | 0: 3,888 / 1: 503 (11.5%) - ⚠ duplicate pair |
 | stress_drop_today | 0: 4,141 / 1: 250 (5.7%) |
 | consecutive_stress_days | min=0 / max=24 / mean=0.3 |
 
@@ -156,7 +156,7 @@ Spano ran the feature-engineering pipeline (`headfree-backend/model/build_featur
 | sleep_variability_7day | float; min=0 / max=0.577 / mean=0.152 |
 | recent_weekend_sleep_issues | 0–6; 0: 2,724 |
 
-**Weather features (5) — all zero:**
+**Weather features (5) - all zero:**
 
 | Feature | Profile |
 |---------|---------|
@@ -176,8 +176,8 @@ Source has 226 positive weather-trigger rows (5.1%). All zeroed due to column-na
 | overeating_today | 0: 4,303 / 1: 88 (2.0%) |
 | excessive_caffeine_today | 0: 4,187 / 1: 204 (4.6%) |
 | alcohol_today | 0: 4,342 / 1: 49 (1.1%) |
-| Cheese, chocolate / trigger_foods_today | 0: 4,362 / 1: 29 (0.7%) — ⚠ duplicate pair |
-| Travel / travel_today | 0: 4,361 / 1: 30 (0.7%) — ⚠ duplicate pair |
+| Cheese, chocolate / trigger_foods_today | 0: 4,362 / 1: 29 (0.7%) - ⚠ duplicate pair |
+| Travel / travel_today | 0: 4,361 / 1: 30 (0.7%) - ⚠ duplicate pair |
 | consecutive_trigger_days | min=0 / max=19 / mean=0.3 |
 
 **Exercise features (8):**
@@ -253,6 +253,6 @@ Reported validation metrics (thesis):
 | Calibration | Fitted on validation window | Fitted on separate split                                                                                                                   |
 | Reproducibility | Merge conflicts in source | Resolved                                                                                                                                   |
 | Feature count (effective) | 38 (incl. duplicates) | 35                                                                                                                                         |
-| Direct metric comparability | Thesis baseline | ⚠ Not directly comparable — different feature set and evaluation protocol - therefore, see marco blend and feature for individual baseline |
+| Direct metric comparability | Thesis baseline | ⚠ Not directly comparable - different feature set and evaluation protocol - therefore, see marco blend and feature for individual baseline |
 
 Because the weather correction changes the feature set, no metric from this benchmark is directly numerically comparable to the Spano thesis baseline. The difference is reported explicitly in all experiment result tables.

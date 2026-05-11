@@ -48,8 +48,8 @@ RESET = "\033[0m"
 
 # Output layout: the latest aggregator run lives directly under experiment/
 # (next to this script) so the current HTML/PNG set is one click away. Any
-# prior outputs matching OUTPUT_PATTERNS get moved into experiment/results/
-# at the start of each run, so history is preserved without cluttering root.
+# prior outputs matching OUTPUT_PATTERNS get archived into experiment/results/
+# at the start of each run, keeping the root uncluttered.
 # HTML files reference PNGs by basename, so HTML+PNG must stay co-located.
 LATEST_DIR  = EXPERIMENT_DIR
 ARCHIVE_DIR = EXPERIMENT_DIR / "results"
@@ -69,7 +69,7 @@ OUTPUT_PATTERNS = (
 def find_results_dirs():
     """Return all leaf results/ directories that are not inside _-prefixed folders.
 
-    Skips the top-level experiment/results/ directory itself — that's the
+    Skips the top-level experiment/results/ directory itself - that's the
     aggregator's own archive of prior HTML/PNG outputs, not where leaves write
     their txt files.
     """
@@ -79,7 +79,7 @@ def find_results_dirs():
             continue
         rel = p.relative_to(EXPERIMENT_DIR)
         if rel == Path("results"):
-            continue  # top-level output folder — not a leaf
+            continue  # top-level output folder - not a leaf
         if not any(part.startswith("_") for part in rel.parts):
             found.append(p)
     return sorted(found)
@@ -207,7 +207,7 @@ def warn_na(entry):
             continue
         for key, val in metrics.items():
             if val is None:
-                print(f"{RED}WARNING: N/A — '{key}' missing in {label}: {path_str}{RESET}")
+                print(f"{RED}WARNING: N/A - '{key}' missing in {label}: {path_str}{RESET}")
 
 
 # ---------------------------------------------------------------------------
@@ -358,7 +358,7 @@ def build_html(all_entries, iso_timestamp, uid):
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Experiment Results — {iso_timestamp}</title>
+<title>Experiment Results - {iso_timestamp}</title>
 <style>
   body {{
     font-family: 'Courier New', monospace;
@@ -445,7 +445,7 @@ def compute_color(val_str, higher_better, val_min, val_max):
 # Columns produced by data/pipeline/engineer.py via aggregation, lag, rolling
 # windows, state-change detection, or cross-feature interactions. Everything
 # else in the parquet is treated as an original SHD column (or a 1:1 rename
-# of one — e.g. `stress` → `stress_today`).
+# of one - e.g. `stress` → `stress_today`).
 #
 # Why hard-coded: these are determined by inspection of engineer.py, not
 # derivable from the parquet alone. Update both together.
@@ -471,19 +471,19 @@ ENGINEERED_FEATURES = {
     # Calendar derivative
     'dow',
     # Target column: derived (sign-flipped from headache_free, or merged from
-    # disability sheet in migraine mode) — not present verbatim in raw input.
+    # disability sheet in migraine mode) - not present verbatim in raw input.
     'migraine_today',
 }
 
-# Plot palette — kept centralised so both venns stay visually consistent.
+# Plot palette - kept centralised so both venns stay visually consistent.
 VENN_COLORS = {
     'full':       '#2563eb',  # blue
     'spano':      '#dc2626',  # red
     'no_rolling': '#059669',  # green
 }
 CATEGORY_COLORS = {
-    'engineered': '#7c2d92',  # dark purple — derived features
-    'original':   '#14532d',  # dark green  — raw / 1:1 rename
+    'engineered': '#7c2d92',  # dark purple - derived features
+    'original':   '#14532d',  # dark green  - raw / 1:1 rename
 }
 
 
@@ -588,7 +588,7 @@ def generate_count_venn_png(feature_sets, out_path):
         s_lbl.set_fontweight('bold')
         s_lbl.set_color(VENN_COLORS[color_key])
 
-    ax.set_title("Feature-set inclusion — region counts (engineered + original SHD columns)",
+    ax.set_title("Feature-set inclusion - region counts (engineered + original SHD columns)",
                  fontsize=12, pad=14)
 
     # Legend explaining 'eng' / 'orig'
@@ -630,7 +630,7 @@ def generate_names_venn_png(feature_sets, out_path):
         set_colors=(VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling']),
         alpha=0.16,
         ax=ax,
-        # See generate_count_venn_png — same near-subset configuration.
+        # See generate_count_venn_png - same near-subset configuration.
         layout_algorithm=cost_based.LayoutAlgorithm(),
     )
 
@@ -691,7 +691,7 @@ def generate_names_venn_png(feature_sets, out_path):
         s_lbl.set_color(VENN_COLORS[color_key])
 
     ax.set_title(
-        "Feature-set inclusion — all feature names, colour-coded by origin",
+        "Feature-set inclusion - all feature names, colour-coded by origin",
         fontsize=13, pad=14,
     )
 
@@ -731,23 +731,23 @@ TREE_LEVELS = (
     ('hyperparameter', 'Hyperparameter tuning'),
 )
 
-# One distinct hue per level — matches each column's colour in the diagram.
+# One distinct hue per level - matches each column's colour in the diagram.
 TREE_LEVEL_COLORS = [
-    '#1a3550',  # addition           — deep navy
-    '#2563eb',  # target             — blue
-    '#0891b2',  # feature_set        — teal
-    '#059669',  # architecture       — green
-    '#65a30d',  # version            — olive
-    '#ca8a04',  # datasplit          — amber
-    '#dc2626',  # splittype          — red
-    '#7c2d92',  # hyperparameter     — purple
+    '#1a3550',  # addition           - deep navy
+    '#2563eb',  # target             - blue
+    '#0891b2',  # feature_set        - teal
+    '#059669',  # architecture       - green
+    '#65a30d',  # version            - olive
+    '#ca8a04',  # datasplit          - amber
+    '#dc2626',  # splittype          - red
+    '#7c2d92',  # hyperparameter     - purple
 ]
 
 
 def generate_tree_png(all_entries, out_path):
     """Render the discovered-leaves hierarchy as a matplotlib tree diagram.
 
-    Layout: horizontal "phylogeny" — root on the left, leaves stack down on
+    Layout: horizontal "phylogeny" - root on the left, leaves stack down on
     the right. Each level is its own column with a colour-coded header.
     Labels show full directory names (no truncation, no abbreviation).
     """
@@ -857,7 +857,7 @@ def generate_tree_png(all_entries, out_path):
     ax.set_ylim(n_leaves + 0.6, header_y - 1.0)  # y inverted (top → bottom)
     ax.axis('off')
     ax.set_title(
-        f"Discovered experiment leaves ({len(all_entries)} total) — "
+        f"Discovered experiment leaves ({len(all_entries)} total) - "
         "experiment/<addition>/<target>/<feature_set>/<architecture>/"
         "[<version>]/<datasplit>/<splittype>/[<hyperparameter>]",
         fontsize=11, pad=18,
@@ -884,7 +884,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     blended caveat (when applicable).
     """
 
-    # Feature-set short labels — explicit map so adding new sets requires a
+    # Feature-set short labels - explicit map so adding new sets requires a
     # one-line edit. Previous heuristic `"full" if "full" in fs else "spano"`
     # silently mislabelled `no_rolling_features` as `[spano]`, hiding it
     # behind the actual spano column in the rendered table.
@@ -895,15 +895,15 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     }
     FS_GLOSS = {
         "full": "all engineered features (today's triggers + rolling/lag/interaction)",
-        "no_rolling": "today's triggers only — no temporal aggregation, lag, or streaks",
-        "spano": "Spano (2026) feature subset — matches the prior-work replication",
+        "no_rolling": "today's triggers only - no temporal aggregation, lag, or streaks",
+        "spano": "Spano (2026) feature subset - matches the prior-work replication",
     }
 
     # Column sort order: (addition, architecture, version, feature_set).
-    # — addition first so all columns from the same experiment number cluster.
-    # — architecture alphabetical inside each addition.
-    # — version is the natural sub-sort within an architecture (tabpfn 2-6 vs 2-7).
-    # — feature_set as the final tiebreaker so [full] / [no_rolling] / [spano]
+    # - addition first so all columns from the same experiment number cluster.
+    # - architecture alphabetical inside each addition.
+    # - version is the natural sub-sort within an architecture (tabpfn 2-6 vs 2-7).
+    # - feature_set as the final tiebreaker so [full] / [no_rolling] / [spano]
     #   variants of the same architecture stay adjacent.
     def col_key(e):
         p = e["path"]
@@ -972,7 +972,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
         for ck in col_keys:
             entry = lookup.get((rk, ck))
             if entry is None:
-                cells += '<td class="empty">—</td>'
+                cells += '<td class="empty">-</td>'
                 continue
 
             src       = entry.get("holdout") or {}
@@ -1027,14 +1027,14 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
         )
 
     # Glossary rows for feature-set abbreviations actually present in the table.
-    # col_keys is now (addition, architecture, version, feature_set) — feature_set is element [3].
+    # col_keys is now (addition, architecture, version, feature_set) - feature_set is element [3].
     fs_present_short = sorted({FS_LABELS.get(ck[3], ck[3]) for ck in col_keys})
     fs_glossary_rows = "".join(
         f'<tr><td><b>[{s}]</b></td><td>{FS_GLOSS.get(s, "(no description)")}</td></tr>'
         for s in fs_present_short
     )
 
-    # Methodological caveat for the blended Spano replication — only rendered
+    # Methodological caveat for the blended Spano replication - only rendered
     # if that architecture appears in the table. Explains why it has just one
     # cell instead of fanning out across ratios/splits like stacked does.
     has_blended = any(ck[1] == "blended_xgb_lr_spano2026" for ck in col_keys)
@@ -1046,7 +1046,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     </div>
     """ if has_blended else "")
 
-    # Venn — region counts (full / spano / no_rolling), engineered + original split
+    # Venn - region counts (full / spano / no_rolling), engineered + original split
     venn_count_html = (f"""
     <div class="venn">
       <h3>Feature-set inclusion (region counts)</h3>
@@ -1054,18 +1054,18 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
          (<code>remove_non_spano_features</code>, <code>remove_rolling_features</code>) at aggregation time.
          <b>full</b> = all engineered columns; <b>spano</b> = Spano-faithful subset; <b>no_rolling</b> = drops rolling/lag/interaction features.
          Each region label shows <i>total (engineered + original SHD columns)</i>.</p>
-      <img src="{venn_count_filename}" alt="Feature-set Venn — region counts (full / spano / no_rolling)">
+      <img src="{venn_count_filename}" alt="Feature-set Venn - region counts (full / spano / no_rolling)">
     </div>
     """ if venn_count_filename else "")
 
-    # Venn — every feature name, colour-coded (engineered vs original / 1:1 rename)
+    # Venn - every feature name, colour-coded (engineered vs original / 1:1 rename)
     venn_names_html = (f"""
     <div class="venn">
       <h3>Feature-set inclusion (every feature by name)</h3>
       <p>Same three sets as above, but each region lists the actual feature names.
          <span style="color:{CATEGORY_COLORS['original']}">●</span> <b>green</b> = original SHD column or 1:1 rename.
          <span style="color:{CATEGORY_COLORS['engineered']};font-weight:bold">●</span> <b>purple bold</b> = engineered (rolling, lag, interaction, or state-derived).</p>
-      <img src="{venn_names_filename}" alt="Feature-set Venn — feature names colour-coded by origin">
+      <img src="{venn_names_filename}" alt="Feature-set Venn - feature names colour-coded by origin">
     </div>
     """ if venn_names_filename else "")
 
@@ -1084,7 +1084,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     <html lang="en">
     <head>
     <meta charset="UTF-8">
-    <title>Comparison Table — {iso_timestamp}</title>
+    <title>Comparison Table - {iso_timestamp}</title>
     <style>
       body {{
         font-family: 'Courier New', monospace;
@@ -1176,7 +1176,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
         font-size: 0.9em;
       }}
     
-      /* Methodological caveat block — neutral gray, sits at the bottom of the page */
+      /* Methodological caveat block - neutral gray, sits at the bottom of the page */
       .caveat {{
         margin-top: 22px; max-width: 760px;
         border-left: 4px solid #888; border-radius: 3px;
@@ -1219,15 +1219,15 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     <div class="axis-info">
       <h2>How to read this table</h2>
       <dl>
-        <dt>Rows (Y-axis) — Data Package</dt>
+        <dt>Rows (Y-axis) - Data Package</dt>
         <dd>Each row is one (target × split-ratio × split-strategy) combination.
             <b>target</b> = headache or migraine.
             <b>ratio</b> = train/val/test split sizes (e.g. 70_15_15 or 70_30 / 80_20 with chronological cal sub-split).
             <b>split</b> = how rows are assigned: <i>chrono</i> (date-percentile cuts), <i>stratified</i> (class-balanced random shuffle), <i>patient</i> (whole-patient holdout).</dd>
-        <dt>Columns (X-axis) — Architecture</dt>
-        <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation — see glossary below.</dd>
+        <dt>Columns (X-axis) - Architecture</dt>
+        <dd>Each column is one (model × version × feature-set) combination. Top line: model name. Middle line (if present): version. Bottom yellow tag <b>[…]</b>: feature-set abbreviation - see glossary below.</dd>
         <dt>Cells</dt>
-        <dd>All 10 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). The MCC row substitutes "Cal-Optimal" for "Optimal" automatically when the source is CV. A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results — used as fallback when hold-out is missing. Empty (—) means no result file for that combination.</dd>
+        <dd>All 10 metrics on the locked test set. Each metric has its own colour scale (see <i>Colour legend</i>). The MCC row substitutes "Cal-Optimal" for "Optimal" automatically when the source is CV. A cell tagged <b>H+CV</b> has both hold-out and 5-fold CV results (cell shows hold-out). A cell tagged <b>CV</b> only has CV results - used as fallback when hold-out is missing. Empty (-) means no result file for that combination.</dd>
       </dl>
     </div>
     
@@ -1269,7 +1269,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
 def archive_previous_outputs():
     """Move any prior aggregator outputs from LATEST_DIR into ARCHIVE_DIR.
 
-    Uses a non-recursive glob so only files directly under experiment/ move —
+    Uses a non-recursive glob so only files directly under experiment/ move -
     leaf .txt files inside experiment/<.../>results/ are untouched.
     """
     ARCHIVE_DIR.mkdir(exist_ok=True)
@@ -1335,7 +1335,7 @@ def main():
     output.write_text(html, encoding="utf-8")
     print(f"Saved: {output}")
 
-    # Venn PNGs — count variant + per-name variant. Skipped silently if no
+    # Venn PNGs - count variant + per-name variant. Skipped silently if no
     # parquet is available yet (e.g. data pipeline hasn't been run).
     venn_count_filename = None
     venn_names_filename = None

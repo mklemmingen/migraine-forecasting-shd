@@ -1,4 +1,4 @@
-"""data.pipeline.analytics — PDF report generation for dataset and class-balance analysis."""
+"""data.pipeline.analytics - PDF report generation for dataset and class-balance analysis."""
 from .dataset_analysis import run_dataset_analysis
 from .class_balance import run_class_balance
 

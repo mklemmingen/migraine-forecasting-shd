@@ -1,5 +1,5 @@
 """
-stratified.py — Class-balanced random shuffle split.
+stratified.py - Class-balanced random shuffle split.
 
 Supports any number of folds via the `cutpoints` parameter:
   cutpoints=(0.70, 0.85) → train / val / test  (70/15/15)
@@ -28,10 +28,10 @@ def apply_split(
 ) -> tuple[pd.DataFrame, dict]:
     """Add a 'split' column using class-balanced random assignment.
 
-    First call (diary — requires 'migraine_target' for stratification):
+    First call (diary - requires 'migraine_target' for stratification):
         df_split, boundaries = apply_split(diary_df, cutpoints=(...), fold_names=(...), seed=42)
 
-    Second call (disability — matched via (patient_id, date) keys):
+    Second call (disability - matched via (patient_id, date) keys):
         dis_split, _ = apply_split(disability_df, boundaries=boundaries)
 
     When `boundaries` is supplied all other kwargs are ignored.

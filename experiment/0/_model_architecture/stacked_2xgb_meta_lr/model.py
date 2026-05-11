@@ -50,7 +50,7 @@ def fit_sigmoid_calibrator(stacker, X_cal, y_cal):
     number of calibration samples is below the ~1000-sample threshold
     """
     probs = stacker.predict_proba(X_cal)[:, 1].reshape(-1, 1)
-    # C=1e10 ≈ no regularisation — standard Platt scaling parameterisation
+    # C=1e10 ≈ no regularisation - standard Platt scaling parameterisation
     calibrator = LogisticRegression(C=1e10, solver='lbfgs', max_iter=1000)
     calibrator.fit(probs, y_cal)
     return calibrator

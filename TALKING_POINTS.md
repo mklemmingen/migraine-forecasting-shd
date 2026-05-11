@@ -30,11 +30,11 @@ Park measured same-day trigger–headache co-occurrence.
 @Bakir:
 
 Some high-OR triggers 
-—
+-
 noise (OR 2.8), 
 specific smells (71.8% headache likelihood), 
 emotional changes (68.8%) 
-— 
+- 
 are known therefore migraine prodromal symptoms (noise sensitivity, osmophobia,
 mood changes begin hours before pain onset).
 

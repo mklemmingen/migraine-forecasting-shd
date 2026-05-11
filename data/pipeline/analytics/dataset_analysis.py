@@ -1,5 +1,5 @@
 """
-dataset_analysis.py — builds dataset_analysis.pdf for one target mode.
+dataset_analysis.py - builds dataset_analysis.pdf for one target mode.
 
 Public API: run_dataset_analysis(diary_df, target_mode, ...)
 """
@@ -95,7 +95,7 @@ def _page_cohort_summary(pdf: PdfPages, df: pd.DataFrame,
         figsize=(10, 9),
         gridspec_kw={"height_ratios": [1, 2.5]},
     )
-    fig.suptitle(f"Dataset Analysis — {target_mode}", fontsize=16, fontweight="bold")
+    fig.suptitle(f"Dataset Analysis - {target_mode}", fontsize=16, fontweight="bold")
 
     # summary table
     ax_tbl = axes[0]
@@ -157,7 +157,7 @@ def _page_target_distribution(pdf: PdfPages, df: pd.DataFrame,
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
     fig.suptitle(
-        f"Target Distribution — {target_mode}  (overall rate: {overall_rate:.1%})",
+        f"Target Distribution - {target_mode}  (overall rate: {overall_rate:.1%})",
         fontsize=14, fontweight="bold",
     )
 
@@ -217,7 +217,7 @@ def _page_gantt(pdf: PdfPages, df: pd.DataFrame, target_mode: str,
     norm = plt.Normalize(summary["density"].min(), summary["density"].max())
 
     fig, ax = plt.subplots(figsize=(12, max(6, len(summary) * 0.28)))
-    fig.suptitle(f"Cohort Timeline — {target_mode}", fontsize=14, fontweight="bold")
+    fig.suptitle(f"Cohort Timeline - {target_mode}", fontsize=14, fontweight="bold")
 
     for i, row in enumerate(summary.itertuples()):
         color = cmap(norm(row.density))
@@ -274,7 +274,7 @@ def _pages_patient_timelines(pdf: PdfPages, df: pd.DataFrame,
         fig, axes = plt.subplots(nrows, ncols, figsize=(12, 9))
         axes = np.array(axes).flatten()
         fig.suptitle(
-            f"Per-patient Event Timelines — {target_mode}"
+            f"Per-patient Event Timelines - {target_mode}"
             f"  (patients {page_start + 1}–{page_start + n})",
             fontsize=12, fontweight="bold",
         )
@@ -348,7 +348,7 @@ def _pages_feature_distributions(pdf: PdfPages, df: pd.DataFrame,
         fig, axes = plt.subplots(nrows, ncols, figsize=(12, max(4, nrows * 3)))
         axes = np.array(axes).flatten()
         fig.suptitle(
-            f"Feature Distributions — {group_name}  ({target_mode})",
+            f"Feature Distributions - {group_name}  ({target_mode})",
             fontsize=12, fontweight="bold",
         )
 
@@ -414,7 +414,7 @@ def _page_temporal_dependence(pdf: PdfPages, df: pd.DataFrame,
     COND_LAGS = [1, 2, 3, 7]
     overall_rate = df["migraine_today"].mean()
 
-    # per-patient ACF then average — every patient contributes
+    # per-patient ACF then average - every patient contributes
     patient_acfs = []
     for pid, grp in df.groupby(patient_col):
         series = grp.sort_values("date")["migraine_today"].values
@@ -431,7 +431,7 @@ def _page_temporal_dependence(pdf: PdfPages, df: pd.DataFrame,
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(
-        f"Temporal Dependence — {target_mode}",
+        f"Temporal Dependence - {target_mode}",
         fontsize=13, fontweight="bold",
     )
 

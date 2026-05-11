@@ -1,5 +1,5 @@
 """
-insights.py — Diagnostic profiling of all pipeline datasets.
+insights.py - Diagnostic profiling of all pipeline datasets.
 """
 import pandas as pd
 
@@ -11,12 +11,12 @@ def print_data_insights(raw_df, translated_df,
                         label: str = ""):
     """Generate a rigorous scientific data profile for all pipeline datasets.
 
-    val_diary / val_disability are optional — omit for 2-way (train/test) splits.
+    val_diary / val_disability are optional - omit for 2-way (train/test) splits.
     label is printed as a header so output from multiple ratios is distinguishable.
     """
     if label:
         print(f"\n{'#' * 120}")
-        print(f"# DIAGNOSTICS — SPLIT RATIO: {label}")
+        print(f"# DIAGNOSTICS - SPLIT RATIO: {label}")
         print(f"{'#' * 120}")
 
     datasets = {
@@ -42,7 +42,7 @@ def print_data_insights(raw_df, translated_df,
 
         if total_rows == 0:
             print("-" * 120)
-            print(" [EMPTY DATAFRAME — check split logic]")
+            print(" [EMPTY DATAFRAME - check split logic]")
             print("\n")
             continue
 
@@ -63,7 +63,7 @@ def print_data_insights(raw_df, translated_df,
 
         for col in df.columns:
             if isinstance(col, tuple):
-                col_name = " — ".join([str(c) for c in col if pd.notna(c) and not str(c).startswith('Unnamed:')])
+                col_name = " - ".join([str(c) for c in col if pd.notna(c) and not str(c).startswith('Unnamed:')])
             else:
                 col_name = str(col)
 

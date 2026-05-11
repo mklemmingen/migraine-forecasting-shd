@@ -1,8 +1,8 @@
 """
-run_all_avaliable_leaves.py — Sequential runner for every leaf under this addition.
+run_all_avaliable_leaves.py - Sequential runner for every leaf under this addition.
 
-Phase 1 — every train.py, split per target (headache then migraine).
-Phase 2 — every evaluate.py + evaluate_cv.py, split per target, after all training.
+Phase 1 - every train.py, split per target (headache then migraine).
+Phase 2 - every evaluate.py + evaluate_cv.py, split per target, after all training.
 
 Phase 2 runs only after Phase 1 finishes (across all targets), so every
 model.joblib needed by an evaluator already exists. Within each phase, leaves
@@ -12,7 +12,7 @@ Failures don't abort: each leaf's exit code is recorded and the runner moves
 on, with a per-target / per-script pass/fail summary at the end.
 
 stdout/stderr from each script streams live to the parent terminal so progress
-(and warnings) are visible during long stacking fits — Ctrl-C interrupts the
+(and warnings) are visible during long stacking fits - Ctrl-C interrupts the
 current leaf and the runner exits.
 
 Run: `.venv/bin/python experiment/0/run_all_avaliable_leaves.py`
@@ -56,7 +56,7 @@ def run(script: Path, idx: int, total: int) -> tuple[bool, float]:
 
 def sub_phase(label: str, scripts: list[Path]) -> dict:
     """Run a list of scripts, print a sub-phase header, collect stats."""
-    print(f"\n\n--- {label}  —  {len(scripts)} script{'s' if len(scripts) != 1 else ''} ---")
+    print(f"\n\n--- {label}  -  {len(scripts)} script{'s' if len(scripts) != 1 else ''} ---")
     stats = {"ok": 0, "fail": 0, "secs": 0.0, "fails": []}
     for i, script in enumerate(scripts, 1):
         ok, secs = run(script, i, len(scripts))
@@ -95,9 +95,9 @@ def main() -> int:
     print(f"Interpreter:   {PYTHON}")
     print(f"Targets:       {', '.join(TARGETS)}")
 
-    train_stats = phase_split_by_target("Phase 1 — train.py", ("train.py",))
+    train_stats = phase_split_by_target("Phase 1 - train.py", ("train.py",))
     eval_stats = phase_split_by_target(
-        "Phase 2 — evaluate.py + evaluate_cv.py",
+        "Phase 2 - evaluate.py + evaluate_cv.py",
         ("evaluate.py", "evaluate_cv.py"),
     )
 

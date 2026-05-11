@@ -1,5 +1,5 @@
 """
-read.py — Shared data-loading utilities for addition leaf scripts.
+read.py - Shared data-loading utilities for addition leaf scripts.
 
 Centralises (X, y) extraction so train/evaluate/evaluate_cv files don't
 duplicate column-drop logic. Custom loaders (e.g. spano-feature filtering)
@@ -10,7 +10,7 @@ Public API:
     load_and_prep_data(filepath, loader=None) -> (X, y)
     chronological_subsplit(train_fold, cal_ratio=0.20) -> (train_sub, cal_sub)
 
-Usage from a leaf script (depth-agnostic — walks up to experiment/):
+Usage from a leaf script (depth-agnostic - walks up to experiment/):
 
     import sys
     from pathlib import Path

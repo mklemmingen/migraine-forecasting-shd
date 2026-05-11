@@ -1,7 +1,7 @@
 """
 Blended XGBoost + L1-LR architecture (Spano 2026 replication).
 
-Two independent base models — XGBoost and an L1-LR pipeline — are calibrated
+Two independent base models - XGBoost and an L1-LR pipeline - are calibrated
 per-base (isotonic + Platt) on a held-out split, then blended via convex
 combination. The blend ratio (alpha) and the post-blend final calibrator are
 both selected by best validation MCC.
@@ -44,7 +44,7 @@ ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0, 0.05, …, 1.00 (Spano config.py)
 
 
 # ---------------------------------------------------------------------------
-# Calibrators — class identities pickled into the bundle
+# Calibrators - class identities pickled into the bundle
 # ---------------------------------------------------------------------------
 
 class IsoCalibrator:
@@ -122,7 +122,7 @@ def fit_lr_pipeline(X_tr, y_tr, class_weight):
 # ---------------------------------------------------------------------------
 
 def _best_mcc_over_thresholds(p, y):
-    """Oracle MCC over all distinct probability values — selection only."""
+    """Oracle MCC over all distinct probability values - selection only."""
     return max(matthews_corrcoef(y, (p >= t).astype(int)) for t in np.unique(p))
 
 

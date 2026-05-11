@@ -24,13 +24,13 @@ def runBase(target_mode: str = "headache"):
     PROCESSED_DIR = os.path.join(BASE_PROCESSED_DIR, target_mode)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
 
-    # Step 1 — Translation
+    # Step 1 - Translation
     raw_df = pd.read_excel(RAW_XLS, sheet_name=2, header=[1, 2])
     translated_df = translate_sheet3(raw_df)
     translated_df.to_parquet(os.path.join(PROCESSED_DIR, "translated.parquet"), index=False)
     print("Saved: translated.parquet")
 
-    # Step 2 — Engineering (no split inside)
+    # Step 2 - Engineering (no split inside)
     engineered_df = engineer_features(
         translated_df,
         target_mode=target_mode,
@@ -41,13 +41,13 @@ def runBase(target_mode: str = "headache"):
      .to_parquet(os.path.join(PROCESSED_DIR, "diary.parquet"), index=False))
     print(f"Saved: diary.parquet  ({len(engineered_df)} rows)")
 
-    # CV — split-agnostic, idempotent across run scripts
+    # CV - split-agnostic, idempotent across run scripts
     cv_df = assign_cv_folds(engineered_df.drop(columns=['migraine_today'], errors='ignore'))
     cv_df.to_parquet(os.path.join(PROCESSED_DIR, "diary_cv5_timeseries.parquet"), index=False)
     print(
         f"Saved: diary_cv5_timeseries.parquet  ({len(cv_df)} rows)  folds: {dict(cv_df['cv_fold'].value_counts().sort_index())}")
 
-    # Step 3 — Disability (full, unsplit)
+    # Step 3 - Disability (full, unsplit)
     raw_dis_df = pd.read_excel(RAW_XLS, sheet_name=1, header=[1, 2])
     disability_df = process_disability_sheet(raw_dis_df)
     disability_df.to_parquet(os.path.join(PROCESSED_DIR, "disability.parquet"), index=False)

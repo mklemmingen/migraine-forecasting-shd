@@ -1,7 +1,7 @@
 """
-engineer.py — Step 2: Feature engineering on the translated diary DataFrame.
+engineer.py - Step 2: Feature engineering on the translated diary DataFrame.
 
-Builds all 47 temporal/rolling features. Does NOT apply any split — returns the
+Builds all 47 temporal/rolling features. Does NOT apply any split - returns the
 full engineered DataFrame. The caller (a run_pipeline_*.py script) applies the
 appropriate split strategy from data/pipeline/splits/.
 
@@ -13,8 +13,7 @@ Feature groups and counts:
   Migraine history (5), Stress (3), Sleep (7), Weather (5),
   Dietary & Travel (6), Physical Activity (6), Other triggers (6),
   Hormonal (2), Preventive medication (1), Context / dow (1) , (2) days since last record and recording gap,
-  (5) previously removed because of low count but added back for base (important: park et all had them excluded
-  from sub-analysis)
+  (5) low-count triggers retained for the base feature set (Park et al. excluded them from sub-analysis)
   → 47 features total
 
 Excluded at engineering: Structural columns headache_ongoing, severity_category,

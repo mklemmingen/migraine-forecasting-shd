@@ -1,0 +1,220 @@
+# Training-script output capture
+# Generated: 2026-05-10T22:32:14
+# UUID:      b946a8fb-d627-4065-b939-9c4513c75b8a
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-auto/80_20/stratified
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Train: X=(3612, 52), y=(3612,)  (positive rate: 0.235)
+Fitting tabpfn (version_2-6-auto) on full train (no external calibrator - see docs/tabPfn.MD)...
+Warning: path already exists! This predictor may overwrite an existing predictor! path="/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-auto/80_20/stratified/autogluon_predictor"
+Verbosity: 2 (Standard Logging)
+=================== System Info ===================
+AutoGluon Version:  1.5.0
+Python Version:     3.13.12
+Operating System:   Linux
+Platform Machine:   x86_64
+Platform Version:   #1 SMP PREEMPT_DYNAMIC Sat, 09 May 2026 11:29:28 +0000
+CPU Count:          32
+Pytorch Version:    2.11.0+rocm7.2
+CUDA Version:       None
+GPU Memory:         GPU 0: 19.98/19.98 GB
+Total GPU Memory:   Free: 19.98 GB, Allocated: 0.00 GB, Total: 19.98 GB
+GPU Count:          1
+Memory Avail:       17.66 GB / 31.04 GB (56.9%)
+Disk Space Avail:   427.03 GB / 724.97 GB (58.9%)
+===================================================
+No presets specified! To achieve strong results with AutoGluon, it is recommended to use the available presets. Defaulting to `'medium'`...
+	Recommended Presets (For more details refer to https://auto.gluon.ai/stable/tutorials/tabular/tabular-essentials.html#presets):
+	presets='extreme'  : New in v1.5: The state-of-the-art for tabular data. Massively better than 'best' on datasets <100000 samples by using new Tabular Foundation Models (TFMs) meta-learned on https://tabarena.ai: TabPFNv2, TabICL, Mitra, TabDPT, and TabM. Requires a GPU and `pip install autogluon.tabular[tabarena]` to install TabPFN, TabICL, and TabDPT.
+	presets='best'     : Maximize accuracy. Recommended for most users. Use in competitions and benchmarks.
+	presets='best_v150': New in v1.5: Better quality than 'best' and 5x+ faster to train. Give it a try!
+	presets='high'     : Strong accuracy with fast inference speed.
+	presets='high_v150': New in v1.5: Better quality than 'high' and 5x+ faster to train. Give it a try!
+	presets='good'     : Good accuracy with very fast inference speed.
+	presets='medium'   : Fast training time, ideal for initial prototyping.
+Beginning AutoGluon training ... Time limit = 7200s
+AutoGluon will save models to "/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-auto/80_20/stratified/autogluon_predictor"
+Train Data Rows:    3612
+Train Data Columns: 52
+Label Column:       _target_
+Problem Type:       TaskType.BINARY
+Preprocessing data ...
+Selected class <--> label mapping:  class 1 = 1, class 0 = 0
+Using Feature Generators to preprocess the data ...
+Fitting AutoMLPipelineFeatureGenerator...
+	Available Memory:                    18080.09 MB
+	Train Data (Original)  Memory Usage: 1.42 MB (0.0% of available memory)
+	Inferring data type of each feature based on column values. Set feature_metadata_in to manually specify special dtypes of the features.
+	Stage 1 Generators:
+		Fitting AsTypeFeatureGenerator...
+			Note: Converting 34 features to boolean dtype as they only contain 2 unique values.
+	Stage 2 Generators:
+		Fitting FillNaFeatureGenerator...
+	Stage 3 Generators:
+		Fitting IdentityFeatureGenerator...
+	Stage 4 Generators:
+		Fitting DropUniqueFeatureGenerator...
+	Stage 5 Generators:
+		Fitting DropDuplicatesFeatureGenerator...
+	Unused Original Features (Count: 5): ['exercise_as_trigger_today', 'sunlight_today', 'inappropriate_lighting_today', 'excessive_smoking_today', 'cheese_chocolate_today']
+		These features were not used to generate any of the output features. Add a feature generator compatible with these features to utilize them.
+		Features can also be unused if they carry very little information, such as being categorical but having almost entirely unique values or being duplicates of other features.
+		These features do not need to be present at inference time.
+		('int', []) : 5 | ['exercise_as_trigger_today', 'sunlight_today', 'inappropriate_lighting_today', 'excessive_smoking_today', 'cheese_chocolate_today']
+	Types of features in original data (raw dtype, special dtypes):
+		('float', []) :  7 | ['migraine_rate_last3', 'migraine_rate_last7', 'sleep_debt_3day', 'sleep_variability_7day', 'recent_weekend_sleep_issues', ...]
+		('int', [])   : 40 | ['vigorous_exercise_min', 'moderate_exercise_min', 'exercise_as_trigger', 'sunlight', 'inappropriate_lighting', ...]
+	Types of features in processed data (raw dtype, special dtypes):
+		('float', [])     :  7 | ['migraine_rate_last3', 'migraine_rate_last7', 'sleep_debt_3day', 'sleep_variability_7day', 'recent_weekend_sleep_issues', ...]
+		('int', [])       : 11 | ['vigorous_exercise_min', 'moderate_exercise_min', 'headache_free_streak', 'days_since_last_migraine', 'consecutive_stress_days', ...]
+		('int', ['bool']) : 29 | ['exercise_as_trigger', 'sunlight', 'inappropriate_lighting', 'excessive_smoking', 'cheese_chocolate', ...]
+	0.0s = Fit runtime
+	47 features in original data used to generate 47 features in processed data.
+	Train Data (Processed) Memory Usage: 0.58 MB (0.0% of available memory)
+Data preprocessing and feature engineering runtime = 0.03s ...
+AutoGluon will gauge predictive performance using evaluation metric: 'accuracy'
+	To change this, specify the eval_metric parameter of Predictor()
+Large model count detected (20 configs) ... Only displaying the first 3 models of each family. To see all, set `verbosity=3`.
+User-specified model hyperparameters to be fit:
+{
+	'<class 'autogluon.tabular.models.tabpfnv2.tabpfnv2_5_model.RealTabPFNv25Model'>': [{'average_before_softmax': True, 'inference_config/FINGERPRINT_FEATURE': False, 'inference_config/MIN_UNIQUE_FOR_NUMERICAL_FEATURES': 5, 'inference_config/OUTLIER_REMOVAL_STD': 12.0, 'inference_config/POLYNOMIAL_FEATURES': 'no', 'inference_config/PREPROCESS_TRANSFORMS': [{'append_original': False, 'categorical_name': 'numeric', 'global_transformer_name': None, 'name': 'kdi_alpha_0.3'}], 'n_estimators': 8, 'softmax_temperature': 0.9, 'ag_args_ensemble': {'refit_folds': True}, 'ignore_pretraining_limits': False, 'balance_probabilities': False, 'ag_args_fit': {'ignore_constraints': False}, 'zip_model_path': ['tabpfn-v2.5-classifier-v2.5_default.ckpt', 'tabpfn-v2.5-classifier-v2.5_default.ckpt']}, {'average_before_softmax': True, 'inference_config/FINGERPRINT_FEATURE': False, 'inference_config/MIN_UNIQUE_FOR_NUMERICAL_FEATURES': 10, 'inference_config/OUTLIER_REMOVAL_STD': None, 'inference_config/POLYNOMIAL_FEATURES': 'no', 'inference_config/PREPROCESS_TRANSFORMS': [{'append_original': True, 'categorical_name': 'ordinal_very_common_categories_shuffled', 'global_transformer_name': 'svd', 'name': 'none'}, {'append_original': True, 'categorical_name': 'ordinal_very_common_categories_shuffled', 'global_transformer_name': 'svd', 'name': 'quantile_uni_coarse'}], 'n_estimators': 8, 'softmax_temperature': 1.0, 'ag_args_ensemble': {'refit_folds': True}, 'ignore_pretraining_limits': False, 'balance_probabilities': False, 'ag_args_fit': {'ignore_constraints': False}, 'zip_model_path': ['tabpfn-v2.5-classifier-v2.5_large-features-L.ckpt', 'tabpfn-v2.5-classifier-v2.5_large-features-L.ckpt']}, {'average_before_softmax': True, 'inference_config/FINGERPRINT_FEATURE': False, 'inference_config/MIN_UNIQUE_FOR_NUMERICAL_FEATURES': 5, 'inference_config/OUTLIER_REMOVAL_STD': 12.0, 'inference_config/POLYNOMIAL_FEATURES': 'no', 'inference_config/PREPROCESS_TRANSFORMS': [{'append_original': True, 'categorical_name': 'numeric', 'global_transformer_name': 'svd', 'name': 'kdi_alpha_0.3'}], 'n_estimators': 8, 'softmax_temperature': 0.95, 'ag_args_ensemble': {'refit_folds': True}, 'ignore_pretraining_limits': False, 'balance_probabilities': False, 'ag_args_fit': {'ignore_constraints': False}, 'zip_model_path': ['tabpfn-v2.5-classifier-v2.5_real.ckpt', 'tabpfn-v2.5-classifier-v2.5_real.ckpt']}],
+}
+Fitting 20 L1 models, fit_strategy="sequential" ...
+Fitting model: RealTabPFN-v2.5_BAG_L1 ... Training model for up to 7199.97s of the 7199.97s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Warning: TabPFN-2.5 is a NONCOMMERCIAL model. Usage of this artifact (including through AutoGluon) is not permitted for commercial tasks unless granted explicit permission by the model authors (PriorLabs).
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7788	 = Validation score   (accuracy)
+	39.17s	 = Training   runtime
+	19.21s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_2_BAG_L1 ... Training model for up to 7160.71s of the 7160.71s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.778	 = Validation score   (accuracy)
+	37.11s	 = Training   runtime
+	32.87s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_3_BAG_L1 ... Training model for up to 7123.47s of the 7123.47s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7652	 = Validation score   (accuracy)
+	76.01s	 = Training   runtime
+	50.58s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_4_BAG_L1 ... Training model for up to 7047.31s of the 7047.31s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.5 GB
+	0.7793	 = Validation score   (accuracy)
+	19.83s	 = Training   runtime
+	18.04s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_5_BAG_L1 ... Training model for up to 7027.38s of the 7027.38s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7793	 = Validation score   (accuracy)
+	29.67s	 = Training   runtime
+	22.19s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_6_BAG_L1 ... Training model for up to 6997.61s of the 6997.61s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7788	 = Validation score   (accuracy)
+	26.37s	 = Training   runtime
+	24.42s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_7_BAG_L1 ... Training model for up to 6971.09s of the 6971.09s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.6 GB
+	0.778	 = Validation score   (accuracy)
+	20.94s	 = Training   runtime
+	17.94s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_8_BAG_L1 ... Training model for up to 6950.06s of the 6950.06s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.6 GB
+	0.7777	 = Validation score   (accuracy)
+	29.68s	 = Training   runtime
+	27.41s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_9_BAG_L1 ... Training model for up to 6920.24s of the 6920.24s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.6 GB
+	0.7785	 = Validation score   (accuracy)
+	48.31s	 = Training   runtime
+	43.07s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_10_BAG_L1 ... Training model for up to 6871.79s of the 6871.79s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7791	 = Validation score   (accuracy)
+	48.71s	 = Training   runtime
+	26.92s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_11_BAG_L1 ... Training model for up to 6822.94s of the 6822.94s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7791	 = Validation score   (accuracy)
+	51.97s	 = Training   runtime
+	34.46s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_12_BAG_L1 ... Training model for up to 6770.87s of the 6770.87s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7782	 = Validation score   (accuracy)
+	37.63s	 = Training   runtime
+	32.54s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_13_BAG_L1 ... Training model for up to 6733.11s of the 6733.11s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7799	 = Validation score   (accuracy)
+	29.51s	 = Training   runtime
+	26.51s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_14_BAG_L1 ... Training model for up to 6703.47s of the 6703.46s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7788	 = Validation score   (accuracy)
+	26.48s	 = Training   runtime
+	22.49s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_15_BAG_L1 ... Training model for up to 6676.85s of the 6676.85s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.8 GB
+	0.7788	 = Validation score   (accuracy)
+	40.31s	 = Training   runtime
+	22.13s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_16_BAG_L1 ... Training model for up to 6636.42s of the 6636.42s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7785	 = Validation score   (accuracy)
+	75.47s	 = Training   runtime
+	50.33s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_17_BAG_L1 ... Training model for up to 6560.80s of the 6560.80s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7791	 = Validation score   (accuracy)
+	25.49s	 = Training   runtime
+	22.39s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_18_BAG_L1 ... Training model for up to 6535.20s of the 6535.20s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7796	 = Validation score   (accuracy)
+	42.67s	 = Training   runtime
+	22.44s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_19_BAG_L1 ... Training model for up to 6492.01s of the 6492.00s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7799	 = Validation score   (accuracy)
+	36.47s	 = Training   runtime
+	34.52s	 = Validation runtime
+Fitting model: RealTabPFN-v2.5_20_BAG_L1 ... Training model for up to 6455.43s of the 6455.42s of remaining time.
+	Fitting 8 child models (S1F1 - S1F8) | Fitting with SequentialLocalFoldFittingStrategy (sequential: cpus=24, gpus=1)
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=1.5/16.7 GB
+	0.7785	 = Validation score   (accuracy)
+	31.18s	 = Training   runtime
+	23.44s	 = Validation runtime
+Fitting model: WeightedEnsemble_L2 ... Training model for up to 720.00s of the 6424.14s of remaining time.
+	Fitting 1 model on all data | Fitting with cpus=32, gpus=1, mem=0.0/16.7 GB
+	Ensemble Weights: {'RealTabPFN-v2.5_13_BAG_L1': 0.923, 'RealTabPFN-v2.5_19_BAG_L1': 0.077}
+	0.7802	 = Validation score   (accuracy)
+	0.01s	 = Training   runtime
+	0.0s	 = Validation runtime
+AutoGluon training complete, total runtime = 775.88s ... Best model: WeightedEnsemble_L2 | Estimated inference throughput: 59.2 rows/s (3612 batch size)
+Disabling decision threshold calibration for metric `accuracy` due to having fewer than 10000 rows of validation data for calibration, to avoid overfitting (3612 rows).
+	`accuracy` is generally not improved through threshold calibration. Force calibration via specifying `calibrate_decision_threshold=True`.
+TabularPredictor saved. To load, use: predictor = TabularPredictor.load("/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-auto/80_20/stratified/autogluon_predictor")
+Model successfully saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-auto/80_20/stratified/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-10T22:45:10
