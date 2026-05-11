@@ -1,0 +1,172 @@
+% Sources.bib
+
+% ====================================================================
+% Dataset
+% ====================================================================
+
+@article{park2016shd,
+  author  = {Park, Jeong-Wook and Chu, Min Kyung and Kim, Jae-Moon and Park, Sung-Gil and Cho, Soo-Jin},
+  title   = {Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications},
+  journal = {PLOS ONE},
+  volume  = {11},
+  number  = {2},
+  pages   = {e0149577},
+  year    = {2016},
+  month   = feb,
+  doi     = {10.1371/journal.pone.0149577},
+  url     = {https://doi.org/10.1371/journal.pone.0149577},
+  note    = {Open access. PDF in PaperSources/park2016_shd.pdf.}
+}
+
+% ====================================================================
+% TabPFN family (architecture and variants)
+% ====================================================================
+
+@article{hollmann2025tabpfn,
+  author  = {Hollmann, Noah and M{\"u}ller, Samuel and Purucker, Lennart and Krishnakumar, Arjun and K{\"o}rfer, Max and Hoo, Shi Bin and Schirrmeister, Robin Tibor and Hutter, Frank},
+  title   = {Accurate predictions on small data with a tabular foundation model},
+  journal = {Nature},
+  volume  = {637},
+  number  = {8045},
+  pages   = {319--326},
+  year    = {2025},
+  month   = jan,
+  doi     = {10.1038/s41586-024-08328-6},
+  url     = {https://doi.org/10.1038/s41586-024-08328-6},
+  note    = {Paywalled. Bibliographic data verified via the publisher landing page; no local PDF cached.}
+}
+
+@misc{garg2025realtabpfn,
+  author        = {Garg, Anurag and Ali, Mohammed and Hollmann, Noah and Purucker, Lennart and M{\"u}ller, Samuel and Hutter, Frank},
+  title         = {{Real-TabPFN}: Improving Tabular Foundation Models via Continued Pre-training With Real-World Data},
+  year          = {2025},
+  eprint        = {2507.03971},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2507.03971},
+  note          = {Foundation Models for Structured Data (FMSD) Workshop at ICML 2025; workshop-tier peer review. PDF in PaperSources/garg2025_real_tabpfn.pdf.}
+}
+
+@misc{rubachev2025finetuning,
+  author        = {Rubachev, Ivan and Kotelnikov, Akim and Kartashev, Nikolay and Babenko, Artem},
+  title         = {On Finetuning Tabular Foundation Models},
+  year          = {2025},
+  eprint        = {2506.08982},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2506.08982},
+  note          = {arXiv preprint as of May 2026; submitted to ICLR 2026, no decision visible. PDF in PaperSources/rubachev2025_finetuning_tabpfn.pdf.}
+}
+
+@misc{grinsztajn2025tabpfn25,
+  author        = {Grinsztajn, L{\'e}o and Fl{\"o}ge, Klemens and Key, Oscar and others},
+  title         = {{TabPFN-2.5}: Advancing the State of the Art in Tabular Foundation Models},
+  year          = {2025},
+  eprint        = {2511.08667},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2511.08667},
+  note          = {Architecture report (background context for §1 of docs/tabPfn.MD). PDF in PaperSources/grinsztajn2025_tabpfn_2-5_report.pdf.}
+}
+
+% ====================================================================
+% Probability calibration (Platt scaling and post-hoc calibration on
+% tree ensembles)
+% ====================================================================
+
+@incollection{platt1999svm,
+  author    = {Platt, John C.},
+  title     = {Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods},
+  booktitle = {Advances in Large Margin Classifiers},
+  editor    = {Smola, Alexander J. and Bartlett, Peter L. and Sch{\"o}lkopf, Bernhard and Schuurmans, Dale},
+  publisher = {MIT Press},
+  address   = {Cambridge, MA},
+  year      = {1999},
+  pages     = {61--74},
+  note      = {Sigmoid scaling, originally for SVM scores. Foundational method cite for the Platt calibrator.}
+}
+
+@inproceedings{niculescuMizilCaruana2005uai,
+  author    = {Niculescu-Mizil, Alexandru and Caruana, Rich},
+  title     = {Obtaining calibrated probabilities from boosting},
+  booktitle = {Proceedings of the 21st Conference on Uncertainty in Artificial Intelligence (UAI '05)},
+  pages     = {413--420},
+  year      = {2005},
+  publisher = {AUAI Press},
+  url       = {https://arxiv.org/abs/1207.1403},
+  note      = {arXiv mirror at 1207.1403. Empirical justification for Platt scaling on tree ensembles. PDF in PaperSources/niculescu_mizil_caruana_2005_uai.pdf.}
+}
+
+@inproceedings{niculescuMizilCaruana2005icml,
+  author    = {Niculescu-Mizil, Alexandru and Caruana, Rich},
+  title     = {Predicting good probabilities with supervised learning},
+  booktitle = {Proceedings of the 22nd International Conference on Machine Learning (ICML '05)},
+  pages     = {625--632},
+  year      = {2005},
+  publisher = {ACM},
+  doi       = {10.1145/1102351.1102430},
+  url       = {https://doi.org/10.1145/1102351.1102430},
+  note      = {Companion supervised-learning calibration survey. PDF in PaperSources/niculescu_mizil_caruana_2005_icml.pdf (author-hosted mirror at cs.cornell.edu/~alexn/).}
+}
+
+% ====================================================================
+% Post-hoc ensemble selection (background for AutoTabPFN methodology)
+% ====================================================================
+
+@inproceedings{purucker2023qdoes,
+  author    = {Purucker, Lennart and Beel, Joeran},
+  title     = {{Q(D)O-ES}: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in {AutoML}},
+  booktitle = {Proceedings of the Second International Conference on Automated Machine Learning (AutoML 2023)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {224},
+  year      = {2023},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v224/purucker23b.html},
+  note      = {Post-hoc ensemble-selection technique whose lineage feeds into the AutoTabPFN classifier in tabpfn-extensions. PDF in PaperSources/purucker_beel_2023_qdoes.pdf.}
+}
+
+% ====================================================================
+% Clinical / domain background (premonitory symptoms)
+% ====================================================================
+
+@article{giffin2003premonitory,
+  author  = {Giffin, N. J. and Ruggiero, L. and Lipton, R. B. and Silberstein, S. D. and Tvedskov, J. F. and Olesen, J. and Altman, J. and Goadsby, P. J. and Macrae, A.},
+  title   = {Premonitory symptoms in migraine: an electronic diary study},
+  journal = {Neurology},
+  volume  = {60},
+  number  = {6},
+  pages   = {935--940},
+  year    = {2003},
+  month   = mar,
+  doi     = {10.1212/01.wnl.0000052998.58526.a9},
+  pmid    = {12654956},
+  note    = {Cited in docs/dataset.md for the premonitory-symptoms argument behind feature retention.}
+}
+
+@article{schoonman2006premonitory,
+  author  = {Schoonman, G. G. and Evers, D. J. and Terwindt, G. M. and van Dijk, J. G. and Ferrari, M. D.},
+  title   = {The prevalence of premonitory symptoms in migraine: a questionnaire study in 461 patients},
+  journal = {Cephalalgia},
+  volume  = {26},
+  number  = {10},
+  pages   = {1209--1213},
+  year    = {2006},
+  month   = oct,
+  doi     = {10.1111/j.1468-2982.2006.01195.x},
+  pmid    = {16961788},
+  note    = {Cited alongside Giffin 2003 in docs/dataset.md for premonitory-symptom prevalence.}
+}
+
+% ====================================================================
+% Prior-work attribution
+% ====================================================================
+
+@thesis{spano2026thesis,
+  author      = {Spano, Marco Samuel},
+  title       = {Stacked ensemble baselines for next-day migraine forecasting on the {SHD} cohort},
+  type        = {Bachelor's thesis},
+  institution = {Reutlingen University},
+  address     = {Reutlingen, Germany},
+  year        = {2026},
+  note        = {Original `blended_xgb_lr_spano2026` architecture (Addition 0) is replicated from this work. Legacy code preserved via contact to Spano. Title above is descriptive (no public DOI for the thesis).}
+}
