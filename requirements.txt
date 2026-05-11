@@ -2,7 +2,7 @@
 pandas>=2.0
 numpy>=1.26
 pyarrow>=14.0           # parquet read/write (pandas backend)
-xlrd>=2.0.1             # pd.read_excel on .xls. Note: xlrd 2.0+ dropped .xlsx support (moved to openpyxl) but RETAINED .xls — the historic comment had this backwards. pandas requires xlrd>=2.0.1.
+xlrd>=2.0.1             # pd.read_excel on .xls (xlrd 2.0+ supports .xls only; .xlsx requires openpyxl). pandas requires xlrd>=2.0.1.
 
 # ---- Machine learning ----------------------------------------------------------------------------------
 scikit-learn>=1.4       # StackingClassifier, KFold, TimeSeriesSplit,
@@ -12,15 +12,47 @@ xgboost>=2.0            # XGBClassifier (tree_method='hist' is default in 2.x)
 joblib>=1.3             # model serialisation; also a scikit-learn dep
 
 # ---- Foundation model -----------------------------------------------------------------------------------
-tabpfn>=2.0             # Prior Labs release — TabPFNClassifier(device='cuda')
-                        # pulls in torch as a transitive dependency;
-                        # for GPU inference install torch with CUDA extras first:
-                        #   pip install torch --index-url https://download.pytorch.org/whl/cu121
+tabpfn>=7.1.1           # Prior Labs release. 7.1.1 is the floor: build_realtabpfn
+                        # (experiment/1) uses the v2.5_real checkpoint exposed by
+                        # tabpfn>=7.0.1. Pulls torch as a transitive dependency.
+                        #
+                        # GPU support for the heavy fits requires installing the
+                        # right torch wheel after the base requirements land.
+                        # Default `pip install -r requirements.txt` resolves
+                        # to torch+cu130 (NVIDIA). Swap as appropriate:
+                        #
+                        #   NVIDIA CUDA 12.x:
+                        #     pip install --force-reinstall --no-deps \
+                        #         --index-url https://download.pytorch.org/whl/cu121 \
+                        #         torch==2.11.0
+                        #
+                        #   AMD ROCm (e.g. RX 7900 XT, this project's reference GPU):
+                        #     pip install --force-reinstall --no-deps \
+                        #         --index-url https://download.pytorch.org/whl/rocm7.2 \
+                        #         torch==2.11.0
+                        #
+                        # CPU-only is fine for smoke tests but full sweeps will be
+                        # impractically slow without GPU.
+# AutoTabPFN (post_hoc_ensembles extra) - installed from a pinned git commit
+# rather than the latest PyPI release (0.3.0) because that release pins
+# `autogluon.tabular==1.4.0` which is not on PyPI (only `1.4.1bXXX` betas
+# and the stable `1.5.0` exist). The fix landed in PR #274 (2026-04-30,
+# "Bump AutoGluon to 1.5"), is in main, but no PyPI release ships it yet.
+# The pinned SHA below is the head of main as of 2026-05-10. Bump when
+# PriorLabs publishes a 0.4.x release. AutoGluon's Python constraint
+# (`<3.14, >=3.10`) is the reason this project's venv runs on Python 3.13.
+tabpfn-extensions[post-hoc-ensembles] @ git+https://github.com/PriorLabs/tabpfn-extensions@b2f624fd20e4e9d629605693d2154d3c1f5a1041
+
+kditransform==1.2.0       # Optional preprocessor used by some TabPFN configs.
+                          # Without it tabpfn falls back to PowerTransformer and
+                          # emits: "Cannot use KDITransformer because kditransform
+                          # is not installed. Using PowerTransformer as fallback."
+                          # Pulls numba as a transitive dep.
 
 # ---- Visualisation ---------------------------------------------------------------------------------------
 matplotlib>=3.8         # calibration_check.py reliability diagrams (Agg backend)
 matplotlib_venn>=1.1    # 3-set Venn diagram in run_aggregate_results.py (feature-set inclusion)
-shapely>=2.0            # required by matplotlib_venn.layout.venn3.cost_based — used because spano ⊂ full ⊃ no_rolling
+shapely>=2.0            # required by matplotlib_venn.layout.venn3.cost_based - used because spano ⊂ full ⊃ no_rolling
                         # is a near-subset configuration the default 'pairwise' solver can't position
                         # without violating the triangle inequality (emits "Bad circle positioning")
 seaborn>=0.13           # analytics reports (dataset_analysis.pdf, class_balance.pdf)
