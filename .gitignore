@@ -225,3 +225,9 @@ __marimo__/
 
 # Trained-model artefacts at every leaf depth — ignore all .joblib under experiment/.
 experiment/**/*.joblib
+
+# AutoGluon TabularPredictor save directories spawned by AutoTabPFN leaves.
+# Each AutoTabPFN train.py writes the predictor to <leaf>/autogluon_predictor/
+# (per the phe_init_args path injection in autotabpfn/model.py); the directory
+# can run to hundreds of MB per leaf and is regeneratable from train.py.
+experiment/**/autogluon_predictor/
