@@ -1,5 +1,5 @@
 """
-_scaffold_leaves.py — Generate train.py / evaluate.py / evaluate_cv.py for
+_scaffold_leaves.py - Generate train.py / evaluate.py / evaluate_cv.py for
 addition-1 leaves (TabPFN family).
 
 Run: `.venv/bin/python experiment/1/_scaffold_leaves.py [--force]`
@@ -17,7 +17,7 @@ Two layout deltas vs experiment/0/_scaffold_leaves.py:
   1. An extra `version_<label>` segment between <arch_dir> and <ratio>, so
      two model variants (e.g., TabPFN v2.6 vs Real-TabPFN) can share one
      architecture-family folder. Each version maps to a different module
-     under `_model_architecture/` and a different `build_*` function name —
+     under `_model_architecture/` and a different `build_*` function name -
      see VERSIONS below.
   2. The trailing `NonHP/` segment from addition 0 is omitted. Addition 1
      does not branch on hyperparameter-tuning state; that axis lives in a
@@ -26,26 +26,26 @@ Two layout deltas vs experiment/0/_scaffold_leaves.py:
 Architecture coverage (current scope)
 -------------------------------------
 - arch_dir = "tabpfn"
-- version_2-6: _model_architecture.tabpfn.build_tabpfn — bare
+- version_2-6: _model_architecture.tabpfn.build_tabpfn - bare
   TabPFNClassifier, no external calibrator (TabPFN is meta-trained for
   calibration; see docs/tabPfn.MD §4 for the rationale).
-- version_Real-TabPFN: defined-but-commented out below — build_realtabpfn
+- version_Real-TabPFN: defined-but-commented out below - build_realtabpfn
   raises NotImplementedError until the Real-TabPFN API is wired up.
   Uncomment one line in VERSIONS to enable scaffolding for it.
 
 Builder contract is documented in _model_architecture/__init__.py.
 
 Two ratio templates and two feature_set loader configs follow the same
-shape as experiment/0/_scaffold_leaves.py — see that file's docstring for
+shape as experiment/0/_scaffold_leaves.py - see that file's docstring for
 the 3-way vs 2-way and per-loader rationale.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import Callable, NamedTuple, Optional
 
 ADDITION_ROOT = Path(__file__).resolve().parent      # experiment/<addition>/
-ADDITION = ADDITION_ROOT.name                        # e.g. "1" — derived
+ADDITION = ADDITION_ROOT.name                        # e.g. "1" - derived
 EXPERIMENT_ROOT = ADDITION_ROOT.parent               # experiment/
 
 ARCH_DIR = "tabpfn"   # architecture-family folder; constant for this addition
@@ -59,11 +59,37 @@ class Version(NamedTuple):
     label: str        # used in folder name -> "version_<label>"
     module: str       # _model_architecture/<module>/model.py
     build_fn: str     # callable name imported from that module
+    leaf_filter: Optional[Callable[["Leaf"], bool]] = None  # restrict scaffolding
+
+
+# AutoTabPFN is restricted to the four leaves where TabPFN-v2.6 baseline
+# showed the strongest combination of high AUROC AND a non-zero MCC at the
+# optimal threshold (i.e. the operating-point comparison is meaningful).
+# Selected from `comparison_20260510T200006_1e117745.html`:
+#   - migraine / full_features / 70_30 / chrono       (AUROC 0.764, MCC 0.239)
+#   - migraine / full_features / 70_15_15 / stratified (AUROC 0.733, MCC 0.205)
+#   - headache / full_features / 80_20 / stratified   (AUROC 0.702, MCC 0.162)
+#   - headache / full_features / 70_30 / stratified   (AUROC 0.688, MCC 0.229)
+# Restricting AutoTabPFN to these four cells reduces the sweep cost from
+# ~24 fits × ~2 GPU-hours = 48 GPU-hours to ~8 GPU-hours, while preserving
+# the comparison on the cells where post-hoc ensembling has the most upside.
+_AUTOTABPFN_PROMISING_LEAVES = frozenset({
+    ('migraine', 'full_features', '70_30',    'chrono'),
+    ('migraine', 'full_features', '70_15_15', 'stratified'),
+    ('headache', 'full_features', '80_20',    'stratified'),
+    ('headache', 'full_features', '70_30',    'stratified'),
+})
+
+
+def _autotabpfn_filter(leaf: "Leaf") -> bool:
+    return (leaf.target, leaf.feature_set, leaf.ratio, leaf.split_type) in _AUTOTABPFN_PROMISING_LEAVES
 
 
 VERSIONS: tuple[Version, ...] = (
-    Version("2-6", "tabpfn", "build_tabpfn"),
-    # Version("Real-TabPFN", "realtabpfn", "build_realtabpfn"),  # uncomment once build_realtabpfn is implemented
+    Version("2-6",           "tabpfn",          "build_tabpfn"),
+    Version("2-5-real",      "realtabpfn",      "build_realtabpfn"),
+    Version("2-6-finetuned", "finetunedtabpfn", "build_finetunedtabpfn"),
+    Version("2-6-auto",      "autotabpfn",      "build_autotabpfn", _autotabpfn_filter),
 )
 
 
@@ -98,7 +124,10 @@ def enumerate_leaves() -> list[Leaf]:
                 for ratio in ("70_15_15", "70_30", "80_20"):
                     for split_type in ("chrono", "stratified"):
                         with_cv = (ratio == "70_15_15" and split_type == "chrono")
-                        leaves.append(Leaf(target, fs, version, ratio, split_type, with_cv))
+                        leaf = Leaf(target, fs, version, ratio, split_type, with_cv)
+                        if version.leaf_filter is not None and not version.leaf_filter(leaf):
+                            continue
+                        leaves.append(leaf)
     return leaves
 
 
@@ -145,7 +174,7 @@ def _wrapper_block(loader: LoaderCfg) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Templates — version-agnostic via {module} + {build_fn} substitution.
+# Templates - version-agnostic via {module} + {build_fn} substitution.
 # train.py imports build_<fn>, fits, and pickles the estimator.
 # evaluate.py loads the pickled estimator and calls .predict_proba directly.
 # evaluate_cv.py refits per fold, so it imports build_<fn> too.
@@ -158,13 +187,14 @@ from pathlib import Path
 
 import joblib
 
-# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 {read_imports}
 {extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -174,17 +204,18 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 {wrapper_block}
 
 def main():
-    print("Loading data...")
-    X_train, y_train = load_and_prep_data(TRAIN_PATH)
+    with capture_training_output(EXPERIMENT_DIR, label='training'):
+        print("Loading data...")
+        X_train, y_train = load_and_prep_data(TRAIN_PATH)
 
-    print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
+        print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
 
-    print("Fitting {arch} (version_{version_label}) on train (no external calibrator — see docs/tabPfn.MD)...")
-    model = {build_fn}(X_train, y_train)
+        print("Fitting {arch} (version_{version_label}) on train (no external calibrator - see docs/tabPfn.MD)...")
+        model = {build_fn}(X_train, y_train, output_dir=EXPERIMENT_DIR)
 
-    os.makedirs(EXPERIMENT_DIR, exist_ok=True)
-    joblib.dump(model, MODEL_PATH)
-    print(f"Model successfully saved to: {{MODEL_PATH}}")
+        os.makedirs(EXPERIMENT_DIR, exist_ok=True)
+        joblib.dump(model, MODEL_PATH)
+        print(f"Model successfully saved to: {{MODEL_PATH}}")
 
 
 if __name__ == "__main__":
@@ -199,13 +230,14 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split  # noqa: E402
 {extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -215,18 +247,19 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
 def main():
-    print("Loading data...")
-    df_train_full = {raw_loader}(TRAIN_PATH)
-    X_train, y_train = prep_split(df_train_full)
+    with capture_training_output(EXPERIMENT_DIR, label='training'):
+        print("Loading data...")
+        df_train_full = {raw_loader}(TRAIN_PATH)
+        X_train, y_train = prep_split(df_train_full)
 
-    print(f"Train: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
+        print(f"Train: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
 
-    print("Fitting {arch} (version_{version_label}) on full train (no external calibrator — see docs/tabPfn.MD)...")
-    model = {build_fn}(X_train, y_train)
+        print("Fitting {arch} (version_{version_label}) on full train (no external calibrator - see docs/tabPfn.MD)...")
+        model = {build_fn}(X_train, y_train, output_dir=EXPERIMENT_DIR)
 
-    os.makedirs(EXPERIMENT_DIR, exist_ok=True)
-    joblib.dump(model, MODEL_PATH)
-    print(f"Model successfully saved to: {{MODEL_PATH}}")
+        os.makedirs(EXPERIMENT_DIR, exist_ok=True)
+        joblib.dump(model, MODEL_PATH)
+        print(f"Model successfully saved to: {{MODEL_PATH}}")
 
 
 if __name__ == "__main__":
@@ -509,6 +542,7 @@ _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
 {extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -521,7 +555,7 @@ CAL_RATIO = 0.20
 
 RESULT_PREFIX = "results_cv"
 TITLE         = (
-    "STAGE {addition} / {feature_set} / {arch} (version_{version_label}) — "
+    "STAGE {addition} / {feature_set} / {arch} (version_{version_label}) - "
     f"{{N_SPLITS}}-Fold Time-Series CV"
 )
 
@@ -564,6 +598,11 @@ def score_fold(y_val, p_val, opt_thresh, sens_thresh):
 
 
 def main():
+    with capture_training_output(EXPERIMENT_DIR, label='training_cv'):
+        _main_inner()
+
+
+def _main_inner():
     print(f"Loading {{CV_PATH}} ...")
     cv = {cv_load_call}
     print(f"  Total rows: {{len(cv):,}}  |  cv_fold distribution: "
@@ -589,20 +628,20 @@ def main():
         print(f"  train_sub: {{len(train_sub):>4}} rows  |  "
               f"cal_sub: {{len(cal_sub):>4}} rows  |  "
               f"val: {{len(val_fold):>4}} rows")
-        print(f"  Positive rates — train_sub: {{y_train_sub.mean():.3f}}  "
+        print(f"  Positive rates - train_sub: {{y_train_sub.mean():.3f}}  "
               f"cal_sub: {{y_cal_sub.mean():.3f}}  val: {{y_val.mean():.3f}}")
 
-        print(f"  Fitting {arch} on train_sub (no external calibrator — see docs/tabPfn.MD)...")
-        model = {build_fn}(X_train_sub, y_train_sub)
+        print(f"  Fitting {arch} on train_sub (no external calibrator - see docs/tabPfn.MD)...")
+        model = {build_fn}(X_train_sub, y_train_sub, output_dir=EXPERIMENT_DIR)
 
         p_cal = model.predict_proba(X_cal_sub)[:, 1]
         if len(np.unique(y_cal_sub)) < 2:
-            print(f"  WARNING: cal_sub has only one class — using default thresholds.")
+            print(f"  WARNING: cal_sub has only one class - using default thresholds.")
             opt_thresh, sens_thresh = 0.50, 0.50
         else:
             opt_thresh, sens_thresh = find_operating_thresholds(y_cal_sub.values, p_cal)
         fold_thresholds.append((opt_thresh, sens_thresh))
-        print(f"  Thresholds — MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
+        print(f"  Thresholds - MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
 
         p_val = model.predict_proba(X_val)[:, 1]
         scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
@@ -623,7 +662,7 @@ def main():
         "=" * 60,
         f"CV scheme    : expanding-window TimeSeriesSplit, n_splits={{N_SPLITS}}",
         f"Cal sub-split: last {{int(CAL_RATIO*100)}}% of each training fold's dates",
-        "Thresholds   : selected on cal sub-split — NOT on evaluation fold",
+        "Thresholds   : selected on cal sub-split - NOT on evaluation fold",
         separator,
         f"{{'Metric':<25}} | {{header_folds}} | {{header_summary}}",
         separator,
