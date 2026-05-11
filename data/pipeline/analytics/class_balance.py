@@ -1,5 +1,5 @@
 """
-class_balance.py — builds class_balance.pdf for one target mode.
+class_balance.py - builds class_balance.pdf for one target mode.
 
 Public API: run_class_balance(processed_dir, target_mode, ...)
 """
@@ -104,7 +104,7 @@ def _page_overview_matrix(
 
     fig, ax = plt.subplots(figsize=(10, max(5, len(packages) * 0.7 + 2)))
     fig.suptitle(
-        f"Class Balance Overview — {target_mode}\n"
+        f"Class Balance Overview - {target_mode}\n"
         f"(green: within 5pp of overall; yellow: 5–10pp; red: >10pp)",
         fontsize=13, fontweight="bold",
     )
@@ -112,7 +112,7 @@ def _page_overview_matrix(
 
     event_cols = [c for c in matrix_df.columns if c.endswith("_events")]
 
-    # package name is the first data column — no rowLabels so nothing overflows left
+    # package name is the first data column - no rowLabels so nothing overflows left
     col_labels = (
         ["Package (ratio / strategy)"]
         + [c.replace("_rate", " Rate").replace("_", " ").title() for c in rate_cols]
@@ -127,7 +127,7 @@ def _page_overview_matrix(
         for col in rate_cols:
             rate = row[col]
             if math.isnan(rate):
-                dr.append("—")
+                dr.append("-")
                 dc.append("#f5f5f5")
             else:
                 dr.append(f"{rate:.1%}")
@@ -143,7 +143,7 @@ def _page_overview_matrix(
                     dc.append("white")
         for col in event_cols:
             v = row[col]
-            dr.append("—" if math.isnan(v) else str(int(v)))
+            dr.append("-" if math.isnan(v) else str(int(v)))
             dc.append("white")
         display_rows.append(dr)
         cell_colors.append(dc)
@@ -181,7 +181,7 @@ def _page_package(pdf: PdfPages, pkg: Dict, target_mode: str,
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(
-        f"{pkg['label']} — {target_mode}",
+        f"{pkg['label']} - {target_mode}",
         fontsize=13, fontweight="bold",
     )
 
@@ -263,7 +263,7 @@ def _page_cross_package(pdf: PdfPages, packages: List[Dict], target_mode: str,
 
     fig, ax = plt.subplots(figsize=(12, 6))
     fig.suptitle(
-        f"Cross-package Test Positive Rate — {target_mode}",
+        f"Cross-package Test Positive Rate - {target_mode}",
         fontsize=13, fontweight="bold",
     )
 
@@ -322,7 +322,7 @@ def run_class_balance(
 
     packages = _load_packages(processed_dir, target_col)
     if not packages:
-        log.warning("No split parquets found under %s — skipping class_balance", processed_dir)
+        log.warning("No split parquets found under %s - skipping class_balance", processed_dir)
         return
 
     overall_rate = packages[0]["overall_rate"]

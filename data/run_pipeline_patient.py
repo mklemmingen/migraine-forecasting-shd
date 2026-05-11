@@ -1,5 +1,5 @@
 """
-run_pipeline_patient.py — Full pipeline with whole-patient holdout split.
+run_pipeline_patient.py - Full pipeline with whole-patient holdout split.
 
 Assigns entire patients to folds, testing generalisation to unseen patients.
 Patients assigned by seeded random permutation (seed=42) targeting row proportions.
@@ -83,7 +83,7 @@ def main():
 
         print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
 
-        # Step 5 — Analytics reports
+        # Step 5 - Analytics reports
         PROCESSED = Path(DATA_DIR) / "processed"
         tm_dir = PROCESSED / target_mode
         diary_df = pd.read_parquet(tm_dir / "diary.parquet")

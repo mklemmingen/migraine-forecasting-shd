@@ -1,5 +1,5 @@
 """
-cv_folds.py — Expanding-window time-series CV fold labels.
+cv_folds.py - Expanding-window time-series CV fold labels.
 
 Why CV instead of a fixed val split:
 With n_test=136 and 19 positives the 70/15/15 test set is too small to reliably rank models
@@ -17,10 +17,10 @@ def assign_cv_folds(df: pd.DataFrame, n_splits: int = 5) -> pd.DataFrame:
     """Assign expanding-window CV fold labels to the engineered DataFrame.
 
     Operates on unique chronological dates so that every row belonging to the
-    same date lands in the same fold — consistent with the date-based splits.
+    same date lands in the same fold - consistent with the date-based splits.
 
-    cv_fold=0  — always train (dates before the first val window)
-    cv_fold=k  — validation data for fold k (k = 1..n_splits)
+    cv_fold=0  - always train (dates before the first val window)
+    cv_fold=k  - validation data for fold k (k = 1..n_splits)
 
     Usage in experiment scripts:
         cv = pd.read_parquet('diary_cv5_timeseries.parquet')

@@ -1,5 +1,5 @@
 """
-data.pipeline.splits — pluggable split strategies.
+data.pipeline.splits - pluggable split strategies.
 
 Each module exports:
     SPLIT_NAME : str

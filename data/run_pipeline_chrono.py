@@ -1,5 +1,5 @@
 """
-run_pipeline_chrono.py — Full pipeline with chronological date-percentile split.
+run_pipeline_chrono.py - Full pipeline with chronological date-percentile split.
 
 Outputs written to data/processed/:
   translated.parquet              (full, pre-engineering)
@@ -54,7 +54,7 @@ def main():
 
         run_base.runBase(target_mode)
 
-        # Step 4 — Generate splits for every ratio
+        # Step 4 - Generate splits for every ratio
         for ratio_name, cfg in SPLIT_RATIOS.items():
             split_dir = os.path.join(PROCESSED_DIR, ratio_name, SPLIT_NAME)
             os.makedirs(split_dir, exist_ok=True)
@@ -91,7 +91,7 @@ def main():
 
         print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
 
-        # Step 5 — Analytics reports
+        # Step 5 - Analytics reports
         PROCESSED = Path(DATA_DIR) / "processed"
         tm_dir = PROCESSED / target_mode
         diary_df = pd.read_parquet(tm_dir / "diary.parquet")

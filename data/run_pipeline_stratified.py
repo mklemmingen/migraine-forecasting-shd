@@ -1,5 +1,5 @@
 """
-run_pipeline_stratified.py — Full pipeline with class-balanced random shuffle split.
+run_pipeline_stratified.py - Full pipeline with class-balanced random shuffle split.
 
 Rows are shuffled while preserving class proportions per fold (stratified split).
 # See data/processed/dataset_characterization.pdf for current positive rate.
@@ -82,7 +82,7 @@ def main():
 
         print(f"\nPipeline complete ({SPLIT_NAME}). Parquets in data/processed/\n")
 
-        # Step 5 — Analytics reports
+        # Step 5 - Analytics reports
         PROCESSED = Path(DATA_DIR) / "processed"
         tm_dir = PROCESSED / target_mode
         diary_df = pd.read_parquet(tm_dir / "diary.parquet")

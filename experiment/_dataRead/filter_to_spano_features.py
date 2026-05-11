@@ -4,7 +4,7 @@ from typing import Optional
 
 # Spano-engineered features that data/pipeline/engineer.py does NOT produce.
 # These would need to be added to engineer.py for a 1:1 Spano-faithful feature
-# set on the SHD dataset. The filter cannot synthesise them — it only drops
+# set on the SHD dataset. The filter cannot synthesise them - it only drops
 # columns that exist. Listed here so the gap is documented in code.
 SPANO_FEATURES_MISSING_FROM_SHD = [
     "exercise_consistency_7day",   # rolling: ≥3 of last 7 days exercised
@@ -25,7 +25,7 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
     Spano's full feature set ≈ 32 per-domain features + 6 history features.
 
     See `SPANO_FEATURES_MISSING_FROM_SHD` above for the 5 Spano features that
-    engineer.py does NOT produce — we cannot recover them with a filter.
+    engineer.py does NOT produce - we cannot recover them with a filter.
 
     Notes
     -----
@@ -35,12 +35,12 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
     (target-derived).
 
     sleep_disruption_today is dropped despite both pipelines having a column of
-    that name: SHD computes it as (any_sleep_issue & migraine_yesterday) — i.e.
-    target-derived — while Spano computes it from yesterday's sleep flag only.
+    that name: SHD computes it as (any_sleep_issue & migraine_yesterday) - i.e.
+    target-derived - while Spano computes it from yesterday's sleep flag only.
     Same name, different semantics; dropping is more honest than passing
     forward a column whose values do not match Spano's pipeline.
 
-    cheese_chocolate_today is KEPT — it is Spano's "trigger_foods_today" under
+    cheese_chocolate_today is KEPT - it is Spano's "trigger_foods_today" under
     SHD's column name. Same values, different name; the filter strategy is
     by-column-presence, not by-rename.
 
@@ -75,7 +75,7 @@ def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Opti
         # Weather features specific to SHD (lag + target interaction)
         "weather_change_yesterday",
         "weather_headache_interaction",
-        # Gap awareness — Spano fills missing days, doesn't track gaps
+        # Gap awareness - Spano fills missing days, doesn't track gaps
         "days_since_last_record",
         "recording_gap_flag",
         # Same name, different semantics: SHD uses (sleep & migraine_yesterday); Spano uses (sleep & sleep_yesterday)

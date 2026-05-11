@@ -1,5 +1,5 @@
 """
-chrono.py — Chronological split on global date percentiles.
+chrono.py - Chronological split on global date percentiles.
 
 Supports any number of folds via the `cutpoints` parameter:
   cutpoints=(0.70, 0.85) → train / val / test  (70/15/15)
@@ -26,10 +26,10 @@ def apply_split(
     First call (diary):
         df_split, boundaries = apply_split(diary_df, cutpoints=(...), fold_names=(...))
 
-    Second call (disability — reuses diary boundaries):
+    Second call (disability - reuses diary boundaries):
         dis_split, _ = apply_split(disability_df, boundaries=boundaries)
 
-    When `boundaries` is supplied, `cutpoints` and `fold_names` are ignored —
+    When `boundaries` is supplied, `cutpoints` and `fold_names` are ignored -
     the values stored in the boundaries dict are used instead.
     """
     if boundaries is None:

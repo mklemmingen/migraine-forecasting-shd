@@ -1,15 +1,15 @@
 """
-filter_to_no_rolling_features.py — Drop temporal aggregation columns.
+filter_to_no_rolling_features.py - Drop temporal aggregation columns.
 
 Reads a feature-engineered Parquet file and removes all rolling, lagged,
 interaction, streak, and gap-awareness features built by
-data/pipeline/engineer.py — leaving only same-day trigger flags, calendar
+data/pipeline/engineer.py - leaving only same-day trigger flags, calendar
 context (dow), and current-day measurements.
 
 Purpose: scientific decomposition. Comparing a model trained on full features
 against the same model trained on the no-rolling subset isolates how much
 predictive signal comes from temporal autocorrelation (rolling target history,
-streaks, lagged interactions) versus from today's observed triggers alone —
+streaks, lagged interactions) versus from today's observed triggers alone -
 the question Park et al. (2016) studied for same-day associations.
 
 Mirrors the API of filter_to_spano_features.remove_non_spano_features so it
@@ -49,7 +49,7 @@ ROLLING_AND_LAG_COLUMNS = [
     "consecutive_exercise_days",
     "consecutive_sedentary_days",
     "exercise_days_7day",
-    # --- Gap awareness (target-related — meaningless without rolling) -----
+    # --- Gap awareness (target-related - meaningless without rolling) -----
     "days_since_last_record",
     "recording_gap_flag",
 ]
@@ -70,7 +70,7 @@ def remove_rolling_features(
     """
     df = pd.read_parquet(input_parquet_path)
 
-    # Tolerate absence — schema may evolve and not all engineering passes
+    # Tolerate absence - schema may evolve and not all engineering passes
     # produce every column.
     cols_to_drop = [c for c in ROLLING_AND_LAG_COLUMNS if c in df.columns]
 

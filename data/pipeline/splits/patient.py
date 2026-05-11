@@ -1,5 +1,5 @@
 """
-patient.py — Whole-patient holdout split.
+patient.py - Whole-patient holdout split.
 
 Supports any number of folds via the `cutpoints` parameter:
   cutpoints=(0.70, 0.85) → train / val / test  (70/15/15)
