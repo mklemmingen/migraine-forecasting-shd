@@ -1,4 +1,4 @@
-# TabPFN — Configuration & Calibration Policy
+# TabPFN - Configuration & Calibration Policy
 
 ## Package
 
@@ -11,23 +11,23 @@ Folder label `version_2-6` in the experiment tree refers to the *model checkpoin
 ```python
 TabPFNClassifier(
     device='cuda',          # or 'auto' on machines without GPU
-    random_state=...,       # threaded from caller — see §3
+    random_state=...,       # threaded from caller - see §3
 )
 ```
 
 All other arguments are left at their library defaults. Most relevant defaults:
-`n_estimators=8`, `softmax_temperature=0.9`, `eval_metric=None`, `balance_probabilities=False`, `categorical_features_indices=None`, `ignore_pretraining_limits=False`. The `inference_config` default keeps `calibrate_temperature=True` enabled — this is TabPFN's in-house posterior-calibration step and we deliberately do not disable it.
+`n_estimators=8`, `softmax_temperature=0.9`, `eval_metric=None`, `balance_probabilities=False`, `categorical_features_indices=None`, `ignore_pretraining_limits=False`, `tuning_config=None`. With `tuning_config=None`, no runtime temperature recalibration step runs - the calibration property of the model rests on its meta-trained prior [1] combined with the fixed `softmax_temperature=0.9` baked into the v2.6 architecture defaults (verifiable in [TabPFN v7.1.1 `classifier.py::create_default_for_version`](https://github.com/PriorLabs/TabPFN/blob/v7.1.1/src/tabpfn/classifier.py)).
 
-The fitted base estimator is **returned directly** — no external calibrator wraps it. See §4 for the rationale and the asymmetry vs the XGBoost-family architectures.
+The fitted base estimator is **returned directly** - no external calibrator wraps it. See §4 for the rationale and the asymmetry vs the XGBoost-family architectures.
 
 ---
 
-## §1 — Why we do *not* set `eval_metric` or `balance_probabilities`
+## §1 - Why we do *not* set `eval_metric` or `balance_probabilities`
 
 The target has a positive rate of ~5.1% (see [`docs/dataset.md`](dataset.md) for split-level counts). PriorLabs' [Model Parameters page](https://docs.priorlabs.ai/improving-performance/model-parameters) lists two paths for imbalanced binary problems:
 
-1. `balance_probabilities=True` — applies class-prior reweighting that **directly rewrites the output probability vector** so probabilities reflect a balanced prior rather than the natural prior. This is a probability-shape transform.
-2. `eval_metric='f1'` (or `'roc_auc'`, `'balanced_accuracy'`, etc.) — triggers TabPFN's internal **decision-threshold tuning**. The underlying `predict_proba` is unaffected as a function of the input, but the tuning consumes part of the train context as an internal validation split, so probability values shift marginally vs `eval_metric=None`.
+1. `balance_probabilities=True` - applies class-prior reweighting that **directly rewrites the output probability vector** so probabilities reflect a balanced prior rather than the natural prior. This is a probability-shape transform.
+2. `eval_metric='f1'` (or `'roc_auc'`, `'balanced_accuracy'`, etc.) - triggers TabPFN's internal **decision-threshold tuning**. The underlying `predict_proba` is unaffected as a function of the input, but the tuning consumes part of the train context as an internal validation split, so probability values shift marginally vs `eval_metric=None`.
 
 We use **neither**. Two reasons:
 
@@ -36,48 +36,116 @@ We use **neither**. Two reasons:
 
 Class imbalance is therefore handled at the **threshold-selection layer** of the pipeline, not at the model layer. This keeps TabPFN's posterior-estimation untouched and lets the comparison against XGBoost-family architectures be evaluated on the same operating-point selection procedure.
 
-## §2 — Pretraining envelope
+## §2 - Pretraining envelope
 
-TabPFN-v2 is trained for *n* ≤ ~100,000 rows and *d* ≤ ~2,000 features (with the v2.5 sweet spot at ~50,000 rows). The engineered SHD splits are 3,941 × 52 (full feature set) — comfortably inside the envelope. `ignore_pretraining_limits` is left at its default `False` so the library will warn if data drifts outside this envelope in future runs.
+TabPFN-v2 is trained for *n* ≤ ~100,000 rows and *d* ≤ ~2,000 features (with the v2.5 sweet spot at ~50,000 rows). The engineered SHD splits are 3,941 × 52 (full feature set) - comfortably inside the envelope. `ignore_pretraining_limits` is left at its default `False` so the library will warn if data drifts outside this envelope in future runs.
 
-## §3 — `random_state` thread-through
+## §3 - `random_state` thread-through
 
 TabPFN's `TabPFNClassifier.__init__` defaults `random_state=0`, which the library docstring flags as a deliberate departure from sklearn convention. If the seed is not threaded from the caller, every "seed sweep" silently runs the same n=8 ensemble. The wrapper accepts a `random_state` argument and propagates it to `TabPFNClassifier`.
 
-## §4 — Calibration policy (asymmetry note)
+## §4 - Calibration policy (asymmetry note)
 
-> **Platt calibration applied to XGBoost-family models per Platt (1999) and Niculescu-Mizil & Caruana (2005); TabPFN used directly per PriorLabs guidance, as it is meta-trained for calibration.**
+> **Platt calibration applied to XGBoost-family models per Platt [2] and Niculescu-Mizil & Caruana [3]; TabPFN used directly per PriorLabs guidance, as it is meta-trained for calibration.**
 
-Methodological context: this paper extends the benchmarking work of Spano (2026, bachelor thesis, Reutlingen University), whose stacked XGBoost + L1-LR architecture (with Platt/isotonic calibration) is replicated as the Addition-0 baseline (`blended_xgb_lr_spano2026`). Addition 1 introduces the foundational tabular model TabPFN as a comparator. The two architecture families have different probability-calibration properties out of the box, so each is configured per its own published best practice rather than imposing a uniform pipeline:
+Methodological context: this paper extends the benchmarking work of Spano [5], whose stacked XGBoost + L1-LR architecture (with Platt/isotonic calibration) is replicated as the Addition-0 baseline (`blended_xgb_lr_spano2026`). Addition 1 introduces the foundational tabular model TabPFN as a comparator. The two architecture families have different probability-calibration properties out of the box, so each is configured per its own published best practice rather than imposing a uniform pipeline:
 
-- **XGBoost-family models** (stacked variants — both the Spano replication and the cleaner `stacked_2xgb_meta_lr` re-implementation) produce raw margin scores that are not calibrated as posteriors. A sigmoid (Platt) calibrator is fit on a held-out calibration set after training the base model. The sigmoid scaling method itself is due to Platt (1999), originally for SVMs; the empirical justification for applying it to tree ensembles via a held-out calibration set is established by Niculescu-Mizil & Caruana (2005, UAI), with the broader supervised-learning context covered in their companion ICML 2005 survey.
-- **TabPFN** is meta-trained against a Bayesian prior that includes class-prior modelling. PriorLabs' overview documents the model as returning calibrated probabilities directly; the TabPFN-2.5 model report states that the models are *"meta-trained to yield strong calibration, without the need for time-consuming and labor-intensive hyperparameter tuning."* TabPFN's `inference_config` also enables `calibrate_temperature=True` by default — the in-house posterior-calibration mechanism. We leave this default on. For external probability-shape control, PriorLabs recommends `softmax_temperature` rather than post-hoc calibrators.
+- **XGBoost-family models** (stacked variants - both the Spano replication and the cleaner `stacked_2xgb_meta_lr` re-implementation) produce raw margin scores that are not calibrated as posteriors. A sigmoid (Platt) calibrator is fit on a held-out calibration set after training the base model. The sigmoid scaling method itself is due to Platt [2], originally for SVMs; the empirical justification for applying it to tree ensembles via a held-out calibration set is established by Niculescu-Mizil & Caruana [3], with the broader supervised-learning context covered in their companion ICML survey [4].
+- **TabPFN** is meta-trained against a Bayesian prior that includes class-prior modelling. PriorLabs' overview documents the model as returning calibrated probabilities directly; the TabPFN-2.5 model report [6] states that the models are *"meta-trained to yield strong calibration, without the need for time-consuming and labor-intensive hyperparameter tuning."* The architecture default `softmax_temperature=0.9` is the only temperature transformation applied at inference time; with `tuning_config=None` (the default), no runtime temperature recalibration step runs (see §1). For external probability-shape control, PriorLabs recommends adjusting `softmax_temperature` rather than wrapping the model in a post-hoc calibrator.
 
 Wrapping TabPFN in `CalibratedClassifierCV(..., method='sigmoid')` would constitute *double calibration*: a monotone sigmoid applied to already-calibrated probabilities. On the present study's calibration-set size (~439 rows × ~5.1% positives ≈ 22 positives), the Platt fit is also statistically thin and risks introducing variance rather than reducing it.
 
-The asymmetry should be noted in the methodology section of the paper. Because AUROC and AUPRC are calibration-invariant (rank-based), the comparison on those metrics is unaffected by the asymmetry. The Brier Score and ECE10 columns are the ones where this design decision is load-bearing — for those, each architecture is reporting calibration of its own native, recommended output, which is the methodologically clean comparison.
+The asymmetry should be noted in the methodology section of the paper. Because AUROC and AUPRC are calibration-invariant (rank-based), the comparison on those metrics is unaffected by the asymmetry. The Brier Score and ECE10 columns are the ones where this design decision is load-bearing - for those, each architecture is reporting calibration of its own native, recommended output, which is the methodologically clean comparison.
 
 ---
 
-## Sources
+## §5 - Variants benchmarked in parallel
 
-### TabPFN
+Addition 1 evaluates four members of the TabPFN family side-by-side as parallel comparators (each a separate `version_<label>/` branch under `experiment/1/<target>/<feature_set>/tabpfn/`). They never combine outputs - each variant fits independently per leaf and contributes its own column to the comparison table.
 
-- **TabPFN v2 paper:** Hollmann, N., Müller, S., Purucker, L., Krishnakumar, A., Körfer, M., Hoo, S. B., Schirrmeister, R. T., Hutter, F. (2025). Accurate predictions on small data with a tabular foundation model. *Nature* 637, 319–326. https://doi.org/10.1038/s41586-024-08328-6
-- **PriorLabs official repository:** https://github.com/PriorLabs/TabPFN
-- **PriorLabs documentation:**
-  - Overview (calibrated-probabilities claim): https://docs.priorlabs.ai/overview
-  - Best Practices: https://docs.priorlabs.ai/best-practices
-  - Model Parameters (`eval_metric`, `balance_probabilities`, `calibrate_temperature`): https://docs.priorlabs.ai/improving-performance/model-parameters
-  - FAQ (imbalance handling): https://docs.priorlabs.ai/faq
-- **TabPFN-2.5 Model Report** (calibration claim, exact wording quoted in §4): https://priorlabs.ai/technical-reports/tabpfn-2-5-model-report
+| Folder | Variant | Citation status |
+|---|---|---|
+| `version_2-6/` | TabPFN-v2.6 (current package default; see §1–§4 above) | Architecture cite: Hollmann et al. [1] (the v2 architecture paper). The v2.6 checkpoint became the package default in `tabpfn` 7.0.0 (CHANGELOG.md, March 2026); no dedicated v2.6 paper exists. |
+| `version_2-5-real/` | Real-TabPFN-2.5 - see §5.1 | Garg et al. [7], FMSD @ ICML 2025 workshop (peer-reviewed, workshop-tier). |
+| `version_2-6-auto/` | AutoTabPFN, see §5.2 | **No dedicated peer-reviewed paper** (we disclose this explicitly when we introduce AutoTabPFN). |
+| `version_2-6-finetuned/` | Fine-tuned TabPFN-v2.6 - see §5.3 | Rubachev et al. [8], arXiv preprint as of May 2026; no peer-reviewed venue confirmed. |
 
-### Calibration of XGBoost-family architectures
+### §5.1 Real-TabPFN-2.5
 
-- **Platt sigmoid scaling (original method):** Platt, J. C. (1999). Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods. In *Advances in Large Margin Classifiers*, MIT Press, pp. 61–74.
-- **Sigmoid scaling on tree ensembles (most directly on-point empirical justification):** Niculescu-Mizil, A. & Caruana, R. (2005). Obtaining calibrated probabilities from boosting. In *Proceedings of the 21st Conference on Uncertainty in Artificial Intelligence* (UAI '05), 413–420. https://arxiv.org/abs/1207.1403
-- **Broader supervised-learning calibration survey:** Niculescu-Mizil, A. & Caruana, R. (2005). Predicting good probabilities with supervised learning. In *Proceedings of the 22nd International Conference on Machine Learning* (ICML '05), 625–632. https://doi.org/10.1145/1102351.1102430
+**What's different:** uses the `v2.5_real` checkpoint shipped in the same `tabpfn` package. Garg et al. [7] describe Real-TabPFN as the result of a continued pre-training stage applied to the v2.5 architecture on a curated set of real-world tabular datasets, reporting *"substantial performance gains on 29 datasets from the OpenML AutoML Benchmark"* relative to the synthetic-only baseline.
 
-### Prior work this paper extends
+**Configuration:** `TabPFNClassifier(model_path="v2.5_real", device=device, random_state=random_state)`. All other knobs match `build_tabpfn` (see §1).
 
-- **Spano, M. S. (2026).** Bachelor thesis, Reutlingen University. Original `blended_xgb_lr_spano2026` architecture (Addition 0) is replicated from this work; legacy code preserved under `headfree-backend/`. See [`data/cc_MarcoSpano-oldSet/dataset.md`](../data/cc_MarcoSpano-oldSet/dataset.md) and the README "Baseline Model" section for rationale on the rebuild.
+**Calibration framing - empirical, not pre-asserted:** the Real-TabPFN paper [7] reports performance gains; it does not characterise calibration drift between the synthetic-only baseline and the real-data-continued model. The PriorLabs v2.5 model report [6] likewise discusses Real-TabPFN as a stronger-performance variant rather than a calibration concern. Whether continued pre-training on real data shifts ECE10 / Brier Score relative to the synthetic-only baseline is therefore an **empirical question this study's calibration columns answer**, not a published caveat. The §4 no-external-Platt argument still applies; the model's calibration property derives from its meta-trained prior plus the fixed `softmax_temperature=0.9` baked into the v2.5 architecture defaults - same mechanism as the v2.6 base described in §1.
+
+### §5.2 AutoTabPFN
+
+**What's different:** a post-hoc ensemble - `AutoTabPFNClassifier` from `tabpfn-extensions` evaluates multiple TabPFN configurations and stacks them via AutoGluon as the meta-learner. From the outside, still `fit(X, y) → predict_proba(X)`.
+
+**Configuration:** `AutoTabPFNClassifier(max_time=7200, device=device, random_state=random_state, phe_init_args={'path': <leaf>/autogluon_predictor})`. Notes on each non-default choice:
+
+  - **`max_time=7200`**. The post-hoc ensemble runs ~20 configs × 8 bag folds = 160 sub-fits, and a single TabPFN fit on this GPU costs ~13 s. A 7200 s budget gives those 160 sub-fits room to fit before the AutoGluon time limit cuts off remaining configs (which would shrink the ensemble down to whichever subset finished). The full 4-leaf AutoTabPFN sweep at this budget lands around 8 GPU-hours total.
+  - **`phe_init_args={'path': <leaf>/autogluon_predictor}`** pins AutoGluon's `TabularPredictor` save directory to a per-leaf subfolder. Without this, AutoGluon defaults to a project-root `TabPFNModels/m-<timestamp>_<rand>/` directory and the joblib pickle of `AutoTabPFNClassifier` only stores a *path reference* - i.e. `evaluate.py`'s `joblib.load(MODEL_PATH).predict_proba(...)` would silently load whichever AutoGluon predictor happens to live at that absolute path. With the leaf-local path, the model.joblib and the AutoGluon predictor stay co-located and the train→evaluate contract is preserved across re-runs.
+
+**Restricted scope:** AutoTabPFN is scaffolded for only **four leaves** (instead of the full 24), selected for being where the bare TabPFN-v2.6 baseline showed both high AUROC AND a non-zero MCC at the calibration-set-optimal threshold (so the post-hoc-ensembling comparison is meaningful for both ranking and operating-point metrics):
+
+  | Leaf | Baseline AUROC | Baseline MCC |
+  |---|---|---|
+  | migraine / full_features / 70_30 / chrono       | 0.764 | 0.239 |
+  | migraine / full_features / 70_15_15 / stratified | 0.733 | 0.205 |
+  | headache / full_features / 80_20 / stratified   | 0.702 | 0.162 |
+  | headache / full_features / 70_30 / stratified   | 0.688 | 0.229 |
+
+  Selection mechanism: a `leaf_filter` callable on the `Version` namedtuple in `experiment/1/_scaffold_leaves.py`. Other variants (bare TabPFN-v2.6, Real-TabPFN-2.5, Fine-tuned TabPFN-v2.6) cover the full 24-leaf grid; AutoTabPFN's 4-leaf coverage is asymmetric and should be noted in the methodology section as a deliberate compute-vs-coverage trade-off.
+
+**Calibration framing - empirical, not pre-asserted:** the post-hoc ensemble combines outputs from multiple TabPFN base models. Whether the resulting probabilities preserve TabPFN's native calibration, drift toward over-confidence due to ensemble averaging, or drift toward under-confidence due to AutoGluon's stacker is **not characterised in the available documentation** and is treated as an empirical question by this study's ECE10 / Brier columns. The §4 no-external-Platt argument applies in the same form: do not wrap in `CalibratedClassifierCV`; let the calibration metrics report the post-hoc ensemble's native output.
+
+**Dependency:** `tabpfn-extensions[post-hoc-ensembles]` installed from a pinned git commit (the latest PyPI release 0.3.0 has a broken `autogluon.tabular==1.4.0` pin to a phantom version). Pulls AutoGluon ~1.5 GB as transitive. AutoGluon constrains the venv to Python `<3.14`, hence this project's pyenv-managed Python 3.13.
+
+**Citation, disclosed up front:** no dedicated peer-reviewed paper documents AutoTabPFN as a named classifier. We state this explicitly when introducing AutoTabPFN rather than implying a peer-reviewed citation exists. Software citation: [PriorLabs/tabpfn-extensions](https://github.com/PriorLabs/tabpfn-extensions). The underlying TabPFN architecture is cited via Hollmann et al. [1]. Optional methodological backing for post-hoc ensemble selection in AutoML: Purucker & Beel [9].
+
+### §5.3 Fine-tuned TabPFN-v2.6
+
+**What's different:** unlike the other three variants (which use pure in-context learning), this variant performs gradient updates on the training data before inference, specialising the base v2.6 model to the downstream dataset.
+
+**Two-pass training design:** `build_finetunedtabpfn` runs two passes to satisfy both the empirical-rigour constraint (no overfitting) and a methodological transparency requirement (proof that early-stopping was the right choice):
+
+  - **PASS 1 (diagnostic, `epochs=50`, `early_stopping=False`)** - runs the full 50-epoch cycle and captures per-epoch metrics (train mean loss, val log loss, val ROC-AUC) via a custom `FinetuningLogger` implementation. The full curve is written to `<leaf>/diagnostics/finetune_convergence_<timestamp>_<uuid>.txt` along with every logger config knob (learning rate, patience, etc.) for reproducibility. The trained model from this pass is **discarded**.
+  - **PASS 2 (production, library defaults)** - `FinetunedTabPFNClassifier(device=device, random_state=random_state)` with `epochs=30`, `early_stopping=True`, `early_stopping_patience=8`, `min_delta=1e-4`, `validation_split_ratio=0.1`, `eval_metric=None` - i.e. lets the library's early-stopping signal decide convergence. This is the model serialised to `model.joblib` and consumed by `evaluate.py`.
+
+  The asymmetry in compute budget vs `version_2-6-auto` (early-stop ≈ 30s per leaf vs AutoTabPFN's 7200s) is methodologically defensible because each variant uses *its own* published best practice: fine-tuning is convergence-bound (Rubachev et al. [8] recommend early stopping for stability), AutoTabPFN is coverage-bound (PriorLabs documents `max_time` as a wall-clock cap on independent fits). The PASS 1 convergence files in `<leaf>/diagnostics/` are there to stop the concern about whether fine-tuning was budget-starved - the curves show the validation optimum was reached, then exceeded.
+
+**Calibration framing - empirical, not pre-asserted:** the §4 calibration argument relies on TabPFN's meta-trained-for-calibration property, which is established for the in-context-learning regime by Hollmann et al. [1]. Rubachev et al. [8] study fine-tuning regimes for TabPFN-v2 but do not characterise post-fine-tuning calibration drift. Whether full fine-tuning preserves, improves, or degrades calibration relative to the zero-shot baseline is therefore an **empirical question this study's ECE10 / Brier columns answer**. If the reliability diagram for `version_2-6-finetuned` shows visible off-diagonal drift, we report that finding alongside the rank-based metrics (AUROC and AUPRC remain calibration-invariant either way).
+
+---
+
+## References
+
+Citation keys resolve against [`Sources.bib`](../Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
+
+[1] N. Hollmann, S. Müller, L. Purucker, A. Krishnakumar, M. Körfer, S. B. Hoo, R. T. Schirrmeister, and F. Hutter, "Accurate predictions on small data with a tabular foundation model," *Nature*, vol. 637, no. 8045, pp. 319–326, Jan. 2025. doi: [10.1038/s41586-024-08328-6](https://doi.org/10.1038/s41586-024-08328-6). BibTeX key: `hollmann2025tabpfn`.
+
+[2] J. C. Platt, "Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods," in *Advances in Large Margin Classifiers*, A. J. Smola, P. L. Bartlett, B. Schölkopf, and D. Schuurmans, Eds. Cambridge, MA: MIT Press, 1999, pp. 61–74. BibTeX key: `platt1999svm`.
+
+[3] A. Niculescu-Mizil and R. Caruana, "Obtaining calibrated probabilities from boosting," in *Proceedings of the 21st Conference on Uncertainty in Artificial Intelligence (UAI '05)*, 2005, pp. 413–420. arXiv mirror: [1207.1403](https://arxiv.org/abs/1207.1403). BibTeX key: `niculescuMizilCaruana2005uai`.
+
+[4] A. Niculescu-Mizil and R. Caruana, "Predicting good probabilities with supervised learning," in *Proceedings of the 22nd International Conference on Machine Learning (ICML '05)*, 2005, pp. 625–632. doi: [10.1145/1102351.1102430](https://doi.org/10.1145/1102351.1102430). BibTeX key: `niculescuMizilCaruana2005icml`.
+
+[5] M. S. Spano, "Stacked ensemble baselines for next-day migraine forecasting on the SHD cohort," Bachelor's thesis, Reutlingen University, Reutlingen, Germany, 2026. BibTeX key: `spano2026thesis`.
+
+[6] L. Grinsztajn, K. Flöge, O. Key, *et al.*, "TabPFN-2.5: Advancing the State of the Art in Tabular Foundation Models," 2025, arXiv:2511.08667. Online: [arxiv.org/abs/2511.08667](https://arxiv.org/abs/2511.08667). The §4 quoted calibration sentence appears in the corresponding model report at [priorlabs.ai/technical-reports/tabpfn-2-5-model-report](https://priorlabs.ai/technical-reports/tabpfn-2-5-model-report). BibTeX key: `grinsztajn2025tabpfn25`.
+
+[7] A. Garg, M. Ali, N. Hollmann, L. Purucker, S. Müller, and F. Hutter, "Real-TabPFN: Improving Tabular Foundation Models via Continued Pre-training With Real-World Data," in *Foundation Models for Structured Data Workshop @ ICML 2025*, 2025, arXiv:2507.03971. Online: [arxiv.org/abs/2507.03971](https://arxiv.org/abs/2507.03971). BibTeX key: `garg2025realtabpfn`.
+
+[8] I. Rubachev, A. Kotelnikov, N. Kartashev, and A. Babenko, "On Finetuning Tabular Foundation Models," 2025, arXiv:2506.08982. Online: [arxiv.org/abs/2506.08982](https://arxiv.org/abs/2506.08982). Preprint as of May 2026; no peer-reviewed venue confirmed. BibTeX key: `rubachev2025finetuning`.
+
+[9] L. Purucker and J. Beel, "Q(D)O-ES: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in AutoML," in *Proceedings of the Second International Conference on Automated Machine Learning (AutoML 2023)*, in *Proceedings of Machine Learning Research*, vol. 224, PMLR, 2023. Online: [proceedings.mlr.press/v224/purucker23b.html](https://proceedings.mlr.press/v224/purucker23b.html). BibTeX key: `purucker2023qdoes`.
+
+### Software (cited inline, not numbered)
+
+- PriorLabs official repository: [github.com/PriorLabs/TabPFN](https://github.com/PriorLabs/TabPFN)
+- PriorLabs documentation overview (calibrated-probabilities claim): [docs.priorlabs.ai/overview](https://docs.priorlabs.ai/overview)
+- Best Practices: [docs.priorlabs.ai/best-practices](https://docs.priorlabs.ai/best-practices)
+- Model Parameters (`eval_metric`, `balance_probabilities`, `calibrate_temperature`): [docs.priorlabs.ai/improving-performance/model-parameters](https://docs.priorlabs.ai/improving-performance/model-parameters)
+- FAQ (imbalance handling): [docs.priorlabs.ai/faq](https://docs.priorlabs.ai/faq)
+- AutoTabPFN software: [github.com/PriorLabs/tabpfn-extensions](https://github.com/PriorLabs/tabpfn-extensions)
