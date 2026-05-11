@@ -1,5 +1,5 @@
 """
-_scaffold_leaves.py — Generate train.py / evaluate.py / evaluate_cv.py for
+_scaffold_leaves.py - Generate train.py / evaluate.py / evaluate_cv.py for
 addition-0 leaves: stacked_2xgb_meta_lr (full grid) and blended_xgb_lr_spano2026
 (canonical 70_15_15/chrono only).
 
@@ -44,7 +44,7 @@ from pathlib import Path
 from typing import NamedTuple, Optional
 
 ADDITION_ROOT = Path(__file__).resolve().parent      # experiment/<addition>/
-ADDITION = ADDITION_ROOT.name                        # e.g. "0" — derived
+ADDITION = ADDITION_ROOT.name                        # e.g. "0" - derived
 EXPERIMENT_ROOT = ADDITION_ROOT.parent               # experiment/
 
 STACKED = "stacked_2xgb_meta_lr"
@@ -82,7 +82,7 @@ def enumerate_leaves() -> list[Leaf]:
                 for split_type in ("chrono", "stratified"):
                     with_cv = (ratio == "70_15_15" and split_type == "chrono")
                     leaves.append(Leaf(target, fs, STACKED, ratio, split_type, with_cv))
-        # Blended: canonical anchor only — see module docstring.
+        # Blended: canonical anchor only - see module docstring.
         leaves.append(Leaf(target, "spano_features", BLENDED, "70_15_15", "chrono", with_cv=True))
     return leaves
 
@@ -139,7 +139,7 @@ def _wrapper_block(loader: LoaderCfg) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Templates — architecture-agnostic via {arch} substitution
+# Templates - architecture-agnostic via {arch} substitution
 # ---------------------------------------------------------------------------
 
 TRAIN_3WAY_TPL = '''\
@@ -149,13 +149,14 @@ from pathlib import Path
 
 import joblib
 
-# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 {read_imports}
 {extra_imports}from _model_architecture.{arch}.model import build_model  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -166,17 +167,18 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 {wrapper_block}
 
 def main():
-    print("Loading data...")
-    X_train, y_train = load_and_prep_data(TRAIN_PATH)
-    X_val, y_val = load_and_prep_data(VAL_PATH)
+    with capture_training_output(EXPERIMENT_DIR, label='training'):
+        print("Loading data...")
+        X_train, y_train = load_and_prep_data(TRAIN_PATH)
+        X_val, y_val = load_and_prep_data(VAL_PATH)
 
-    print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
-    print(f"Val set:   X={{X_val.shape}}, y={{y_val.shape}}")
+        print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
+        print(f"Val set:   X={{X_val.shape}}, y={{y_val.shape}}")
 
-    print("Training {arch} on (train); calibrating on (val)...")
-    bundle = build_model(X_train, y_train, X_val, y_val)
-    joblib.dump(bundle, MODEL_PATH)
-    print(f"Model saved to: {{MODEL_PATH}}")
+        print("Training {arch} on (train); calibrating on (val)...")
+        bundle = build_model(X_train, y_train, X_val, y_val)
+        joblib.dump(bundle, MODEL_PATH)
+        print(f"Model saved to: {{MODEL_PATH}}")
 
 
 if __name__ == "__main__":
@@ -191,13 +193,14 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-# Shared imports — _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
+# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
 {extra_imports}from _model_architecture.{arch}.model import build_model  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -210,19 +213,20 @@ CAL_RATIO = 0.20
 
 
 def main():
-    print("Loading data...")
-    df_train_full = {raw_loader}(TRAIN_PATH)
-    train_sub, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
-    X_train, y_train = prep_split(train_sub)
-    X_cal,   y_cal   = prep_split(cal_sub)
+    with capture_training_output(EXPERIMENT_DIR, label='training'):
+        print("Loading data...")
+        df_train_full = {raw_loader}(TRAIN_PATH)
+        train_sub, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
+        X_train, y_train = prep_split(train_sub)
+        X_cal,   y_cal   = prep_split(cal_sub)
 
-    print(f"Train sub: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
-    print(f"Cal sub:   X={{X_cal.shape}}, y={{y_cal.shape}}  (positive rate: {{y_cal.mean():.3f}})")
+        print(f"Train sub: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
+        print(f"Cal sub:   X={{X_cal.shape}}, y={{y_cal.shape}}  (positive rate: {{y_cal.mean():.3f}})")
 
-    print("Training {arch} on train_sub; calibrating on cal_sub...")
-    bundle = build_model(X_train, y_train, X_cal, y_cal)
-    joblib.dump(bundle, MODEL_PATH)
-    print(f"Model saved to: {{MODEL_PATH}}")
+        print("Training {arch} on train_sub; calibrating on cal_sub...")
+        bundle = build_model(X_train, y_train, X_cal, y_cal)
+        joblib.dump(bundle, MODEL_PATH)
+        print(f"Model saved to: {{MODEL_PATH}}")
 
 
 if __name__ == "__main__":
@@ -505,6 +509,7 @@ _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
 {extra_imports}from _model_architecture.{arch}.model import build_model, calibrated_proba  # noqa: E402
+from _eval._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -517,7 +522,7 @@ CAL_RATIO = 0.20
 
 RESULT_PREFIX = "results_cv"
 TITLE         = (
-    "STAGE {addition} / {feature_set} / {arch} — "
+    "STAGE {addition} / {feature_set} / {arch} - "
     f"{{N_SPLITS}}-Fold Time-Series CV"
 )
 
@@ -560,6 +565,11 @@ def score_fold(y_val, p_val, opt_thresh, sens_thresh):
 
 
 def main():
+    with capture_training_output(EXPERIMENT_DIR, label='training_cv'):
+        _main_inner()
+
+
+def _main_inner():
     print(f"Loading {{CV_PATH}} ...")
     cv = {cv_load_call}
     print(f"  Total rows: {{len(cv):,}}  |  cv_fold distribution: "
@@ -585,7 +595,7 @@ def main():
         print(f"  train_sub: {{len(train_sub):>4}} rows  |  "
               f"cal_sub: {{len(cal_sub):>4}} rows  |  "
               f"val: {{len(val_fold):>4}} rows")
-        print(f"  Positive rates — train_sub: {{y_train_sub.mean():.3f}}  "
+        print(f"  Positive rates - train_sub: {{y_train_sub.mean():.3f}}  "
               f"cal_sub: {{y_cal_sub.mean():.3f}}  val: {{y_val.mean():.3f}}")
 
         print(f"  Building model on train_sub; calibrating on cal_sub ...")
@@ -593,12 +603,12 @@ def main():
 
         p_cal = calibrated_proba(bundle, X_cal_sub)
         if len(np.unique(y_cal_sub)) < 2:
-            print(f"  WARNING: cal_sub has only one class — using default thresholds.")
+            print(f"  WARNING: cal_sub has only one class - using default thresholds.")
             opt_thresh, sens_thresh = 0.50, 0.50
         else:
             opt_thresh, sens_thresh = find_operating_thresholds(y_cal_sub.values, p_cal)
         fold_thresholds.append((opt_thresh, sens_thresh))
-        print(f"  Thresholds — MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
+        print(f"  Thresholds - MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
 
         p_val = calibrated_proba(bundle, X_val)
         scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
@@ -619,7 +629,7 @@ def main():
         "=" * 60,
         f"CV scheme    : expanding-window TimeSeriesSplit, n_splits={{N_SPLITS}}",
         f"Cal sub-split: last {{int(CAL_RATIO*100)}}% of each training fold's dates",
-        "Thresholds   : selected on cal sub-split — NOT on evaluation fold",
+        "Thresholds   : selected on cal sub-split - NOT on evaluation fold",
         separator,
         f"{{'Metric':<25}} | {{header_folds}} | {{header_summary}}",
         separator,
@@ -722,7 +732,7 @@ def render_evaluate_cv(leaf: Leaf) -> str:
     """CV evaluator: load the CV parquet directly with the appropriate loader.
 
     For full_features, this is plain pd.read_parquet. For spano/no_rolling,
-    use the filter function — it reads the parquet and drops the same columns
+    use the filter function - it reads the parquet and drops the same columns
     the variant excludes from train/test, keeping the CV consistent with the
     leaf's feature set.
     """
