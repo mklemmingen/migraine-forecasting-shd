@@ -1,0 +1,37 @@
+# Training-script output capture
+# Generated: 2026-05-11T00:00:31
+# UUID:      c804d9a4-cbd7-4359-9a89-93f8d05219e1
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-5-real/70_15_15/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Removing 21 rolling/lag/interaction features:
+ - consecutive_exercise_days
+ - consecutive_sedentary_days
+ - consecutive_stress_days
+ - consecutive_trigger_days
+ - consecutive_weather_changes
+ - days_since_last_migraine
+ - days_since_last_record
+ - exercise_days_7day
+ - headache_free_streak
+ - migraine_rate_last3
+ - migraine_rate_last7
+ - migraine_yesterday
+ - recent_weekend_sleep_issues
+ - recording_gap_flag
+ - sleep_debt_3day
+ - sleep_disruption_today
+ - sleep_variability_7day
+ - stress_drop_today
+ - weather_change_yesterday
+ - weather_headache_interaction
+ - weather_instability_3day
+Train set: X=(3941, 31), y=(3941,)
+Fitting tabpfn (version_2-5-real) on train (no external calibrator - see docs/tabPfn.MD)...
+Model successfully saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-5-real/70_15_15/chrono/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-11T00:00:31

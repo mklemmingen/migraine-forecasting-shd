@@ -1,0 +1,100 @@
+# Training-script output capture
+# Generated: 2026-05-11T01:32:18
+# UUID:      747f2891-1904-4063-a163-f986cd245635
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-6/70_15_15/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/headache/diary_cv5_timeseries.parquet ...
+Removing 21 rolling/lag/interaction features:
+ - consecutive_exercise_days
+ - consecutive_sedentary_days
+ - consecutive_stress_days
+ - consecutive_trigger_days
+ - consecutive_weather_changes
+ - days_since_last_migraine
+ - days_since_last_record
+ - exercise_days_7day
+ - headache_free_streak
+ - migraine_rate_last3
+ - migraine_rate_last7
+ - migraine_yesterday
+ - recent_weekend_sleep_issues
+ - recording_gap_flag
+ - sleep_debt_3day
+ - sleep_disruption_today
+ - sleep_variability_7day
+ - stress_drop_today
+ - weather_change_yesterday
+ - weather_headache_interaction
+ - weather_instability_3day
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.248  cal_sub: 0.314  val: 0.279
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.390  Sens>=0.5: 0.220
+  AUROC: 0.527  AUPRC: 0.316  MCC: 0.083
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.292  cal_sub: 0.246  val: 0.225
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.260  Sens>=0.5: 0.270
+  AUROC: 0.521  AUPRC: 0.245  MCC: 0.021
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.267  cal_sub: 0.221  val: 0.190
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.270  Sens>=0.5: 0.230
+  AUROC: 0.588  AUPRC: 0.309  MCC: 0.157
+
+--- Fold 4/5 ---
+  train_sub: 3121 rows  |  cal_sub:  707 rows  |  val:  530 rows
+  Positive rates - train_sub: 0.254  cal_sub: 0.182  val: 0.215
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.310  Sens>=0.5: 0.220
+  AUROC: 0.582  AUPRC: 0.273  MCC: 0.037
+
+--- Fold 5/5 ---
+  train_sub: 3809 rows  |  cal_sub:  549 rows  |  val:  158 rows
+  Positive rates - train_sub: 0.241  cal_sub: 0.217  val: 0.146
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.280  Sens>=0.5: 0.190
+  AUROC: 0.482  AUPRC: 0.156  MCC: 0.041
+
+============================================================
+STAGE 1 / no_rolling_features / tabpfn (version_2-6) - 5-Fold Time-Series CV
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split - NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.527    0.521    0.588    0.582    0.482 | 0.540    0.040  
+AUPRC                     |   0.316    0.245    0.309    0.273    0.156 | 0.260    0.058  
+Brier Score               |   0.204    0.179    0.151    0.169    0.136 | 0.168    0.023  
+ECE10                     |   0.058    0.059    0.061    0.028    0.077 | 0.056    0.016  
+MCC (Cal-Optimal)         |   0.083    0.021    0.157    0.037    0.041 | 0.068    0.049  
+Sensitivity (>=0.5)       |   0.589    0.438    0.643    0.711    0.783 | 0.633    0.117  
+Accuracy                  |   0.713    0.391    0.764    0.732    0.766 | 0.673    0.143  
+Precision                 |   0.433    0.230    0.341    0.259    0.182 | 0.289    0.089  
+Recall                    |   0.086    0.730    0.256    0.132    0.174 | 0.276    0.234  
+F1                        |   0.144    0.350    0.293    0.174    0.178 | 0.228    0.080  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.390  thresh_sens=0.220
+  F2: 1213 /  545 / 1187   thresh_mcc=0.260  thresh_sens=0.270
+  F3: 2272 /  673 /  883   thresh_mcc=0.270  thresh_sens=0.230
+  F4: 3121 /  707 /  530   thresh_mcc=0.310  thresh_sens=0.220
+  F5: 3809 /  549 /  158   thresh_mcc=0.280  thresh_sens=0.190
+============================================================
+
+Results saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-6/70_15_15/chrono/results/results_cv_20260511_013232_561_b61abc8c-f4f0-4d96-8438-f31b9a629099.txt
+
+# End capture ------------------------------------------
+# Finished: 2026-05-11T01:32:32
