@@ -1,0 +1,16 @@
+# Training-script output capture
+# Generated: 2026-05-13T20:46:56
+# UUID:      1d97d8c4-39e1-4f75-9d07-a6d357b1e5ed
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/migraine/park_features/tabpfn/version_2-5-real/70_30/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Park feature set: 3941 rows x 6 features (Park et al. 2016 Tab. 4 stepwise-selected: stress, hormonal_changes [menstruation OR ovulation], noise, alcohol, overeating, travel).
+Train: X=(3941, 6), y=(3941,)  (positive rate: 0.073)
+Fitting tabpfn (version_2-5-real) on full train (no external calibrator - see docs/tabPfn.MD)...
+Model successfully saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/migraine/park_features/tabpfn/version_2-5-real/70_30/chrono/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T20:46:57

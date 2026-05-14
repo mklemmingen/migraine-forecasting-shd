@@ -1,0 +1,106 @@
+# Training-script output capture
+# Generated: 2026-05-14T01:07:38
+# UUID:      3f9259a1-85bf-45f6-b90d-51fc96b360bd
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/migraine/no_rolling_features/tabpfn/version_2-5-finetuned/70_15_15/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/migraine/diary_cv5_timeseries.parquet ...
+no_rolling feature set: 4516 rows x 26 features (same-day flags, raw exercise minutes, dow).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.066  cal_sub: 0.054  val: 0.081
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2483]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:00<00:00,  1.05it/s, loss=0.2483]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:00<00:00,  1.05it/s, loss=0.2483]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2480]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:00<00:00,  1.43it/s, loss=0.2480]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:00<00:00,  1.43it/s, loss=0.2480]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2508]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:00<00:00,  1.20it/s, loss=0.2508]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:00<00:00,  1.20it/s, loss=0.2508]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2489]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:00<00:00,  1.45it/s, loss=0.2489]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:00<00:00,  1.45it/s, loss=0.2489]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2477]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:00<00:00,  1.30it/s, loss=0.2477]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:00<00:00,  1.30it/s, loss=0.2477]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2500]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:00<00:00,  1.43it/s, loss=0.2500]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:00<00:00,  1.43it/s, loss=0.2500]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2492]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:00<00:00,  1.28it/s, loss=0.2492]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:00<00:00,  1.28it/s, loss=0.2492]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2483]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:00<00:00,  1.52it/s, loss=0.2483]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:00<00:00,  1.52it/s, loss=0.2483]
+  Thresholds - MCC-optimal: 0.050  Sens>=0.5: 0.050
+  AUROC: 0.592  AUPRC: 0.111  MCC: 0.038
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.078  cal_sub: 0.068  val: 0.072
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2860]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:01<00:00,  1.44s/it, loss=0.2860]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:01<00:00,  1.44s/it, loss=0.2860]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2770]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:01<00:00,  1.58s/it, loss=0.2770]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:01<00:00,  1.58s/it, loss=0.2770]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2708]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2708]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2708]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2676]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2676]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2676]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2472]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2472]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2472]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2687]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:01<00:00,  1.57s/it, loss=0.2687]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:01<00:00,  1.57s/it, loss=0.2687]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2775]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2775]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2775]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2597]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:01<00:00,  1.47s/it, loss=0.2597]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:01<00:00,  1.47s/it, loss=0.2597]
+  Thresholds - MCC-optimal: 0.110  Sens>=0.5: 0.050
+  AUROC: 0.581  AUPRC: 0.108  MCC: 0.104
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.072  cal_sub: 0.079  val: 0.072
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2607]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:03<00:00,  3.14s/it, loss=0.2607]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:03<00:00,  3.14s/it, loss=0.2607]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2443]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2443]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2443]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2417]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2417]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2417]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2504]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2504]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2504]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2494]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2494]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2494]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2543]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2543]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2543]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2393]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2393]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2393]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2450]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:03<00:00,  3.06s/it, loss=0.2450]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:03<00:00,  3.06s/it, loss=0.2450]
+Finetuning Epoch 29/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 29/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2562]Finetuning Epoch 29/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2562]Finetuning Epoch 29/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2562]
+Finetuning Epoch 30/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 30/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2627]Finetuning Epoch 30/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2627]Finetuning Epoch 30/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2627]
+  Thresholds - MCC-optimal: 0.150  Sens>=0.5: 0.060
+  AUROC: 0.587  AUPRC: 0.149  MCC: 0.203
+
+--- Fold 4/5 ---
+  train_sub: 3121 rows  |  cal_sub:  707 rows  |  val:  530 rows
+  Positive rates - train_sub: 0.075  cal_sub: 0.066  val: 0.074
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.140  Sens>=0.5: 0.040
+  AUROC: 0.601  AUPRC: 0.126  MCC: 0.056
+
+--- Fold 5/5 ---
+  train_sub: 3809 rows  |  cal_sub:  549 rows  |  val:  158 rows
+  Positive rates - train_sub: 0.074  cal_sub: 0.073  val: 0.032
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.100  Sens>=0.5: 0.040
+  AUROC: 0.736  AUPRC: 0.081  MCC: 0.149
+
+============================================================
+STAGE 1 / no_rolling_features / tabpfn (version_2-5-finetuned) - 5-Fold Time-Series CV
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split - NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.592    0.581    0.587    0.601    0.736 | 0.620    0.059  
+AUPRC                     |   0.111    0.108    0.149    0.126    0.081 | 0.115    0.022  
+Brier Score               |   0.076    0.067    0.065    0.068    0.032 | 0.061    0.015  
+ECE10                     |   0.031    0.015    0.014    0.017    0.031 | 0.022    0.008  
+Calibration Slope         |   4.823    0.565    0.863    0.520    0.773 | 1.509    1.662  
+MCC (Cal-Optimal)         |   0.038    0.104    0.203    0.056    0.149 | 0.110    0.060  
+Sensitivity (>=0.5)       |   0.459    0.612    0.422    0.564    0.600 | 0.531    0.077  
+Accuracy                  |   0.597    0.865    0.913    0.870    0.867 | 0.822    0.114  
+Precision                 |   0.094    0.156    0.324    0.125    0.100 | 0.160    0.085  
+Recall                    |   0.459    0.200    0.188    0.128    0.400 | 0.275    0.130  
+F1                        |   0.157    0.175    0.238    0.127    0.160 | 0.171    0.037  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.050  thresh_sens=0.050
+  F2: 1213 /  545 / 1187   thresh_mcc=0.110  thresh_sens=0.050
+  F3: 2272 /  673 /  883   thresh_mcc=0.150  thresh_sens=0.060
+  F4: 3121 /  707 /  530   thresh_mcc=0.140  thresh_sens=0.040
+  F5: 3809 /  549 /  158   thresh_mcc=0.100  thresh_sens=0.040
+============================================================
+
+Results saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/migraine/no_rolling_features/tabpfn/version_2-5-finetuned/70_15_15/chrono/results/results_cv_20260514_010907_376_8ab13433-176b-4bde-bc0e-358c45c41bb1.txt
+
+# End capture ------------------------------------------
+# Finished: 2026-05-14T01:09:07

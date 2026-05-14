@@ -1,0 +1,38 @@
+# Training-script output capture
+# Generated: 2026-05-12T19:50:55
+# UUID:      07b31f31-b5f4-4601-82b5-0c4ebf1b7a33
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_3-binary/80_20/stratified
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Removing 21 rolling/lag/interaction features:
+ - consecutive_exercise_days
+ - consecutive_sedentary_days
+ - consecutive_stress_days
+ - consecutive_trigger_days
+ - consecutive_weather_changes
+ - days_since_last_migraine
+ - days_since_last_record
+ - exercise_days_7day
+ - headache_free_streak
+ - migraine_rate_last3
+ - migraine_rate_last7
+ - migraine_yesterday
+ - recent_weekend_sleep_issues
+ - recording_gap_flag
+ - sleep_debt_3day
+ - sleep_disruption_today
+ - sleep_variability_7day
+ - stress_drop_today
+ - weather_change_yesterday
+ - weather_headache_interaction
+ - weather_instability_3day
+Train: X=(3612, 31), y=(3612,)  (positive rate: 0.235)
+Fitting tabpfn (version_3-binary) on full train (no external calibrator - see docs/tabPfn.MD)...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Model successfully saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_3-binary/80_20/stratified/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-12T19:51:02
