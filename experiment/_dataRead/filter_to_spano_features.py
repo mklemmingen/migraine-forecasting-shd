@@ -1,115 +1,144 @@
+"""filter_to_spano_features.py - Replicate Spano (2026) column selection.
+
+Reads a feature-engineered Parquet file and returns a DataFrame whose
+columns match the per-domain features Spano (2026) used in his
+bachelor-thesis pipeline (see ``headfree-backend/features/*.py``).
+Anything not in the whitelist is dropped.
+
+Spano (2026) feature reference: headfree-backend/features/*.py per
+domain plus headfree-backend/build_features.py for the orchestrator
+``add_history_features`` step. Spano's full feature set is ~32
+per-domain features plus 6 history features.
+
+Notes on selected design points:
+
+- ``cheese_chocolate_today`` is **kept** - it is Spano's
+  ``trigger_foods_today`` under SHD's column name. Same boolean values,
+  different name. The filter strategy is by-column-presence not by
+  rename, so the SHD label flows through.
+
+- ``sleep_disruption_today`` is **omitted** because the SHD definition
+  ``(any_sleep_issue & migraine_yesterday)`` is target-derived while
+  Spano's definition uses yesterday's sleep flag. Same name, different
+  semantics; omitting is more honest than passing forward a column
+  whose values do not match Spano's pipeline.
+
+- Several columns Spano had as engineered features are NOT in the
+  current engineered parquets (see SPANO_FEATURES_MISSING_FROM_SHD
+  below). A filter cannot synthesise missing columns; those gaps are
+  documented in code so the methodology section can disclose them.
+
+Plugs into ``_dataRead.read.load_and_prep_data`` via the ``loader=``
+parameter.
+"""
+from pathlib import Path
+
 import pandas as pd
-from typing import Optional
+
+from _dataRead._select_columns import select_columns
 
 
-# Spano-engineered features that data/pipeline/engineer.py does NOT produce.
-# These would need to be added to engineer.py for a 1:1 Spano-faithful feature
-# set on the SHD dataset. The filter cannot synthesise them - it only drops
-# columns that exist. Listed here so the gap is documented in code.
-SPANO_FEATURES_MISSING_FROM_SHD = [
-    "exercise_consistency_7day",   # rolling: ≥3 of last 7 days exercised
+# Spano-engineered features that data/pipeline/engineer.py does NOT
+# produce. A filter cannot synthesise them - listed here so the gap
+# is documented in code.
+SPANO_FEATURES_MISSING_FROM_SHD = (
+    "exercise_consistency_7day",   # rolling: >=3 of last 7 days exercised
     "exercise_disruption",         # |today - trailing 7-day mean| > 0.5
-    "smoking_withdrawal_today",    # 3-day excessive smoking → 0 today
+    "smoking_withdrawal_today",    # 3-day excessive smoking -> 0 today
     "travel_exercise_conflict",    # travel_today AND no exercise
-    "weather_changes_3day_count",  # raw count (Spano keeps the boolean form too)
-]
+    "weather_changes_3day_count",  # raw count (Spano also keeps the boolean)
+)
 
 
-def remove_non_spano_features(input_parquet_path: str, output_parquet_path: Optional[str] = None) -> pd.DataFrame:
+# Whitelist of columns the engineered parquet must provide for the
+# Spano-feature variant. Anything not here is dropped; anything here
+# but missing raises a clear error.
+_SPANO_REQUIRED_COLUMNS = (
+    # Structural
+    "patient_id",
+    "date",
+    "migraine_target",
+    # Stress
+    "stress_today",
+    "stress_drop_today",
+    "consecutive_stress_days",
+    # Sleep (Spano-relevant subset; sleep_disruption_today omitted per
+    # docstring)
+    "lack_of_sleep_today",
+    "oversleeping_today",
+    "any_sleep_issue_today",
+    "sleep_debt_3day",
+    "sleep_variability_7day",
+    "recent_weekend_sleep_issues",
+    # Weather (Spano-relevant subset; weather_change_yesterday and
+    # weather_headache_interaction are SHD-specific lag/interaction
+    # variants Spano did not use)
+    "weather_change_today",
+    "consecutive_weather_changes",
+    "weather_instability_3day",
+    # Dietary / travel
+    "irregular_meals_today",
+    "overeating_today",
+    "excessive_caffeine_today",
+    "alcohol_today",
+    "travel_today",
+    "consecutive_trigger_days",
+    # Physical activity (Spano's exercise_today boolean form; the SHD
+    # raw vigorous_exercise_min / moderate_exercise_min and the
+    # no_exercise_today flag are NOT Spano-features)
+    "exercise_today",
+    "consecutive_exercise_days",
+    "consecutive_sedentary_days",
+    "exercise_days_7day",
+    # Hormonal
+    "menstruation_today",
+    "ovulation_today",
+    # Calendar
+    "dow",
+    # Migraine history (Spano had migraine_yesterday, migraine_rate_last3,
+    # migraine_rate_last7, days_since_last_migraine; headache_free_streak
+    # is SHD-specific and omitted)
+    "migraine_yesterday",
+    "migraine_rate_last3",
+    "migraine_rate_last7",
+    "days_since_last_migraine",
+    # Low-count triggers Spano did capture
+    "excessive_smoking_today",
+    "cheese_chocolate_today",
+)
+
+_SPANO_OPTIONAL_COLUMNS = (
+    "entry_id",
+    "cv_fold",
+    # See filter_to_no_rolling_features.py note: migraine_today is
+    # currently dropped at the split step; declared optional in case
+    # the pipeline starts retaining it.
+    "migraine_today",
+)
+
+
+def select_spano_features(parquet_path: str | Path) -> pd.DataFrame:
+    """Return a DataFrame with only Spano (2026)-matching columns.
+
+    Spano-features that the current engineering pipeline does NOT
+    produce are listed in ``SPANO_FEATURES_MISSING_FROM_SHD`` for the
+    methodology section to disclose.
     """
-    Reads a feature-engineered Parquet file and removes columns that the
-    current benchmark engineers but Spano (2026) did not use.
-
-    Reference: headfree-backend/features/*.py (per-domain feature modules) and
-    headfree-backend/build_features.py (orchestrator with add_history_features).
-    Spano's full feature set ≈ 32 per-domain features + 6 history features.
-
-    See `SPANO_FEATURES_MISSING_FROM_SHD` above for the 5 Spano features that
-    engineer.py does NOT produce - we cannot recover them with a filter.
-
-    Notes
-    -----
-    Weather features are NOT all removed: Spano had weather_change_today,
-    consecutive_weather_changes, and weather_instability_3day. Removed are the
-    SHD-specific weather_change_yesterday (lag) and weather_headache_interaction
-    (target-derived).
-
-    sleep_disruption_today is dropped despite both pipelines having a column of
-    that name: SHD computes it as (any_sleep_issue & migraine_yesterday) - i.e.
-    target-derived - while Spano computes it from yesterday's sleep flag only.
-    Same name, different semantics; dropping is more honest than passing
-    forward a column whose values do not match Spano's pipeline.
-
-    cheese_chocolate_today is KEPT - it is Spano's "trigger_foods_today" under
-    SHD's column name. Same values, different name; the filter strategy is
-    by-column-presence, not by-rename.
-
-    Args:
-        input_parquet_path (str): Path to the input Parquet file.
-        output_parquet_path (str, optional): Path to save the cleaned Parquet file.
-
-    Returns:
-        pd.DataFrame: The DataFrame with the non-Spano features removed.
-    """
-    # 1. Load the parquet file
-    df = pd.read_parquet(input_parquet_path)
-
-    # 2. Columns SHD engineers but Spano (2026) did not use.
-    columns_to_remove = [
-        # Other-trigger features Spano's diary app didn't capture
-        "physical_fatigue_today",
-        "emotional_changes_today",
-        "noise_today",
-        "specific_smells_today",
-        "exercise_as_trigger_today",
-        "sunlight_today",
-        "inappropriate_lighting_today",
-        # Raw exercise input columns (Spano had Exercise/No-Exercise booleans, not minutes)
-        "vigorous_exercise_min",
-        "moderate_exercise_min",
-        "no_exercise_today",            # Spano resolved into a single exercise_today flag
-        # Medication
-        "preventive_medication",
-        # Migraine-history features Spano didn't compute (he has migraine_yesterday/_rate_last3/_last7/days_since_last_migraine, not these)
-        "headache_free_streak",
-        # Weather features specific to SHD (lag + target interaction)
-        "weather_change_yesterday",
-        "weather_headache_interaction",
-        # Gap awareness - Spano fills missing days, doesn't track gaps
-        "days_since_last_record",
-        "recording_gap_flag",
-        # Same name, different semantics: SHD uses (sleep & migraine_yesterday); Spano uses (sleep & sleep_yesterday)
-        "sleep_disruption_today",
-    ]
-
-    # 3. Identify any disability outcome columns (introduced in Stage 5, not used by Spano)
-    disability_keywords = ["disability", "midas", "outcome_domain"]
-    disability_cols = [
-        col for col in df.columns
-        if any(keyword in col.lower() for keyword in disability_keywords)
-    ]
-
-    # Combine all targets to drop
-    all_targets_to_drop = set(columns_to_remove + disability_cols)
-
-    # 4. Filter to only those columns that actually exist in the current DataFrame
-    # (prevents KeyError if some features haven't been engineered into this specific split yet)
-    cols_to_drop = [col for col in all_targets_to_drop if col in df.columns]
-
-    if cols_to_drop:
-        print(f"Removing {len(cols_to_drop)} benchmark-exclusive features:")
-        for col in sorted(cols_to_drop):
-            print(f" - {col}")
-
-        # Drop the columns
-        df_cleaned = df.drop(columns=cols_to_drop)
-    else:
-        print("No benchmark-exclusive non-Spano features found in this file.")
-        df_cleaned = df.copy()
-
-    # 5. Save to disk if an output path is provided
-    if output_parquet_path:
-        df_cleaned.to_parquet(output_parquet_path, index=False)
-        print(f"\nCleaned dataset saved to: {output_parquet_path}")
-
-    return df_cleaned
+    df = select_columns(
+        parquet_path,
+        required=_SPANO_REQUIRED_COLUMNS,
+        optional=_SPANO_OPTIONAL_COLUMNS,
+    )
+    structural_in_df = sum(
+        c in df.columns
+        for c in ("patient_id", "date", "entry_id", "cv_fold",
+                  "migraine_target", "migraine_today")
+    )
+    n_features = df.shape[1] - structural_in_df
+    print(
+        f"spano feature set: {df.shape[0]} rows x {n_features} features "
+        f"(per-domain Spano (2026) columns; "
+        f"{len(SPANO_FEATURES_MISSING_FROM_SHD)} Spano features not "
+        f"reproducible from current engineering)."
+    )
+    return df
