@@ -231,3 +231,12 @@ experiment/**/*.joblib
 # (per the phe_init_args path injection in autotabpfn/model.py); the directory
 # can run to hundreds of MB per leaf and is regeneratable from train.py.
 experiment/**/autogluon_predictor/
+
+# FinetunedTabPFNClassifier writes per-epoch checkpoints to these directories
+# when output_dir is forwarded by the v2-5-finetuned builder. Each snapshot
+# is one full TabPFN base model (tens of MB); save_checkpoint_interval=10 in
+# the library default emits a handful per leaf. The production model that
+# evaluate.py consumes is the joblib at the leaf root, so these on-disk
+# checkpoints are only kept to allow mid-fit resume after an interruption.
+experiment/**/finetune_checkpoints/
+experiment/**/finetune_checkpoints_pass1/

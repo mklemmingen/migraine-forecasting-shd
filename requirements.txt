@@ -12,9 +12,13 @@ xgboost>=2.0            # XGBClassifier (tree_method='hist' is default in 2.x)
 joblib>=1.3             # model serialisation; also a scikit-learn dep
 
 # ---- Foundation model -----------------------------------------------------------------------------------
-tabpfn>=7.1.1           # Prior Labs release. 7.1.1 is the floor: build_realtabpfn
-                        # (experiment/1) uses the v2.5_real checkpoint exposed by
-                        # tabpfn>=7.0.1. Pulls torch as a transitive dependency.
+tabpfn>=8.0.1           # Prior Labs release. 8.0.1 is the floor: build_tabpfn_v3
+                        # (experiment/1) uses ModelVersion.V3 exposed by
+                        # tabpfn>=8.0.0, and the bare `version_2-6` builder pins
+                        # ModelVersion.V2_6 explicitly (tabpfn 8.x ships TabPFN-3
+                        # as the package default; without the pin, the v2.6 leaves
+                        # would silently shift architectures). Pulls torch as a
+                        # transitive dependency.
                         #
                         # GPU support for the heavy fits requires installing the
                         # right torch wheel after the base requirements land.
@@ -48,6 +52,17 @@ kditransform==1.2.0       # Optional preprocessor used by some TabPFN configs.
                           # emits: "Cannot use KDITransformer because kditransform
                           # is not installed. Using PowerTransformer as fallback."
                           # Pulls numba as a transitive dep.
+
+# ---- Transitive-dependency pins -------------------------------------------------------------------------
+setuptools<81           # AutoGluon -> hyperopt -> hyperopt.atpe imports
+                        # `pkg_resources`, which setuptools 81+ removes entirely.
+                        # The deprecation UserWarning ("pkg_resources is deprecated
+                        # as an API ... slated for removal") is emitted by
+                        # pkg_resources itself on every import and is not silenced
+                        # by this pin - the pin defends against the future setuptools
+                        # release that drops pkg_resources outright (breaking the
+                        # hyperopt import), per the warning's own suggested workaround.
+                        # Will be removed when hyperopt migrates to importlib.metadata.
 
 # ---- Visualisation ---------------------------------------------------------------------------------------
 matplotlib>=3.8         # calibration_check.py reliability diagrams (Agg backend)
