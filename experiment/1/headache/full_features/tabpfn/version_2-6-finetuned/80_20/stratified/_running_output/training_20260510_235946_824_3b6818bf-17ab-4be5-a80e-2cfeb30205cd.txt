@@ -1,21 +1,0 @@
-# Training-script output capture
-# Generated: 2026-05-10T23:59:46
-# UUID:      3b6818bf-17ab-4be5-a80e-2cfeb30205cd
-# Label:     training
-# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6-finetuned/80_20/stratified
-# Captures stdout/stderr written during the wrapped block
-# (library messages, warnings, progress bars, etc.).
-# Begin capture ----------------------------------------
-Loading data...
-Train: X=(3612, 52), y=(3612,)  (positive rate: 0.235)
-Fitting tabpfn (version_2-6-finetuned) on full train (no external calibrator - see docs/tabPfn.MD)...
-/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/tabpfn/finetuning/finetuned_classifier.py:159: UserWarning: `use_fixed_preprocessing_seed` should only be used if `n_estimators_finetune` == `n_estimators_validation` == `n_estimators_final_inference`. Consider setting the number of estimators for validation and final inference to the same value as `n_estimators_finetune`(=2).
-  super().__init__(
-/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/tabpfn/finetuning/finetuned_classifier.py:412: UserWarning: `output_dir` is not set. This means no checkpointing will be done and all progress will be lost if the training is interrupted.
-  super().fit(X, y, X_val=X_val, y_val=y_val, output_dir=output_dir)
-Finetuning Epoch 1/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 1/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5354]Finetuning Epoch 1/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.88s/it, loss=0.5354]Finetuning Epoch 1/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.88s/it, loss=0.5354]
-Finetuning Epoch 2/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 2/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5249]Finetuning Epoch 2/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.69s/it, loss=0.5249]Finetuning Epoch 2/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.69s/it, loss=0.5249]
-Finetuning Epoch 3/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 3/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5209]Finetuning Epoch 3/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.70s/it, loss=0.5209]Finetuning Epoch 3/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.70s/it, loss=0.5209]
-Finetuning Epoch 4/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 4/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5240]Finetuning Epoch 4/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.70s/it, loss=0.5240]Finetuning Epoch 4/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.70s/it, loss=0.5240]
-Finetuning Epoch 5/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 5/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5228]Finetuning Epoch 5/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.74s/it, loss=0.5228]Finetuning Epoch 5/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.74s/it, loss=0.5228]
-Finetuning Epoch 6/50:   0%|                                                     | 0/1 [00:00<?, ?it/s]Finetuning Epoch 6/50:   0%|                                        | 0/1 [00:02<?, ?it/s, loss=0.5329]Finetuning Epoch 6/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.73s/it, loss=0.5329]Finetuning Epoch 6/50: 100%|████████████████████████████████| 1/1 [00:02<00:00,  2.73s/it, loss=0.5329]
