@@ -1,0 +1,16 @@
+# Training-script output capture
+# Generated: 2026-05-13T00:14:50
+# UUID:      2a3dfc11-1c6a-492e-a9ce-0e3e14a25f01
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Train sub: X=(3674, 52), y=(3674,)  (positive rate: 0.073)
+Cal sub:   X=(608, 52), y=(608,)  (positive rate: 0.079)
+Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/chrono/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T00:14:51

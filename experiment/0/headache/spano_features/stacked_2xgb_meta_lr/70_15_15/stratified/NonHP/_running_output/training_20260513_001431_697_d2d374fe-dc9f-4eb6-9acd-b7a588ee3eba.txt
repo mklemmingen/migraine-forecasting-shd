@@ -1,0 +1,18 @@
+# Training-script output capture
+# Generated: 2026-05-13T00:14:31
+# UUID:      d2d374fe-dc9f-4eb6-9acd-b7a588ee3eba
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/stacked_2xgb_meta_lr/70_15_15/stratified/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+spano feature set: 3160 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+spano feature set: 678 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+Train set: X=(3160, 31), y=(3160,)
+Val set:   X=(678, 31), y=(678,)
+Training stacked_2xgb_meta_lr on (train); calibrating on (val)...
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/stacked_2xgb_meta_lr/70_15_15/stratified/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T00:14:32

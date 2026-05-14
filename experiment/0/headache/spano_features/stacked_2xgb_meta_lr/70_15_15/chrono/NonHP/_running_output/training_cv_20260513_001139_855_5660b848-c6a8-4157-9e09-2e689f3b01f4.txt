@@ -1,0 +1,79 @@
+# Training-script output capture
+# Generated: 2026-05-13T00:11:39
+# UUID:      5660b848-c6a8-4157-9e09-2e689f3b01f4
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/stacked_2xgb_meta_lr/70_15_15/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/headache/diary_cv5_timeseries.parquet ...
+spano feature set: 4516 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.248  cal_sub: 0.314  val: 0.279
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.520  Sens>=0.5: 0.300
+  AUROC: 0.579  AUPRC: 0.353  MCC: 0.091
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.292  cal_sub: 0.246  val: 0.225
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.330  Sens>=0.5: 0.260
+  AUROC: 0.572  AUPRC: 0.294  MCC: 0.124
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.267  cal_sub: 0.221  val: 0.190
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.240  Sens>=0.5: 0.220
+  AUROC: 0.631  AUPRC: 0.318  MCC: 0.144
+
+--- Fold 4/5 ---
+  train_sub: 3121 rows  |  cal_sub:  707 rows  |  val:  530 rows
+  Positive rates - train_sub: 0.254  cal_sub: 0.182  val: 0.215
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.300  Sens>=0.5: 0.180
+  AUROC: 0.632  AUPRC: 0.382  MCC: 0.208
+
+--- Fold 5/5 ---
+  train_sub: 3809 rows  |  cal_sub:  549 rows  |  val:  158 rows
+  Positive rates - train_sub: 0.241  cal_sub: 0.217  val: 0.146
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.320  Sens>=0.5: 0.230
+  AUROC: 0.564  AUPRC: 0.244  MCC: 0.188
+
+============================================================
+STAGE 0 / spano_features / stacked_2xgb_meta_lr - 5-Fold Time-Series CV
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split - NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.579    0.572    0.631    0.632    0.564 | 0.595    0.030  
+AUPRC                     |   0.353    0.294    0.318    0.382    0.244 | 0.318    0.048  
+Brier Score               |   0.202    0.175    0.149    0.161    0.128 | 0.163    0.025  
+ECE10                     |   0.046    0.046    0.042    0.028    0.067 | 0.046    0.012  
+MCC (Cal-Optimal)         |   0.091    0.124    0.144    0.208    0.188 | 0.151    0.042  
+Sensitivity (>=0.5)       |   0.580    0.404    0.530    0.632    0.435 | 0.516    0.086  
+Accuracy                  |   0.718    0.724    0.717    0.783    0.842 | 0.757    0.049  
+Precision                 |   0.464    0.342    0.295    0.489    0.400 | 0.398    0.073  
+Recall                    |   0.077    0.247    0.351    0.202    0.174 | 0.210    0.090  
+F1                        |   0.133    0.287    0.321    0.286    0.242 | 0.254    0.065  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.520  thresh_sens=0.300
+  F2: 1213 /  545 / 1187   thresh_mcc=0.330  thresh_sens=0.260
+  F3: 2272 /  673 /  883   thresh_mcc=0.240  thresh_sens=0.220
+  F4: 3121 /  707 /  530   thresh_mcc=0.300  thresh_sens=0.180
+  F5: 3809 /  549 /  158   thresh_mcc=0.320  thresh_sens=0.230
+============================================================
+
+Results saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/stacked_2xgb_meta_lr/70_15_15/chrono/NonHP/results/results_cv_20260513_001145_426_c1a65081-404e-4559-a7ef-a20f061986af.txt
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T00:11:45

@@ -1,0 +1,18 @@
+# Training-script output capture
+# Generated: 2026-05-13T00:07:52
+# UUID:      d9416ec9-0832-416e-8691-c4671986368b
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/blended_xgb_lr_spano2026/70_15_15/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+spano feature set: 3941 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+spano feature set: 439 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+Train set: X=(3941, 31), y=(3941,)
+Val set:   X=(439, 31), y=(439,)
+Training blended_xgb_lr_spano2026 on (train); calibrating on (val)...
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/blended_xgb_lr_spano2026/70_15_15/chrono/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T00:07:57

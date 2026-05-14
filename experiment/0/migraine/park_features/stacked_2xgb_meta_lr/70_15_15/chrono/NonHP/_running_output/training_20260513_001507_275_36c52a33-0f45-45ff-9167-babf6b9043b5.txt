@@ -1,0 +1,18 @@
+# Training-script output capture
+# Generated: 2026-05-13T00:15:07
+# UUID:      36c52a33-0f45-45ff-9167-babf6b9043b5
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/park_features/stacked_2xgb_meta_lr/70_15_15/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Park feature set: 3941 rows x 6 features (Park et al. 2016 Tab. 4 stepwise-selected: stress, hormonal_changes [menstruation OR ovulation], noise, alcohol, overeating, travel).
+Park feature set: 439 rows x 6 features (Park et al. 2016 Tab. 4 stepwise-selected: stress, hormonal_changes [menstruation OR ovulation], noise, alcohol, overeating, travel).
+Train set: X=(3941, 6), y=(3941,)
+Val set:   X=(439, 6), y=(439,)
+Training stacked_2xgb_meta_lr on (train); calibrating on (val)...
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/park_features/stacked_2xgb_meta_lr/70_15_15/chrono/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-13T00:15:08
