@@ -11,6 +11,19 @@ from tabpfn.finetuning import FinetunedTabPFNClassifier
 # is there to stop the concern about whether fine-tuning was budget-starved.
 _LONG_CYCLE_EPOCHS = 50
 
+# Ensemble size fixed across the three FinetunedTabPFNClassifier phases
+# (finetune / validation / final_inference). The library defaults are
+# (2, 2, 8), which violates ``use_fixed_preprocessing_seed=True`` (also
+# a library default) and emits a UserWarning at construction. Matching
+# all three to the base ``TabPFNClassifier`` inference default (8) keeps
+# the preprocessing-seed invariant intact AND keeps the inference
+# ensemble width comparable with the non-finetuned variants in this
+# benchmark (v2-6 / v3-default / v3-binary / v2-5-real), all of which
+# call ``TabPFNClassifier(n_estimators=8)`` implicitly via the library
+# default. Without this match, finetuned-vs-non-finetuned comparisons
+# would conflate the fine-tuning effect with an ensemble-size effect.
+_N_ESTIMATORS = 8
+
 
 class _ConvergenceCapture:
     """FinetuningLogger implementation that records per-epoch metrics for
@@ -81,7 +94,14 @@ def _emit_convergence_table(out_dir: Path, capture: _ConvergenceCapture,
 
 
 def build_finetunedtabpfn(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
-    """Fine-tuned TabPFN-v2.6 - two-pass design.
+    """Fine-tuned TabPFN-v2.5 - two-pass design.
+
+    Base model version: ``FinetunedTabPFNClassifier`` in
+    ``tabpfn>=7.1.1`` hardcodes ``version=ModelVersion.V2_5`` in its
+    internal ``_create_tabpfn_classifier`` (see
+    ``tabpfn/finetuning/finetuned_classifier.py``, lines 210-217). The
+    folder label ``version_2-5-finetuned`` reflects the actual base
+    model; there is no v2.6 anywhere in the fine-tuning pipeline.
 
     PASS 1 (diagnostic, only when output_dir is provided): full
     `_LONG_CYCLE_EPOCHS` cycle with `early_stopping=False`, captured by a
@@ -97,6 +117,22 @@ def build_finetunedtabpfn(X_train, y_train, *, device='cuda', random_state=0, ou
     pass is what evaluate.py loads via joblib - no over-fitting because
     early stopping selects the best validation epoch.
 
+    Ensemble size: ``n_estimators_finetune = n_estimators_validation =
+    n_estimators_final_inference = _N_ESTIMATORS`` (8). The library
+    defaults (2 / 2 / 8) violate the ``use_fixed_preprocessing_seed``
+    invariant (also a library default); matching all three to 8 keeps
+    that invariant true AND keeps the inference ensemble comparable
+    with the non-finetuned variants, which all run at the
+    ``TabPFNClassifier(n_estimators=8)`` library default. See
+    ``_N_ESTIMATORS`` block above for the comparability argument.
+
+    Checkpointing: when ``output_dir`` is provided, the library writes
+    per-epoch checkpoints to ``<output_dir>/finetune_checkpoints_pass1/``
+    (PASS 1, 50 unstopped epochs) and ``<output_dir>/finetune_checkpoints/``
+    (PASS 2, production). The directories are gitignored - the production
+    model is the joblib pickle in ``<output_dir>/model.joblib``; the
+    library checkpoints are only retained to allow mid-fit resume.
+
     The implementation uses the sklearn-compatible
     `FinetunedTabPFNClassifier` from `tabpfn.finetuning`. All
     hyperparameters not mentioned above are at library defaults
@@ -111,24 +147,39 @@ def build_finetunedtabpfn(X_train, y_train, *, device='cuda', random_state=0, ou
     degrades that property is treated as an empirical question by this
     study's ECE10 / Brier columns. See docs/tabPfn.MD §5.3.
     """
+    common_kwargs = dict(
+        device=device,
+        random_state=random_state,
+        n_estimators_finetune=_N_ESTIMATORS,
+        n_estimators_validation=_N_ESTIMATORS,
+        n_estimators_final_inference=_N_ESTIMATORS,
+    )
+
     if output_dir is not None:
         out = Path(output_dir)
         capture = _ConvergenceCapture()
+        pass1_ckpt = out / 'finetune_checkpoints_pass1'
+        pass1_ckpt.mkdir(parents=True, exist_ok=True)
         long_cycle = FinetunedTabPFNClassifier(
-            device=device,
-            random_state=random_state,
+            **common_kwargs,
             epochs=_LONG_CYCLE_EPOCHS,
             early_stopping=False,
             experiment_logger=capture,
         )
-        long_cycle.fit(X_train, y_train)
+        # output_dir is a fit() kwarg in FinetunedTabPFNClassifier (the
+        # library reads it inside super().fit() to drive checkpoint writes);
+        # it is not a constructor kwarg. The library calls
+        # `output_dir.mkdir(parents=True, exist_ok=True)` internally
+        # (tabpfn/finetuning/finetuned_base.py:539) and does not coerce
+        # str -> Path, so the kwarg must be a pathlib.Path, not a string.
+        long_cycle.fit(X_train, y_train, output_dir=pass1_ckpt)
         _emit_convergence_table(out, capture, X_train.shape, int(y_train.sum()))
         # PASS 1 model is discarded; we keep only its convergence diagnostic.
         del long_cycle
 
-    base = FinetunedTabPFNClassifier(
-        device=device,
-        random_state=random_state,
-    )
-    base.fit(X_train, y_train)
+    pass2_ckpt = (Path(output_dir) / 'finetune_checkpoints') if output_dir is not None else None
+    if pass2_ckpt is not None:
+        pass2_ckpt.mkdir(parents=True, exist_ok=True)
+    base = FinetunedTabPFNClassifier(**common_kwargs)
+    base.fit(X_train, y_train, output_dir=pass2_ckpt)
     return base
