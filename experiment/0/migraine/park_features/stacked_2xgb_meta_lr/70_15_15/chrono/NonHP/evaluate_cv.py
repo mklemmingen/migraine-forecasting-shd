@@ -1,5 +1,5 @@
 """
-5-fold time-series cross-validation for blended_xgb_lr_spano2026.
+5-fold time-series cross-validation for stacked_2xgb_meta_lr.
 
 Reads diary_cv5_timeseries.parquet (target-level, ratio-independent).
 Per fold:
@@ -25,14 +25,14 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
-from _model_architecture.blended_xgb_lr_spano2026.model import build_model, calibrated_proba  # noqa: E402
+from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
+from _model_architecture.stacked_2xgb_meta_lr.model import build_model, calibrated_proba  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
 from _eval.metrics_lib import find_operating_thresholds, score_fold  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "headache")
+DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "migraine")
 RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
 CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
 
@@ -41,7 +41,7 @@ CAL_RATIO = 0.20
 
 RESULT_PREFIX = "results_cv"
 TITLE         = (
-    "STAGE 0 / spano_features / blended_xgb_lr_spano2026 - "
+    "STAGE 0 / park_features / stacked_2xgb_meta_lr - "
     f"{N_SPLITS}-Fold Time-Series CV"
 )
 
@@ -53,7 +53,7 @@ def main():
 
 def _main_inner():
     print(f"Loading {CV_PATH} ...")
-    cv = select_spano_features(CV_PATH)
+    cv = select_park_features(CV_PATH)
     print(f"  Total rows: {len(cv):,}  |  cv_fold distribution: "
           f"{ dict(cv['cv_fold'].value_counts().sort_index()) }")
 

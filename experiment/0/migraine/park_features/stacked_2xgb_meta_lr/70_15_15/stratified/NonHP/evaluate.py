@@ -11,8 +11,8 @@ _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import load_and_prep_data, prep_split, chronological_subsplit  # noqa: E402
-from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
+from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402
+from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
 from _model_architecture.stacked_2xgb_meta_lr.model import calibrated_proba  # noqa: E402
 from _eval.metrics_lib import find_operating_thresholds, run_bootstrap_evaluation  # noqa: E402
 
@@ -20,32 +20,32 @@ from _eval.metrics_lib import find_operating_thresholds, run_bootstrap_evaluatio
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "migraine")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
-TRAIN_PATH = os.path.join(DATA_DIR, "80_20", "chrono", "diary_train.parquet")
-TEST_PATH  = os.path.join(DATA_DIR, "80_20", "chrono", "diary_test.parquet")
+VAL_PATH   = os.path.join(DATA_DIR, "70_15_15", "stratified", "diary_val.parquet")
+TEST_PATH  = os.path.join(DATA_DIR, "70_15_15", "stratified", "diary_test.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
-TITLE         = "STAGE 0 / spano_features / stacked_2xgb_meta_lr"
+TITLE         = "STAGE 0 / park_features / stacked_2xgb_meta_lr"
 
-# 2-way ratio: no val parquet; reproduce the same chronological subsplit
-# of train used during fitting to derive operating thresholds.
-CAL_RATIO = 0.20
+
+def load_and_prep_data(filepath):
+    """Park-feature variant: whitelist the 6 Park et al. (2016) stepwise-selected triggers (Tab. 4, p. 8) with hormonal_changes derived as menstruation OR ovulation."""
+    return _load_and_prep_data(filepath, loader=select_park_features)
+
 
 
 def main():
     print("Loading datasets and model...")
-    df_train_full = select_spano_features(TRAIN_PATH)
-    _, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
-    X_cal, y_cal = prep_split(cal_sub)
-    X_test, y_test = load_and_prep_data(TEST_PATH, loader=select_spano_features)
+    X_val,  y_val  = load_and_prep_data(VAL_PATH)
+    X_test, y_test = load_and_prep_data(TEST_PATH)
     bundle = joblib.load(MODEL_PATH)
 
     print("Generating predictions...")
-    y_prob_cal  = calibrated_proba(bundle, X_cal)
+    y_prob_val  = calibrated_proba(bundle, X_val)
     y_prob_test = calibrated_proba(bundle, X_test)
 
-    print("Calculating optimal thresholds on cal sub-split...")
-    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_cal, y_prob_cal)
+    print("Calculating optimal thresholds on Validation set...")
+    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_val, y_prob_val)
 
     print("Running bootstrap evaluation on locked Test set (n=1000)...")
     results = run_bootstrap_evaluation(y_test, y_prob_test, opt_mcc_thresh, sens_05_thresh)
@@ -54,7 +54,7 @@ def main():
         "=" * 60,
         TITLE,
         "=" * 60,
-        "Cal Sub-Split Derived Thresholds:",
+        "Validation Set Derived Thresholds:",
         f" -> MCC-Optimal Threshold:          {opt_mcc_thresh:.3f}",
         f" -> Threshold for Sens >= 0.50:     {sens_05_thresh:.3f}",
         "-" * 60,
