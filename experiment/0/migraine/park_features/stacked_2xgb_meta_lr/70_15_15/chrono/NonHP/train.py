@@ -3,41 +3,41 @@ import sys
 from pathlib import Path
 
 import joblib
-import pandas as pd
 
 # Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
+from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402
+from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
 from _model_architecture.stacked_2xgb_meta_lr.model import build_model  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "migraine")
-TRAIN_PATH = os.path.join(DATA_DIR, "70_30", "stratified", "diary_train.parquet")
+TRAIN_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_train.parquet")
+VAL_PATH = os.path.join(DATA_DIR, "70_15_15", "chrono", "diary_val.parquet")
 MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
-# 2-way ratio has no val parquet; subsplit train chronologically.
-CAL_RATIO = 0.20
+
+def load_and_prep_data(filepath):
+    """Park-feature variant: whitelist the 6 Park et al. (2016) stepwise-selected triggers (Tab. 4, p. 8) with hormonal_changes derived as menstruation OR ovulation."""
+    return _load_and_prep_data(filepath, loader=select_park_features)
 
 
 def main():
     with capture_training_output(EXPERIMENT_DIR, label='training'):
         print("Loading data...")
-        df_train_full = select_spano_features(TRAIN_PATH)
-        train_sub, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
-        X_train, y_train = prep_split(train_sub)
-        X_cal,   y_cal   = prep_split(cal_sub)
+        X_train, y_train = load_and_prep_data(TRAIN_PATH)
+        X_val, y_val = load_and_prep_data(VAL_PATH)
 
-        print(f"Train sub: X={X_train.shape}, y={y_train.shape}  (positive rate: {y_train.mean():.3f})")
-        print(f"Cal sub:   X={X_cal.shape}, y={y_cal.shape}  (positive rate: {y_cal.mean():.3f})")
+        print(f"Train set: X={X_train.shape}, y={y_train.shape}")
+        print(f"Val set:   X={X_val.shape}, y={y_val.shape}")
 
-        print("Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...")
-        bundle = build_model(X_train, y_train, X_cal, y_cal)
+        print("Training stacked_2xgb_meta_lr on (train); calibrating on (val)...")
+        bundle = build_model(X_train, y_train, X_val, y_val)
         joblib.dump(bundle, MODEL_PATH)
         print(f"Model saved to: {MODEL_PATH}")
 

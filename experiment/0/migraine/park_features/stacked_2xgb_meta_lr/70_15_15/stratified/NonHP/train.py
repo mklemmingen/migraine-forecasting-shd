@@ -10,7 +10,7 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402
-from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
+from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
 from _model_architecture.stacked_2xgb_meta_lr.model import build_model  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
 
@@ -23,8 +23,8 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
 def load_and_prep_data(filepath):
-    """No-rolling variant: whitelist same-day flags before (X, y) split."""
-    return _load_and_prep_data(filepath, loader=select_non_rolling_features)
+    """Park-feature variant: whitelist the 6 Park et al. (2016) stepwise-selected triggers (Tab. 4, p. 8) with hormonal_changes derived as menstruation OR ovulation."""
+    return _load_and_prep_data(filepath, loader=select_park_features)
 
 
 def main():

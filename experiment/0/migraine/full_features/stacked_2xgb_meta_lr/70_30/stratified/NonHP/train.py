@@ -12,7 +12,7 @@ _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
 from _model_architecture.stacked_2xgb_meta_lr.model import build_model  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
