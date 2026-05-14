@@ -513,6 +513,46 @@ tree is the appropriate match for validating against those findings. The
 `headache/` tree provides higher event counts and may yield better-calibrated
 models due to more training signal.
 
+### Events-per-variable (EPV) and overfitting risk by feature set
+
+The events-per-variable (EPV) ratio is the standard prediction-model
+discipline check: events divided by candidate predictor parameters. The
+TRIPOD+AI 2024 reporting guideline [5] explicitly flags EPV-style sample-size
+considerations as a required reporting item; the recent Martin et al. 2025
+statistical primer [6] surveys the formal sample-size calculation literature
+that supersedes the rule of thumb [6, p. 1]. The classical EPV bands are
+`<5` high overfitting risk, `5-9` moderate, `>=10` low; modern sample-size
+calculations are more nuanced but the bands remain useful as a first-pass
+indicator.
+
+On the canonical 70_15_15 chrono split (train = 3941 rows), the four feature
+sets we benchmark yield the following EPV against the two targets:
+
+| Feature set | n features | events on migraine (~5.1% pos rate, ~201 events) | EPV migraine | events on headache (~23.5% pos rate, ~926 events) | EPV headache |
+|---|---|---|---|---|---|
+| `full_features`         | 52 | 201 | **3.9 (high risk)** | 926 | 17.8 (low)        |
+| `spano_features`        | 31 | 201 | 6.5 (moderate)      | 926 | 29.9 (low)        |
+| `no_rolling_features`   | 26 | 201 | 7.7 (moderate)      | 926 | 35.6 (low)        |
+| `park_features`         |  6 | 201 | **33.5 (low)**      | n/a | n/a (migraine-only - see docs/park_features.md) |
+
+Two implications carry into the methodology and discussion:
+
+1. The migraine `full_features` cell is in the **high-risk EPV band**. Any
+   model fit on this configuration is at elevated risk of capitalising on
+   training noise; reported test-set numbers from this cell should be
+   read with the matching reservation. Reporting calibration slope
+   alongside discrimination [5, 6] is the discipline check; a slope
+   markedly below 1 on test confirms the overfitting fingerprint.
+2. The migraine `park_features` cell is **comfortably in the low-risk
+   band** at EPV 33.5. This is part of the scientific justification for
+   the Park feature set's existence as a benchmark variant - it is the
+   only feature set in this study where the migraine target has a
+   sample size that the prediction-model methodology literature [6]
+   would consider adequate without statistical-shrinkage adjustment.
+
+For the headache target every feature set sits in the low-risk band; the
+EPV concern is migraine-specific.
+
 ---
 
 ### Row Provenance
@@ -563,3 +603,7 @@ Citation keys resolve against [`Sources.bib`](../Sources.bib) at the repository 
 [3] N. J. Giffin, L. Ruggiero, R. B. Lipton, S. D. Silberstein, J. F. Tvedskov, J. Olesen, J. Altman, P. J. Goadsby, and A. Macrae, "Premonitory symptoms in migraine: an electronic diary study," *Neurology*, vol. 60, no. 6, pp. 935–940, Mar. 2003. doi: [10.1212/01.wnl.0000052998.58526.a9](https://doi.org/10.1212/01.wnl.0000052998.58526.a9). BibTeX key: `giffin2003premonitory`.
 
 [4] G. G. Schoonman, D. J. Evers, G. M. Terwindt, J. G. van Dijk, and M. D. Ferrari, "The prevalence of premonitory symptoms in migraine: a questionnaire study in 461 patients," *Cephalalgia*, vol. 26, no. 10, pp. 1209–1213, Oct. 2006. doi: [10.1111/j.1468-2982.2006.01195.x](https://doi.org/10.1111/j.1468-2982.2006.01195.x). BibTeX key: `schoonman2006premonitory`.
+
+[5] G. S. Collins, K. G. M. Moons, P. Dhiman, R. D. Riley, A. L. Beam, B. Van Calster, M. Ghassemi, X. Liu, J. B. Reitsma, M. van Smeden, A.-L. Boulesteix, J. C. Camaradou, L. A. Celi, S. Denaxas, A. K. Denniston, B. Glocker, R. M. Golub, H. Harvey, G. Heinze, M. M. Hoffman, A. P. Kengne, E. Lam, N. Lee, E. W. Loder, L. Maier-Hein, B. A. Mateen, M. M. McCradden, L. Oakden-Rayner, J. Ordish, R. Parnell, S. Rose, K. Singh, L. Wynants, and P. Logullo, "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods," *BMJ*, vol. 385, e078378, Apr. 2024. doi: [10.1136/bmj-2023-078378](https://doi.org/10.1136/bmj-2023-078378). BibTeX key: `collins2024tripodAI`.
+
+[6] G. P. Martin, R. D. Riley, J. Ensor, and S. W. Grant, "Statistical primer: sample size considerations for developing and validating clinical prediction models," *European Journal of Cardio-Thoracic Surgery*, vol. 67, no. 5, p. ezaf142, May 2025. doi: [10.1093/ejcts/ezaf142](https://doi.org/10.1093/ejcts/ezaf142). BibTeX key: `martin2025samplesize`.
