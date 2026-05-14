@@ -15,7 +15,7 @@
   month   = feb,
   doi     = {10.1371/journal.pone.0149577},
   url     = {https://doi.org/10.1371/journal.pone.0149577},
-  note    = {Open access. PDF in PaperSources/park2016_shd.pdf.}
+  note    = {Open access.}
 }
 
 % ====================================================================
@@ -44,7 +44,7 @@
   archivePrefix = {arXiv},
   primaryClass  = {cs.LG},
   url           = {https://arxiv.org/abs/2507.03971},
-  note          = {Foundation Models for Structured Data (FMSD) Workshop at ICML 2025; workshop-tier peer review. PDF in PaperSources/garg2025_real_tabpfn.pdf.}
+  note          = {Foundation Models for Structured Data (FMSD) Workshop at ICML 2025; workshop-tier peer review.}
 }
 
 @misc{rubachev2025finetuning,
@@ -55,7 +55,7 @@
   archivePrefix = {arXiv},
   primaryClass  = {cs.LG},
   url           = {https://arxiv.org/abs/2506.08982},
-  note          = {arXiv preprint as of May 2026; submitted to ICLR 2026, no decision visible. PDF in PaperSources/rubachev2025_finetuning_tabpfn.pdf.}
+  note          = {arXiv preprint as of May 2026; submitted to ICLR 2026, no decision visible.}
 }
 
 @misc{grinsztajn2025tabpfn25,
@@ -66,7 +66,17 @@
   archivePrefix = {arXiv},
   primaryClass  = {cs.LG},
   url           = {https://arxiv.org/abs/2511.08667},
-  note          = {Architecture report (background context for §1 of docs/tabPfn.MD). PDF in PaperSources/grinsztajn2025_tabpfn_2-5_report.pdf.}
+  note          = {Architecture report (background context for §1 of docs/tabPfn.MD).}
+}
+
+@techreport{priorlabs2026tabpfn3report,
+  author      = {{Prior Labs}},
+  title       = {{TabPFN-3} Model Report},
+  institution = {Prior Labs},
+  year        = {2026},
+  month       = may,
+  url         = {https://storage.googleapis.com/prior-labs-tabpfn-public/reports/TabPFN_3_model_report.pdf},
+  note        = {Distributed with the v3 model weights at https://huggingface.co/Prior-Labs/tabpfn_3 under tabpfn-3-license-v1.0 (research and internal evaluation permitted; commercial use restricted). Technical report; not peer-reviewed.}
 }
 
 % ====================================================================
@@ -94,7 +104,7 @@
   year      = {2005},
   publisher = {AUAI Press},
   url       = {https://arxiv.org/abs/1207.1403},
-  note      = {arXiv mirror at 1207.1403. Empirical justification for Platt scaling on tree ensembles. PDF in PaperSources/niculescu_mizil_caruana_2005_uai.pdf.}
+  note      = {arXiv mirror at 1207.1403. Empirical justification for Platt scaling on tree ensembles.}
 }
 
 @inproceedings{niculescuMizilCaruana2005icml,
@@ -106,7 +116,7 @@
   publisher = {ACM},
   doi       = {10.1145/1102351.1102430},
   url       = {https://doi.org/10.1145/1102351.1102430},
-  note      = {Companion supervised-learning calibration survey. PDF in PaperSources/niculescu_mizil_caruana_2005_icml.pdf (author-hosted mirror at cs.cornell.edu/~alexn/).}
+  note      = {Companion supervised-learning calibration survey. Author-hosted mirror at cs.cornell.edu/~alexn/.}
 }
 
 % ====================================================================
@@ -122,7 +132,7 @@
   year      = {2023},
   publisher = {PMLR},
   url       = {https://proceedings.mlr.press/v224/purucker23b.html},
-  note      = {Post-hoc ensemble-selection technique whose lineage feeds into the AutoTabPFN classifier in tabpfn-extensions. PDF in PaperSources/purucker_beel_2023_qdoes.pdf.}
+  note      = {Post-hoc ensemble-selection technique whose lineage feeds into the AutoTabPFN classifier in tabpfn-extensions.}
 }
 
 % ====================================================================
@@ -169,4 +179,128 @@
   address     = {Reutlingen, Germany},
   year        = {2026},
   note        = {Original `blended_xgb_lr_spano2026` architecture (Addition 0) is replicated from this work. Legacy code preserved via contact to Spano. Title above is descriptive (no public DOI for the thesis).}
+}
+
+% ====================================================================
+% Reporting standards, methodology rigor, evaluation metrics
+% ====================================================================
+
+@article{collins2024tripodAI,
+  author  = {Collins, Gary S. and Moons, Karel G. M. and Dhiman, Paula and Riley, Richard D. and Beam, Andrew L. and Van Calster, Ben and Ghassemi, Marzyeh and Liu, Xiaoxuan and Reitsma, Johannes B. and van Smeden, Maarten and Boulesteix, Anne-Laure and Camaradou, Jennifer Catherine and Celi, Leo Anthony and Denaxas, Spiros and Denniston, Alastair K. and Glocker, Ben and Golub, Robert M. and Harvey, Hugh and Heinze, Georg and Hoffman, Michael M. and Kengne, Andr{\'e} Pascal and Lam, Emily and Lee, Naomi and Loder, Elizabeth W. and Maier-Hein, Lena and Mateen, Bilal A. and McCradden, Melissa M. and Oakden-Rayner, Lauren and Ordish, Johan and Parnell, Richard and Rose, Sherri and Singh, Karandeep and Wynants, Laure and Logullo, Patricia},
+  title   = {{TRIPOD+AI} statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods},
+  journal = {BMJ},
+  volume  = {385},
+  pages   = {e078378},
+  year    = {2024},
+  month   = apr,
+  doi     = {10.1136/bmj-2023-078378},
+  pmid    = {38626948},
+  note    = {Open access via BMJ. Current consensus reporting standard for clinical prediction models that use regression or ML; 27-item checklist plus a 13-item abstract checklist. Cited in docs/dataset.md (EPV section) and the calibration-slope docstring inside experiment/{0,1}/_scaffold_leaves.py METRICS_BLOCK.}
+}
+
+@article{martin2025samplesize,
+  author  = {Martin, Glen P. and Riley, Richard D. and Ensor, Joie and Grant, Stuart W.},
+  title   = {Statistical primer: sample size considerations for developing and validating clinical prediction models},
+  journal = {European Journal of Cardio-Thoracic Surgery},
+  volume  = {67},
+  number  = {5},
+  pages   = {ezaf142},
+  year    = {2025},
+  month   = may,
+  doi     = {10.1093/ejcts/ezaf142},
+  note    = {Open access (CC-BY-NC) via Oxford Academic. Recent primer surveying modern sample-size criteria (Riley et al. formulae) for clinical prediction models; supersedes the classical events-per-variable rule of thumb but retains it as a first-pass risk band. Cited in docs/dataset.md EPV section.}
+}
+
+@article{huang2020calibration,
+  author  = {Huang, Yingxiang and Li, Wentao and Macheret, Fima and Gabriel, Rodney A. and Ohno-Machado, Lucila},
+  title   = {A tutorial on calibration measurements and calibration models for clinical prediction models},
+  journal = {Journal of the American Medical Informatics Association},
+  volume  = {27},
+  number  = {4},
+  pages   = {621--633},
+  year    = {2020},
+  month   = apr,
+  doi     = {10.1093/jamia/ocz228},
+  note    = {Open access (CC-BY-NC) via Oxford. Canonical tutorial on calibration measurement (calibration-in-the-large, intercept, slope, reliability diagrams) and recalibration methods (Platt, isotonic). Calibration-slope rationale alongside TRIPOD+AI.}
+}
+
+@article{stubberud2023forecasting,
+  author  = {Stubberud, Anker and Ingvaldsen, Sigrid Hegna and Brenner, Eiliv and Winnberg, Ingunn and Olsen, Alexander and Gravdahl, G{\o}ril Bruvik and Matharu, Manjit Singh and Nachev, Parashkev and Tronvik, Erling},
+  title   = {Forecasting migraine with machine learning based on mobile phone diary and wearable data},
+  journal = {Cephalalgia},
+  volume  = {43},
+  number  = {5},
+  pages   = {1--10},
+  year    = {2023},
+  doi     = {10.1177/03331024231169244},
+  note    = {Open access (CC-BY) via SAGE. 18 patients with episodic migraine, 388 headache diary entries (295 days included). Best random-forest model achieved hold-out AUC 0.62. Direct domain comparator at small-cohort scale.}
+}
+
+@article{faisal2026forecasting,
+  author  = {Faisal, Fahim and Poole, Amalie C. and Danelakis, Antonios and Wergeland, Tore and Bj{\o}rk, Marte and Khanevski, Andrej N. and Kristoffersen, Espen Saxhaug and Kumelj, Tja{\v s}a and Larsen, Iben C. K. and Lunder, Oda V. and Matharu, Manjit and Nachev, Parashkev and Simpson, Melanie R. and Tronvik, Erling and Vetvik, Kjersti G. and Winsvold, Bendik S. and {\O}ie, Lise R. and {\O}vrevik, Ane B. and Stubberud, Anker},
+  title   = {Forecasting migraine with time-series machine learning from mobile health data},
+  journal = {The Journal of Headache and Pain},
+  volume  = {27},
+  number  = {91},
+  year    = {2026},
+  doi     = {10.1186/s10194-026-02346-7},
+  note    = {Open access (CC-BY 4.0) via BMC. 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model: next-day test-set AUC 0.84 (95\% CI 0.82-0.85); 3-day window AUC 0.76. Most predictive features: headache intensity, duration, heart-rate scores. Current high-water-mark migraine-forecasting benchmark; their diary+wearable modality differs from our diary-only modality - cite carefully.}
+}
+
+@misc{mcdermott2024aurocAuprc,
+  author       = {McDermott, Matthew B. A. and Hansen, Lasse Hyldig and Zhang, Haoran and Angelotti, Giovanni and Gallifant, Jack},
+  title        = {A Closer Look at {AUROC} and {AUPRC} under Class Imbalance},
+  howpublished = {arXiv:2401.06091},
+  year         = {2024},
+  month        = jan,
+  doi          = {10.48550/arXiv.2401.06091},
+  url          = {https://arxiv.org/abs/2401.06091},
+  note         = {Pre-print, 11 Jan 2024 v1. Mathematical and empirical argument that the conventional "use AUPRC under class imbalance" advice is overstated: AUPRC can favour high-prevalence subgroups and worsen fairness, while AUROC ranks model-improvement contributions in an unbiased manner. Justifies reporting BOTH AUROC and AUPRC rather than choosing only AUPRC on imbalanced binary targets.}
+}
+
+@article{moons2025probastAI,
+  author  = {Moons, Karel G. M. and Damen, Johanna A. A. and Kaul, Tabea and Hooft, Lotty and Andaur Navarro, Constanza and Dhiman, Paula and Beam, Andrew L. and Van Calster, Ben and Celi, Leo Anthony and Denaxas, Spiros and Denniston, Alastair K. and Ghassemi, Marzyeh and Heinze, Georg and Kengne, Andr{\'e} Pascal and Maier-Hein, Lena and Liu, Xiaoxuan and Logullo, Patricia and McCradden, Melissa D. and Liu, Nan and Oakden-Rayner, Lauren and Singh, Karandeep and Ting, Daniel S. and Wynants, Laure and Yang, Bada and Reitsma, Johannes B. and Riley, Richard D. and Collins, Gary S. and van Smeden, Maarten},
+  title   = {{PROBAST+AI}: an updated quality, risk of bias, and applicability assessment tool for prediction models using regression or artificial intelligence methods},
+  journal = {BMJ},
+  volume  = {388},
+  pages   = {e082505},
+  year    = {2025},
+  month   = mar,
+  doi     = {10.1136/bmj-2024-082505},
+  pmid    = {40127903},
+  note    = {Open access (CC BY-NC) via BMJ. PMC mirror: PMC11931409. Two-part risk-of-bias and applicability assessment tool: model-development (16 signalling questions) and model-evaluation (18 signalling questions), each spanning four domains (participants and data sources, predictors, outcome, analysis). Replaces PROBAST-2019 and is the risk-of-bias counterpart to TRIPOD+AI's reporting role.}
+}
+
+@article{vasey2022decideAI,
+  author  = {Vasey, Baptiste and Nagendran, Myura and Campbell, Bruce and Clifton, David A. and Collins, Gary S. and Denaxas, Spiros and Denniston, Alastair K. and Faes, Livia and Geerts, Bart and Ibrahim, Mudathir and Liu, Xiaoxuan and Mateen, Bilal A. and Mathur, Piyush and McCradden, Melissa D. and Morgan, Lauren and Ordish, Johan and Rogers, Campbell and Saria, Suchi and Ting, Daniel S. W. and Watkinson, Peter and Weber, Wim and Wheatstone, Peter and McCulloch, Peter},
+  title   = {Reporting guideline for the early stage clinical evaluation of decision support systems driven by artificial intelligence: {DECIDE-AI}},
+  journal = {BMJ},
+  volume  = {377},
+  pages   = {e070904},
+  year    = {2022},
+  month   = may,
+  doi     = {10.1136/bmj-2022-070904},
+  pmid    = {35585198},
+  note    = {Open access (CC BY-NC) via BMJ. Simultaneously published in Nature Medicine (Vasey et al., Nat Med 28, 924-933, 2022, doi:10.1038/s41591-022-01772-9). PMC mirror: PMC9116198. 17 AI-specific reporting items (28 sub-items) plus 10 generic reporting items. Stage-specific guideline for the early live clinical evaluation of AI decision-support systems, sitting between the TRIPOD-AI / STARD-AI pre-clinical stage and the SPIRIT-AI / CONSORT-AI trial stage in the development pathway. Not applicable to a development-only paper; serves as the next-stage guideline for any future clinical-evaluation follow-up.}
+}
+
+@misc{dfg2024gwpKodex,
+  author       = {{Deutsche Forschungsgemeinschaft}},
+  title        = {Leitlinien zur Sicherung guter wissenschaftlicher Praxis - Kodex},
+  howpublished = {Version 1.2 (corrected), DOI 10.5281/zenodo.14281892},
+  year         = {2024},
+  month        = sep,
+  doi          = {10.5281/zenodo.14281892},
+  url          = {https://www.dfg.de/de/grundlagen-themen/grundlagen-und-prinzipien-der-foerderung/gwp},
+  note         = {CC BY-SA 4.0 (DFG). First published September 2019; current version 1.2, Stand September 2024. 19 numbered guidelines covering organisational responsibility, research design, methods and standards, documentation, public access, authorship, conflicts of interest, and consequences of misconduct. Binding for all institutions receiving DFG funding and adopted by German Hochschulen as the conventional research-integrity baseline. An English summary at https://wissenschaftliche-integritaet.de/en/code-of-conduct/ is maintained by the same team.}
+}
+
+@misc{eu2024aiAct,
+  author       = {{European Parliament and Council of the European Union}},
+  title        = {Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act)},
+  howpublished = {Official Journal of the European Union, ELI: http://data.europa.eu/eli/reg/2024/1689/oj},
+  year         = {2024},
+  month        = jul,
+  url          = {https://eur-lex.europa.eu/eli/reg/2024/1689/oj},
+  note         = {Entered into force 1 August 2024. High-risk AI obligations originally applied from 2 August 2026; for AI embedded in regulated medical products under MDR 2017/745, the Article 6(1) deadline is 2 August 2027, with a May 2026 provisional Council and Parliament agreement to move embedded-medical-AI compliance to 2 August 2028 (not yet formally adopted as of 2026-05-14). This work is research on a public dataset and is not a deployed AI system, so neither deadline binds it. URL verified live.}
 }
