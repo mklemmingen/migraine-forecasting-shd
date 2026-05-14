@@ -2,7 +2,7 @@
 run script that aggregates any and all results/ *LATEST* entries into one interactive table in html.
 
 Uses the predefined structure of the folders as described in the Readme of:
-`experiment/<NrAddition>/<feature_set>/<architecture>/<*dataSplit>/<*SplitType>`
+`experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>/<*HyperparameterTuned>
 
 to name the current approach in the tabular views.
 
@@ -410,16 +410,28 @@ def build_html(all_entries, iso_timestamp, uid):
 # All 10 metrics are shown in cells. The CV-source MCC (renamed to "MCC (Cal-Optimal)"
 # under cross-validation) is auto-substituted via the lookup_key branch in build_comparison_html.
 COMPARISON_METRICS = [
-    ("AUROC",               "AUROC",    True,  0.5,  1.0),
-    ("AUPRC",               "AUPRC",    True,  0.0,  1.0),
-    ("Brier Score",         "Brier ↓",  False, 0.0,  0.25),  # ~baseline at 5% prevalence
-    ("ECE10",               "ECE10 ↓",  False, 0.0,  0.10),  # well-calibrated < 0.05
-    ("MCC (Optimal)",       "MCC",      True,  0.0,  0.5),   # practical upper bound ~0.5
-    ("Sensitivity (>=0.5)", "Sens≥0.5", True,  0.0,  1.0),
-    ("Accuracy",            "Acc",      True,  0.5,  1.0),   # ~majority-class baseline
-    ("Precision",           "Prec",     True,  0.0,  1.0),
-    ("Recall",              "Recall",   True,  0.0,  1.0),
-    ("F1",                  "F1",       True,  0.0,  1.0),
+    ("AUROC",               "AUROC",       True,  0.5,  1.0),
+    ("AUPRC",               "AUPRC",       True,  0.0,  1.0),
+    ("Brier Score",         "Brier ↓",     False, 0.0,  0.25),  # ~baseline at 5% prevalence
+    ("ECE10",               "ECE10 ↓",     False, 0.0,  0.10),  # well-calibrated < 0.05
+    # Calibration slope is the logistic-recalibration coefficient on the
+    # held-out set; 1.0 = perfect, <1.0 = over-confident (overfit), >1.0
+    # = under-confident. Required by TRIPOD+AI alongside ECE/Brier.
+    # vmin/vmax framed around 1.0: [0.0, 2.0]; the closer to 1.0 the
+    # better, but the global color scale is symmetric only via this
+    # 0..2 range. Older results files without this key render as N/A
+    # until those leaves are re-evaluated.
+    ("Calibration Slope",   "CalSlope",    True,  0.0,  2.0),
+    ("MCC (Optimal)",       "MCC",         True,  0.0,  0.5),   # practical upper bound ~0.5
+    ("Sensitivity (>=0.5)", "Sens≥0.5",    True,  0.0,  1.0),
+    # Accuracy: kept for completeness but base-rate-dominated on
+    # imbalanced targets. On the migraine target (5% positive rate) a
+    # constant-negative predictor reaches ~95% accuracy. Use MCC / AUPRC
+    # / Brier as the primary headline; accuracy is for completeness only.
+    ("Accuracy",            "Acc (base!)", True,  0.5,  1.0),
+    ("Precision",           "Prec",        True,  0.0,  1.0),
+    ("Recall",              "Recall",      True,  0.0,  1.0),
+    ("F1",                  "F1",          True,  0.0,  1.0),
 ]
 
 
@@ -436,6 +448,42 @@ def compute_color(val_str, higher_better, val_min, val_max):
     if not higher_better:
         t = 1.0 - t
     return f"hsl({round(t * 120)}, 60%, 91%)"
+
+
+def parse_mean_ci(val_str):
+    """Parse the per-leaf bootstrap output ``"mean [lo - hi]"``.
+
+    Returns ``(mean, lo, hi)`` as floats, or ``None`` if the string is
+    missing or unparseable. The evaluator templates write the CI as
+    1000-iteration bootstrap 2.5/97.5 percentiles (see ``_scaffold_leaves.py``
+    ``run_bootstrap_evaluation``), so the bracketed range is a 95% CI.
+    For CV-source values the same format is used; for the singleton
+    cells (e.g. accuracy that is not bootstrapped) the bracket may be
+    absent and only the mean is returned.
+    """
+    if val_str is None:
+        return None
+    s = str(val_str)
+    try:
+        mean = float(s.split()[0])
+    except (ValueError, IndexError):
+        return None
+    lo = hi = None
+    lb = s.find("[")
+    rb = s.find("]")
+    if lb != -1 and rb != -1 and rb > lb:
+        inner = s[lb + 1:rb]
+        for sep in (" - ", " – ", " — ", ", ", " to "):
+            if sep in inner:
+                parts = inner.split(sep)
+                if len(parts) == 2:
+                    try:
+                        lo = float(parts[0].strip())
+                        hi = float(parts[1].strip())
+                    except ValueError:
+                        lo = hi = None
+                    break
+    return mean, lo, hi
 
 
 # ---------------------------------------------------------------------------
@@ -480,6 +528,7 @@ VENN_COLORS = {
     'full':       '#2563eb',  # blue
     'spano':      '#dc2626',  # red
     'no_rolling': '#059669',  # green
+    'park':       '#a16207',  # amber - Park (2016) stepwise-selected subset
 }
 CATEGORY_COLORS = {
     'engineered': '#7c2d92',  # dark purple - derived features
@@ -488,12 +537,16 @@ CATEGORY_COLORS = {
 
 
 def compute_feature_sets():
-    """Load a representative parquet and compute (full, spano, no_rolling) feature sets.
+    """Load a representative parquet and compute the four feature sets.
 
-    Returns dict {full, spano, no_rolling} of column-name sets, or None if no
-    parquet is found (e.g. data pipeline hasn't been run yet).
+    Returns dict {full, spano, no_rolling, park} of column-name sets, or
+    None if no parquet is found (e.g. data pipeline hasn't been run yet).
+    The Park set includes one derived feature (``hormonal_changes_today``)
+    that is NOT a column in the engineered parquet itself - the Park
+    filter computes it from menstruation_today OR ovulation_today to
+    match Park et al.'s single "hormonal changes" trigger.
     """
-    NON_FEATURE = {"entry_id", "patient_id", "date", "migraine_target", "cv_fold"}
+    NON_FEATURE = {"entry_id", "patient_id", "date", "migraine_target", "cv_fold", "migraine_today"}
     candidates = [
         EXPERIMENT_DIR.parent / "data" / "processed" / "headache" / "70_15_15" / "chrono" / "diary_train.parquet",
         EXPERIMENT_DIR.parent / "data" / "processed" / "migraine"  / "70_15_15" / "chrono" / "diary_train.parquet",
@@ -502,15 +555,19 @@ def compute_feature_sets():
     if parquet is None:
         return None
 
-    sys.path.insert(0, str(EXPERIMENT_DIR / "_dataRead"))
+    # The filter modules use absolute imports from `_dataRead.*`; put the
+    # *parent* (experiment/) on sys.path so those imports resolve.
+    sys.path.insert(0, str(EXPERIMENT_DIR))
     import pandas as pd
-    from filter_to_spano_features import remove_non_spano_features
-    from filter_to_no_rolling_features import remove_rolling_features
+    from _dataRead.filter_to_spano_features import select_spano_features
+    from _dataRead.filter_to_no_rolling_features import select_non_rolling_features
+    from _dataRead.filter_to_park_features import select_park_features
 
-    full       = set(pd.read_parquet(parquet).columns) - NON_FEATURE
-    spano      = set(remove_non_spano_features(str(parquet)).columns) - NON_FEATURE
-    no_rolling = set(remove_rolling_features(str(parquet)).columns)   - NON_FEATURE
-    return {"full": full, "spano": spano, "no_rolling": no_rolling}
+    full       = set(pd.read_parquet(parquet).columns)        - NON_FEATURE
+    spano      = set(select_spano_features(str(parquet)).columns)      - NON_FEATURE
+    no_rolling = set(select_non_rolling_features(str(parquet)).columns) - NON_FEATURE
+    park       = set(select_park_features(str(parquet)).columns)        - NON_FEATURE
+    return {"full": full, "spano": spano, "no_rolling": no_rolling, "park": park}
 
 
 def _split_by_category(features):
@@ -598,6 +655,34 @@ def generate_count_venn_png(feature_sets, out_path):
             transform=ax.transAxes, fontsize=8.5, color='#444',
             verticalalignment='bottom',
             bbox=dict(facecolor='white', edgecolor='#bbb', boxstyle='round,pad=0.4'))
+
+    # Park (2016) stepwise-selected subset is shown as a sidebar rather than a
+    # 4th circle. It is a near-strict subset of `full` (5 of its 6 features are
+    # columns of `full`), plus one derived feature `hormonal_changes_today`
+    # (= menstruation_today OR ovulation_today) that is constructed inside the
+    # filter to match Park et al.'s single "hormonal changes" trigger
+    # representation. Forcing a 4-set Venn would visually flatten this almost-
+    # subset relationship; the sidebar is more informative.
+    park = feature_sets.get("park", set())
+    if park:
+        park_in_full = sorted(park & full)
+        park_only    = sorted(park - full)
+        park_lines = [
+            f"Park (2016) stepwise-selected: {len(park)} features",
+            f"  {len(park_in_full)} ⊂ full:  " + ", ".join(park_in_full),
+        ]
+        if park_only:
+            park_lines.append(
+                f"  {len(park_only)} derived (not in full): " + ", ".join(park_only)
+            )
+        ax.text(
+            0.98, 0.02, "\n".join(park_lines),
+            transform=ax.transAxes, fontsize=8.5, color=VENN_COLORS['park'],
+            verticalalignment='bottom', horizontalalignment='right',
+            fontfamily='monospace',
+            bbox=dict(facecolor='white', edgecolor=VENN_COLORS['park'],
+                      boxstyle='round,pad=0.5', linewidth=1.2),
+        )
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=110, bbox_inches='tight')
@@ -708,6 +793,27 @@ def generate_names_venn_png(feature_sets, out_path):
             transform=ax.transAxes, fontsize=10,
             color=CATEGORY_COLORS['engineered'], fontweight='bold',
             verticalalignment='top', fontfamily='monospace')
+
+    # Park (2016) sidebar - same rationale as in generate_count_venn_png.
+    park = feature_sets.get("park", set())
+    if park:
+        park_in_full = sorted(park & full)
+        park_only    = sorted(park - full)
+        park_lines = [
+            f"Park (2016) [1, Tab. 4]: stepwise-selected subset, {len(park)} features",
+        ]
+        for f in park_in_full:
+            park_lines.append(f"  ⊂ full   {f}")
+        for f in park_only:
+            park_lines.append(f"  derived  {f}")
+        ax.text(
+            0.99, 0.01, "\n".join(park_lines),
+            transform=ax.transAxes, fontsize=8.5, color=VENN_COLORS['park'],
+            verticalalignment='bottom', horizontalalignment='right',
+            fontfamily='monospace',
+            bbox=dict(facecolor='white', edgecolor=VENN_COLORS['park'],
+                      boxstyle='round,pad=0.5', linewidth=1.2),
+        )
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=120, bbox_inches='tight')
@@ -868,16 +974,263 @@ def generate_tree_png(all_entries, out_path):
     plt.close(fig)
 
 
+# ---------------------------------------------------------------------------
+# Comparison HTML helpers
+# ---------------------------------------------------------------------------
+
+def _strict_ci_winner(parsed, higher_better):
+    """Strict CI-separation rule for picking a single statistically clear
+    winner from a list of ``(key, mean, lo, hi)`` tuples.
+
+    For higher-is-better metrics the candidate is the entry with the
+    highest lower bound; for lower-is-better metrics it is the entry with
+    the lowest upper bound. The candidate wins only when its 95% CI is
+    disjoint from every other entry's CI. Returns ``{winner_key}`` on a
+    strict win, or an empty set when CIs overlap or when fewer than two
+    entries carry a parseable CI.
+    """
+    if len(parsed) < 2:
+        return set()
+    if higher_better:
+        winner        = max(parsed, key=lambda t: t[2])    # highest lo
+        others_max_hi = max(t[3] for t in parsed if t[0] != winner[0])
+        separated     = winner[2] > others_max_hi
+    else:
+        winner        = min(parsed, key=lambda t: t[3])    # lowest hi
+        others_min_lo = min(t[2] for t in parsed if t[0] != winner[0])
+        separated     = winner[3] < others_min_lo
+    return {winner[0]} if separated else set()
+
+
+_METRIC_NOTES = {
+    "Accuracy": (
+        "Base-rate-dominated on imbalanced targets. On migraine "
+        "(~5% positive rate) a constant-negative predictor reaches "
+        "~95% accuracy, so this column should not be read as a "
+        "headline. MCC, AUPRC and Brier are the primary metrics."
+    ),
+    "Calibration Slope": (
+        "Logistic-recalibration slope. 1.0 = perfect calibration; "
+        "&lt;1.0 = predictions are too extreme (the classical "
+        "overfitting fingerprint); &gt;1.0 = predictions are too "
+        "conservative. Required by TRIPOD+AI alongside ECE/Brier."
+    ),
+    "AUPRC": (
+        "Comparing AUPRC <i>across</i> the headache (~25% positive) "
+        "and migraine (~5% positive) columns is misleading because "
+        "the baseline differs; compare within a target only."
+    ),
+}
+
+
+def _render_metric_legend_rows(metrics):
+    """Build the metric-legend table rows: one row per metric, each
+    showing the higher/lower-is-better direction, the (vmin, vmax) range,
+    a three-step worst-mid-best color swatch, and an optional reading
+    note from _METRIC_NOTES.
+    """
+    out = ""
+    for m_key, label, higher, vmin, vmax in metrics:
+        direction = "↑ higher = better" if higher else "↓ lower = better"
+        worst_bg  = compute_color(str(vmin if higher else vmax), higher, vmin, vmax)
+        best_bg   = compute_color(str(vmax if higher else vmin), higher, vmin, vmax)
+        mid_bg    = compute_color(str((vmin + vmax) / 2), higher, vmin, vmax)
+        note      = _METRIC_NOTES.get(m_key, "")
+        note_html = f'<div class="metric-note">{note}</div>' if note else ""
+        out += (
+            f"<tr><td><b>{label}</b></td><td>{direction}</td>"
+            f"<td>{vmin} … {vmax}</td>"
+            f'<td>'
+            f'<span class="sw" style="background:{worst_bg}">worst</span> → '
+            f'<span class="sw" style="background:{mid_bg}">mid</span> → '
+            f'<span class="sw" style="background:{best_bg}">best</span>'
+            f"{note_html}"
+            f'</td></tr>'
+        )
+    return out
+
+
+def _render_fs_glossary_rows(row_keys, fs_labels, fs_gloss):
+    """Glossary rows for the feature-set short labels actually present
+    on the architecture axis. ``row_keys`` carries the architecture axis
+    (addition, architecture, version, feature_set); feature_set is at
+    position 3.
+    """
+    fs_present = sorted({fs_labels.get(rk[3], rk[3]) for rk in row_keys})
+    return "".join(
+        f'<tr><td><b>[{s}]</b></td><td>{fs_gloss.get(s, "(no description)")}</td></tr>'
+        for s in fs_present
+    )
+
+
+def _render_blended_caveat(row_keys):
+    """Methodological caveat for the blended Spano replication. Empty
+    when that architecture is absent. Architecture is row_keys[i][1].
+    """
+    has_blended = any(rk[1] == "blended_xgb_lr_spano2026" for rk in row_keys)
+    if not has_blended:
+        return ""
+    return """
+    <div class="caveat">
+      <h3>Why <code>blended_xgb_lr_spano2026</code> appears only at the canonical 70_15_15 / chrono cell</h3>
+      <p>The architecture's held-out calibration set drives <b>four sequential optimisation steps</b>: per-base isotonic + Platt calibrators, alpha grid search, final-calibrator selection, and downstream operating-threshold selection. Because the isotonic calibrators effectively memorise the calibration set, threshold-derived metrics (MCC, Sensitivity ≥ 0.5, F1) on test are unreliable; AUROC and AUPRC remain trustworthy because they are rank-based and calibration-invariant.</p>
+      <p>The architecture is preserved as a faithful replication of the prior bachelor-thesis baseline (Spano 2026, single operating point). Fanning it out across ratios and split types would add cells whose threshold metrics could not be cleanly compared. The methodologically clean comparator is <code>stacked_2xgb_meta_lr</code>, which uses two-parameter Platt calibration only and is fanned out to the full grid.</p>
+    </div>
+    """
+
+
+def _render_data_cell(rk, ck, entry, row_best, col_best_for_col, metrics):
+    """Render the full ``<td>`` for one (row, column) cell.
+
+    Returns the empty-cell placeholder when ``entry`` is None. Otherwise
+    emits one ``.mrow`` block per metric, each carrying its hue-coded
+    background plus optional left-edge / upper-edge strict-CI-separation
+    marker. ``row_best`` is the per-metric winner set for this row,
+    ``col_best_for_col`` is the per-metric winner set for this column;
+    the two markers are independent (a cell can carry neither, one, or
+    both). A small CV / H+CV badge in the corner records the source of
+    the numeric values.
+    """
+    if entry is None:
+        return '<td class="empty">-</td>'
+
+    src       = entry.get("holdout") or {}
+    is_cv_src = not src
+    if is_cv_src:
+        src = entry.get("cv") or {}
+    has_cv = bool(entry.get("cv"))
+
+    metric_rows = []
+    for m_key, label, higher, vmin, vmax in metrics:
+        cv_key = "MCC (Cal-Optimal)" if m_key == "MCC (Optimal)" else m_key
+        val_str = src.get(cv_key if is_cv_src else m_key)
+        bg      = compute_color(val_str, higher, vmin, vmax)
+        parsed  = parse_mean_ci(val_str)
+        if parsed is None:
+            mean_disp = "N/A"
+            ci_disp   = ""
+            na_cls    = ' class="mv na"'
+        else:
+            mean, lo, hi = parsed
+            mean_disp = f"{mean:.3f}"
+            ci_disp   = (f'<span class="ci">[{lo:.3f}-{hi:.3f}]</span>'
+                         if lo is not None and hi is not None else "")
+            na_cls    = ' class="mv"'
+
+        # Left edge: cell wins its row on this metric (strict CI separation).
+        # Upper edge: cell wins its column on this metric (same rule, transposed).
+        classes = ["mrow"]
+        if ck in row_best.get(m_key, set()):
+            classes.append("mrow-best")
+        if rk in col_best_for_col.get(m_key, set()):
+            classes.append("mrow-best-col")
+        mrow_cls = " ".join(classes)
+        metric_rows.append(
+            f'<div class="{mrow_cls}" style="background:{bg}">'
+            f'<span class="ml">{label}</span>'
+            f'<span{na_cls}>{mean_disp}{ci_disp}</span>'
+            f'</div>'
+        )
+
+    if is_cv_src:
+        src_tag = '<div class="src-tag">CV</div>'
+    elif has_cv:
+        src_tag = '<div class="src-tag">H+CV</div>'
+    else:
+        src_tag = ""
+    return f'<td class="dcell">{src_tag}{"".join(metric_rows)}</td>'
+
+
+def _render_column_headers(col_keys):
+    """Build the two-row column header for the comparison table.
+
+    Row 1 groups consecutive columns that share the same ``target`` under
+    a single ``<th>``; row 2 carries the per-column ratio / split label.
+    The corner ``<th>`` spans the two row-header columns (addition chip
+    plus the arch / ver / fs text block) and both header rows.
+    """
+    # target_groups: list of [target_name, span] pairs
+    target_groups: list[list] = []
+    last_target = None
+    for target, _ds, _st in col_keys:
+        if last_target is None or target != last_target:
+            target_groups.append([target, 1])
+            last_target = target
+        else:
+            target_groups[-1][1] += 1
+
+    group_row_cells = [
+        '<th class="corner" rowspan="2" colspan="2">'
+        '<div class="corner-axis">rows ↓ Architecture</div>'
+        '<div class="corner-axis">cols → Data Package</div></th>'
+    ]
+    for target, span in target_groups:
+        group_row_cells.append(
+            f'<th class="add-hdr" colspan="{span}">{target}</th>'
+        )
+
+    detail_row_cells = []
+    for _target, ds, st in col_keys:
+        split_disp = st if st else ""
+        detail_row_cells.append(
+            f'<th class="col-hdr">'
+            f'<span class="c-arch">{ds}</span>'
+            + (f'<br><span class="c-ver">{split_disp}</span>' if split_disp else "")
+            + f'</th>'
+        )
+
+    return (
+        f'<tr>{"".join(group_row_cells)}</tr>'
+        f'<tr>{"".join(detail_row_cells)}</tr>'
+    )
+
+
+def _compute_best_sets(entries_with_src, metrics):
+    """For each metric in ``metrics``, return the singleton-or-empty set
+    of strictly CI-separated winner keys among ``entries_with_src``.
+
+    ``entries_with_src`` is a list of ``(key, src, is_cv_source)`` tuples
+    sharing one axis (e.g. all the cells in one row, or all the cells in
+    one column). Returns ``{m_key: set_of_winner_keys}``. Cells whose
+    source dict carries no parseable CI for the metric are silently
+    skipped, so a CI-separation result is never claimed on point
+    estimates. The MCC name shifts from "MCC (Optimal)" to
+    "MCC (Cal-Optimal)" when the row's source is CV.
+    """
+    result: dict[str, set[tuple]] = {}
+    for m_key, _label, higher, _vmin, _vmax in metrics:
+        cv_key = "MCC (Cal-Optimal)" if m_key == "MCC (Optimal)" else m_key
+        parsed = []
+        for key, src, is_cv in entries_with_src:
+            v_tuple = parse_mean_ci(src.get(cv_key if is_cv else m_key))
+            if v_tuple is None:
+                continue
+            mean, lo, hi = v_tuple
+            if lo is None or hi is None:
+                continue
+            parsed.append((key, mean, lo, hi))
+        result[m_key] = _strict_ci_winner(parsed, higher)
+    return result
+
+
 def build_comparison_html(all_entries, iso_timestamp, uid,
                           venn_count_filename=None,
                           venn_names_filename=None,
                           tree_filename=None):
     """
     One big colour-coded flat table.
-    Rows  = data packages  (target / datasplit / splittype).
-    Cols  = architectures  (feature_set / architecture / version).
+    Rows  = architectures  (addition / architecture / version / feature_set).
+    Cols  = data packages  (target / datasplit / splittype).
     Cells = all 10 metrics, each with its own hue-coded background.
     Source: hold-out test results (fall back to CV mean if hold-out absent).
+
+    The architecture axis sits on rows because that axis grows with each
+    new model variant added to the study (TabPFN versions, AutoTabPFN,
+    Fine-tuned, future additions), while the data-package axis stays
+    near-constant (a fixed grid of target x ratio x split with one
+    target-specific extension for the Park feature set). Putting the
+    growing axis on rows keeps the table comfortable to read vertically
+    as new variants land.
 
     Layout (top → bottom): table → colour legend → feature-set glossary →
     count Venn → names Venn → leaf tree (matplotlib PNG) →
@@ -892,159 +1245,138 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
         "full_features": "full",
         "no_rolling_features": "no_rolling",
         "spano_features": "spano",
+        "park_features": "park",
     }
     FS_GLOSS = {
         "full": "all engineered features (today's triggers + rolling/lag/interaction)",
         "no_rolling": "today's triggers only - no temporal aggregation, lag, or streaks",
         "spano": "Spano (2026) feature subset - matches the prior-work replication",
+        "park": "Park (2016) [Tab. 4] stepwise-selected triggers: stress, hormonal_changes, noise, alcohol, overeating, travel (migraine target only)",
     }
 
-    # Column sort order: (addition, architecture, version, feature_set).
-    # - addition first so all columns from the same experiment number cluster.
+    # Architecture-axis sort: (addition, architecture, version, feature_set).
+    # - addition first so all rows from the same experiment number cluster.
     # - architecture alphabetical inside each addition.
     # - version is the natural sub-sort within an architecture (tabpfn 2-6 vs 2-7).
     # - feature_set as the final tiebreaker so [full] / [no_rolling] / [spano]
     #   variants of the same architecture stay adjacent.
-    def col_key(e):
+    def arch_key(e):
         p = e["path"]
         return (p["addition"], p["architecture"], p["version"] or "", p["feature_set"])
 
-    def row_key(e):
+    # Data-package-axis sort: (target, datasplit, splittype).
+    # target first so all headache columns sit together, then migraine,
+    # which keeps the headache-vs-migraine visual divider intact.
+    def data_key(e):
         p = e["path"]
         return (p["target"], p["datasplit"], p["splittype"] or "")
 
-    col_keys = sorted(set(col_key(e) for e in all_entries))
-    row_keys = sorted(set(row_key(e) for e in all_entries))
-    lookup   = {(row_key(e), col_key(e)): e for e in all_entries}
+    row_keys = sorted(set(arch_key(e) for e in all_entries))
+    col_keys = sorted(set(data_key(e) for e in all_entries))
+    lookup   = {(arch_key(e), data_key(e)): e for e in all_entries}
 
-    # ---- column headers ----
-    # Two-row header: row 1 is the addition group spanning its columns,
-    # row 2 has the per-column architecture / version / feature-set labels.
-    addition_groups: list[tuple[str, int]] = []
-    last_addition = None
-    for addition, _arch, _ver, _fs in col_keys:
-        if last_addition is None or addition != last_addition:
-            addition_groups.append([addition, 1])
-            last_addition = addition
-        else:
-            addition_groups[-1][1] += 1
+    header_html = _render_column_headers(col_keys)
 
-    group_row_cells = [
-        '<th class="corner" rowspan="2">'
-        '<div class="corner-axis">rows ↓ Data Package</div>'
-        '<div class="corner-axis">cols → Architecture</div></th>'
-    ]
-    for addition, span in addition_groups:
-        group_row_cells.append(
-            f'<th class="add-hdr" colspan="{span}">Addition {addition}</th>'
-        )
+    # ---- column-best precomputation -----------------------------------
+    # For each (col_key, m_key) pair, find the row whose CI is strictly
+    # disjoint from every other row's CI in that column. Same strict
+    # separation rule used for row-best, just transposed. A cell can
+    # win in its row, in its column, in both, or neither - the two
+    # markers are independent.
+    best_col_set_per_metric: dict[tuple, dict[str, set[tuple]]] = {}
+    for ck in col_keys:
+        # Gather every row's source dict for this column, then defer the
+        # per-metric strict-CI comparison to _compute_best_sets.
+        col_entries: list[tuple[tuple, dict, bool]] = []
+        for rk in row_keys:
+            entry = lookup.get((rk, ck))
+            if entry is None:
+                continue
+            src       = entry.get("holdout") or {}
+            is_cv_src = not src
+            if is_cv_src:
+                src = entry.get("cv") or {}
+            if src:
+                col_entries.append((rk, src, is_cv_src))
+        best_col_set_per_metric[ck] = _compute_best_sets(col_entries, COMPARISON_METRICS)
 
-    detail_row_cells = []
-    for addition, arch, ver, fs in col_keys:
+    # ---- data rows ----
+    # One row per architecture-axis key. The row header is split into two
+    # cells: a narrow colored chip carrying the addition number, and the
+    # arch/ver/fs text block.
+    #
+    # Two independent best-cell markers fire per metric per cell:
+    #   - Left edge (.mrow-best): cell's CI is strictly disjoint from
+    #     every other cell's CI in the same row for this metric. Reads
+    #     as "for this architecture, this data-package gives the best
+    #     result we can statistically distinguish from the others".
+    #   - Upper edge (.mrow-best-col): same rule applied down a column.
+    #     Reads as "for this data-package on this metric, this
+    #     architecture wins versus all others in a statistically
+    #     distinguishable way".
+    # The two markers are independent; a cell can have neither, one,
+    # or both.
+    rows_html = ""
+    for rk in row_keys:
+        addition, arch, ver, fs = rk
         arch_disp = arch.replace("_", " ")
         ver_disp  = ver.replace("version_", "") if ver else ""
         fs_short  = FS_LABELS.get(fs, fs)
-        detail_row_cells.append(
-            f'<th class="col-hdr">'
-            f'<span class="c-arch">{arch_disp}</span>'
-            + (f'<br><span class="c-ver">v{ver_disp}</span>' if ver_disp else "")
-            + f'<br><span class="c-fs">[{fs_short}]</span>'
-            f'</th>'
-        )
 
-    header_html = (
-        f'<tr>{"".join(group_row_cells)}</tr>'
-        f'<tr>{"".join(detail_row_cells)}</tr>'
-    )
-
-    # ---- data rows ----
-    rows_html = ""
-    for rk in row_keys:
-        target, ds, st = rk
-        # Label each row component so a reader knows which axis is which.
-        parts = []
-        parts.append(f'<div class="rh-target">{target}</div>')
-        parts.append(f'<div class="rh-line"><span class="rh-key">ratio:</span> {ds}</div>')
-        if st:
-            parts.append(f'<div class="rh-line"><span class="rh-key">split:</span> {st}</div>')
-        cells = f'<td class="row-hdr">{"".join(parts)}</td>'
-
+        # First pass: collect numeric values per metric across this row's
+        # data cells so we can identify the row's best column per metric.
+        # CV-source cells fall back to CV-named keys for MCC.
+        row_entries: list[tuple[tuple, dict, bool]] = []
         for ck in col_keys:
             entry = lookup.get((rk, ck))
             if entry is None:
-                cells += '<td class="empty">-</td>'
+                row_entries.append((ck, {}, False))
                 continue
-
             src       = entry.get("holdout") or {}
-            has_cv    = bool(entry.get("cv"))
-            is_cv_src = not src  # fall back to CV if no hold-out
+            is_cv_src = not src
             if is_cv_src:
                 src = entry.get("cv") or {}
+            row_entries.append((ck, src, is_cv_src))
 
-            metric_rows = []
-            for m_key, label, higher, vmin, vmax in COMPARISON_METRICS:
-                # CV keys differ: "MCC (Optimal)" → "MCC (Cal-Optimal)"
-                lookup_key = m_key
-                if is_cv_src and m_key == "MCC (Optimal)":
-                    lookup_key = "MCC (Cal-Optimal)"
-                val_str = src.get(lookup_key)
-                bg      = compute_color(val_str, higher, vmin, vmax)
-                display = val_str.split()[0] if val_str else "N/A"
-                na_cls  = ' class="na"' if val_str is None else ""
-                metric_rows.append(
-                    f'<div class="mrow" style="background:{bg}">'
-                    f'<span class="ml">{label}</span>'
-                    f'<span class="mv"{na_cls}>{display}</span>'
-                    f'</div>'
-                )
+        # Strict CI-separation best-set for this row, per metric. At this
+        # dataset's sample size most rows have overlapping CIs and
+        # correctly show no marker ("no clear winner at this sample
+        # size"); the rare strict winners stand out as lighthouse-contrast
+        # highlights.
+        best_set_per_metric = _compute_best_sets(
+            [(ck, src, is_cv) for ck, src, is_cv in row_entries if src],
+            COMPARISON_METRICS,
+        )
 
-            src_tag = ""
-            if is_cv_src:
-                src_tag = '<div class="src-tag">CV</div>'
-            elif has_cv:
-                src_tag = '<div class="src-tag">H+CV</div>'
+        parts = [
+            f'<div class="rh-line"><span class="rh-key">arch:</span> {arch_disp}</div>',
+        ]
+        if ver_disp:
+            parts.append(f'<div class="rh-line"><span class="rh-key">ver:</span> v{ver_disp}</div>')
+        parts.append(f'<div class="rh-line"><span class="rh-key">fs:</span> [{fs_short}]</div>')
 
-            cells += f'<td class="dcell">{src_tag}{"".join(metric_rows)}</td>'
+        # Two row-header cells: addition chip + arch/ver/fs text block.
+        add_chip_cell = (
+            f'<td class="add-chip add-{addition}">'
+            f'<span class="add-chip-text">Addition&nbsp;{addition}</span>'
+            f'</td>'
+        )
+        cells = add_chip_cell + f'<td class="row-hdr">{"".join(parts)}</td>'
+
+        for ck, _src, _is_cv in row_entries:
+            entry = lookup.get((rk, ck))
+            cells += _render_data_cell(
+                rk, ck, entry,
+                row_best=best_set_per_metric,
+                col_best_for_col=best_col_set_per_metric.get(ck, {}),
+                metrics=COMPARISON_METRICS,
+            )
 
         rows_html += f"<tr>{cells}</tr>\n"
 
-    # ---- legend ----
-    legend_rows = ""
-    for _, label, higher, vmin, vmax in COMPARISON_METRICS:
-        direction = "↑ higher = better" if higher else "↓ lower = better"
-        worst_bg  = compute_color(str(vmin if higher else vmax), higher, vmin, vmax)
-        best_bg   = compute_color(str(vmax if higher else vmin), higher, vmin, vmax)
-        mid_val   = (vmin + vmax) / 2
-        mid_bg    = compute_color(str(mid_val), higher, vmin, vmax)
-        legend_rows += (
-            f"<tr><td><b>{label}</b></td><td>{direction}</td>"
-            f"<td>{vmin} … {vmax}</td>"
-            f'<td>'
-            f'<span class="sw" style="background:{worst_bg}">worst</span> → '
-            f'<span class="sw" style="background:{mid_bg}">mid</span> → '
-            f'<span class="sw" style="background:{best_bg}">best</span>'
-            f'</td></tr>'
-        )
-
-    # Glossary rows for feature-set abbreviations actually present in the table.
-    # col_keys is now (addition, architecture, version, feature_set) - feature_set is element [3].
-    fs_present_short = sorted({FS_LABELS.get(ck[3], ck[3]) for ck in col_keys})
-    fs_glossary_rows = "".join(
-        f'<tr><td><b>[{s}]</b></td><td>{FS_GLOSS.get(s, "(no description)")}</td></tr>'
-        for s in fs_present_short
-    )
-
-    # Methodological caveat for the blended Spano replication - only rendered
-    # if that architecture appears in the table. Explains why it has just one
-    # cell instead of fanning out across ratios/splits like stacked does.
-    has_blended = any(ck[1] == "blended_xgb_lr_spano2026" for ck in col_keys)
-    caveat_html = ("""
-    <div class="caveat">
-      <h3>Why <code>blended_xgb_lr_spano2026</code> appears only at the canonical 70_15_15 / chrono cell</h3>
-      <p>The architecture's held-out calibration set drives <b>four sequential optimisation steps</b>: per-base isotonic + Platt calibrators, alpha grid search, final-calibrator selection, and downstream operating-threshold selection. Because the isotonic calibrators effectively memorise the calibration set, threshold-derived metrics (MCC, Sensitivity ≥ 0.5, F1) on test are unreliable; AUROC and AUPRC remain trustworthy because they are rank-based and calibration-invariant.</p>
-      <p>The architecture is preserved as a faithful replication of the prior bachelor-thesis baseline (Spano 2026, single operating point). Fanning it out across ratios and split types would add cells whose threshold metrics could not be cleanly compared. The methodologically clean comparator is <code>stacked_2xgb_meta_lr</code>, which uses two-parameter Platt calibration only and is fanned out to the full grid.</p>
-    </div>
-    """ if has_blended else "")
+    legend_rows      = _render_metric_legend_rows(COMPARISON_METRICS)
+    fs_glossary_rows = _render_fs_glossary_rows(row_keys, FS_LABELS, FS_GLOSS)
+    caveat_html      = _render_blended_caveat(row_keys)
 
     # Venn - region counts (full / spano / no_rolling), engineered + original split
     venn_count_html = (f"""
@@ -1124,11 +1456,74 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
       .row-hdr {{
         background: #dde3ea; padding: 6px 10px; font-weight: bold;
         font-size: 0.83em; min-width: 140px; vertical-align: middle;
-        text-align: left; position: sticky; left: 0; z-index: 1;
+        text-align: left; position: sticky; left: 28px; z-index: 1;
       }}
       .rh-target {{ font-size: 1.05em; font-weight: bold; color: #1a3550; }}
       .rh-line {{ font-weight: normal; color: #444; font-size: 0.92em; margin-top: 1px; }}
       .rh-key {{ color: #888; font-weight: normal; }}
+
+      /* Addition chip: leftmost narrow column on each data row. The chip's
+         background colour encodes the experiment-addition number so a
+         reader can group rows visually before reading the arch label.
+         Width is kept narrow because the chip is a categorical marker,
+         not a label - the text rotates vertically inside the chip. */
+      .add-chip {{
+        width: 28px; min-width: 28px; padding: 6px 0;
+        vertical-align: middle; text-align: center;
+        position: sticky; left: 0; z-index: 1;
+        background: #888; color: #fff;
+      }}
+      .add-chip-text {{
+        writing-mode: vertical-rl; transform: rotate(180deg);
+        font-size: 0.72em; font-weight: bold; letter-spacing: 0.06em;
+        white-space: nowrap;
+      }}
+      /* Per-addition colours. Extend this list as new additions land. */
+      .add-chip.add-0 {{ background: #2f5b8a; }}  /* deep blue */
+      .add-chip.add-1 {{ background: #c47218; }}  /* amber/copper */
+      .add-chip.add-2 {{ background: #5a4585; }}  /* violet */
+      .add-chip.add-3 {{ background: #2f7a5b; }}  /* forest green */
+      .add-chip.add-4 {{ background: #8a2f5b; }}  /* magenta */
+
+      /* Best-cell markers. Both rules use strict CI separation: the
+         winning cell's 95% bootstrap CI does not overlap any other
+         cell's CI in the same row (row-best) or same column (col-best)
+         for that metric. The two markers are independent; a cell can
+         carry one, both, or neither. The visual is intentionally a
+         thin coloured edge (no outline, no shadow) so the eye finds
+         the lighthouse-contrast cells without crowding their content.
+
+         - Left edge, dark green: row-best
+           "for this architecture, this data-package is statistically
+            distinguishable from the rest of the row."
+
+         - Upper edge, deep violet: column-best
+           "for this data-package, this architecture is statistically
+            distinguishable from the rest of the column."
+      */
+      .mrow.mrow-best {{
+        border-left: 3px solid #0d3a0d;
+        padding-left: 3px;
+      }}
+      .mrow.mrow-best-col {{
+        border-top: 3px solid #5a3a8a;
+        padding-top: 0px;
+      }}
+
+      /* Marker-key swatch in the best-cell legend block. The swatch is
+         a small inline box that wears the same border-edge style as the
+         in-table marker, so the legend visually matches the cells. */
+      .mk-sample {{
+        display: inline-block; width: 22px; height: 14px;
+        background: #f3f3f3; border: 1px solid #c8c8c8;
+        vertical-align: middle; margin-right: 4px;
+      }}
+      .mk-sample.mk-row  {{ border-left: 3px solid #0d3a0d; }}
+      .mk-sample.mk-col  {{ border-top: 3px solid #5a3a8a; }}
+      .mk-sample.mk-both {{
+        border-left: 3px solid #0d3a0d;
+        border-top: 3px solid #5a3a8a;
+      }}
     
       /* Axis-info panel above the table */
       .axis-info {{
@@ -1153,34 +1548,57 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
       }}
       .mrow:last-child {{ border-bottom: none; }}
       .ml {{ color: #555; }}
-      .mv {{ font-weight: bold; }}
+      .mv {{ font-weight: bold; display: inline-flex; align-items: baseline; gap: 4px; }}
       .mv.na {{ color: #b00; font-style: italic; font-weight: normal; }}
-    
+      .ci {{
+        font-weight: normal; font-size: 0.85em; color: #555;
+        letter-spacing: -0.02em;
+      }}
+      /* Per-metric note shown under each legend swatch row. Plain bordered
+         box - no left-bar accent, no orange chrome - so it does not visually
+         compete with the metric row it belongs to. */
+      .metric-note {{
+        font-size: 0.85em; color: #333; background: #fafafa;
+        border: 1px solid #d4d4d4; border-radius: 2px;
+        margin-top: 6px; padding: 5px 8px; max-width: 380px;
+      }}
+
       .empty {{
         background: #f2f2f2; text-align: center; color: #ccc;
         font-size: 1.3em; padding: 18px; min-width: 120px;
       }}
-    
-      /* Legend */
+
+      /* Colour legend. Cell borders are intentionally visible (#aaa) so each
+         row/column reads as its own boxed unit; without explicit lines the
+         metric/direction/range/swatch columns blur into one another. */
       .legend {{
-        margin-top: 22px; max-width: 600px;
-        border: 1px solid #ddd; border-radius: 3px;
+        margin-top: 22px; max-width: 640px;
+        border: 1px solid #aaa; border-radius: 3px;
         padding: 10px 14px; background: #fff;
       }}
       .legend h3 {{ font-size: 0.88em; margin: 0 0 7px; }}
       .legend table {{ border-collapse: collapse; width: 100%; }}
-      .legend td {{ border: 1px solid #eee; padding: 3px 7px; font-size: 0.76em; vertical-align: middle; }}
+      .legend th, .legend td {{
+        border: 1px solid #b8b8b8; padding: 5px 8px;
+        font-size: 0.78em; vertical-align: middle;
+      }}
+      .legend th {{
+        background: #ececec; color: #1a3550; text-align: left;
+        font-weight: 600; letter-spacing: 0.02em;
+      }}
+      .legend tbody tr:nth-child(odd) td {{ background: #fbfbfb; }}
       .sw {{
         display: inline-block; padding: 1px 5px;
         border-radius: 2px; border: 1px solid rgba(0,0,0,0.12);
         font-size: 0.9em;
       }}
-    
-      /* Methodological caveat block - neutral gray, sits at the bottom of the page */
+
+      /* Methodological caveat block. Plain bordered box matching the legend
+         and metric-note style, no left-bar accent. */
       .caveat {{
         margin-top: 22px; max-width: 760px;
-        border-left: 4px solid #888; border-radius: 3px;
-        padding: 10px 14px; background: #f0f0f0; color: #222;
+        border: 1px solid #b8b8b8; border-radius: 3px;
+        padding: 10px 14px; background: #fafafa; color: #222;
       }}
       .caveat h3 {{ font-size: 0.88em; margin: 0 0 7px; color: #222; }}
       .caveat p {{ font-size: 0.82em; margin: 4px 0; color: #222; line-height: 1.5; }}
@@ -1240,6 +1658,29 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     </div>
 
     <div class="legend">
+      <h3>Best-cell markers (strict CI separation)</h3>
+      <table>
+        <tr><th>Marker</th><th>Meaning</th></tr>
+        <tr>
+          <td><span class="mk-sample mk-row">&nbsp;&nbsp;&nbsp;</span> left edge, dark green</td>
+          <td><b>Row-best</b>: for this architecture, this data-package's 95% CI on this metric does not overlap any other data-package's CI in the row. Statistically distinguishable best across data packages.</td>
+        </tr>
+        <tr>
+          <td><span class="mk-sample mk-col">&nbsp;&nbsp;&nbsp;</span> upper edge, deep violet</td>
+          <td><b>Column-best</b>: for this data-package, this architecture's 95% CI on this metric does not overlap any other architecture's CI in the column. Statistically distinguishable best across architectures.</td>
+        </tr>
+        <tr>
+          <td><span class="mk-sample mk-both">&nbsp;&nbsp;&nbsp;</span> both edges</td>
+          <td>Cell wins both directions independently. Rare on small data: not only is this architecture the clear winner on this data-package, but this data-package is also the clear winner for this architecture.</td>
+        </tr>
+        <tr>
+          <td>no edge</td>
+          <td>No statistically distinguishable winner in this row/column for this metric at our sample size. The default reading; absence of marker is itself an honest scientific signal.</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="legend">
       <h3>Colour legend (per-metric scale)</h3>
       <table>
         <tr><th>Metric</th><th>Direction</th><th>Reference range</th><th>Scale</th></tr>
@@ -1266,22 +1707,74 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
 # Main
 # ---------------------------------------------------------------------------
 
+def _archive_dest_for(src_path, dest_root):
+    """Return ``<dest_root>/<YYYY-MM-DD>/<basename>`` for an aggregator
+    output file, where the date is taken from the file's own mtime."""
+    from datetime import datetime
+    day_str = datetime.fromtimestamp(src_path.stat().st_mtime).strftime("%Y-%m-%d")
+    day_dir = dest_root / day_str
+    day_dir.mkdir(exist_ok=True)
+    return day_dir / src_path.name
+
+
+def _migrate_flat_archive(archive_dir):
+    """One-time bring-up: if any aggregator outputs are still sitting
+    directly under ``experiment/results/`` (from an older flat-archive
+    version of this function), file them into their YYYY-MM-DD subfolder
+    so the directory is uniformly date-bucketed going forward."""
+    migrated = 0
+    for pattern in OUTPUT_PATTERNS:
+        for src in archive_dir.glob(pattern):
+            if not src.is_file():
+                continue
+            dest = _archive_dest_for(src, archive_dir)
+            if dest == src:
+                continue
+            if dest.exists():
+                dest.unlink()
+            src.rename(dest)
+            migrated += 1
+    if migrated:
+        print(f"Migrated {migrated} flat-archived file{'s' if migrated != 1 else ''} "
+              f"into {archive_dir}/YYYY-MM-DD/ subfolders")
+
+
 def archive_previous_outputs():
     """Move any prior aggregator outputs from LATEST_DIR into ARCHIVE_DIR.
 
-    Uses a non-recursive glob so only files directly under experiment/ move -
-    leaf .txt files inside experiment/<.../>results/ are untouched.
+    Each archived file is filed under a dated subfolder
+    ``experiment/results/YYYY-MM-DD/`` (ISO-8601 calendar date) inferred
+    from the file's own mtime. This keeps the archive browsable by
+    day for a project that produces many aggregator runs - dropping
+    ~7 outputs at a time into a single flat directory rapidly becomes
+    unreadable; per-day folders preserve the run-grouping a reader
+    actually cares about.
+
+    The flat scan over LATEST_DIR remains non-recursive so leaf .txt
+    files inside experiment/<.../>results/ are untouched.
     """
     ARCHIVE_DIR.mkdir(exist_ok=True)
+    _migrate_flat_archive(ARCHIVE_DIR)
     moved = 0
+    per_day_counts: dict[str, int] = {}
     for pattern in OUTPUT_PATTERNS:
         for src in LATEST_DIR.glob(pattern):
             if not src.is_file():
                 continue
-            src.rename(ARCHIVE_DIR / src.name)
+            dest = _archive_dest_for(src, ARCHIVE_DIR)
+            if dest.exists():
+                # Re-run with identical timestamp; keep the new version.
+                dest.unlink()
+            day_str = dest.parent.name
+            src.rename(dest)
             moved += 1
+            per_day_counts[day_str] = per_day_counts.get(day_str, 0) + 1
     if moved:
-        print(f"Archived {moved} prior output file{'s' if moved != 1 else ''} → {ARCHIVE_DIR}")
+        per_day_summary = ", ".join(
+            f"{day}={n}" for day, n in sorted(per_day_counts.items())
+        )
+        print(f"Archived {moved} prior output file{'s' if moved != 1 else ''} "
+              f"into {ARCHIVE_DIR}/YYYY-MM-DD/ ({per_day_summary})")
 
 
 def main():

@@ -1,90 +1,107 @@
+"""filter_to_no_rolling_features.py - Same-day-only feature subset.
+
+Reads a feature-engineered Parquet file and returns a DataFrame that
+contains **only** same-day trigger flags, calendar context (``dow``),
+identifiers, and the target. All rolling, lagged, interaction, streak,
+and gap-awareness features built by ``data/pipeline/engineer.py`` are
+omitted by NOT being in the whitelist - so if the engineering pipeline
+gains new columns, they default to "not included" rather than silently
+leaking through into every leaf.
+
+Purpose: scientific decomposition. Comparing a model trained on full
+features against the same model trained on the same-day-only subset
+isolates how much predictive signal comes from temporal autocorrelation
+(rolling target history, streaks, lagged interactions) versus from
+today's observed triggers alone - the question Park et al. (2016)
+studied for same-day associations.
+
+Plugs into ``_dataRead.read.load_and_prep_data`` via the ``loader=``
+parameter.
 """
-filter_to_no_rolling_features.py - Drop temporal aggregation columns.
-
-Reads a feature-engineered Parquet file and removes all rolling, lagged,
-interaction, streak, and gap-awareness features built by
-data/pipeline/engineer.py - leaving only same-day trigger flags, calendar
-context (dow), and current-day measurements.
-
-Purpose: scientific decomposition. Comparing a model trained on full features
-against the same model trained on the no-rolling subset isolates how much
-predictive signal comes from temporal autocorrelation (rolling target history,
-streaks, lagged interactions) versus from today's observed triggers alone -
-the question Park et al. (2016) studied for same-day associations.
-
-Mirrors the API of filter_to_spano_features.remove_non_spano_features so it
-plugs into _dataRead.read.load_and_prep_data via the `loader=` parameter.
-"""
-from typing import Optional
+from pathlib import Path
 
 import pandas as pd
 
-
-# Columns built by engineer.py from rolling, shifted, streak-counted, or
-# interaction-with-lagged-target operations. Removing them leaves a feature
-# matrix where every row's predictors describe only the current diary day.
-ROLLING_AND_LAG_COLUMNS = [
-    # --- Target-derived lag/rolling history -------------------------------
-    "migraine_yesterday",
-    "migraine_rate_last3",
-    "migraine_rate_last7",
-    "headache_free_streak",
-    "days_since_last_migraine",
-    # --- Stress lag/streak ------------------------------------------------
-    "stress_drop_today",          # (stress_today == 0) & (stress_yesterday == 1)
-    "consecutive_stress_days",
-    # --- Sleep rolling/interaction ----------------------------------------
-    "sleep_debt_3day",
-    "sleep_disruption_today",     # any_sleep_issue & migraine_yesterday
-    "sleep_variability_7day",
-    "recent_weekend_sleep_issues",
-    # --- Weather rolling/lag/interaction ----------------------------------
-    "consecutive_weather_changes",
-    "weather_instability_3day",
-    "weather_change_yesterday",
-    "weather_headache_interaction",   # weather_change & migraine_yesterday
-    # --- Diet/travel streak -----------------------------------------------
-    "consecutive_trigger_days",
-    # --- Exercise rolling/streak ------------------------------------------
-    "consecutive_exercise_days",
-    "consecutive_sedentary_days",
-    "exercise_days_7day",
-    # --- Gap awareness (target-related - meaningless without rolling) -----
-    "days_since_last_record",
-    "recording_gap_flag",
-]
+from _dataRead._select_columns import select_columns
 
 
-def remove_rolling_features(
-    input_parquet_path: str,
-    output_parquet_path: Optional[str] = None,
-) -> pd.DataFrame:
-    """Read an engineered Parquet and drop all temporal-aggregation columns.
+# Same-day flags + raw inputs + calendar context that engineer.py emits.
+# Anything not in this list (rolling / lag / streak / gap / interaction)
+# is intentionally dropped.
+_NON_ROLLING_REQUIRED_COLUMNS = (
+    # Structural
+    "patient_id",
+    "date",
+    "migraine_target",
+    # Stress
+    "stress_today",
+    # Sleep (same-day only; rolling/lag/interaction members live in the
+    # full_features set)
+    "lack_of_sleep_today",
+    "oversleeping_today",
+    "any_sleep_issue_today",
+    # Weather (same-day only)
+    "weather_change_today",
+    # Dietary / travel
+    "irregular_meals_today",
+    "overeating_today",
+    "excessive_caffeine_today",
+    "alcohol_today",
+    "travel_today",
+    # Physical activity (same-day flags + raw minute inputs)
+    "exercise_today",
+    "no_exercise_today",
+    "vigorous_exercise_min",
+    "moderate_exercise_min",
+    # Other triggers (same-day)
+    "physical_fatigue_today",
+    "emotional_changes_today",
+    "noise_today",
+    "specific_smells_today",
+    # Hormonal
+    "menstruation_today",
+    "ovulation_today",
+    # Calendar
+    "dow",
+    # Low-count triggers retained for the base feature set (Park et al.
+    # excluded them from sub-analysis, see docs/dataset.md)
+    "exercise_as_trigger_today",
+    "sunlight_today",
+    "inappropriate_lighting_today",
+    "excessive_smoking_today",
+    "cheese_chocolate_today",
+)
 
-    Args:
-        input_parquet_path: Path to the engineered diary parquet.
-        output_parquet_path: Optional path to write the filtered parquet.
+_NON_ROLLING_OPTIONAL_COLUMNS = (
+    "entry_id",
+    "cv_fold",
+    # ``migraine_today`` is currently dropped by the upstream split step
+    # (engineer.py emits it but the diary_<split>.parquet writers do not
+    # carry it through). Listed as optional so the filter still works if
+    # a future pipeline pass starts retaining it.
+    "migraine_today",
+)
 
-    Returns:
-        DataFrame with only same-day trigger flags, dow, identifiers, and target.
+
+def select_non_rolling_features(parquet_path: str | Path) -> pd.DataFrame:
+    """Return a DataFrame with only same-day flags and identifiers.
+
+    See module docstring for the rationale; the whitelist is the
+    ``_NON_ROLLING_REQUIRED_COLUMNS`` tuple.
     """
-    df = pd.read_parquet(input_parquet_path)
-
-    # Tolerate absence - schema may evolve and not all engineering passes
-    # produce every column.
-    cols_to_drop = [c for c in ROLLING_AND_LAG_COLUMNS if c in df.columns]
-
-    if cols_to_drop:
-        print(f"Removing {len(cols_to_drop)} rolling/lag/interaction features:")
-        for col in sorted(cols_to_drop):
-            print(f" - {col}")
-        df_cleaned = df.drop(columns=cols_to_drop)
-    else:
-        print("No rolling/lag/interaction features found in this file.")
-        df_cleaned = df.copy()
-
-    if output_parquet_path:
-        df_cleaned.to_parquet(output_parquet_path, index=False)
-        print(f"\nFiltered dataset saved to: {output_parquet_path}")
-
-    return df_cleaned
+    df = select_columns(
+        parquet_path,
+        required=_NON_ROLLING_REQUIRED_COLUMNS,
+        optional=_NON_ROLLING_OPTIONAL_COLUMNS,
+    )
+    structural_in_df = sum(
+        c in df.columns
+        for c in ("patient_id", "date", "entry_id", "cv_fold",
+                  "migraine_target", "migraine_today")
+    )
+    n_features = df.shape[1] - structural_in_df
+    print(
+        f"no_rolling feature set: {df.shape[0]} rows x {n_features} features "
+        f"(same-day flags, raw exercise minutes, dow)."
+    )
+    return df

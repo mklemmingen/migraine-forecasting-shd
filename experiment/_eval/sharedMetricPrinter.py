@@ -21,12 +21,14 @@ DIVIDER   = "-" * 60
 COL_WIDTH = 25  # f"{name:<25}" used by all eval scripts
 
 # Metric names exactly as written in their respective file types.
-# Note: MCC label differs between hold-out ("Optimal") and CV ("Cal-Optimal").
+# The MCC label differs between hold-out ("Optimal") and CV ("Cal-Optimal").
+# Result files that lack a metric line render as N/A in the aggregator.
 METRICS_HOLDOUT = [
     "AUROC",
     "AUPRC",
     "Brier Score",
     "ECE10",
+    "Calibration Slope",
     "MCC (Optimal)",
     "Sensitivity (>=0.5)",
     "Accuracy",
@@ -40,6 +42,7 @@ METRICS_CV = [
     "AUPRC",
     "Brier Score",
     "ECE10",
+    "Calibration Slope",
     "MCC (Cal-Optimal)",
     "Sensitivity (>=0.5)",
     "Accuracy",

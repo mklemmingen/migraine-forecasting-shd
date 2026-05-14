@@ -26,12 +26,27 @@ Two layout deltas vs experiment/0/_scaffold_leaves.py:
 Architecture coverage (current scope)
 -------------------------------------
 - arch_dir = "tabpfn"
-- version_2-6: _model_architecture.tabpfn.build_tabpfn - bare
-  TabPFNClassifier, no external calibrator (TabPFN is meta-trained for
-  calibration; see docs/tabPfn.MD §4 for the rationale).
-- version_Real-TabPFN: defined-but-commented out below - build_realtabpfn
-  raises NotImplementedError until the Real-TabPFN API is wired up.
-  Uncomment one line in VERSIONS to enable scaffolding for it.
+- version_2-6: _model_architecture.tabpfn.build_tabpfn - TabPFN-v2.6
+  pinned via ``ModelVersion.V2_6``; no external calibrator (TabPFN is
+  meta-trained for calibration; see docs/tabPfn.MD §4 for the rationale).
+- version_3-default: _model_architecture.tabpfn_v3.build_tabpfn_v3 -
+  TabPFN-v3 (the v3 default classifier checkpoint from the
+  Prior-Labs/tabpfn_3 HuggingFace repo); see docs/tabPfn.MD §5.4.
+- version_3-binary: _model_architecture.tabpfn_v3_binary.build_tabpfn_v3_binary -
+  TabPFN-v3 binary-specialised classifier checkpoint (same v3
+  architecture, ``tabpfn-v3-classifier-v3_20260417_binary.ckpt``); see
+  docs/tabPfn.MD §5.5 for the rationale.
+- version_2-5-real: _model_architecture.realtabpfn.build_realtabpfn -
+  Real-TabPFN-2.5 (the v2.5_real checkpoint); see docs/tabPfn.MD §5.1.
+- version_2-5-finetuned: _model_architecture.finetunedtabpfn_v2_5.build_finetunedtabpfn -
+  fine-tuned TabPFN-v2.5 (``FinetunedTabPFNClassifier`` hardcodes
+  ``ModelVersion.V2_5`` internally; the label reflects the actual base
+  model, not v2.6); see docs/tabPfn.MD §5.3.
+- version_2-5-auto: _model_architecture.autotabpfn_v2_5.build_autotabpfn -
+  AutoTabPFN on the v2.5 base (``AutoTabPFNClassifier`` defaults
+  ``model_version=ModelVersion.V2_5`` and only supports V2/V2_5; the
+  label reflects the actual base, not v2.6). Restricted by
+  ``_autotabpfn_filter`` to four promising leaves; see docs/tabPfn.MD §5.2.
 
 Builder contract is documented in _model_architecture/__init__.py.
 
@@ -44,9 +59,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable, NamedTuple, Optional
 
-ADDITION_ROOT = Path(__file__).resolve().parent      # experiment/<addition>/
-ADDITION = ADDITION_ROOT.name                        # e.g. "1" - derived
+ADDITION_ROOT   = Path(__file__).resolve().parent    # experiment/<addition>/
+ADDITION        = ADDITION_ROOT.name                 # e.g. "1" - derived
 EXPERIMENT_ROOT = ADDITION_ROOT.parent               # experiment/
+_TEMPLATES_DIR  = ADDITION_ROOT / "_templates"       # leaf-script templates
 
 ARCH_DIR = "tabpfn"   # architecture-family folder; constant for this addition
 
@@ -86,10 +102,12 @@ def _autotabpfn_filter(leaf: "Leaf") -> bool:
 
 
 VERSIONS: tuple[Version, ...] = (
-    Version("2-6",           "tabpfn",          "build_tabpfn"),
-    Version("2-5-real",      "realtabpfn",      "build_realtabpfn"),
-    Version("2-6-finetuned", "finetunedtabpfn", "build_finetunedtabpfn"),
-    Version("2-6-auto",      "autotabpfn",      "build_autotabpfn", _autotabpfn_filter),
+    Version("2-6",           "tabpfn",                "build_tabpfn"),
+    Version("3-default",     "tabpfn_v3",             "build_tabpfn_v3"),
+    Version("3-binary",      "tabpfn_v3_binary",      "build_tabpfn_v3_binary"),
+    Version("2-5-real",      "realtabpfn",            "build_realtabpfn"),
+    Version("2-5-finetuned", "finetunedtabpfn_v2_5",  "build_finetunedtabpfn"),
+    Version("2-5-auto",      "autotabpfn_v2_5",       "build_autotabpfn", _autotabpfn_filter),
 )
 
 
@@ -128,6 +146,18 @@ def enumerate_leaves() -> list[Leaf]:
                         if version.leaf_filter is not None and not version.leaf_filter(leaf):
                             continue
                         leaves.append(leaf)
+    # park_features: migraine target only. Park et al.'s stepwise multiple
+    # logistic regression in Table 4 discriminates migraine vs non-migraine
+    # headache; the same trigger-selection rationale does NOT apply to the
+    # any-headache target. See docs/park_features.md for the framing.
+    for version in VERSIONS:
+        for ratio in ("70_15_15", "70_30", "80_20"):
+            for split_type in ("chrono", "stratified"):
+                with_cv = (ratio == "70_15_15" and split_type == "chrono")
+                leaf = Leaf("migraine", "park_features", version, ratio, split_type, with_cv)
+                if version.leaf_filter is not None and not version.leaf_filter(leaf):
+                    continue
+                leaves.append(leaf)
     return leaves
 
 
@@ -148,13 +178,23 @@ LOADERS = {
         raw_loader_call="pd.read_parquet",
     ),
     "no_rolling_features": LoaderCfg(
-        extra_import="from _dataRead.filter_to_no_rolling_features import remove_rolling_features",
+        extra_import="from _dataRead.filter_to_no_rolling_features import select_non_rolling_features",
         wrapper=(
             "def load_and_prep_data(filepath):\n"
-            '    """No-rolling variant: drop temporal aggregation columns before (X, y) split."""\n'
-            "    return _load_and_prep_data(filepath, loader=remove_rolling_features)"
+            '    """No-rolling variant: whitelist same-day flags before (X, y) split."""\n'
+            "    return _load_and_prep_data(filepath, loader=select_non_rolling_features)"
         ),
-        raw_loader_call="remove_rolling_features",
+        raw_loader_call="select_non_rolling_features",
+    ),
+    "park_features": LoaderCfg(
+        extra_import="from _dataRead.filter_to_park_features import select_park_features",
+        wrapper=(
+            "def load_and_prep_data(filepath):\n"
+            '    """Park-feature variant: whitelist the 6 Park et al. (2016) stepwise-selected'
+            ' triggers (Tab. 4, p. 8) with hormonal_changes derived as menstruation OR ovulation."""\n'
+            "    return _load_and_prep_data(filepath, loader=select_park_features)"
+        ),
+        raw_loader_call="select_park_features",
     ),
 }
 
@@ -180,526 +220,15 @@ def _wrapper_block(loader: LoaderCfg) -> str:
 # evaluate_cv.py refits per fold, so it imports build_<fn> too.
 # ---------------------------------------------------------------------------
 
-TRAIN_3WAY_TPL = '''\
-import os
-import sys
-from pathlib import Path
+TRAIN_3WAY_TPL = (_TEMPLATES_DIR / "train_3way.py.tpl").read_text()
 
-import joblib
+TRAIN_2WAY_TPL = (_TEMPLATES_DIR / "train_2way.py.tpl").read_text()
 
-# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
-_LEAF = Path(__file__).resolve()
-_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
-_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
-sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-{read_imports}
-{extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+EVAL_3WAY_TPL = (_TEMPLATES_DIR / "evaluate_3way.py.tpl").read_text()
 
-# Configuration
-EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
-TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-{wrapper_block}
+EVAL_2WAY_TPL = (_TEMPLATES_DIR / "evaluate_2way.py.tpl").read_text()
 
-def main():
-    with capture_training_output(EXPERIMENT_DIR, label='training'):
-        print("Loading data...")
-        X_train, y_train = load_and_prep_data(TRAIN_PATH)
-
-        print(f"Train set: X={{X_train.shape}}, y={{y_train.shape}}")
-
-        print("Fitting {arch} (version_{version_label}) on train (no external calibrator - see docs/tabPfn.MD)...")
-        model = {build_fn}(X_train, y_train, output_dir=EXPERIMENT_DIR)
-
-        os.makedirs(EXPERIMENT_DIR, exist_ok=True)
-        joblib.dump(model, MODEL_PATH)
-        print(f"Model successfully saved to: {{MODEL_PATH}}")
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-TRAIN_2WAY_TPL = '''\
-import os
-import sys
-from pathlib import Path
-
-import joblib
-import pandas as pd
-
-# Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
-_LEAF = Path(__file__).resolve()
-_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
-_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
-sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split  # noqa: E402
-{extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
-
-# Configuration
-EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
-TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-
-
-def main():
-    with capture_training_output(EXPERIMENT_DIR, label='training'):
-        print("Loading data...")
-        df_train_full = {raw_loader}(TRAIN_PATH)
-        X_train, y_train = prep_split(df_train_full)
-
-        print(f"Train: X={{X_train.shape}}, y={{y_train.shape}}  (positive rate: {{y_train.mean():.3f}})")
-
-        print("Fitting {arch} (version_{version_label}) on full train (no external calibrator - see docs/tabPfn.MD)...")
-        model = {build_fn}(X_train, y_train, output_dir=EXPERIMENT_DIR)
-
-        os.makedirs(EXPERIMENT_DIR, exist_ok=True)
-        joblib.dump(model, MODEL_PATH)
-        print(f"Model successfully saved to: {{MODEL_PATH}}")
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-# Shared metrics block re-used in both evaluate variants.
-METRICS_BLOCK = '''\
-def expected_calibration_error(y_true, y_prob, n_bins=10):
-    bin_edges = np.linspace(0., 1., n_bins + 1)
-    binned = np.digitize(y_prob, bin_edges[1:-1])
-    ece = 0.0
-    for i in range(n_bins):
-        mask = (binned == i)
-        if mask.sum() > 0:
-            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
-    return ece / len(y_true)
-
-
-def find_operating_thresholds(y_true, y_prob):
-    thresholds = np.linspace(0.01, 0.99, 99)
-    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
-    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
-    opt_mcc_thresh = thresholds[np.argmax(mccs)]
-    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
-    sens_05_thresh = max(valid) if valid else 0.50
-    return opt_mcc_thresh, sens_05_thresh
-
-
-def run_bootstrap_evaluation(y_true, y_prob, opt_mcc_thresh, sens_05_thresh, n_iterations=1000, seed=42):
-    np.random.seed(seed)
-    y_arr = y_true.values
-    metrics = defaultdict(list)
-    for _ in range(n_iterations):
-        idx = np.random.randint(0, len(y_arr), len(y_arr))
-        y_t, y_p = y_arr[idx], y_prob[idx]
-        if len(np.unique(y_t)) < 2:
-            continue
-        metrics['AUROC'].append(roc_auc_score(y_t, y_p))
-        metrics['AUPRC'].append(average_precision_score(y_t, y_p))
-        metrics['Brier Score'].append(brier_score_loss(y_t, y_p))
-        metrics['ECE10'].append(expected_calibration_error(y_t, y_p))
-        preds_mcc = (y_p >= opt_mcc_thresh).astype(int)
-        metrics['MCC (Optimal)'].append(matthews_corrcoef(y_t, preds_mcc))
-        metrics['Sensitivity (>=0.5)'].append(
-            recall_score(y_t, (y_p >= sens_05_thresh).astype(int)))
-        metrics['Accuracy'].append(accuracy_score(y_t, preds_mcc))
-        metrics['Precision'].append(precision_score(y_t, preds_mcc, zero_division=0))
-        metrics['Recall'].append(recall_score(y_t, preds_mcc, zero_division=0))
-        metrics['F1'].append(f1_score(y_t, preds_mcc, zero_division=0))
-    return {
-        name: f"{np.mean(v):.3f} [{np.percentile(v, 2.5):.3f} - {np.percentile(v, 97.5):.3f}]"
-        for name, v in metrics.items()
-    }
-'''
-
-EVAL_3WAY_TPL = '''\
-import os
-import sys
-import uuid
-from collections import defaultdict
-from datetime import datetime
-from pathlib import Path
-
-import joblib
-import numpy as np
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    brier_score_loss,
-    f1_score,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
-
-# Shared imports
-_LEAF = Path(__file__).resolve()
-_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
-_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
-sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-{read_imports}
-{extra_imports}
-
-# Configuration
-EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
-RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
-VAL_PATH   = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_val.parquet")
-TEST_PATH  = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_test.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-
-RESULT_PREFIX = "results"
-TITLE         = "STAGE {addition} / {feature_set} / {arch} (version_{version_label})"
-{wrapper_block}
-
-{metrics_block}
-
-def main():
-    print("Loading datasets and model...")
-    X_val,  y_val  = load_and_prep_data(VAL_PATH)
-    X_test, y_test = load_and_prep_data(TEST_PATH)
-    model = joblib.load(MODEL_PATH)
-
-    print("Generating predictions...")
-    y_prob_val  = model.predict_proba(X_val)[:, 1]
-    y_prob_test = model.predict_proba(X_test)[:, 1]
-
-    print("Calculating optimal thresholds on Validation set...")
-    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_val, y_prob_val)
-
-    print("Running bootstrap evaluation on locked Test set (n=1000)...")
-    results = run_bootstrap_evaluation(y_test, y_prob_test, opt_mcc_thresh, sens_05_thresh)
-
-    output_lines = [
-        "=" * 60,
-        TITLE,
-        "=" * 60,
-        "Validation Set Derived Thresholds:",
-        f" -> MCC-Optimal Threshold:          {{opt_mcc_thresh:.3f}}",
-        f" -> Threshold for Sens >= 0.50:     {{sens_05_thresh:.3f}}",
-        "-" * 60,
-        f"{{'Metric':<25}} | Mean [95% CI]",
-        "-" * 60,
-    ]
-    for metric, result_str in results.items():
-        output_lines.append(f"{{metric:<25}} | {{result_str}}")
-    output_lines.append("=" * 60)
-    output_text = "\\n".join(output_lines)
-
-    print("\\n" + output_text)
-
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    filename = f"{{RESULT_PREFIX}}_{{timestamp}}_{{str(uuid.uuid4())}}.txt"
-    filepath = os.path.join(RESULTS_DIR, filename)
-    with open(filepath, "w") as f:
-        f.write(output_text)
-    print(f"\\nResults successfully saved to: {{filepath}}")
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-EVAL_2WAY_TPL = '''\
-import os
-import sys
-import uuid
-from collections import defaultdict
-from datetime import datetime
-from pathlib import Path
-
-import joblib
-import numpy as np
-import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    brier_score_loss,
-    f1_score,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
-
-# Shared imports
-_LEAF = Path(__file__).resolve()
-_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
-_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
-sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import load_and_prep_data, prep_split, chronological_subsplit  # noqa: E402
-{extra_imports}
-
-# Configuration
-EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
-RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
-TRAIN_PATH = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_train.parquet")
-TEST_PATH  = os.path.join(DATA_DIR, "{ratio}", "{split_type}", "diary_test.parquet")
-MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
-
-RESULT_PREFIX = "results"
-TITLE         = "STAGE {addition} / {feature_set} / {arch} (version_{version_label})"
-
-# 2-way ratio: no val parquet; reproduce the same chronological subsplit
-# of train used during fitting to derive operating thresholds.
-CAL_RATIO = 0.20
-
-
-{metrics_block}
-
-def main():
-    print("Loading datasets and model...")
-    df_train_full = {raw_loader}(TRAIN_PATH)
-    _, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
-    X_cal, y_cal = prep_split(cal_sub)
-    X_test, y_test = load_and_prep_data(TEST_PATH{loader_kwarg})
-    model = joblib.load(MODEL_PATH)
-
-    print("Generating predictions...")
-    y_prob_cal  = model.predict_proba(X_cal)[:, 1]
-    y_prob_test = model.predict_proba(X_test)[:, 1]
-
-    print("Calculating optimal thresholds on cal sub-split...")
-    opt_mcc_thresh, sens_05_thresh = find_operating_thresholds(y_cal, y_prob_cal)
-
-    print("Running bootstrap evaluation on locked Test set (n=1000)...")
-    results = run_bootstrap_evaluation(y_test, y_prob_test, opt_mcc_thresh, sens_05_thresh)
-
-    output_lines = [
-        "=" * 60,
-        TITLE,
-        "=" * 60,
-        "Cal Sub-Split Derived Thresholds:",
-        f" -> MCC-Optimal Threshold:          {{opt_mcc_thresh:.3f}}",
-        f" -> Threshold for Sens >= 0.50:     {{sens_05_thresh:.3f}}",
-        "-" * 60,
-        f"{{'Metric':<25}} | Mean [95% CI]",
-        "-" * 60,
-    ]
-    for metric, result_str in results.items():
-        output_lines.append(f"{{metric:<25}} | {{result_str}}")
-    output_lines.append("=" * 60)
-    output_text = "\\n".join(output_lines)
-
-    print("\\n" + output_text)
-
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    filename = f"{{RESULT_PREFIX}}_{{timestamp}}_{{str(uuid.uuid4())}}.txt"
-    filepath = os.path.join(RESULTS_DIR, filename)
-    with open(filepath, "w") as f:
-        f.write(output_text)
-    print(f"\\nResults successfully saved to: {{filepath}}")
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-EVAL_CV_TPL = '''\
-"""
-5-fold time-series cross-validation for {arch} (version_{version_label}).
-
-Reads diary_cv5_timeseries.parquet (target-level, ratio-independent).
-Per fold:
-  train_sub (first 80% of training-fold dates)  → fit base model
-  cal_sub   (last  20% of training-fold dates)  → fit calibrators + select thresholds
-  evaluation (cv_fold == k)                     → score only
-
-Result files: results_cv_<timestamp>_<uuid>.txt
-"""
-import os
-import sys
-import uuid
-from collections import defaultdict
-from datetime import datetime
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    brier_score_loss,
-    f1_score,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
-
-# Shared imports
-_LEAF = Path(__file__).resolve()
-_EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
-_ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
-sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-{extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
-
-# Configuration
-EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = str(_EXP_ROOT.parent / "data" / "processed" / "{target}")
-RESULTS_DIR    = os.path.join(EXPERIMENT_DIR, "results")
-CV_PATH        = os.path.join(DATA_DIR, "diary_cv5_timeseries.parquet")
-
-N_SPLITS  = 5
-CAL_RATIO = 0.20
-
-RESULT_PREFIX = "results_cv"
-TITLE         = (
-    "STAGE {addition} / {feature_set} / {arch} (version_{version_label}) - "
-    f"{{N_SPLITS}}-Fold Time-Series CV"
-)
-
-
-def expected_calibration_error(y_true, y_prob, n_bins=10):
-    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
-    binned    = np.digitize(y_prob, bin_edges[1:-1])
-    ece = 0.0
-    for i in range(n_bins):
-        mask = binned == i
-        if mask.sum() > 0:
-            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
-    return ece / len(y_true)
-
-
-def find_operating_thresholds(y_true, y_prob):
-    thresholds = np.linspace(0.01, 0.99, 99)
-    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
-    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
-    opt_mcc_thresh = thresholds[np.argmax(mccs)]
-    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
-    sens_05_thresh = max(valid) if valid else 0.50
-    return opt_mcc_thresh, sens_05_thresh
-
-
-def score_fold(y_val, p_val, opt_thresh, sens_thresh):
-    preds_opt = (p_val >= opt_thresh).astype(int)
-    return {{
-        'AUROC':               roc_auc_score(y_val, p_val),
-        'AUPRC':               average_precision_score(y_val, p_val),
-        'Brier Score':         brier_score_loss(y_val, p_val),
-        'ECE10':               expected_calibration_error(y_val, p_val),
-        'MCC (Cal-Optimal)':   matthews_corrcoef(y_val, preds_opt),
-        'Sensitivity (>=0.5)': recall_score(y_val, (p_val >= sens_thresh).astype(int)),
-        'Accuracy':            accuracy_score(y_val, preds_opt),
-        'Precision':           precision_score(y_val, preds_opt, zero_division=0),
-        'Recall':              recall_score(y_val, preds_opt, zero_division=0),
-        'F1':                  f1_score(y_val, preds_opt, zero_division=0),
-    }}
-
-
-def main():
-    with capture_training_output(EXPERIMENT_DIR, label='training_cv'):
-        _main_inner()
-
-
-def _main_inner():
-    print(f"Loading {{CV_PATH}} ...")
-    cv = {cv_load_call}
-    print(f"  Total rows: {{len(cv):,}}  |  cv_fold distribution: "
-          f"{{ dict(cv['cv_fold'].value_counts().sort_index()) }}")
-
-    fold_metrics    = defaultdict(list)
-    fold_thresholds = []
-    fold_sizes      = []
-
-    for fold in range(1, N_SPLITS + 1):
-        print(f"\\n--- Fold {{fold}}/{{N_SPLITS}} ---")
-
-        train_fold = cv[cv['cv_fold'] < fold].copy()
-        val_fold   = cv[cv['cv_fold'] == fold].copy()
-
-        train_sub, cal_sub = chronological_subsplit(train_fold, cal_ratio=CAL_RATIO)
-
-        X_train_sub, y_train_sub = prep_split(train_sub)
-        X_cal_sub,   y_cal_sub   = prep_split(cal_sub)
-        X_val,       y_val       = prep_split(val_fold)
-
-        fold_sizes.append((len(train_sub), len(cal_sub), len(val_fold)))
-        print(f"  train_sub: {{len(train_sub):>4}} rows  |  "
-              f"cal_sub: {{len(cal_sub):>4}} rows  |  "
-              f"val: {{len(val_fold):>4}} rows")
-        print(f"  Positive rates - train_sub: {{y_train_sub.mean():.3f}}  "
-              f"cal_sub: {{y_cal_sub.mean():.3f}}  val: {{y_val.mean():.3f}}")
-
-        print(f"  Fitting {arch} on train_sub (no external calibrator - see docs/tabPfn.MD)...")
-        model = {build_fn}(X_train_sub, y_train_sub, output_dir=EXPERIMENT_DIR)
-
-        p_cal = model.predict_proba(X_cal_sub)[:, 1]
-        if len(np.unique(y_cal_sub)) < 2:
-            print(f"  WARNING: cal_sub has only one class - using default thresholds.")
-            opt_thresh, sens_thresh = 0.50, 0.50
-        else:
-            opt_thresh, sens_thresh = find_operating_thresholds(y_cal_sub.values, p_cal)
-        fold_thresholds.append((opt_thresh, sens_thresh))
-        print(f"  Thresholds - MCC-optimal: {{opt_thresh:.3f}}  Sens>=0.5: {{sens_thresh:.3f}}")
-
-        p_val = model.predict_proba(X_val)[:, 1]
-        scores = score_fold(y_val.values, p_val, opt_thresh, sens_thresh)
-        for metric, value in scores.items():
-            fold_metrics[metric].append(value)
-        print(f"  AUROC: {{scores['AUROC']:.3f}}  AUPRC: {{scores['AUPRC']:.3f}}  "
-              f"MCC: {{scores['MCC (Cal-Optimal)']:.3f}}")
-
-    metric_names = list(fold_metrics.keys())
-    col_w = 7
-    header_folds   = "  ".join(f"F{{k:<{{col_w-2}}}}" for k in range(1, N_SPLITS + 1))
-    header_summary = f"{{'Mean':<{{col_w}}}}  {{'Std':<{{col_w}}}}"
-    separator = "-" * 60
-
-    output_lines = [
-        "=" * 60,
-        TITLE,
-        "=" * 60,
-        f"CV scheme    : expanding-window TimeSeriesSplit, n_splits={{N_SPLITS}}",
-        f"Cal sub-split: last {{int(CAL_RATIO*100)}}% of each training fold's dates",
-        "Thresholds   : selected on cal sub-split - NOT on evaluation fold",
-        separator,
-        f"{{'Metric':<25}} | {{header_folds}} | {{header_summary}}",
-        separator,
-    ]
-
-    for metric in metric_names:
-        vals = fold_metrics[metric]
-        per_fold = "  ".join(f"{{v:>{{col_w}}.3f}}" for v in vals)
-        mean_str = f"{{np.mean(vals):<{{col_w}}.3f}}"
-        std_str  = f"{{np.std(vals):<{{col_w}}.3f}}"
-        output_lines.append(f"{{metric:<25}} | {{per_fold}} | {{mean_str}}  {{std_str}}")
-
-    output_lines.append(separator)
-    output_lines.append("Fold sizes (train_sub / cal_sub / val rows):")
-    for i, (n_tr, n_cal, n_v) in enumerate(fold_sizes, 1):
-        opt, sens = fold_thresholds[i - 1]
-        output_lines.append(
-            f"  F{{i}}: {{n_tr:>4}} / {{n_cal:>4}} / {{n_v:>4}}   "
-            f"thresh_mcc={{opt:.3f}}  thresh_sens={{sens:.3f}}"
-        )
-    output_lines.append("=" * 60)
-
-    output_text = "\\n".join(output_lines)
-    print("\\n" + output_text)
-
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    filename  = f"{{RESULT_PREFIX}}_{{timestamp}}_{{uuid.uuid4()}}.txt"
-    filepath  = os.path.join(RESULTS_DIR, filename)
-    with open(filepath, "w") as f:
-        f.write(output_text)
-    print(f"\\nResults saved to: {{filepath}}")
-
-
-if __name__ == "__main__":
-    main()
-'''
+EVAL_CV_TPL = (_TEMPLATES_DIR / "evaluate_cv.py.tpl").read_text()
 
 
 # ---------------------------------------------------------------------------
@@ -748,7 +277,6 @@ def render_evaluate(leaf: Leaf) -> str:
             read_imports=_read_imports(loader),
             extra_imports=_extra_imports(loader),
             wrapper_block=_wrapper_block(loader),
-            metrics_block=METRICS_BLOCK,
         )
     loader_kwarg = (
         f", loader={loader.raw_loader_call}"
@@ -765,7 +293,6 @@ def render_evaluate(leaf: Leaf) -> str:
         extra_imports=_extra_imports(loader),
         raw_loader=loader.raw_loader_call,
         loader_kwarg=loader_kwarg,
-        metrics_block=METRICS_BLOCK,
     )
 
 
