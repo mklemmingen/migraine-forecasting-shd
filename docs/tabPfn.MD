@@ -2,21 +2,30 @@
 
 ## Package
 
-`tabpfn==7.1.1` (PriorLabs distribution; the version-7 line corresponds to the TabPFN-v2 model series). Model checkpoints are auto-downloaded by the library on first call. Latest model checkpoint is **TabPFN-v2.6**, the package default since `tabpfn` 7.0.1 (March 2026).
-
-Folder label `version_2-6` in the experiment tree refers to the *model checkpoint* version (TabPFN v2.6), not the Python package version.
+`tabpfn==8.0.1` (PriorLabs distribution). Model checkpoints are auto-downloaded by the library on first call. The package default since `tabpfn` 8.0.0 is **TabPFN-v3**; prior model versions are still available via `TabPFNClassifier.create_default_for_version(ModelVersion.V<N>)`. Folder labels in the experiment tree refer to *model checkpoint* versions, not the Python package version.
 
 ## Configuration in use
 
 ```python
-TabPFNClassifier(
+# version_2-6/ leaves (the v2.6 baseline)
+TabPFNClassifier.create_default_for_version(
+    ModelVersion.V2_6,
     device='cuda',          # or 'auto' on machines without GPU
     random_state=...,       # threaded from caller - see §3
 )
+
+# version_3-default/ leaves (TabPFN-v3 default checkpoint)
+TabPFNClassifier.create_default_for_version(
+    ModelVersion.V3,
+    device='cuda',
+    random_state=...,
+)
 ```
 
-All other arguments are left at their library defaults. Most relevant defaults:
-`n_estimators=8`, `softmax_temperature=0.9`, `eval_metric=None`, `balance_probabilities=False`, `categorical_features_indices=None`, `ignore_pretraining_limits=False`, `tuning_config=None`. With `tuning_config=None`, no runtime temperature recalibration step runs - the calibration property of the model rests on its meta-trained prior [1] combined with the fixed `softmax_temperature=0.9` baked into the v2.6 architecture defaults (verifiable in [TabPFN v7.1.1 `classifier.py::create_default_for_version`](https://github.com/PriorLabs/TabPFN/blob/v7.1.1/src/tabpfn/classifier.py)).
+Both bare TabPFN builders pin the model version explicitly via `create_default_for_version`. Without the pin, a bare `TabPFNClassifier(...)` call resolves to whichever model is the package default at runtime (`tabpfn>=8.0.0` ships TabPFN-v3 as the default), which would silently shift the architecture under the `version_2-6` label on the next sweep.
+
+All other arguments are left at their library defaults. Most relevant defaults (identical for v2.6 and v3):
+`n_estimators=8`, `softmax_temperature=0.9`, `eval_metric=None`, `balance_probabilities=False`, `categorical_features_indices=None`, `ignore_pretraining_limits=False`, `tuning_config=None`. With `tuning_config=None`, no runtime temperature recalibration step runs - the calibration property of the model rests on its meta-trained prior [1] combined with the fixed `softmax_temperature=0.9` baked into the architecture defaults (verifiable in [TabPFN v8.0.1 `classifier.py::create_default_for_version`](https://github.com/PriorLabs/TabPFN/blob/v8.0.1/src/tabpfn/classifier.py)).
 
 The fitted base estimator is **returned directly** - no external calibrator wraps it. See §4 for the rationale and the asymmetry vs the XGBoost-family architectures.
 
@@ -38,7 +47,9 @@ Class imbalance is therefore handled at the **threshold-selection layer** of the
 
 ## §2 - Pretraining envelope
 
-TabPFN-v2 is trained for *n* ≤ ~100,000 rows and *d* ≤ ~2,000 features (with the v2.5 sweet spot at ~50,000 rows). The engineered SHD splits are 3,941 × 52 (full feature set) - comfortably inside the envelope. `ignore_pretraining_limits` is left at its default `False` so the library will warn if data drifts outside this envelope in future runs.
+TabPFN-v2.5 / v2.6 is trained for *n* ≤ ~100,000 rows and *d* ≤ ~2,000 features (with the v2.5 sweet spot at ~50,000 rows). TabPFN-v3 extends the envelope substantially: per the v3 model report [10] §F.1 / Figure 4(a), v3 is benchmarked along a cell-budget frontier of *up to 1M rows at 200 features, 100k rows at 2,000 features, or 1k rows at 20,000 features*. The two `MAX_NUMBER_OF_*` ceilings baked into the v3 checkpoint's `InferenceConfig` reflect this: `MAX_NUMBER_OF_SAMPLES = 1,000,000` (vs `100,000` in v2.6) and `MAX_NUMBER_OF_CLASSES = 160` (vs `10` in v2.6, made possible by the attention-based many-class decoder described in §5.4).
+
+The engineered SHD splits are 3,941 × 52 (full feature set) - comfortably inside both the v2 and v3 envelopes. `ignore_pretraining_limits` is left at its default `False` so the library will warn if data drifts outside the active envelope in future runs.
 
 ## §3 - `random_state` thread-through
 
@@ -61,14 +72,18 @@ The asymmetry should be noted in the methodology section of the paper. Because A
 
 ## §5 - Variants benchmarked in parallel
 
-Addition 1 evaluates four members of the TabPFN family side-by-side as parallel comparators (each a separate `version_<label>/` branch under `experiment/1/<target>/<feature_set>/tabpfn/`). They never combine outputs - each variant fits independently per leaf and contributes its own column to the comparison table.
+Addition 1 evaluates five members of the TabPFN family side-by-side as parallel comparators (each a separate `version_<label>/` branch under `experiment/1/<target>/<feature_set>/tabpfn/`). They never combine outputs - each variant fits independently per leaf and contributes its own column to the comparison table.
 
 | Folder | Variant | Citation status |
 |---|---|---|
-| `version_2-6/` | TabPFN-v2.6 (current package default; see §1–§4 above) | Architecture cite: Hollmann et al. [1] (the v2 architecture paper). The v2.6 checkpoint became the package default in `tabpfn` 7.0.0 (CHANGELOG.md, March 2026); no dedicated v2.6 paper exists. |
+| `version_2-6/` | TabPFN-v2.6 (pinned via `ModelVersion.V2_6`; see §1–§4 above) | Architecture cite: Hollmann et al. [1] (the v2 architecture paper). The v2.6 checkpoint was the package default in `tabpfn` 7.0.0–7.1.1; no dedicated v2.6 paper exists. |
+| `version_3-default/` | TabPFN-v3 default classifier checkpoint - see §5.4 | TabPFN-3 model report [10] (technical report, not peer-reviewed). |
+| `version_3-binary/` | TabPFN-v3 binary-specialised classifier checkpoint - see §5.5 | TabPFN-3 model report [10]; specialised checkpoint described on the [Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3) HuggingFace card. |
 | `version_2-5-real/` | Real-TabPFN-2.5 - see §5.1 | Garg et al. [7], FMSD @ ICML 2025 workshop (peer-reviewed, workshop-tier). |
-| `version_2-6-auto/` | AutoTabPFN, see §5.2 | **No dedicated peer-reviewed paper** (we disclose this explicitly when we introduce AutoTabPFN). |
-| `version_2-6-finetuned/` | Fine-tuned TabPFN-v2.6 - see §5.3 | Rubachev et al. [8], arXiv preprint as of May 2026; no peer-reviewed venue confirmed. |
+| `version_2-5-auto/` | AutoTabPFN on the v2.5 base - see §5.2 | **No dedicated peer-reviewed paper** (we disclose this explicitly when we introduce AutoTabPFN). |
+| `version_2-5-finetuned/` | Fine-tuned TabPFN-v2.5 - see §5.3 | Rubachev et al. [8], arXiv preprint as of May 2026; no peer-reviewed venue confirmed. |
+
+**Why `2-5-auto` and `2-5-finetuned` (not `2-6-*`):** both `AutoTabPFNClassifier` (`tabpfn_extensions==0.3.0`, `sklearn_interface.py:393`) and `FinetunedTabPFNClassifier` (`tabpfn>=7.1.1`, `finetuning/finetuned_classifier.py:210–217`) use `ModelVersion.V2_5` as their base model - `AutoTabPFNClassifier` only supports V2 and V2_5 at all; `FinetunedTabPFNClassifier` hardcodes V2_5. The captured training output in `<leaf>/_running_output/` confirms this empirically (AutoTabPFN's leaderboard lists `RealTabPFN-v2.5_*_BAG_L1` models and `tabpfn-v2.5-classifier-v2.5_*.ckpt` paths). The folder labels reflect the actual base model so the result aggregator's "Model version" column is accurate.
 
 ### §5.1 Real-TabPFN-2.5
 
@@ -82,10 +97,13 @@ Addition 1 evaluates four members of the TabPFN family side-by-side as parallel 
 
 **What's different:** a post-hoc ensemble - `AutoTabPFNClassifier` from `tabpfn-extensions` evaluates multiple TabPFN configurations and stacks them via AutoGluon as the meta-learner. From the outside, still `fit(X, y) → predict_proba(X)`.
 
-**Configuration:** `AutoTabPFNClassifier(max_time=7200, device=device, random_state=random_state, phe_init_args={'path': <leaf>/autogluon_predictor})`. Notes on each non-default choice:
+**Configuration:** `AutoTabPFNClassifier(max_time=7200, device=device, random_state=random_state, presets='best', eval_metric='roc_auc', phe_init_args={'path': <leaf>/autogluon_predictor})`. Notes on each non-default choice:
 
-  - **`max_time=7200`**. The post-hoc ensemble runs ~20 configs × 8 bag folds = 160 sub-fits, and a single TabPFN fit on this GPU costs ~13 s. A 7200 s budget gives those 160 sub-fits room to fit before the AutoGluon time limit cuts off remaining configs (which would shrink the ensemble down to whichever subset finished). The full 4-leaf AutoTabPFN sweep at this budget lands around 8 GPU-hours total.
-  - **`phe_init_args={'path': <leaf>/autogluon_predictor}`** pins AutoGluon's `TabularPredictor` save directory to a per-leaf subfolder. Without this, AutoGluon defaults to a project-root `TabPFNModels/m-<timestamp>_<rand>/` directory and the joblib pickle of `AutoTabPFNClassifier` only stores a *path reference* - i.e. `evaluate.py`'s `joblib.load(MODEL_PATH).predict_proba(...)` would silently load whichever AutoGluon predictor happens to live at that absolute path. With the leaf-local path, the model.joblib and the AutoGluon predictor stay co-located and the train→evaluate contract is preserved across re-runs.
+  - **`max_time=7200`**. The post-hoc ensemble runs ~20 configs × 8 bag folds = 160 sub-fits, and a single TabPFN fit on this GPU costs ~13 s. A 7200 s budget gives those 160 sub-fits room to fit before the AutoGluon time limit cuts off remaining configs (which would shrink the ensemble down to whichever subset finished). Under `presets='best'` the budget can be used more fully (full HPO + larger ensemble), but AutoGluon respects the ceiling via early termination; the full 4-leaf AutoTabPFN sweep at this budget lands around 8-15 GPU-hours total.
+  - **`presets='best'`**. AutoGluon's library default when `presets` is unset is `'medium'`, which AutoGluon's own documentation describes as "ideal for initial prototyping" - minimal HPO, smaller bagging, no meta-learner stacking. For a benchmark paper this is the wrong default. `'best'` is the standard AutoGluon benchmark configuration (full HPO, large ensembles, meta-learner stacking). The `'extreme'` preset is intentionally avoided: it requires the `autogluon.tabular[tabarena]` extra and injects TabICL / Mitra / TabDPT / TabM as competing base models, which breaks the explicit TabPFN-2.5 scoping that the `version_2-5-auto` folder label commits us to.
+  - **`eval_metric='roc_auc'`**. AutoGluon's library default is `'accuracy'`, which is degenerate on imbalanced binary: on the migraine target (positive rate ~5%) a constant-negative predictor reaches ~95% accuracy and would "win" the meta-learner's selection. `'roc_auc'` aligns the meta-learner's selection criterion with this benchmark's headline metric (AUROC) and is the AutoGluon convention for imbalanced binary classification. `'average_precision'` (AUPRC) would weight the minority class more aggressively but penalises calibration-only models with compressed score ranges; `'roc_auc'` is the conservative published-benchmark choice and what TabPFN's own published comparisons report.
+  - **`phe_init_args={'path': <leaf>/autogluon_predictor}`** pins AutoGluon's `TabularPredictor` save directory to a per-leaf subfolder. Without this, AutoGluon defaults to a project-root `TabPFNModels/m-<timestamp>_<rand>/` directory. With the leaf-local path, the model.joblib and the AutoGluon predictor stay co-located and the train→evaluate contract is preserved across re-runs. The builder additionally `shutil.rmtree`s the predictor directory before each fit so AutoGluon's "path already exists" warning does not fire and so artifacts from a prior fit cannot leak into the new one.
+  - **Persistence via `AutoTabPFNHandle`, not direct `joblib.dump` of `AutoTabPFNClassifier`.** Pickling the fitted `AutoTabPFNClassifier` directly causes a `SIGSEGV` under PyTorch 2.11.0+rocm7.2: joblib walks the wrapper's torch tensor references at `getstate`, and the AMD HIP runtime crashes inside the destructor cascade after AutoGluon's `TabularPredictor.save()` has already completed. The builder works around this by returning an `AutoTabPFNHandle` (`autotabpfn_v2_5/_persistence.py`) that pickles only the predictor's on-disk path and lazily reloads via `TabularPredictor.load(path)` at inference time. The handle implements the sklearn `predict_proba` contract, so `evaluate.py`'s generic `joblib.load(MODEL_PATH).predict_proba(X)[:, 1]` pattern works unchanged. The builder also explicitly `del base; gc.collect(); torch.cuda.empty_cache()`s before returning so the wrapper does not survive into interpreter shutdown, where the same segfault would fire.
 
 **Restricted scope:** AutoTabPFN is scaffolded for only **four leaves** (instead of the full 24), selected for being where the bare TabPFN-v2.6 baseline showed both high AUROC AND a non-zero MCC at the calibration-set-optimal threshold (so the post-hoc-ensembling comparison is meaningful for both ranking and operating-point metrics):
 
@@ -113,9 +131,52 @@ Addition 1 evaluates four members of the TabPFN family side-by-side as parallel 
   - **PASS 1 (diagnostic, `epochs=50`, `early_stopping=False`)** - runs the full 50-epoch cycle and captures per-epoch metrics (train mean loss, val log loss, val ROC-AUC) via a custom `FinetuningLogger` implementation. The full curve is written to `<leaf>/diagnostics/finetune_convergence_<timestamp>_<uuid>.txt` along with every logger config knob (learning rate, patience, etc.) for reproducibility. The trained model from this pass is **discarded**.
   - **PASS 2 (production, library defaults)** - `FinetunedTabPFNClassifier(device=device, random_state=random_state)` with `epochs=30`, `early_stopping=True`, `early_stopping_patience=8`, `min_delta=1e-4`, `validation_split_ratio=0.1`, `eval_metric=None` - i.e. lets the library's early-stopping signal decide convergence. This is the model serialised to `model.joblib` and consumed by `evaluate.py`.
 
-  The asymmetry in compute budget vs `version_2-6-auto` (early-stop ≈ 30s per leaf vs AutoTabPFN's 7200s) is methodologically defensible because each variant uses *its own* published best practice: fine-tuning is convergence-bound (Rubachev et al. [8] recommend early stopping for stability), AutoTabPFN is coverage-bound (PriorLabs documents `max_time` as a wall-clock cap on independent fits). The PASS 1 convergence files in `<leaf>/diagnostics/` are there to stop the concern about whether fine-tuning was budget-starved - the curves show the validation optimum was reached, then exceeded.
+  The asymmetry in compute budget vs `version_2-5-auto` (early-stop ≈ 30s per leaf vs AutoTabPFN's 7200s) is methodologically defensible because each variant uses *its own* published best practice: fine-tuning is convergence-bound (Rubachev et al. [8] recommend early stopping for stability), AutoTabPFN is coverage-bound (PriorLabs documents `max_time` as a wall-clock cap on independent fits). The PASS 1 convergence files in `<leaf>/diagnostics/` are there to stop the concern about whether fine-tuning was budget-starved - the curves show the validation optimum was reached, then exceeded.
 
-**Calibration framing - empirical, not pre-asserted:** the §4 calibration argument relies on TabPFN's meta-trained-for-calibration property, which is established for the in-context-learning regime by Hollmann et al. [1]. Rubachev et al. [8] study fine-tuning regimes for TabPFN-v2 but do not characterise post-fine-tuning calibration drift. Whether full fine-tuning preserves, improves, or degrades calibration relative to the zero-shot baseline is therefore an **empirical question this study's ECE10 / Brier columns answer**. If the reliability diagram for `version_2-6-finetuned` shows visible off-diagonal drift, we report that finding alongside the rank-based metrics (AUROC and AUPRC remain calibration-invariant either way).
+**Calibration framing - empirical, not pre-asserted:** the §4 calibration argument relies on TabPFN's meta-trained-for-calibration property, which is established for the in-context-learning regime by Hollmann et al. [1]. Rubachev et al. [8] study fine-tuning regimes for TabPFN-v2 but do not characterise post-fine-tuning calibration drift. Whether full fine-tuning preserves, improves, or degrades calibration relative to the zero-shot baseline is therefore an **empirical question this study's ECE10 / Brier columns answer**. If the reliability diagram for `version_2-5-finetuned` shows visible off-diagonal drift, we report that finding alongside the rank-based metrics (AUROC and AUPRC remain calibration-invariant either way).
+
+### §5.4 TabPFN-v3
+
+**What's different:** TabPFN-v3 is the next-generation model released by PriorLabs in May 2026 and shipped as the package default in `tabpfn==8.0.0`. The TabPFN-3 model report [10] describes v3 as a *"substantially redesigned architecture that scales in-context learning to datasets with one million rows"*. The architectural reworks relative to v2.5 / v2.6 (per the [v8.0.0 release notes](https://github.com/PriorLabs/TabPFN/releases/tag/v8.0.0) and the model report) are:
+
+  - **Return to v1-style ICL on row embeddings.** v2.x alternated row-wise and feature-wise attention layers; v3 returns to v1's approach of in-context-learning over per-row embeddings, made tractable at scale by a two-stage row-compression pipeline (column-wise feature embedding → row-wise feature aggregation → ICL over rows). The TabICLv2 row-compression design (Qu et al.) is referenced as the lineage.
+  - **Attention-based many-class decoder.** The fixed-width MLP classification head of v2.x is replaced with an attention-based retrieval decoder that treats class prediction as soft nearest-neighbour retrieval over the in-context training set. Class output positions are no longer tied to fixed indices and the head is non-parametric in the class count; the active `InferenceConfig.MAX_NUMBER_OF_CLASSES` is `160` (vs `10` in v2.6).
+  - **RMSNorm replaces LayerNorm** throughout (mean-centering term omitted; reduces compute while preserving training stability).
+  - **Native missing-value handling.** For each NaN cell, a binary indicator is concatenated with the cell value before embedding, so the model receives an explicit signal about missingness rather than relying on upstream imputation.
+  - **GPU preprocessing pipeline.** Feature transformations such as quantile normalisation and the SVD-based feature augmentation are executed on GPU as part of the forward pass when `InferenceConfig.ENABLE_GPU_PREPROCESSING=True`. This flag is `True` by default in the v3 checkpoint's baked-in `InferenceConfig` (and `False` for v2.6).
+  - **Feature-subsampling strategies** (`random`, `balanced`, `gini_feature_importance`, `auto`) for datasets exceeding the per-estimator feature budget; v3 defaults to `auto`, which uses Gini importance for >100k-sample datasets and falls back to balanced subsampling otherwise.
+  - **Stratified row subsampling** that preserves class proportions across ensemble members (relevant for imbalanced binary tasks like this study's ~5.1% positive rate).
+  - **Auto-scaling of `n_estimators`** at fit time so every feature is covered by at least one ensemble member; the effective count is exposed as `n_estimators_` after fitting.
+  - **Opt-in performance features.** `torch.compile` and FlashAttention-3 are described as opt-in performance features (model report §2.4.4); the `PerformanceOptions.attention_backend` default is `AUTO`, which routes to FA3 on **Hopper-class NVIDIA GPUs only (e.g. H100)** and falls back to PyTorch SDPA on other hardware. On this project's AMD Radeon RX 7900 XT (ROCm), FA3 does not activate; SDPA is used.
+  - **Larger pre-training corpus and synthetic prior.** v3 is *"pretrained exclusively on synthetic data"* from an updated Structural Causal Model prior (added many-class, temporal, spatial, and out-of-distribution components), with the final v3 model trained on more than 8 trillion tokens.
+
+**Configuration:** `TabPFNClassifier.create_default_for_version(ModelVersion.V3, device=device, random_state=random_state)`. Pin via `ModelVersion.V3` mirrors the `version_2-6` pin: it makes the variant's architecture explicit and stable across future `tabpfn` upgrades. The default checkpoint (`tabpfn-v3-classifier-v3_default.ckpt`) is used; the binary-specialised checkpoint is covered as a separate variant in §5.5.
+
+**Calibration framing - empirical, not pre-asserted:** the model report [10] (page 3) describes v3 as having *"calibrated predictive distributions in a single forward pass"*, and lists *"temperature scaling for probability calibration"* (model report §2.3) as an available post-processing capability that we do not use. However, the report does **not** report classification calibration metrics (ECE, Brier, reliability diagrams) for v3 itself, and does **not** compare v3 calibration against v2.x calibration empirically. Whether v3's architectural reworks (many-class decoder, GPU preprocessing, native NaN handling, return-to-row-ICL) preserve, improve, or degrade calibration relative to v2.6 on this dataset is therefore an **empirical question this study's ECE10 / Brier columns answer** rather than something we pre-assert. The §4 no-external-Platt argument applies in the same form: do not wrap in `CalibratedClassifierCV`; let the calibration metrics report the v3 native output.
+
+**License:** TabPFN-v3 model weights are released under `tabpfn-3-license-v1.0` (per the [Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3) HuggingFace card). The license explicitly permits *"testing, evaluation, and internal benchmarking"* but prohibits commercial or production use; this benchmark falls within the permitted scope. The same NONCOMMERCIAL constraint applies to v2.5 / v2.6 / v2.5_real weights (see the README license section).
+
+**Cite:** TabPFN-3 model report [10]; the v3 architecture extends but substantially redesigns the v2 architecture of Hollmann et al. [1].
+
+### §5.5 TabPFN-v3 binary-specialised
+
+**What's different vs `version_3-default/`:** uses the binary-specialised v3 checkpoint, `tabpfn-v3-classifier-v3_20260417_binary.ckpt`, instead of the v3 default. Same v3 architecture as `version_3-default/`. Same model-instance defaults (`n_estimators=8`, `softmax_temperature=0.9`) and the same Hopper-only FA3 caveat (does not activate on AMD ROCm; see §5.4). The checkpoint itself ships with its own baked-in `InferenceConfig` that differs from the v3 default checkpoint - inspection via `clf.get_inference_config()` shows three differences:
+
+  - `FEATURE_SUBSAMPLING_METHOD`: v3-default uses `'auto'` (Gini-importance-based above 100k samples, balanced below); v3-binary uses `'random'`.
+  - `FEATURE_SUBSAMPLING_IMPORTANCE_TOP_K_COUNT`: v3-default `150`; v3-binary `'auto'`.
+  - `PREPROCESS_TRANSFORMS`: different per-estimator preprocessor configs (different transform mixes).
+
+`ENABLE_GPU_PREPROCESSING=True` is the same on both.
+
+The [Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3) HuggingFace model card describes this checkpoint as *"Specialized for binary classification for datasets with <200k rows"*; the model card does not detail the training distribution beyond that statement, so we cite the card's wording verbatim rather than inferring whether the checkpoint was meta-trained on binary-only tasks.
+
+**Why include both `version_3-default/` and `version_3-binary/`:** the v3 model card recommends starting with the default and explicitly notes the specialised checkpoints as *"useful in ensembling or HPO setups, or tried manually in the regime they were trained for"*. The SHD task is binary classification with n ≈ 3.9k - directly inside the `<200k rows` regime the binary checkpoint is described as specialised for. Reporting both is the empirical answer to whether the binary specialist actually helps in our regime, or whether the default's broader training distribution covers the same ground.
+
+**Configuration:** `TabPFNClassifier.create_default_for_version(ModelVersion.V3, model_path=prepend_cache_path("tabpfn-v3-classifier-v3_20260417_binary.ckpt"), device=device, random_state=random_state)`. Mirrors the pattern used by Real-TabPFN-2.5 in §5.1 - pin the architecture version for its defaults, override `model_path` for the specialised checkpoint. The checkpoint's own baked-in `InferenceConfig` (the three field differences listed above) takes precedence over the v3-default config on the fields it diverges on.
+
+**Calibration framing - empirical, not pre-asserted:** the TabPFN-3 model report [10] does not characterise calibration for the binary-specialised checkpoint (it does not even single it out in the experimental results). Whether the binary specialist preserves v3's claimed calibration property is an **empirical question this study's ECE10 / Brier columns answer**. The §4 no-external-Platt argument applies in the same form.
+
+**Cite:** TabPFN-3 model report [10]; same v3 architecture lineage from Hollmann et al. [1].
 
 ---
 
@@ -140,6 +201,8 @@ Citation keys resolve against [`Sources.bib`](../Sources.bib) at the repository 
 [8] I. Rubachev, A. Kotelnikov, N. Kartashev, and A. Babenko, "On Finetuning Tabular Foundation Models," 2025, arXiv:2506.08982. Online: [arxiv.org/abs/2506.08982](https://arxiv.org/abs/2506.08982). Preprint as of May 2026; no peer-reviewed venue confirmed. BibTeX key: `rubachev2025finetuning`.
 
 [9] L. Purucker and J. Beel, "Q(D)O-ES: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in AutoML," in *Proceedings of the Second International Conference on Automated Machine Learning (AutoML 2023)*, in *Proceedings of Machine Learning Research*, vol. 224, PMLR, 2023. Online: [proceedings.mlr.press/v224/purucker23b.html](https://proceedings.mlr.press/v224/purucker23b.html). BibTeX key: `purucker2023qdoes`.
+
+[10] Prior Labs, "TabPFN-3 Model Report," PriorLabs technical report, May 2026. Online: [storage.googleapis.com/prior-labs-tabpfn-public/reports/TabPFN_3_model_report.pdf](https://storage.googleapis.com/prior-labs-tabpfn-public/reports/TabPFN_3_model_report.pdf). Distributed with the model weights at [huggingface.co/Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3). Technical report; not peer-reviewed. BibTeX key: `priorlabs2026tabpfn3report`.
 
 ### Software (cited inline, not numbered)
 
