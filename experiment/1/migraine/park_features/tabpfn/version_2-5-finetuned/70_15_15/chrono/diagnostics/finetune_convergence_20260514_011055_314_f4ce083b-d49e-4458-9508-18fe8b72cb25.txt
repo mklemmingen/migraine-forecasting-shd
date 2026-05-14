@@ -1,0 +1,37 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-14T01:10:55
+# UUID: f4ce083b-d49e-4458-9508-18fe8b72cb25
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 1213 rows x 6 features
+# Positives:   95 (7.8%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	

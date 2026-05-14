@@ -1,0 +1,67 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-13T23:29:02
+# UUID: c26a439e-0dd8-486b-a76f-8867a7c7a02d
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 2272 rows x 26 features
+# Positives:   606 (26.7%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	train/epoch	val/ROC AUC	train/mean_loss	val/log_loss	val/roc_auc
+1	20	0.598361	0.570028	0.570296	0.598361
+2	21	0.599299	0.570582	0.570294	0.599299
+3	22	0.595991	0.569465	0.570359	0.595991
+4	23	0.594509	0.574182	0.570342	0.594509
+5	24	0.595892	0.568971	0.570418	0.595892
+6	25	0.594954	0.574049	0.570499	0.594954
+7	26	0.597027	0.572239	0.570644	0.597027
+8	27	0.593769	0.560687	0.570897	0.593769
+9	28	0.592633	0.570070	0.571201	0.592633
+10	29	0.589226	0.571547	0.571603	0.589226
+11	30	0.591003	0.575327	0.572009	0.591003
+12	31	0.592238	0.569760	0.572435	0.592238
+13	32	0.592781	0.560209	0.572868	0.592781
+14	33	0.590115	0.564754	0.573431	0.590115
+15	34	0.589720	0.577884	0.573839	0.589720
+16	35	0.588238	0.569453	0.574257	0.588238
+17	36	0.591398	0.567713	0.574566	0.591398
+18	37	0.590608	0.576643	0.574491	0.590608
+19	38	0.588337	0.582924	0.574273	0.588337
+20	39	0.584831	0.579181	0.573902	0.584831
+21	40	0.586559	0.572835	0.573600	0.586559
+22	41	0.585226	0.580998	0.573233	0.585226
+23	42	0.585967	0.559841	0.572965	0.585967
+24	43	0.583942	0.565676	0.572694	0.583942
+25	44	0.587695	0.569284	0.572447	0.587695
+26	45	0.588831	0.562839	0.572278	0.588831
+27	46	0.587646	0.571193	0.572165	0.587646
+28	47	0.586510	0.561488	0.572094	0.586510
+29	48	0.586214	0.572145	0.572081	0.586214
+30	49	0.586559	0.568052	0.572024	0.586559
