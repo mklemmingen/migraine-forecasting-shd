@@ -18,16 +18,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    brier_score_loss,
-    f1_score,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
 
 # Shared imports
 _LEAF = Path(__file__).resolve()
@@ -35,9 +25,10 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-from _dataRead.filter_to_spano_features import remove_non_spano_features  # noqa: E402
+from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
 from _model_architecture.blended_xgb_lr_spano2026.model import build_model, calibrated_proba  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+from _train._training_script_output import capture_training_output  # noqa: E402
+from _eval.metrics_lib import find_operating_thresholds, score_fold  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -55,43 +46,6 @@ TITLE         = (
 )
 
 
-def expected_calibration_error(y_true, y_prob, n_bins=10):
-    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
-    binned    = np.digitize(y_prob, bin_edges[1:-1])
-    ece = 0.0
-    for i in range(n_bins):
-        mask = binned == i
-        if mask.sum() > 0:
-            ece += np.abs(y_true[mask].mean() - y_prob[mask].mean()) * mask.sum()
-    return ece / len(y_true)
-
-
-def find_operating_thresholds(y_true, y_prob):
-    thresholds = np.linspace(0.01, 0.99, 99)
-    mccs    = [matthews_corrcoef(y_true, (y_prob >= t).astype(int)) for t in thresholds]
-    recalls = [recall_score(y_true,      (y_prob >= t).astype(int)) for t in thresholds]
-    opt_mcc_thresh = thresholds[np.argmax(mccs)]
-    valid = [t for t, r in zip(thresholds, recalls) if r >= 0.50]
-    sens_05_thresh = max(valid) if valid else 0.50
-    return opt_mcc_thresh, sens_05_thresh
-
-
-def score_fold(y_val, p_val, opt_thresh, sens_thresh):
-    preds_opt = (p_val >= opt_thresh).astype(int)
-    return {
-        'AUROC':               roc_auc_score(y_val, p_val),
-        'AUPRC':               average_precision_score(y_val, p_val),
-        'Brier Score':         brier_score_loss(y_val, p_val),
-        'ECE10':               expected_calibration_error(y_val, p_val),
-        'MCC (Cal-Optimal)':   matthews_corrcoef(y_val, preds_opt),
-        'Sensitivity (>=0.5)': recall_score(y_val, (p_val >= sens_thresh).astype(int)),
-        'Accuracy':            accuracy_score(y_val, preds_opt),
-        'Precision':           precision_score(y_val, preds_opt, zero_division=0),
-        'Recall':              recall_score(y_val, preds_opt, zero_division=0),
-        'F1':                  f1_score(y_val, preds_opt, zero_division=0),
-    }
-
-
 def main():
     with capture_training_output(EXPERIMENT_DIR, label='training_cv'):
         _main_inner()
@@ -99,7 +53,7 @@ def main():
 
 def _main_inner():
     print(f"Loading {CV_PATH} ...")
-    cv = remove_non_spano_features(CV_PATH)
+    cv = select_spano_features(CV_PATH)
     print(f"  Total rows: {len(cv):,}  |  cv_fold distribution: "
           f"{ dict(cv['cv_fold'].value_counts().sort_index()) }")
 

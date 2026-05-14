@@ -1,0 +1,57 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-13T22:54:21
+# UUID: 9c7cbe25-b7ef-44c5-a5a1-56b5a495e24c
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 3941 rows x 26 features
+# Positives:   287 (7.3%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	train/epoch	val/ROC AUC	train/mean_loss	val/log_loss	val/roc_auc
+1	30	0.665139	0.244334	0.250496	0.665139
+2	31	0.664950	0.239369	0.250529	0.664950
+3	32	0.665281	0.248511	0.250663	0.665281
+4	33	0.663108	0.266290	0.250580	0.663108
+5	34	0.661502	0.241697	0.250512	0.661502
+6	35	0.662258	0.257482	0.250119	0.662258
+7	36	0.660085	0.250082	0.249501	0.660085
+8	37	0.658715	0.240194	0.249013	0.658715
+9	38	0.657581	0.247513	0.248657	0.657581
+10	39	0.656023	0.248241	0.248335	0.656023
+11	40	0.656920	0.240489	0.248108	0.656920
+12	41	0.662778	0.254801	0.248138	0.662778
+13	42	0.662494	0.256882	0.248236	0.662494
+14	43	0.665706	0.249400	0.248567	0.665706
+15	44	0.666037	0.256752	0.248536	0.666037
+16	45	0.671233	0.249261	0.248468	0.671233
+17	46	0.671516	0.261466	0.248146	0.671516
+18	47	0.671800	0.247793	0.247913	0.671800
+19	48	0.671422	0.257495	0.247631	0.671422
+20	49	0.671611	0.247540	0.247437	0.671611

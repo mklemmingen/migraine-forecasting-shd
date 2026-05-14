@@ -1,0 +1,56 @@
+# Training-script output capture
+# Generated: 2026-05-14T01:05:55
+# UUID:      5d8d37e6-a25a-4d73-9ebb-e644f69988ba
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/migraine/no_rolling_features/tabpfn/version_2-5-finetuned/70_15_15/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/migraine/diary_cv5_timeseries.parquet ...
+no_rolling feature set: 4516 rows x 26 features (same-day flags, raw exercise minutes, dow).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.066  cal_sub: 0.054  val: 0.081
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2483]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:00<00:00,  1.03it/s, loss=0.2483]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:00<00:00,  1.03it/s, loss=0.2483]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2480]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:00<00:00,  1.35it/s, loss=0.2480]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:00<00:00,  1.35it/s, loss=0.2480]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2508]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:00<00:00,  1.19it/s, loss=0.2508]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:00<00:00,  1.19it/s, loss=0.2508]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2489]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:00<00:00,  1.39it/s, loss=0.2489]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:00<00:00,  1.39it/s, loss=0.2489]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2477]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2477]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2477]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2500]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2500]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2500]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2492]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:00<00:00,  1.19it/s, loss=0.2492]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:00<00:00,  1.19it/s, loss=0.2492]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s, loss=0.2483]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2483]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s, loss=0.2483]
+  Thresholds - MCC-optimal: 0.050  Sens>=0.5: 0.050
+  AUROC: 0.592  AUPRC: 0.111  MCC: 0.038
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.078  cal_sub: 0.068  val: 0.072
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2860]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2860]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:01<00:00,  1.46s/it, loss=0.2860]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2770]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:01<00:00,  1.61s/it, loss=0.2770]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:01<00:00,  1.61s/it, loss=0.2770]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2708]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:01<00:00,  1.47s/it, loss=0.2708]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:01<00:00,  1.47s/it, loss=0.2708]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2676]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2676]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2676]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2472]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2472]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2472]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2687]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:01<00:00,  1.60s/it, loss=0.2687]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:01<00:00,  1.60s/it, loss=0.2687]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2775]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2775]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2775]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:01<?, ?it/s, loss=0.2597]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2597]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:01<00:00,  1.48s/it, loss=0.2597]
+  Thresholds - MCC-optimal: 0.110  Sens>=0.5: 0.050
+  AUROC: 0.581  AUPRC: 0.108  MCC: 0.104
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.072  cal_sub: 0.079  val: 0.072
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 21/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 21/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2607]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2607]Finetuning Epoch 21/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2607]
+Finetuning Epoch 22/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 22/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2443]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:03<00:00,  3.09s/it, loss=0.2443]Finetuning Epoch 22/30: 100%|██████████| 1/1 [00:03<00:00,  3.09s/it, loss=0.2443]
+Finetuning Epoch 23/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 23/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2417]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:03<00:00,  3.08s/it, loss=0.2417]Finetuning Epoch 23/30: 100%|██████████| 1/1 [00:03<00:00,  3.08s/it, loss=0.2417]
+Finetuning Epoch 24/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 24/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2504]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2504]Finetuning Epoch 24/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.2504]
+Finetuning Epoch 25/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 25/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2494]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2494]Finetuning Epoch 25/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2494]
+Finetuning Epoch 26/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 26/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2543]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2543]Finetuning Epoch 26/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2543]
+Finetuning Epoch 27/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 27/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2393]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:03<00:00,  3.18s/it, loss=0.2393]Finetuning Epoch 27/30: 100%|██████████| 1/1 [00:03<00:00,  3.18s/it, loss=0.2393]
+Finetuning Epoch 28/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 28/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2450]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2450]Finetuning Epoch 28/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2450]
+Finetuning Epoch 29/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 29/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2562]Finetuning Epoch 29/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2562]Finetuning Epoch 29/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.2562]
+Finetuning Epoch 30/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 30/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.2627]Finetuning Epoch 30/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2627]Finetuning Epoch 30/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.2627]

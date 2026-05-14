@@ -11,9 +11,9 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-from _dataRead.filter_to_spano_features import remove_non_spano_features  # noqa: E402
+from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
 from _model_architecture.stacked_2xgb_meta_lr.model import build_model  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +28,7 @@ CAL_RATIO = 0.20
 def main():
     with capture_training_output(EXPERIMENT_DIR, label='training'):
         print("Loading data...")
-        df_train_full = remove_non_spano_features(TRAIN_PATH)
+        df_train_full = select_spano_features(TRAIN_PATH)
         train_sub, cal_sub = chronological_subsplit(df_train_full, cal_ratio=CAL_RATIO)
         X_train, y_train = prep_split(train_sub)
         X_cal,   y_cal   = prep_split(cal_sub)

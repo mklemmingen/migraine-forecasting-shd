@@ -1,0 +1,57 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-13T23:59:06
+# UUID: c0610102-9341-41e0-b4e2-c4ed867ef471
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 2272 rows x 6 features
+# Positives:   164 (7.2%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	train/epoch	val/ROC AUC	train/mean_loss	val/log_loss	val/roc_auc
+1	30	0.618780	0.259806	0.244888	0.618780
+2	31	0.618780	0.258627	0.244896	0.618780
+3	32	0.665284	0.257908	0.244910	0.665284
+4	33	0.618928	0.262591	0.244973	0.618928
+5	34	0.619372	0.255830	0.244966	0.619372
+6	35	0.618928	0.257229	0.244907	0.618928
+7	36	0.572571	0.258762	0.244860	0.572571
+8	37	0.664840	0.257870	0.244786	0.664840
+9	38	0.618483	0.256965	0.244743	0.618483
+10	39	0.618335	0.257528	0.244567	0.618335
+11	40	0.618335	0.255395	0.244363	0.618335
+12	41	0.618335	0.256427	0.244123	0.618335
+13	42	0.572867	0.265697	0.243792	0.572867
+14	43	0.618335	0.264821	0.243486	0.618335
+15	44	0.618335	0.256401	0.243457	0.618335
+16	45	0.618335	0.255096	0.243584	0.618335
+17	46	0.658916	0.261119	0.243650	0.658916
+18	47	0.613004	0.262963	0.243695	0.613004
+19	48	0.613004	0.260258	0.243823	0.613004
+20	49	0.613004	0.261741	0.244069	0.613004

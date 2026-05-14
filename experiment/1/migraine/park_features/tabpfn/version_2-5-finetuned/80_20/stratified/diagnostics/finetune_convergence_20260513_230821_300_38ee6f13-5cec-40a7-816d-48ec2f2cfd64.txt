@@ -1,0 +1,57 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-13T23:08:21
+# UUID: 38ee6f13-5cec-40a7-816d-48ec2f2cfd64
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 3612 rows x 6 features
+# Positives:   260 (7.2%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	train/epoch	val/ROC AUC	train/mean_loss	val/log_loss	val/roc_auc
+1	30	0.580540	0.250106	0.257100	0.580540
+2	31	0.580540	0.251681	0.257102	0.580540
+3	32	0.580540	0.253501	0.257080	0.580540
+4	33	0.580540	0.248044	0.257017	0.580540
+5	34	0.580540	0.253268	0.256936	0.580540
+6	35	0.573421	0.249255	0.256847	0.573421
+7	36	0.580425	0.249419	0.256759	0.580425
+8	37	0.573307	0.241423	0.256910	0.573307
+9	38	0.580540	0.258535	0.256976	0.580540
+10	39	0.580540	0.251622	0.256981	0.580540
+11	40	0.580540	0.247747	0.257056	0.580540
+12	41	0.580540	0.257881	0.257056	0.580540
+13	42	0.580540	0.248711	0.257160	0.580540
+14	43	0.580425	0.254708	0.257089	0.580425
+15	44	0.587543	0.252721	0.256877	0.587543
+16	45	0.580425	0.253934	0.256719	0.580425
+17	46	0.587658	0.250578	0.256564	0.587658
+18	47	0.580310	0.249534	0.256547	0.580310
+19	48	0.580425	0.253930	0.256477	0.580425
+20	49	0.580425	0.248917	0.256539	0.580425

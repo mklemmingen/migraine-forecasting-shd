@@ -1,0 +1,88 @@
+# Training-script output capture
+# Generated: 2026-05-14T01:00:20
+# UUID:      fff7aca8-4336-425e-846b-40cb737503f8
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-5-finetuned/70_15_15/chrono
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/headache/diary_cv5_timeseries.parquet ...
+no_rolling feature set: 4516 rows x 26 features (same-day flags, raw exercise minutes, dow).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.248  cal_sub: 0.314  val: 0.279
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.270  Sens>=0.5: 0.230
+  AUROC: 0.534  AUPRC: 0.325  MCC: 0.072
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.292  cal_sub: 0.246  val: 0.225
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.310  Sens>=0.5: 0.250
+  AUROC: 0.521  AUPRC: 0.248  MCC: 0.076
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.267  cal_sub: 0.221  val: 0.190
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+Finetuning Epoch 11/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 11/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5701]Finetuning Epoch 11/30: 100%|██████████| 1/1 [00:03<00:00,  3.33s/it, loss=0.5701]Finetuning Epoch 11/30: 100%|██████████| 1/1 [00:03<00:00,  3.33s/it, loss=0.5701]
+Finetuning Epoch 12/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 12/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5740]Finetuning Epoch 12/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.5740]Finetuning Epoch 12/30: 100%|██████████| 1/1 [00:03<00:00,  3.17s/it, loss=0.5740]
+Finetuning Epoch 13/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 13/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5728]Finetuning Epoch 13/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.5728]Finetuning Epoch 13/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.5728]
+Finetuning Epoch 14/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 14/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5675]Finetuning Epoch 14/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.5675]Finetuning Epoch 14/30: 100%|██████████| 1/1 [00:03<00:00,  3.05s/it, loss=0.5675]
+Finetuning Epoch 15/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 15/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5707]Finetuning Epoch 15/30: 100%|██████████| 1/1 [00:03<00:00,  3.12s/it, loss=0.5707]Finetuning Epoch 15/30: 100%|██████████| 1/1 [00:03<00:00,  3.12s/it, loss=0.5707]
+Finetuning Epoch 16/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 16/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5694]Finetuning Epoch 16/30: 100%|██████████| 1/1 [00:03<00:00,  3.03s/it, loss=0.5694]Finetuning Epoch 16/30: 100%|██████████| 1/1 [00:03<00:00,  3.03s/it, loss=0.5694]
+Finetuning Epoch 17/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 17/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5683]Finetuning Epoch 17/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.5683]Finetuning Epoch 17/30: 100%|██████████| 1/1 [00:03<00:00,  3.04s/it, loss=0.5683]
+Finetuning Epoch 18/30:   0%|          | 0/1 [00:00<?, ?it/s]Finetuning Epoch 18/30:   0%|          | 0/1 [00:03<?, ?it/s, loss=0.5715]Finetuning Epoch 18/30: 100%|██████████| 1/1 [00:03<00:00,  3.16s/it, loss=0.5715]Finetuning Epoch 18/30: 100%|██████████| 1/1 [00:03<00:00,  3.16s/it, loss=0.5715]
+  Thresholds - MCC-optimal: 0.360  Sens>=0.5: 0.220
+  AUROC: 0.584  AUPRC: 0.301  MCC: 0.189
+
+--- Fold 4/5 ---
+  train_sub: 3121 rows  |  cal_sub:  707 rows  |  val:  530 rows
+  Positive rates - train_sub: 0.254  cal_sub: 0.182  val: 0.215
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.350  Sens>=0.5: 0.210
+  AUROC: 0.585  AUPRC: 0.274  MCC: 0.011
+
+--- Fold 5/5 ---
+  train_sub: 3809 rows  |  cal_sub:  549 rows  |  val:  158 rows
+  Positive rates - train_sub: 0.241  cal_sub: 0.217  val: 0.146
+  Fitting tabpfn on train_sub (no external calibrator - see docs/tabPfn.MD)...
+  Thresholds - MCC-optimal: 0.200  Sens>=0.5: 0.190
+  AUROC: 0.497  AUPRC: 0.155  MCC: -0.051
+
+============================================================
+STAGE 1 / no_rolling_features / tabpfn (version_2-5-finetuned) - 5-Fold Time-Series CV
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split - NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.534    0.521    0.584    0.585    0.497 | 0.544    0.035  
+AUPRC                     |   0.325    0.248    0.301    0.274    0.155 | 0.261    0.059  
+Brier Score               |   0.202    0.178    0.152    0.169    0.136 | 0.167    0.023  
+ECE10                     |   0.045    0.055    0.057    0.022    0.075 | 0.051    0.017  
+Calibration Slope         |   2.823    0.373    1.418    0.642   -0.275 | 0.996    1.063  
+MCC (Cal-Optimal)         |   0.072    0.076    0.189    0.011   -0.051 | 0.059    0.080  
+Sensitivity (>=0.5)       |   0.521    0.914    0.863    0.649    0.783 | 0.746    0.144  
+Accuracy                  |   0.716    0.708    0.807    0.745    0.646 | 0.724    0.053  
+Precision                 |   0.438    0.296    0.481    0.231    0.116 | 0.312    0.134  
+Recall                    |   0.062    0.217    0.155    0.079    0.217 | 0.146    0.066  
+F1                        |   0.109    0.251    0.234    0.118    0.152 | 0.173    0.059  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.270  thresh_sens=0.230
+  F2: 1213 /  545 / 1187   thresh_mcc=0.310  thresh_sens=0.250
+  F3: 2272 /  673 /  883   thresh_mcc=0.360  thresh_sens=0.220
+  F4: 3121 /  707 /  530   thresh_mcc=0.350  thresh_sens=0.210
+  F5: 3809 /  549 /  158   thresh_mcc=0.200  thresh_sens=0.190
+============================================================
+
+Results saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/no_rolling_features/tabpfn/version_2-5-finetuned/70_15_15/chrono/results/results_cv_20260514_010117_975_3ededf15-7c86-4d9a-a934-da89b8a653bb.txt
+
+# End capture ------------------------------------------
+# Finished: 2026-05-14T01:01:17

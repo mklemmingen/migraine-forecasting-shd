@@ -1,0 +1,57 @@
+# Fine-tuning convergence curve (PASS 1 of 2)
+# Generated: 2026-05-13T23:03:55
+# UUID: d5c6960f-18c4-4e7f-ab6e-216931623c3c
+# Pass 1 config: epochs=50, early_stopping=False
+# Pass 1 purpose: record full per-epoch curve to demonstrate
+#                 that the early-stopped model.joblib (PASS 2)
+#                 is at the validation optimum, not the budget edge.
+# Train shape: 3941 rows x 6 features
+# Positives:   287 (7.3%)
+#
+# Logger config keys captured:
+#   device = cuda
+#   early_stopping = False
+#   early_stopping_patience = 8
+#   epochs = 50
+#   eval_metric = roc_auc
+#   extra_classifier_kwargs = None
+#   finetune_ctx_query_split_ratio = 0.2
+#   grad_clip_value = 1.0
+#   learning_rate = 1e-05
+#   lr_warmup_only = False
+#   min_delta = 0.0001
+#   n_estimators_final_inference = 8
+#   n_estimators_finetune = 8
+#   n_estimators_validation = 8
+#   n_finetune_ctx_plus_query_samples = 10000
+#   n_inference_subsample_samples = 50000
+#   random_state = 0
+#   save_checkpoint_interval = 10
+#   time_limit = None
+#   use_activation_checkpointing = True
+#   use_fixed_preprocessing_seed = True
+#   use_lr_scheduler = True
+#   validation_split_ratio = 0.1
+#   weight_decay = 0.01
+#
+step	train/epoch	val/ROC AUC	train/mean_loss	val/log_loss	val/roc_auc
+1	30	0.599103	0.247931	0.258758	0.599103
+2	31	0.591923	0.245628	0.258827	0.591923
+3	32	0.591923	0.249753	0.258973	0.591923
+4	33	0.592064	0.261743	0.259113	0.592064
+5	34	0.591923	0.249834	0.259279	0.591923
+6	35	0.591923	0.259883	0.259328	0.591923
+7	36	0.584648	0.250080	0.259199	0.584648
+8	37	0.598961	0.246303	0.259203	0.598961
+9	38	0.591781	0.255102	0.259448	0.591781
+10	39	0.599197	0.251721	0.259779	0.599197
+11	40	0.591923	0.251407	0.260081	0.591923
+12	41	0.591923	0.250460	0.260190	0.591923
+13	42	0.590978	0.260718	0.259894	0.590978
+14	43	0.598016	0.252739	0.259622	0.598016
+15	44	0.590883	0.261789	0.259028	0.590883
+16	45	0.590883	0.253273	0.258704	0.590883
+17	46	0.590836	0.265279	0.258337	0.590836
+18	47	0.584743	0.251795	0.258223	0.584743
+19	48	0.599103	0.266662	0.257988	0.599103
+20	49	0.591923	0.251968	0.258036	0.591923

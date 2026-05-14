@@ -10,9 +10,9 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import load_and_prep_data as _load_and_prep_data, prep_split  # noqa: E402
-from _dataRead.filter_to_spano_features import remove_non_spano_features  # noqa: E402
+from _dataRead.filter_to_spano_features import select_spano_features  # noqa: E402
 from _model_architecture.blended_xgb_lr_spano2026.model import build_model  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,8 +23,8 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 
 def load_and_prep_data(filepath):
-    """Spano-feature variant: drop benchmark-only columns before (X, y) split."""
-    return _load_and_prep_data(filepath, loader=remove_non_spano_features)
+    """Spano-feature variant: whitelist Spano (2026) columns before (X, y) split."""
+    return _load_and_prep_data(filepath, loader=select_spano_features)
 
 
 def main():
