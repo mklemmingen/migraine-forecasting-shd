@@ -11,9 +11,9 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split  # noqa: E402
-from _dataRead.filter_to_no_rolling_features import remove_rolling_features  # noqa: E402
+from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
 from _model_architecture.realtabpfn.model import build_realtabpfn  # noqa: E402
-from _eval._training_script_output import capture_training_output  # noqa: E402
+from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
 EXPERIMENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +25,7 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 def main():
     with capture_training_output(EXPERIMENT_DIR, label='training'):
         print("Loading data...")
-        df_train_full = remove_rolling_features(TRAIN_PATH)
+        df_train_full = select_non_rolling_features(TRAIN_PATH)
         X_train, y_train = prep_split(df_train_full)
 
         print(f"Train: X={X_train.shape}, y={y_train.shape}  (positive rate: {y_train.mean():.3f})")
