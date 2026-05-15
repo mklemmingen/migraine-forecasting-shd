@@ -1,0 +1,36 @@
+# Training-script output capture
+# Generated: 2026-05-15T15:45:07
+# UUID:      2041464d-05f0-479f-859a-b6d7f713503a
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/70_15_15/chrono/HyperparameterTuned/single_AUROC/HP020
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading datasets...
+Running single_AUROC search (20 trials, seed=42)...
+[I 2026-05-15 15:45:07,427] A new study created in memory with name: no-name-c14e0232-6fd4-488a-95b9-951fdddca93d
+[I 2026-05-15 15:45:09,091] Trial 0 finished with value: 0.587881165961974 and parameters: {'n_estimators': 218, 'learning_rate': 0.2536999076681772, 'subsample': 0.892797576724562, 'colsample_bytree': 0.8394633936788146, 'min_child_weight': 2}. Best is trial 0 with value: 0.587881165961974.
+[I 2026-05-15 15:45:10,533] Trial 1 finished with value: 0.6098574798069748 and parameters: {'n_estimators': 120, 'learning_rate': 0.012184186502221764, 'subsample': 0.9464704583099741, 'colsample_bytree': 0.8404460046972835, 'min_child_weight': 8}. Best is trial 1 with value: 0.6098574798069748.
+[I 2026-05-15 15:45:11,907] Trial 2 finished with value: 0.6101337885176268 and parameters: {'n_estimators': 59, 'learning_rate': 0.2708160864249968, 'subsample': 0.9329770563201687, 'colsample_bytree': 0.6849356442713105, 'min_child_weight': 2}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:13,334] Trial 3 finished with value: 0.5819470920481021 and parameters: {'n_estimators': 132, 'learning_rate': 0.028145092716060652, 'subsample': 0.8099025726528951, 'colsample_bytree': 0.7727780074568463, 'min_child_weight': 3}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:14,929] Trial 4 finished with value: 0.58482147239723 and parameters: {'n_estimators': 325, 'learning_rate': 0.01607123851203988, 'subsample': 0.7168578594140873, 'colsample_bytree': 0.7465447373174767, 'min_child_weight': 5}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:16,436] Trial 5 finished with value: 0.5753604437442823 and parameters: {'n_estimators': 404, 'learning_rate': 0.019721610970574007, 'subsample': 0.8056937753654446, 'colsample_bytree': 0.836965827544817, 'min_child_weight': 1}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:18,013] Trial 6 finished with value: 0.6049162070374192 and parameters: {'n_estimators': 324, 'learning_rate': 0.0178601378893971, 'subsample': 0.6260206371941118, 'colsample_bytree': 0.9795542149013333, 'min_child_weight': 10}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:19,583] Trial 7 finished with value: 0.6050123335981923 and parameters: {'n_estimators': 414, 'learning_rate': 0.028180680291847244, 'subsample': 0.6390688456025535, 'colsample_bytree': 0.8736932106048627, 'min_child_weight': 5}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:20,042] Trial 8 finished with value: 0.5801302167968835 and parameters: {'n_estimators': 105, 'learning_rate': 0.05388108577817234, 'subsample': 0.6137554084460873, 'colsample_bytree': 0.9637281608315128, 'min_child_weight': 3}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:20,816] Trial 9 finished with value: 0.5943340428188912 and parameters: {'n_estimators': 348, 'learning_rate': 0.028869220380495747, 'subsample': 0.8080272084711243, 'colsample_bytree': 0.8186841117373118, 'min_child_weight': 2}. Best is trial 2 with value: 0.6101337885176268.
+[I 2026-05-15 15:45:21,692] Trial 10 finished with value: 0.6319232560646701 and parameters: {'n_estimators': 487, 'learning_rate': 0.13962563737015762, 'subsample': 0.9757995766256756, 'colsample_bytree': 0.9579309401710595, 'min_child_weight': 6}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:22,449] Trial 11 finished with value: 0.590820911426972 and parameters: {'n_estimators': 465, 'learning_rate': 0.01351182947645082, 'subsample': 0.6783931449676581, 'colsample_bytree': 0.6180909155642152, 'min_child_weight': 4}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:23,073] Trial 12 finished with value: 0.571928941928942 and parameters: {'n_estimators': 225, 'learning_rate': 0.02516607127550297, 'subsample': 0.9314950036607718, 'colsample_bytree': 0.7427013306774357, 'min_child_weight': 3}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:23,807] Trial 13 finished with value: 0.5869629802963136 and parameters: {'n_estimators': 294, 'learning_rate': 0.016149614799999188, 'subsample': 0.9208787923016158, 'colsample_bytree': 0.6298202574719083, 'min_child_weight': 10}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:24,668] Trial 14 finished with value: 0.6104919349363793 and parameters: {'n_estimators': 398, 'learning_rate': 0.019657448966046126, 'subsample': 0.602208846849441, 'colsample_bytree': 0.9261845713819337, 'min_child_weight': 8}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:25,464] Trial 15 finished with value: 0.6229430781956035 and parameters: {'n_estimators': 378, 'learning_rate': 0.13780336485751998, 'subsample': 0.6296178606936361, 'colsample_bytree': 0.7433862914177091, 'min_child_weight': 2}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:26,367] Trial 16 finished with value: 0.622074978034574 and parameters: {'n_estimators': 439, 'learning_rate': 0.08330803890301997, 'subsample': 0.7323592099410596, 'colsample_bytree': 0.6254233401144095, 'min_child_weight': 4}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:26,997] Trial 17 finished with value: 0.5832274685810039 and parameters: {'n_estimators': 196, 'learning_rate': 0.1195960383019184, 'subsample': 0.8550229885420852, 'colsample_bytree': 0.9548850970305306, 'min_child_weight': 5}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:27,442] Trial 18 finished with value: 0.6196438311589827 and parameters: {'n_estimators': 103, 'learning_rate': 0.1131225105716033, 'subsample': 0.9043140194467589, 'colsample_bytree': 0.8245108790277985, 'min_child_weight': 8}. Best is trial 10 with value: 0.6319232560646701.
+[I 2026-05-15 15:45:28,043] Trial 19 finished with value: 0.5937509646600556 and parameters: {'n_estimators': 272, 'learning_rate': 0.05917520523090666, 'subsample': 0.7710164073434198, 'colsample_bytree': 0.610167650697638, 'min_child_weight': 2}. Best is trial 10 with value: 0.6319232560646701.
+Building variant 'HP020'...
+Saved /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/70_15_15/chrono/HyperparameterTuned/single_AUROC/HP020/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-15T15:45:28

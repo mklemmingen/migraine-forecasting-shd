@@ -51,40 +51,119 @@ _TEMPLATES_DIR  = ADDITION_ROOT / "_templates"       # leaf-script templates
 STACKED = "stacked_2xgb_meta_lr"
 BLENDED = "blended_xgb_lr_spano2026"
 
+# Hyperparameter-tuning variants under the HyperparameterTuned/ subtree of
+# stacked_2xgb_meta_lr cells. The single_AUROC ladder produces 5 budget
+# snapshots (HP020/HP050/HP100/HP200/HP500) from one 500-trial
+# RandomSampler trajectory: best-AUROC trial in the first N trials gives
+# the params for the HPN cell. Each pareto track produces 3 operating
+# points (extreme-x, knee, extreme-y) from one 500-trial NSGA-II
+# trajectory in the named 2D objective space.
+HP_SINGLE_OBJ_TIERS    = ("HP020", "HP050", "HP100", "HP200", "HP500")
+HP_PARETO_AUROC_POINTS = ("auroc_max", "knee", "slope_closest")
+HP_PARETO_AUPRC_POINTS = ("auprc_max", "knee", "slope_closest")
+
 
 # ---------------------------------------------------------------------------
 # Leaf enumeration
 # ---------------------------------------------------------------------------
 
 class Leaf(NamedTuple):
-    target: str             # 'headache' | 'migraine'
-    feature_set: str        # 'full_features' | 'spano_features' | 'no_rolling_features'
-    arch: str               # 'stacked_2xgb_meta_lr' | 'blended_xgb_lr_spano2026'
-    ratio: str              # '70_15_15' | '70_30' | '80_20'
-    split_type: str         # 'chrono' | 'stratified'
-    with_cv: bool           # generate evaluate_cv.py?
+    target: str                       # 'headache' | 'migraine'
+    feature_set: str                  # 'full_features' | 'spano_features' | 'no_rolling_features' | 'park_features'
+    arch: str                         # 'stacked_2xgb_meta_lr' | 'blended_xgb_lr_spano2026'
+    ratio: str                        # '70_15_15' | '70_30' | '80_20'
+    split_type: str                   # 'chrono' | 'stratified'
+    with_cv: bool                     # generate evaluate_cv.py?
+    tuning_strategy: str = ""         # '' for NonHP, else 'single_AUROC' | 'pareto_AUROC_slope' | 'pareto_AUPRC_slope'
+    tuning_variant: str  = ""         # '' for NonHP, else 'HP020' ... 'HP500' | 'auroc_max' | 'knee' | ...
 
     @property
     def has_val(self) -> bool:
         return self.ratio == "70_15_15"
 
     @property
+    def is_hp(self) -> bool:
+        return bool(self.tuning_strategy)
+
+    @property
+    def module_arch(self) -> str:
+        # Python module path for the builder. HP variants live under the
+        # NonHP arch's folder (so the aggregator row-key sort groups them
+        # together) but import their builder from the _hp module.
+        return f"{self.arch}_hp" if self.is_hp else self.arch
+
+    @property
     def dir(self) -> Path:
-        return (ADDITION_ROOT / self.target / self.feature_set / self.arch /
-                self.ratio / self.split_type / "NonHP")
+        base = (ADDITION_ROOT / self.target / self.feature_set / self.arch /
+                self.ratio / self.split_type)
+        if self.is_hp:
+            return base / "HyperparameterTuned" / self.tuning_strategy / self.tuning_variant
+        return base / "NonHP"
+
+
+# Maps a tuning_strategy to the (pareto_x_key, pareto_y_key) used by the
+# variant builder. Single-objective strategies don't use Pareto keys.
+HP_STRATEGY_TO_PARETO_KEYS = {
+    "single_AUROC":       ("", ""),
+    "pareto_AUROC_slope": ("auroc", "slope_dist_to_1"),
+    "pareto_AUPRC_slope": ("auprc", "slope_dist_to_1"),
+}
+
+
+def _enumerate_hp_variants(target: str) -> list[tuple[str, str]]:
+    """Yield (tuning_strategy, tuning_variant) pairs for a target.
+
+    All targets get the single_AUROC ladder and the pareto_AUROC_slope
+    frontier. Migraine cells additionally get the pareto_AUPRC_slope
+    frontier; the AUROC/AUPRC cross-check is meaningful only on the
+    5% positive-rate target where McDermott et al. (arXiv:2401.06091,
+    2024) show the two discrimination metrics can disagree under
+    imbalance.
+    """
+    out: list[tuple[str, str]] = []
+    for tier in HP_SINGLE_OBJ_TIERS:
+        out.append(("single_AUROC", tier))
+    for point in HP_PARETO_AUROC_POINTS:
+        out.append(("pareto_AUROC_slope", point))
+    if target == "migraine":
+        for point in HP_PARETO_AUPRC_POINTS:
+            out.append(("pareto_AUPRC_slope", point))
+    return out
 
 
 def enumerate_leaves() -> list[Leaf]:
     leaves: list[Leaf] = []
     for target in ("headache", "migraine"):
-        # Stacked: full grid across the three target-agnostic feature sets.
+        # Stacked NonHP: full grid across the three target-agnostic feature sets.
         for fs in ("full_features", "no_rolling_features", "spano_features"):
             for ratio in ("70_15_15", "70_30", "80_20"):
                 for split_type in ("chrono", "stratified"):
                     with_cv = (ratio == "70_15_15" and split_type == "chrono")
                     leaves.append(Leaf(target, fs, STACKED, ratio, split_type, with_cv))
-        # Blended: canonical anchor only - see module docstring.
+        # Blended NonHP: canonical anchor only - see module docstring.
         leaves.append(Leaf(target, "spano_features", BLENDED, "70_15_15", "chrono", with_cv=True))
+
+        # Hyperparameter-tuned variants: stacked_2xgb_meta_lr x full_features
+        # only. full_features is the highest-overfitting-risk feature set
+        # (EPV 3.9 on migraine) and therefore the most informative cell to
+        # instrument; tuning the lower-EPV feature sets would mostly
+        # rediscover the NonHP results at higher compute. blended is
+        # excluded because its 4-way cal-set reuse already overfits
+        # calibration; tuning compounds that. Same (ratio, split, with_cv)
+        # grid as the NonHP cells so HP rows sit as siblings of NonHP rows
+        # under one architecture group in the comparison table.
+        for ratio in ("70_15_15", "70_30", "80_20"):
+            for split_type in ("chrono", "stratified"):
+                # CV evaluation is intentionally skipped for HP variants;
+                # the standard evaluate_cv template's per-fold refit calls
+                # build_model with the NonHP signature. HP cells report
+                # hold-out test bootstrap only.
+                for tuning_strategy, tuning_variant in _enumerate_hp_variants(target):
+                    leaves.append(Leaf(
+                        target, "full_features", STACKED, ratio, split_type,
+                        False, tuning_strategy, tuning_variant,
+                    ))
+
     # park_features: migraine target only. Park et al.'s stepwise multiple
     # logistic regression in Table 4 discriminates migraine vs non-migraine
     # headache; the same trigger-selection rationale does NOT apply to the
@@ -172,16 +251,23 @@ EVAL_2WAY_TPL = (_TEMPLATES_DIR / "evaluate_2way.py.tpl").read_text()
 
 EVAL_CV_TPL = (_TEMPLATES_DIR / "evaluate_cv.py.tpl").read_text()
 
+TRAIN_HP_3WAY_TPL = (_TEMPLATES_DIR / "train_hp_3way.py.tpl").read_text()
+
+TRAIN_HP_2WAY_TPL = (_TEMPLATES_DIR / "train_hp_2way.py.tpl").read_text()
+
 
 # ---------------------------------------------------------------------------
 # Generation logic
 # ---------------------------------------------------------------------------
 
 def render_train(leaf: Leaf) -> str:
+    if leaf.is_hp:
+        return render_train_hp(leaf)
     loader = LOADERS[leaf.feature_set]
     if leaf.has_val:
         return TRAIN_3WAY_TPL.format(
             arch=leaf.arch,
+            arch_module=leaf.module_arch,
             target=leaf.target,
             ratio=leaf.ratio,
             split_type=leaf.split_type,
@@ -191,11 +277,40 @@ def render_train(leaf: Leaf) -> str:
         )
     return TRAIN_2WAY_TPL.format(
         arch=leaf.arch,
+        arch_module=leaf.module_arch,
         target=leaf.target,
         ratio=leaf.ratio,
         split_type=leaf.split_type,
         extra_imports=_extra_imports(loader),
         raw_loader=loader.raw_loader_call,
+    )
+
+
+def render_train_hp(leaf: Leaf) -> str:
+    """Render the train.py for an HP variant. Picks 3-way vs 2-way template
+    based on ``leaf.has_val``. HP cells are restricted to full_features so
+    the loader is always plain ``pd.read_parquet`` with no extra imports.
+    """
+    loader = LOADERS[leaf.feature_set]
+    pareto_x, pareto_y = HP_STRATEGY_TO_PARETO_KEYS[leaf.tuning_strategy]
+    common_args = dict(
+        target=leaf.target,
+        ratio=leaf.ratio,
+        split_type=leaf.split_type,
+        tuning_strategy=leaf.tuning_strategy,
+        tuning_variant=leaf.tuning_variant,
+        pareto_x_key=pareto_x,
+        pareto_y_key=pareto_y,
+        extra_imports=_extra_imports(loader),
+    )
+    if leaf.has_val:
+        return TRAIN_HP_3WAY_TPL.format(
+            read_imports=_read_imports(loader),
+            **common_args,
+        )
+    return TRAIN_HP_2WAY_TPL.format(
+        raw_loader=loader.raw_loader_call,
+        **common_args,
     )
 
 
@@ -205,6 +320,7 @@ def render_evaluate(leaf: Leaf) -> str:
         return EVAL_3WAY_TPL.format(
             addition=ADDITION,
             arch=leaf.arch,
+            arch_module=leaf.module_arch,
             target=leaf.target,
             feature_set=leaf.feature_set,
             ratio=leaf.ratio,
@@ -220,6 +336,7 @@ def render_evaluate(leaf: Leaf) -> str:
     return EVAL_2WAY_TPL.format(
         addition=ADDITION,
         arch=leaf.arch,
+        arch_module=leaf.module_arch,
         target=leaf.target,
         feature_set=leaf.feature_set,
         ratio=leaf.ratio,
@@ -247,6 +364,7 @@ def render_evaluate_cv(leaf: Leaf) -> str:
     return EVAL_CV_TPL.format(
         addition=ADDITION,
         arch=leaf.arch,
+        arch_module=leaf.module_arch,
         target=leaf.target,
         feature_set=leaf.feature_set,
         extra_imports=extra_imports,
@@ -266,7 +384,9 @@ def write_if_absent(path: Path, content: str, force: bool = False) -> str:
 
 def main(force: bool = False) -> None:
     leaves = enumerate_leaves()
-    print(f"Generating {len(leaves)} leaves (force={force})")
+    nonhp = [l for l in leaves if not l.is_hp]
+    hp    = [l for l in leaves if l.is_hp]
+    print(f"Enumerating {len(leaves)} leaves: {len(nonhp)} NonHP, {len(hp)} HP")
     print("=" * 70)
 
     counts = {"wrote": 0, "skipped": 0, "forced": 0}

@@ -12,7 +12,7 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 {read_imports}
-{extra_imports}from _model_architecture.{arch}.model import calibrated_proba  # noqa: E402
+{extra_imports}from _model_architecture.{arch_module}.model import calibrated_proba  # noqa: E402
 from _eval.metrics_lib import find_operating_thresholds, run_bootstrap_evaluation  # noqa: E402
 
 # Configuration
