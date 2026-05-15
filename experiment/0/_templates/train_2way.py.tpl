@@ -11,7 +11,7 @@ _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
 from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
-{extra_imports}from _model_architecture.{arch}.model import build_model  # noqa: E402
+{extra_imports}from _model_architecture.{arch_module}.model import build_model  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
 
 # Configuration
