@@ -107,6 +107,17 @@ def parse_path(results_dir):
 
     idx      += 1
     hyperparameter = parts[idx] if idx < len(parts) and parts[idx] == "HyperparameterTuned" else None
+    # When the tuning state is HyperparameterTuned, the next two segments
+    # carry the search strategy and the variant identifier (e.g.,
+    # "single_AUROC/HP020" or "pareto_AUROC_slope/knee"). NonHP cells have
+    # parts[idx] == "NonHP" and neither hp_strategy nor hp_variant is set.
+    hp_strategy = None
+    hp_variant  = None
+    if hyperparameter is not None:
+        idx += 1
+        hp_strategy = parts[idx] if idx < len(parts) else None
+        idx += 1
+        hp_variant  = parts[idx] if idx < len(parts) else None
 
     return {
         "addition":     addition,
@@ -117,6 +128,8 @@ def parse_path(results_dir):
         "datasplit":    datasplit,
         "splittype":    splittype,
         "hyperparameter": hyperparameter,
+        "hp_strategy":  hp_strategy,
+        "hp_variant":   hp_variant,
     }
 
 
@@ -1258,11 +1271,17 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     # - addition first so all rows from the same experiment number cluster.
     # - architecture alphabetical inside each addition.
     # - version is the natural sub-sort within an architecture (tabpfn 2-6 vs 2-7).
-    # - feature_set as the final tiebreaker so [full] / [no_rolling] / [spano]
+    # - feature_set as the next tiebreaker so [full] / [no_rolling] / [spano]
     #   variants of the same architecture stay adjacent.
+    # - hp_label distinguishes HP variants from their NonHP siblings inside
+    #   the same (addition, architecture, version, feature_set) group; empty
+    #   string for NonHP cells means they sort first within each group.
     def arch_key(e):
         p = e["path"]
-        return (p["addition"], p["architecture"], p["version"] or "", p["feature_set"])
+        hp_label = ""
+        if p.get("hp_strategy") and p.get("hp_variant"):
+            hp_label = f"{p['hp_strategy']}/{p['hp_variant']}"
+        return (p["addition"], p["architecture"], p["version"] or "", p["feature_set"], hp_label)
 
     # Data-package-axis sort: (target, datasplit, splittype).
     # target first so all headache columns sit together, then migraine,
@@ -1318,7 +1337,7 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     # or both.
     rows_html = ""
     for rk in row_keys:
-        addition, arch, ver, fs = rk
+        addition, arch, ver, fs, hp_label = rk
         arch_disp = arch.replace("_", " ")
         ver_disp  = ver.replace("version_", "") if ver else ""
         fs_short  = FS_LABELS.get(fs, fs)
@@ -1354,6 +1373,10 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
         if ver_disp:
             parts.append(f'<div class="rh-line"><span class="rh-key">ver:</span> v{ver_disp}</div>')
         parts.append(f'<div class="rh-line"><span class="rh-key">fs:</span> [{fs_short}]</div>')
+        if hp_label:
+            # HP variant rows get a "HP:" line below the fs label, e.g.
+            # "HP: single_AUROC/HP020" or "HP: pareto_AUROC_slope/knee".
+            parts.append(f'<div class="rh-line"><span class="rh-key">HP:</span> {hp_label}</div>')
 
         # Two row-header cells: addition chip + arch/ver/fs text block.
         add_chip_cell = (
