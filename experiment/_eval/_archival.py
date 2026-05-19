@@ -12,6 +12,7 @@ from pathlib import Path
 OUTPUT_PATTERNS = (
     "results_*.html",
     "comparison_*.html",
+    "comparison_*.csv",
     "venn_counts_*.png",
     "venn_names_*.png",
     "tree_*.png",

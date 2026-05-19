@@ -20,6 +20,7 @@ the heatmap. The directory layout it walks mirrors:
       [<version>]/<datasplit>/<splittype>/
       [<HyperparameterTuned>/<hp_strategy>/<hp_variant>]/results/
 """
+import csv
 import sys
 import uuid
 from datetime import datetime
@@ -222,6 +223,47 @@ def _generate_figures(all_entries, ts_flat, short_uid):
     return figs
 
 
+def _write_csv(all_entries, out_path):
+    """Flatten every leaf entry into one row and write to ``out_path``.
+
+    One row per discovered results/ leaf. Path dimensions, both
+    thresholds, both source timestamps, and every metric from
+    ``METRICS_HOLDOUT`` and ``METRICS_CV`` get their own column.
+    Hold-out cells carry the original 'mean [lo-hi]' string; CV cells
+    carry 'mean +/- std' as produced by ``postprocess_cv``. Missing
+    cells are emitted as empty strings so the CSV round-trips through
+    pandas/Excel without dtype surprises.
+    """
+    path_cols = [
+        "addition", "target", "feature_set", "architecture", "version",
+        "datasplit", "splittype", "hyperparameter", "hp_strategy", "hp_variant",
+    ]
+    holdout_cols = [f"holdout_{m}" for m in METRICS_HOLDOUT]
+    cv_cols      = [f"cv_{m}"      for m in METRICS_CV]
+    header = (
+        path_cols
+        + ["threshold_mcc", "threshold_sens", "holdout_ts", "cv_ts"]
+        + holdout_cols + cv_cols
+    )
+
+    with out_path.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(header)
+        for entry in all_entries:
+            row = [entry["path"].get(c, "") or "" for c in path_cols]
+            row += [
+                entry.get("threshold_mcc") or "",
+                entry.get("threshold_sens") or "",
+                entry.get("holdout_ts") or "",
+                entry.get("cv_ts") or "",
+            ]
+            holdout = entry.get("holdout") or {}
+            cv      = entry.get("cv") or {}
+            row += [holdout.get(m) or "" for m in METRICS_HOLDOUT]
+            row += [cv.get(m)      or "" for m in METRICS_CV]
+            writer.writerow(row)
+
+
 def main():
     all_entries = _collect_entries()
     if not all_entries:
@@ -253,6 +295,10 @@ def main():
     output_cmp = LATEST_DIR / f"comparison_{ts_flat}_{short_uid}.html"
     output_cmp.write_text(html_cmp, encoding="utf-8")
     print(f"Saved: {output_cmp}")
+
+    output_csv = LATEST_DIR / f"comparison_{ts_flat}_{short_uid}.csv"
+    _write_csv(all_entries, output_csv)
+    print(f"Saved: {output_csv}")
 
 
 if __name__ == "__main__":
