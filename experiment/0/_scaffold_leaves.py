@@ -190,7 +190,7 @@ LOADERS = {
     "full_features": LoaderCfg(
         extra_import=None,
         wrapper=None,
-        raw_loader_call="pd.read_parquet",
+        raw_loader_call="None",
     ),
     "spano_features": LoaderCfg(
         extra_import="from _dataRead.filter_to_spano_features import select_spano_features",
@@ -348,19 +348,19 @@ def render_evaluate(leaf: Leaf) -> str:
 
 
 def render_evaluate_cv(leaf: Leaf) -> str:
-    """CV evaluator: load the CV parquet directly with the appropriate loader.
+    """CV evaluator: load the CV parquet through load_raw with the
+    feature-set's loader callable.
 
-    For full_features, this is plain pd.read_parquet. For spano/no_rolling,
-    use the filter function - it reads the parquet and drops the same columns
-    the variant excludes from train/test, keeping the CV consistent with the
-    leaf's feature set.
+    For full_features, raw_loader_call is "None" which makes load_raw
+    default to pd.read_parquet. For spano/no_rolling/park, the bare
+    callable name plugs in as the loader kwarg so the same column-filter
+    that gates train/test also gates the CV parquet.
     """
     loader = LOADERS[leaf.feature_set]
     extra_imports = (
         f"{loader.extra_import}  # noqa: E402\n"
         if loader.extra_import else ""
     )
-    cv_load_call = f"{loader.raw_loader_call}(CV_PATH)"
     return EVAL_CV_TPL.format(
         addition=ADDITION,
         arch=leaf.arch,
@@ -368,7 +368,7 @@ def render_evaluate_cv(leaf: Leaf) -> str:
         target=leaf.target,
         feature_set=leaf.feature_set,
         extra_imports=extra_imports,
-        cv_load_call=cv_load_call,
+        raw_loader=loader.raw_loader_call,
     )
 
 

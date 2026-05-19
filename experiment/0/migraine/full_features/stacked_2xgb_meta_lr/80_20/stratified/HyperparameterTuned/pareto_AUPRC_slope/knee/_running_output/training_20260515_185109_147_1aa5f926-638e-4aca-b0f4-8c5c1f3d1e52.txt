@@ -1,0 +1,16 @@
+# Training-script output capture
+# Generated: 2026-05-15T18:51:09
+# UUID:      1aa5f926-638e-4aca-b0f4-8c5c1f3d1e52
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/stratified/HyperparameterTuned/pareto_AUPRC_slope/knee
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading train and chronologically subsplitting...
+train_sub: (3395, 52), cal_sub: (217, 52)
+Reusing existing trajectory (500 trials).
+Building variant 'knee'...
+Saved /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/stratified/HyperparameterTuned/pareto_AUPRC_slope/knee/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-15T18:51:10

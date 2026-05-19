@@ -1,0 +1,32 @@
+# Training-script output capture
+# Generated: 2026-05-15T19:08:22
+# UUID:      e733a508-5d41-407a-b922-369e41cb7a21
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/blended_xgb_lr_spano2026/70_15_15/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/headache/diary_cv5_timeseries.parquet ...
+spano feature set: 4516 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.248  cal_sub: 0.314  val: 0.279
+  Building model on train_sub; calibrating on cal_sub ...
+/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:348: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+  Thresholds - MCC-optimal: 0.340  Sens>=0.5: 0.580
+  AUROC: 0.598  AUPRC: 0.344  MCC: 0.094
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.292  cal_sub: 0.246  val: 0.225
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.240  Sens>=0.5: 0.230
+  AUROC: 0.565  AUPRC: 0.271  MCC: 0.099
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.267  cal_sub: 0.221  val: 0.190
+  Building model on train_sub; calibrating on cal_sub ...

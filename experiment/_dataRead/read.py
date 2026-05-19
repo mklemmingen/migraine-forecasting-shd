@@ -6,9 +6,17 @@ duplicate column-drop logic. Custom loaders (e.g. spano-feature filtering)
 plug in via the `loader` callable parameter.
 
 Public API:
-    prep_split(df)                          -> (X, y)
+    prep_split(df)                            -> (X, y)
     load_and_prep_data(filepath, loader=None) -> (X, y)
+    load_raw(filepath, loader=None)           -> raw DataFrame with date column
     chronological_subsplit(train_fold, cal_ratio=0.20) -> (train_sub, cal_sub)
+
+``load_raw`` is the entry point when the caller needs the raw DataFrame
+including the date column (e.g. to feed chronological_subsplit before
+prep_split drops the date). Keeping pandas behind this helper means
+leaf scripts never need to import pandas themselves and avoids the
+"forgot to import pd" failure mode in templates that substitute a
+``pd.foo`` call into their generated code.
 
 Usage from a leaf script (depth-agnostic - walks up to experiment/):
 
@@ -48,8 +56,21 @@ def load_and_prep_data(
     Pass loader=remove_non_spano_features for the spano-features variants.
     Default loader is pd.read_parquet.
     """
-    df = loader(filepath) if loader is not None else pd.read_parquet(filepath)
-    return prep_split(df)
+    return prep_split(load_raw(filepath, loader=loader))
+
+
+def load_raw(
+    filepath: str,
+    loader: Optional[Callable[[str], pd.DataFrame]] = None,
+) -> pd.DataFrame:
+    """Load a parquet (or apply a custom loader) and return the raw DataFrame.
+
+    Use this when the date column is needed downstream
+    (chronological_subsplit reads it before prep_split drops it). Default
+    loader is pd.read_parquet. Custom loaders are the column-filtering
+    wrappers like select_spano_features, select_park_features.
+    """
+    return loader(filepath) if loader is not None else pd.read_parquet(filepath)
 
 
 def chronological_subsplit(

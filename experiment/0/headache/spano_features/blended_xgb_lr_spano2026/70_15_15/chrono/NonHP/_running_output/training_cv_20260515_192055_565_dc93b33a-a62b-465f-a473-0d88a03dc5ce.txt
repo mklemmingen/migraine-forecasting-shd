@@ -1,0 +1,82 @@
+# Training-script output capture
+# Generated: 2026-05-15T19:20:55
+# UUID:      dc93b33a-a62b-465f-a473-0d88a03dc5ce
+# Label:     training_cv
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/blended_xgb_lr_spano2026/70_15_15/chrono/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/data/processed/headache/diary_cv5_timeseries.parquet ...
+spano feature set: 4516 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+  Total rows: 4,516  |  cv_fold distribution: {0: np.int64(554), 1: np.int64(1204), 2: np.int64(1187), 3: np.int64(883), 4: np.int64(530), 5: np.int64(158)}
+
+--- Fold 1/5 ---
+  train_sub:  331 rows  |  cal_sub:  223 rows  |  val: 1204 rows
+  Positive rates - train_sub: 0.248  cal_sub: 0.314  val: 0.279
+  Building model on train_sub; calibrating on cal_sub ...
+/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:348: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+  Thresholds - MCC-optimal: 0.340  Sens>=0.5: 0.580
+  AUROC: 0.598  AUPRC: 0.344  MCC: 0.094
+
+--- Fold 2/5 ---
+  train_sub: 1213 rows  |  cal_sub:  545 rows  |  val: 1187 rows
+  Positive rates - train_sub: 0.292  cal_sub: 0.246  val: 0.225
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.240  Sens>=0.5: 0.230
+  AUROC: 0.565  AUPRC: 0.271  MCC: 0.099
+
+--- Fold 3/5 ---
+  train_sub: 2272 rows  |  cal_sub:  673 rows  |  val:  883 rows
+  Positive rates - train_sub: 0.267  cal_sub: 0.221  val: 0.190
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.150  Sens>=0.5: 0.280
+  AUROC: 0.619  AUPRC: 0.279  MCC: 0.183
+
+--- Fold 4/5 ---
+  train_sub: 3121 rows  |  cal_sub:  707 rows  |  val:  530 rows
+  Positive rates - train_sub: 0.254  cal_sub: 0.182  val: 0.215
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.310  Sens>=0.5: 0.200
+  AUROC: 0.627  AUPRC: 0.325  MCC: 0.198
+
+--- Fold 5/5 ---
+  train_sub: 3809 rows  |  cal_sub:  549 rows  |  val:  158 rows
+  Positive rates - train_sub: 0.241  cal_sub: 0.217  val: 0.146
+  Building model on train_sub; calibrating on cal_sub ...
+  Thresholds - MCC-optimal: 0.280  Sens>=0.5: 0.270
+  AUROC: 0.518  AUPRC: 0.166  MCC: 0.012
+
+============================================================
+STAGE 0 / spano_features / blended_xgb_lr_spano2026 - 5-Fold Time-Series CV
+============================================================
+CV scheme    : expanding-window TimeSeriesSplit, n_splits=5
+Cal sub-split: last 20% of each training fold's dates
+Thresholds   : selected on cal sub-split - NOT on evaluation fold
+------------------------------------------------------------
+Metric                    | F1      F2      F3      F4      F5     | Mean     Std    
+------------------------------------------------------------
+AUROC                     |   0.598    0.565    0.619    0.627    0.518 | 0.586    0.040  
+AUPRC                     |   0.344    0.271    0.279    0.325    0.166 | 0.277    0.062  
+Brier Score               |   0.224    0.180    0.148    0.163    0.131 | 0.169    0.032  
+ECE10                     |   0.117    0.062    0.019    0.040    0.062 | 0.060    0.033  
+Calibration Slope         |   0.073    0.046    0.151    0.056    0.122 | 0.089    0.040  
+MCC (Cal-Optimal)         |   0.094    0.099    0.183    0.198    0.012 | 0.117    0.068  
+Sensitivity (>=0.5)       |   0.336    0.599    0.506    0.649    0.304 | 0.479    0.138  
+Accuracy                  |   0.640    0.704    0.674    0.785    0.829 | 0.726    0.070  
+Precision                 |   0.349    0.311    0.293    0.500    0.167 | 0.324    0.107  
+Recall                    |   0.336    0.258    0.506    0.175    0.043 | 0.264    0.155  
+F1                        |   0.342    0.282    0.371    0.260    0.069 | 0.265    0.106  
+------------------------------------------------------------
+Fold sizes (train_sub / cal_sub / val rows):
+  F1:  331 /  223 / 1204   thresh_mcc=0.340  thresh_sens=0.580
+  F2: 1213 /  545 / 1187   thresh_mcc=0.240  thresh_sens=0.230
+  F3: 2272 /  673 /  883   thresh_mcc=0.150  thresh_sens=0.280
+  F4: 3121 /  707 /  530   thresh_mcc=0.310  thresh_sens=0.200
+  F5: 3809 /  549 /  158   thresh_mcc=0.280  thresh_sens=0.270
+============================================================
+
+Results saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/spano_features/blended_xgb_lr_spano2026/70_15_15/chrono/NonHP/results/results_cv_20260515_192131_387_72f695b4-8ac4-453e-b361-1f7760bba3f7.txt
+
+# End capture ------------------------------------------
+# Finished: 2026-05-15T19:21:31

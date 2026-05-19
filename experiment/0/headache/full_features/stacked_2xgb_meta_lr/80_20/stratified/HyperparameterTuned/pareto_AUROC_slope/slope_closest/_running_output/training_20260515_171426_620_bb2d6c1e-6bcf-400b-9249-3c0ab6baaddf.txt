@@ -1,0 +1,16 @@
+# Training-script output capture
+# Generated: 2026-05-15T17:14:26
+# UUID:      bb2d6c1e-6bcf-400b-9249-3c0ab6baaddf
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/80_20/stratified/HyperparameterTuned/pareto_AUROC_slope/slope_closest
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading train and chronologically subsplitting...
+train_sub: (3432, 52), cal_sub: (180, 52)
+Reusing existing trajectory (500 trials).
+Building variant 'slope_closest'...
+Saved /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/80_20/stratified/HyperparameterTuned/pareto_AUROC_slope/slope_closest/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-15T17:14:28

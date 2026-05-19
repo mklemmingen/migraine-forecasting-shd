@@ -1,0 +1,18 @@
+# Training-script output capture
+# Generated: 2026-05-15T18:32:42
+# UUID:      eac1b9b2-0b23-4dea-9e9a-fe608b78f44a
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/chrono/HyperparameterTuned/pareto_AUPRC_slope/knee
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading train and chronologically subsplitting...
+train_sub: (3674, 52), cal_sub: (608, 52)
+Reusing existing trajectory (500 trials).
+Building variant 'knee'...
+/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:348: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+Saved /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/full_features/stacked_2xgb_meta_lr/80_20/chrono/HyperparameterTuned/pareto_AUPRC_slope/knee/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-15T18:32:43
