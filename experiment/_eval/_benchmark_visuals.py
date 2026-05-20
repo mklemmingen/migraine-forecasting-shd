@@ -401,11 +401,11 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # begin immediately under that band (plus the optional all-tie note),
     # so there is no fixed vertical dead band between the rank line and
     # the labels however many clique levels there are.
-    clique_step = 0.16
-    clique_base = top_y + 0.22
+    clique_step = 0.18
+    clique_base = top_y + 0.13
     single_full_clique = (len(cliques) == 1 and cliques[0] == (0, k - 1))
     clique_band_top = clique_base + clique_step * max(len(cliques), 1)
-    first_row_y = clique_band_top + (0.75 if single_full_clique else 0.45)
+    first_row_y = clique_band_top + (0.70 if single_full_clique else 0.40)
     bottom_y = first_row_y + (rows_per_side - 1) * pitch
 
     fig_h = 2.6 + 0.40 * rows_per_side
@@ -415,19 +415,26 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # surplus on save.
     pad = max(3.0, 0.30 * k)
     ax.set_xlim(k + pad, 1 - pad)   # invert so rank 1 (best) on the right
-    ax.set_ylim(bottom_y + 0.5, top_y - 1.9)   # inverted: axis near top
-    ax.set_yticks([])
-    ax.spines["top"].set_visible(False)
-    ax.spines["left"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_position(("data", top_y))
-    ax.xaxis.set_ticks_position("top")
-    ax.xaxis.set_label_position("top")
-    ax.set_xticks(range(1, k + 1))
-    ax.tick_params(axis="x", which="both", labelsize=9, length=4)
-    ax.set_xlabel("Mean rank (rightmost = best)", fontsize=10, labelpad=8)
+    axis_top = top_y - 1.2          # room above the line for CD bar + title
+    ax.set_ylim(bottom_y + 0.4, axis_top)
+    ax.axis("off")
 
     text_dark = "#111111"
+    # The rank axis is drawn by hand so the scale numbers sit directly on
+    # the axis line. matplotlib's top-spine ticks would render at the axes
+    # top, far above a data-positioned spine, leaving the scale stranded
+    # from the line it labels (the canonical CD-diagram layout keeps them
+    # together).
+    ax.plot([1, k], [top_y, top_y], "-", color=text_dark, lw=1.8,
+            solid_capstyle="round", zorder=3)
+    for tick in range(1, k + 1):
+        ax.plot([tick, tick], [top_y, top_y - 0.13], "-",
+                color=text_dark, lw=1.2, zorder=3)
+        ax.text(tick, top_y - 0.28, str(tick), ha="center", va="bottom",
+                fontsize=9, color=text_dark)
+    ax.text((1 + k) / 2.0, axis_top, "Mean rank (rightmost = best)",
+            ha="center", va="bottom", fontsize=10.5, color=text_dark)
+
     # x where each side's horizontal connector run terminates, just inside
     # the plot edge. Best-ranked architectures sit toward rank 1 on the
     # right of the inverted axis and label out to the right edge;
@@ -447,15 +454,15 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             else:
                 color = (0.4, 0.4, 0.4)
             x_elbow = x_elbow_right if side == "right" else x_elbow_left
-            # Connector: vertical drop from the axis to the row, then a
-            # horizontal run out to the elbow. Thin and translucent with
-            # low zorder so dark text always reads on top of it.
+            # Connector: a solid, full-weight polyline that starts on the
+            # rank axis, drops to the label row, then runs out to the
+            # elbow. Rounded joins keep the corner clean; the dark label
+            # text (higher zorder) still reads on top where they meet.
             ax.plot([rank, rank, x_elbow], [top_y, y, y],
-                    "-", lw=0.8, color=color, alpha=0.55, zorder=1,
-                    solid_capstyle="round")
-            # Family colour rides a small marker at the elbow only.
-            ax.plot([x_elbow], [y], marker="o", ms=5.0, color=color,
-                    markeredgecolor="white", markeredgewidth=0.6,
+                    "-", lw=1.7, color=color, alpha=1.0, zorder=2,
+                    solid_capstyle="round", solid_joinstyle="round")
+            # Endpoint dot where the connector meets its label.
+            ax.plot([x_elbow], [y], marker="o", ms=4.5, color=color,
                     zorder=3)
             # Text sits beyond the elbow, growing outward toward the plot
             # edge so it never overlaps the connector lines or the marker.
@@ -477,9 +484,9 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # stay legible. (clique_step / clique_base set with the geometry above.)
     for level, (lo, hi) in enumerate(cliques):
         y = clique_base + clique_step * level
-        ax.plot([sorted_ranks[lo] - 0.04, sorted_ranks[hi] + 0.04],
-                [y, y], "-", color=text_dark, lw=4.0,
-                solid_capstyle="round", zorder=2)
+        ax.plot([sorted_ranks[lo] - 0.06, sorted_ranks[hi] + 0.06],
+                [y, y], "-", color=text_dark, lw=5.5,
+                solid_capstyle="round", zorder=5)
     if len(cliques) == 1 and cliques[0] == (0, k - 1):
         ax.text(
             (sorted_ranks[0] + sorted_ranks[-1]) / 2.0,
@@ -489,16 +496,16 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             color="#444444", zorder=4,
         )
 
-    # CD scale bar above the axis, anchored at rank 1 and clear of the
-    # rank tick labels and clique bars.
-    cd_y = top_y - 1.1
-    ax.plot([1, 1 + cd], [cd_y, cd_y], "-", color=text_dark, lw=2.0,
+    # CD scale bar just above the rank numbers, anchored at rank 1, so the
+    # critical-difference span reads against the same scale without a gap.
+    cd_y = top_y - 0.72
+    ax.plot([1, 1 + cd], [cd_y, cd_y], "-", color=text_dark, lw=2.4,
             solid_capstyle="butt", zorder=4)
-    ax.plot([1, 1], [cd_y - 0.10, cd_y + 0.10], "-", color=text_dark,
-            lw=1.2, zorder=4)
-    ax.plot([1 + cd, 1 + cd], [cd_y - 0.10, cd_y + 0.10], "-",
-            color=text_dark, lw=1.2, zorder=4)
-    ax.text(1 + cd / 2.0, cd_y - 0.18, f"CD = {cd:.2f}", ha="center",
+    ax.plot([1, 1], [cd_y - 0.09, cd_y + 0.09], "-", color=text_dark,
+            lw=1.4, zorder=4)
+    ax.plot([1 + cd, 1 + cd], [cd_y - 0.09, cd_y + 0.09], "-",
+            color=text_dark, lw=1.4, zorder=4)
+    ax.text(1 + cd / 2.0, cd_y - 0.16, f"CD = {cd:.2f}", ha="center",
             va="bottom", fontsize=9.5, color=text_dark, zorder=4)
 
     if title:
