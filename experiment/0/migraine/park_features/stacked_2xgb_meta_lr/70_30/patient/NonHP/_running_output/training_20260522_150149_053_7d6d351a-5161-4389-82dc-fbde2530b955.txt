@@ -1,0 +1,19 @@
+# Training-script output capture
+# Generated: 2026-05-22T15:01:49
+# UUID:      7d6d351a-5161-4389-82dc-fbde2530b955
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/park_features/stacked_2xgb_meta_lr/70_30/patient/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Park feature set: 3229 rows x 6 features (Park et al. 2016 Tab. 4 stepwise-selected: stress, hormonal_changes [menstruation OR ovulation], noise, alcohol, overeating, travel).
+Train sub: X=(3071, 6), y=(3071,)  (positive rate: 0.072)
+Cal sub:   X=(158, 6), y=(158,)  (positive rate: 0.032)
+Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...
+/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:348: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/park_features/stacked_2xgb_meta_lr/70_30/patient/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-22T15:01:50
