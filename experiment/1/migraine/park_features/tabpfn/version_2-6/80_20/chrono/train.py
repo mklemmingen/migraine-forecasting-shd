@@ -3,14 +3,13 @@ import sys
 from pathlib import Path
 
 import joblib
-import pandas as pd
 
 # Shared imports - _dataRead/ at experiment/, _model_architecture/ at experiment/<addition>/
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split  # noqa: E402
+from _dataRead.read import load_raw, prep_split  # noqa: E402
 from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
 from _model_architecture.tabpfn.model import build_tabpfn  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
@@ -25,7 +24,7 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 def main():
     with capture_training_output(EXPERIMENT_DIR, label='training'):
         print("Loading data...")
-        df_train_full = select_park_features(TRAIN_PATH)
+        df_train_full = load_raw(TRAIN_PATH, loader=select_park_features)
         X_train, y_train = prep_split(df_train_full)
 
         print(f"Train: X={X_train.shape}, y={y_train.shape}  (positive rate: {y_train.mean():.3f})")

@@ -1,0 +1,15 @@
+# Training-script output capture
+# Generated: 2026-05-22T17:49:28
+# UUID:      258422cf-fdf5-4c35-8332-d9361fb21ca9
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/70_15_15/patient/HyperparameterTuned/single_AUROC/HP100
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading datasets...
+Reusing existing trajectory (500 trials) at /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/70_15_15/patient/HyperparameterTuned/single_AUROC/trajectory.jsonl
+Building variant 'HP100'...
+Saved /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/headache/full_features/stacked_2xgb_meta_lr/70_15_15/patient/HyperparameterTuned/single_AUROC/HP100/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-22T17:49:30

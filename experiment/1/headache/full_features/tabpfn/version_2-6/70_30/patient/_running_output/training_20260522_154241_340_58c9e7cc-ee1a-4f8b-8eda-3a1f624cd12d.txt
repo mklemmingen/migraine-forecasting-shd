@@ -1,0 +1,15 @@
+# Training-script output capture
+# Generated: 2026-05-22T15:42:41
+# UUID:      58c9e7cc-ee1a-4f8b-8eda-3a1f624cd12d
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6/70_30/patient
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+Train: X=(3229, 52), y=(3229,)  (positive rate: 0.235)
+Fitting tabpfn (version_2-6) on full train (no external calibrator - see docs/tabPfn.MD)...
+Model successfully saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/1/headache/full_features/tabpfn/version_2-6/70_30/patient/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-22T15:42:41

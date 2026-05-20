@@ -1,0 +1,19 @@
+# Training-script output capture
+# Generated: 2026-05-22T15:01:15
+# UUID:      8f521a69-ed6b-49ef-b460-ef6bc066ed67
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/no_rolling_features/stacked_2xgb_meta_lr/70_30/patient/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+no_rolling feature set: 3229 rows x 26 features (same-day flags, raw exercise minutes, dow).
+Train sub: X=(3071, 26), y=(3071,)  (positive rate: 0.072)
+Cal sub:   X=(158, 26), y=(158,)  (positive rate: 0.032)
+Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...
+/home/mklemmingen/PycharmProjects/migraine-forecasting-shd/.venv/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:348: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/no_rolling_features/stacked_2xgb_meta_lr/70_30/patient/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-22T15:01:16

@@ -1,0 +1,17 @@
+# Training-script output capture
+# Generated: 2026-05-22T15:02:30
+# UUID:      248ed8f8-2f8e-4f19-88bc-8aef5a91f5ea
+# Label:     training
+# Leaf:      /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/spano_features/stacked_2xgb_meta_lr/80_20/patient/NonHP
+# Captures stdout/stderr written during the wrapped block
+# (library messages, warnings, progress bars, etc.).
+# Begin capture ----------------------------------------
+Loading data...
+spano feature set: 3618 rows x 31 features (per-domain Spano (2026) columns; 5 Spano features not reproducible from current engineering).
+Train sub: X=(3384, 31), y=(3384,)  (positive rate: 0.073)
+Cal sub:   X=(234, 31), y=(234,)  (positive rate: 0.043)
+Training stacked_2xgb_meta_lr on train_sub; calibrating on cal_sub...
+Model saved to: /home/mklemmingen/PycharmProjects/migraine-forecasting-shd/experiment/0/migraine/spano_features/stacked_2xgb_meta_lr/80_20/patient/NonHP/model.joblib
+
+# End capture ------------------------------------------
+# Finished: 2026-05-22T15:02:31

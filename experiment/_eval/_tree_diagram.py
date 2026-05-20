@@ -35,6 +35,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
+from _figstyle import apply_journal_style, save_journal_figure
+
 
 # Path-segment levels in the order they appear under experiment/.
 # Each tuple is (parse_path key, full-word column header). The full ten
@@ -161,6 +163,30 @@ def _label_for_width(label, width_units, min_per_char=0.012):
     return label[:max_chars - 1] + "…"
 
 
+# Compact display names for verbose path segments, so more cells show a
+# full (un-truncated) label. Keys are the on-disk directory names.
+_SHORT_LABELS = {
+    'stacked_2xgb_meta_lr': 'stacked_2xgb',
+    'blended_xgb_lr_spano2026': 'blended_xgb_lr',
+    'full_features': 'full',
+    'no_rolling_features': 'no_rolling',
+    'spano_features': 'spano',
+    'park_features': 'park',
+    'HyperparameterTuned': 'HP-tuned',
+}
+
+
+def _short_node_label(label):
+    """Map a verbose path-segment to its compact display form, and trim
+    the redundant ``version_`` prefix so version cells read 'v2-6' etc.
+    """
+    if label in _SHORT_LABELS:
+        return _SHORT_LABELS[label]
+    if label.startswith('version_'):
+        return label.replace('version_', 'v')
+    return label
+
+
 def _draw_node_rects(ax, node, row_h, row_pad):
     """Recursively render each node as a coloured rectangle within its
     row stripe. ``row_h`` is the per-level stripe height in data units;
@@ -177,8 +203,9 @@ def _draw_node_rects(ax, node, row_h, row_pad):
             (node.x0, y_top), width, row_h - row_pad,
             facecolor=color, edgecolor='white', linewidth=0.6, alpha=0.85,
         ))
-        # Centred label (white on coloured background); truncated to fit.
-        label = _label_for_width(node.label, width)
+        # Centred label (white on coloured background); compacted then
+        # truncated to fit the cell width.
+        label = _label_for_width(_short_node_label(node.label), width)
         if label:
             ax.text(
                 (node.x0 + node.x1) / 2.0, (y_top + y_bot) / 2.0,
@@ -206,6 +233,7 @@ def generate_tree_png(all_entries, out_path):
     the bottom row gets enough pixels to be discernible (cell counts
     vs widths are summarised in the title).
     """
+    apply_journal_style()
     root = _build_tree(all_entries)
     if not root.children:
         return
@@ -255,5 +283,5 @@ def generate_tree_png(all_entries, out_path):
     )
 
     plt.tight_layout()
-    plt.savefig(out_path, dpi=130, bbox_inches='tight')
+    save_journal_figure(fig, out_path)
     plt.close(fig)
