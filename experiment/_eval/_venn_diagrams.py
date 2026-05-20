@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 from matplotlib_venn.layout.venn3 import cost_based
 
+from _figstyle import apply_journal_style, save_journal_figure
+
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
 # rolling windows, state-change detection, or cross-feature interactions.
@@ -189,6 +191,7 @@ def generate_count_venn_png(feature_sets, out_path):
     """Render a 3-set Venn showing region counts, split by engineered
     vs original SHD columns.
     """
+    apply_journal_style()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
@@ -234,13 +237,14 @@ def generate_count_venn_png(feature_sets, out_path):
         fontsize=12, pad=14,
     )
 
-    # Legend explaining 'eng' / 'orig'.
+    # Legend explaining 'eng' / 'orig'. Anchored top-left so it never
+    # collides with the wider Park sidebar pinned to the bottom-right.
     ax.text(
-        0.02, 0.02,
+        0.01, 0.99,
         "eng = engineered (rolling / lag / interaction / state-derived)\n"
         "orig = original SHD column or 1:1 rename",
         transform=ax.transAxes, fontsize=8.5, color='#444',
-        verticalalignment='bottom',
+        verticalalignment='top', horizontalalignment='left',
         bbox=dict(facecolor='white', edgecolor='#bbb', boxstyle='round,pad=0.4'),
     )
 
@@ -257,102 +261,151 @@ def generate_count_venn_png(feature_sets, out_path):
     _park_sidebar(ax, feature_sets.get("park", set()), full, _count_lines)
 
     plt.tight_layout()
-    plt.savefig(out_path, dpi=110, bbox_inches='tight')
+    save_journal_figure(fig, out_path)
     plt.close(fig)
 
 
-def generate_names_venn_png(feature_sets, out_path):
-    """Render a 3-set Venn whose regions list every feature name,
-    colour-coded by engineered vs original. The default count labels
-    are hidden; one ``ax.text`` per feature is stacked vertically
-    around each region centroid so individual names can carry their
-    own colour and weight.
+# Region display titles and the order they appear in the name panel
+# (most-populated / most-relevant regions first).
+_REGION_TITLES = {
+    '111': 'full ∩ spano ∩ no_rolling',
+    '100': 'full only',
+    '110': 'full ∩ spano (not no_rolling)',
+    '101': 'full ∩ no_rolling (not spano)',
+    '010': 'spano only',
+    '001': 'no_rolling only',
+    '011': 'spano ∩ no_rolling (not full)',
+}
+_REGION_ORDER = ('111', '100', '110', '101', '010', '001', '011')
+
+
+def _render_name_panel(ax, regions, park=None):
+    """Lay out each non-empty region's feature names as a column-flowed
+    list of individually colour-coded, non-overlapping text entries.
+
+    Region blocks flow top-to-bottom down a column; when a column fills,
+    the next block continues in the next column. Every name is its own
+    ``ax.text`` so engineered (purple bold) and original (green) entries
+    are distinguishable and never overlap.
     """
+    ax.axis('off')
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+
+    n_cols = 2
+    col_w = 1.0 / n_cols
+    line_h = 0.023
+    top = 0.99
+    max_rows = int((top - 0.02) / line_h)
+
+    state = {'col': 0, 'row': 0}
+
+    def place(text, *, indent, color, weight, size):
+        # Move to next column if the current one is full.
+        if state['row'] >= max_rows:
+            state['row'] = 0
+            state['col'] += 1
+        if state['col'] >= n_cols:
+            return  # out of space (should not happen at this feature count)
+        x = state['col'] * col_w + indent
+        y = top - state['row'] * line_h
+        ax.text(x, y, text, color=color, fontweight=weight, fontsize=size,
+                ha='left', va='top', fontfamily='monospace',
+                transform=ax.transAxes)
+        state['row'] += 1
+
+    def blank():
+        state['row'] += 1
+
+    blocks = [(rid, regions.get(rid)) for rid in _REGION_ORDER if regions.get(rid)]
+    if park:
+        blocks.append(('park', park))
+
+    for rid, feats in blocks:
+        title = (_REGION_TITLES.get(rid)
+                 if rid != 'park' else 'Park (2016) [Tab. 4] subset')
+        # Keep a block together: if it would split awkwardly near the
+        # bottom, push it to the next column first.
+        needed = 1 + len(feats)
+        if state['row'] + needed > max_rows and state['row'] > 0:
+            state['row'] = 0
+            state['col'] += 1
+        place(f"{title}  ({len(feats)})", indent=0.005,
+              color='#111', weight='bold', size=9.5)
+        for f in sorted(feats):
+            is_eng = f in ENGINEERED_FEATURES
+            place(
+                f, indent=0.03,
+                color=(CATEGORY_COLORS['engineered'] if is_eng
+                       else CATEGORY_COLORS['original']),
+                weight='bold' if is_eng else 'normal', size=8.0,
+            )
+        blank()
+
+
+def generate_names_venn_png(feature_sets, out_path):
+    """Two-panel feature-name figure: a 3-set Venn (with region counts)
+    on the left for set-structure context, and a column-flowed,
+    colour-coded list of every feature name per region on the right.
+
+    The earlier single-panel version stacked all names at the region
+    centroids, which overlapped badly at this feature count; splitting
+    the names into a dedicated panel makes every name individually
+    legible and non-overlapping.
+    """
+    apply_journal_style()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
+    regions    = _build_venn_regions(full, spano, no_rolling)
 
-    fig, ax = plt.subplots(figsize=(18, 13))
+    fig, (ax_venn, ax_list) = plt.subplots(
+        1, 2, figsize=(18, 11), gridspec_kw={"width_ratios": [1.0, 1.0]},
+    )
+
+    # --- left: Venn with region counts (structure context) ---
     v = venn3(
         [full, spano, no_rolling],
         set_labels=(
-            f'full  ({len(full)} features)',
-            f'spano  ({len(spano)} features)',
-            f'no_rolling  ({len(no_rolling)} features)',
+            f'full  ({len(full)})',
+            f'spano  ({len(spano)})',
+            f'no_rolling  ({len(no_rolling)})',
         ),
         set_colors=(
             VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling'],
         ),
-        alpha=0.16,
-        ax=ax,
+        alpha=0.28,
+        ax=ax_venn,
         layout_algorithm=cost_based.LayoutAlgorithm(),
     )
-
-    regions = _build_venn_regions(full, spano, no_rolling)
-
-    # Hide all default count labels; replace with stacked names below.
-    for rid in regions:
-        lbl = v.get_label_by_id(rid)
-        if lbl is not None:
-            lbl.set_text('')
-
-    LINE_H = 0.020   # vertical spacing per name in axes coords
     for rid, feats in regions.items():
-        if not feats:
+        lbl = v.get_label_by_id(rid)
+        if lbl is None:
             continue
-        anchor = v.get_label_by_id(rid)
-        if anchor is None:
-            continue
-        cx, cy = anchor.get_position()
-        sorted_feats = sorted(feats)
-        n = len(sorted_feats)
-        start_y = cy + (n - 1) / 2.0 * LINE_H
-        for i, f in enumerate(sorted_feats):
-            y = start_y - i * LINE_H
-            is_eng = f in ENGINEERED_FEATURES
-            ax.text(
-                cx, y, f,
-                color=(CATEGORY_COLORS['engineered'] if is_eng
-                       else CATEGORY_COLORS['original']),
-                fontsize=7.2, ha='center', va='center',
-                fontweight='bold' if is_eng else 'normal',
-                fontfamily='monospace',
-            )
-
+        lbl.set_text(str(len(feats)) if feats else '')
+        lbl.set_fontsize(13)
+        lbl.set_fontweight('bold')
     _pin_set_labels(v, _SET_LABEL_POSITIONS_NAMES_VARIANT, 14, VENN_COLORS)
+    ax_venn.set_title("Feature-set structure (region counts)",
+                      fontsize=12, pad=10)
 
-    ax.set_title(
-        "Feature-set inclusion - all feature names, colour-coded by origin",
-        fontsize=13, pad=14,
-    )
+    # --- right: colour-coded name lists per region ---
+    _render_name_panel(ax_list, regions, park=feature_sets.get("park"))
+    ax_list.set_title("All feature names by region (colour = origin)",
+                      fontsize=12, pad=10)
 
-    # Legend (axes-relative, top-left corner).
-    ax.text(
-        0.01, 0.985, "● original SHD column or 1:1 rename",
-        transform=ax.transAxes, fontsize=10,
-        color=CATEGORY_COLORS['original'], fontweight='normal',
-        verticalalignment='top', fontfamily='monospace',
-    )
-    ax.text(
-        0.01, 0.955,
-        "● engineered (rolling / lag / interaction / state-derived)",
-        transform=ax.transAxes, fontsize=10,
-        color=CATEGORY_COLORS['engineered'], fontweight='bold',
-        verticalalignment='top', fontfamily='monospace',
-    )
+    # Origin legend in the figure's top margin (clear of both panels).
+    fig.text(0.5, 0.965,
+             "● original SHD column or 1:1 rename",
+             ha='right', fontsize=10, color=CATEGORY_COLORS['original'],
+             fontfamily='monospace')
+    fig.text(0.515, 0.965,
+             "   ● engineered (rolling / lag / interaction / state-derived)",
+             ha='left', fontsize=10, color=CATEGORY_COLORS['engineered'],
+             fontweight='bold', fontfamily='monospace')
 
-    def _names_lines(park_in_full, park_only):
-        lines = [
-            f"Park (2016) [1, Tab. 4]: stepwise-selected subset, "
-            f"{len(park_in_full) + len(park_only)} features",
-        ]
-        for f in park_in_full:
-            lines.append(f"  subset full   {f}")
-        for f in park_only:
-            lines.append(f"  derived       {f}")
-        return lines
-    _park_sidebar(ax, feature_sets.get("park", set()), full, _names_lines)
-
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=120, bbox_inches='tight')
+    fig.suptitle("Feature-set inclusion - every feature name, colour-coded by origin",
+                 fontsize=14, y=0.995)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    save_journal_figure(fig, out_path)
     plt.close(fig)

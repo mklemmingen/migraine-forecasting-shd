@@ -13,12 +13,13 @@ OUTPUT_PATTERNS = (
     "results_*.html",
     "comparison_*.html",
     "comparison_*.csv",
-    "venn_counts_*.png",
-    "venn_names_*.png",
-    "tree_*.png",
-    "cd_*.png",
-    "perfprofile_*.png",
-    "slopegraph_*.png",
+    # PNG (HTML preview) + vector PDF (journal asset) for every figure.
+    "venn_counts_*.png", "venn_counts_*.pdf",
+    "venn_names_*.png",  "venn_names_*.pdf",
+    "tree_*.png",        "tree_*.pdf",
+    "cd_*.png",          "cd_*.pdf",
+    "perfprofile_*.png", "perfprofile_*.pdf",
+    "slopegraph_*.png",  "slopegraph_*.pdf",
 )
 
 

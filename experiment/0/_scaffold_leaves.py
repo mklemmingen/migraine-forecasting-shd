@@ -135,10 +135,19 @@ def enumerate_leaves() -> list[Leaf]:
     # Three split semantics, each answering a different research question:
     #   chrono     - time-forward; the next-day forecasting claim for a
     #                known patient. Valid for the forecasting framing.
-    #   stratified - class-balanced random shuffle; leaks patient_id
-    #                (a patient's adjacent days land in train and test),
-    #                so it is the optimistic leakage-upper-bound contrast,
-    #                not a deployable result.
+    #   stratified - class-balanced random shuffle (stratify=y only).
+    #                patient_id is NOT a feature (dropped before fitting)
+    #                and these models are row-order-invariant, so this
+    #                does not leak temporal ORDER. What it leaks is the
+    #                lag/rolling FEATURE values: random shuffling places a
+    #                patient's correlated adjacent days on both sides of
+    #                the split, so a test row's history features
+    #                (migraine_yesterday, *_rate_last7, streaks) encode
+    #                train-set outcomes. Verified empirically: the leak
+    #                only affects feature sets WITH history features
+    #                (full, spano: stratified-chrono AUROC +0.03..+0.11);
+    #                no_rolling and park have none and show no inflation
+    #                (~-0.03). Optimistic-bias contrast, not deployable.
     #   patient    - whole-patient hold-out; the leak-free generalisation
     #                claim ("does it work on a NEW patient"). No CV
     #                evaluation (the only CV parquet is time-series, which

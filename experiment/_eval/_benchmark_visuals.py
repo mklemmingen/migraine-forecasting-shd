@@ -40,6 +40,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
+from _figstyle import apply_journal_style, save_journal_figure
+
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
 # Table 5. Indexed by k (number of compared classifiers). The full
@@ -322,6 +324,23 @@ def _family_style_for(arch_tuple):
     return color, linestyle, linewidth
 
 
+# Distinct marker per within-family member so the within-family colour
+# gradient is reinforced by shape (the 5 single_AUROC tiers, the 5
+# tabpfn versions, etc. each get their own dot type). Indexed by the
+# gradient position bucket.
+_WITHIN_FAMILY_MARKERS = ("o", "s", "^", "D", "v", "P")
+
+
+def _family_marker(arch_tuple):
+    """Return a marker shape that varies with the within-family
+    gradient position, so members of one family are distinguishable by
+    dot shape as well as colour lightness.
+    """
+    _family, position = _arch_family(arch_tuple)
+    idx = int(round(position * (len(_WITHIN_FAMILY_MARKERS) - 1)))
+    return _WITHIN_FAMILY_MARKERS[min(idx, len(_WITHIN_FAMILY_MARKERS) - 1)]
+
+
 def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
                       title="", p_value=None, n_cells=None,
                       arch_tuples=None, dropped_archs=None):
@@ -353,6 +372,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             deduped.append(c)
     cliques = deduped
 
+    apply_journal_style()
     fig, ax = plt.subplots(figsize=(11, 1.5 + 0.32 * k))
     pad = 0.6
     ax.set_xlim(k + pad, 1 - pad)   # invert so rank 1 (best) on the right
@@ -438,7 +458,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         )
 
     plt.tight_layout()
-    plt.savefig(out_path, dpi=120, bbox_inches="tight")
+    save_journal_figure(fig, out_path)
     plt.close(fig)
 
 
@@ -469,8 +489,20 @@ def render_performance_profile(matrix, arch_labels, out_path,
             ratios = np.where(best > 0, m / best, np.inf)
     ratios = np.where(np.isfinite(ratios), ratios, np.inf)
 
+    # Fit the x-range to the informative region: most curves plateau
+    # well before tau_max=2.0, so a fixed axis wastes the right half on
+    # flat lines. Clip just past the 90th percentile of finite ratios
+    # (a single anti-predictive cell can push the max ratio toward 2.0;
+    # the percentile keeps that lone outlier from stretching the axis).
+    finite = ratios[np.isfinite(ratios)]
+    if finite.size:
+        x_max = min(tau_max, max(1.15, float(np.percentile(finite, 90)) * 1.05))
+    else:
+        x_max = tau_max
+
+    apply_journal_style()
     fig, ax = plt.subplots(figsize=(11.5, 5.5))
-    taus = np.linspace(1.0, tau_max, 400)
+    taus = np.linspace(1.0, x_max, 400)
     for j in range(n_arch):
         rho = np.array([(ratios[:, j] <= t).sum() / n_cells for t in taus])
         if arch_tuples is not None:
@@ -478,18 +510,21 @@ def render_performance_profile(matrix, arch_labels, out_path,
         else:
             cmap = plt.get_cmap("tab20" if n_arch > 10 else "tab10")
             color, linestyle, linewidth = cmap(j % cmap.N), "-", 1.5
+        # Dim the thin HP-variant lines so the bold baselines (tabpfn
+        # versions, stacked NonHP) read as the foreground.
+        alpha = 1.0 if linewidth >= 1.6 else 0.65
         ax.plot(taus, rho, lw=linewidth, ls=linestyle, color=color,
-                label=str(arch_labels[j]))
+                alpha=alpha, label=str(arch_labels[j]))
     ax.set_xlabel("tau (tolerance factor)")
     ax.set_ylabel("Fraction of cells with metric within tau x best")
     ax.set_ylim(0, 1.05)
-    ax.set_xlim(1.0, tau_max)
+    ax.set_xlim(1.0, x_max)
     ax.grid(alpha=0.3)
     if title:
         ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
     if dropped_archs:
         ax.text(
-            0.5, -0.12,
+            0.5, -0.20,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
             transform=ax.transAxes, ha="center", fontsize=8.0,
             style="italic", color="#777",
@@ -499,7 +534,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
     ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
               fontsize=7.5, framealpha=0.9, ncol=1)
     plt.tight_layout()
-    plt.savefig(out_path, dpi=120, bbox_inches="tight")
+    save_journal_figure(fig, out_path)
     plt.close(fig)
 
 
@@ -521,38 +556,74 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     sign = -1.0 if higher_is_better else 1.0
     ranks = np.apply_along_axis(_rank_with_average_ties, 1, sign * m)
 
-    fig, ax = plt.subplots(figsize=(2.5 + n_cells * 1.7, 1.5 + 0.32 * n_arch))
+    # Wider figure: extra right margin holds the direct end-labels that
+    # replace the cramped legend, and taller rows keep the n_arch lines
+    # vertically separable.
+    apply_journal_style()
+    fig, ax = plt.subplots(figsize=(5.0 + n_cells * 1.8, 2.0 + 0.42 * n_arch))
     xs = np.arange(n_cells)
+
+    styles = []  # (color, label) per architecture, for the end-labels
     for j in range(n_arch):
         if arch_tuples is not None:
             color, linestyle, linewidth = _family_style_for(arch_tuples[j])
-            marker_size = 5 + 2 * (linewidth - 1.3)   # baselines get bigger markers
+            marker = _family_marker(arch_tuples[j])
+            marker_size = 5 + 2 * (linewidth - 1.3)   # baselines: bigger markers
         else:
             cmap = plt.get_cmap("tab20" if n_arch > 10 else "tab10")
-            color, linestyle, linewidth = cmap(j % cmap.N), "-", 1.4
+            color, linestyle, linewidth, marker = cmap(j % cmap.N), "-", 1.4, "o"
             marker_size = 5
-        ax.plot(xs, ranks[:, j], marker="o", lw=linewidth, ls=linestyle,
-                ms=marker_size, color=color, label=str(arch_labels[j]))
+        # Dim thin HP-variant lines so the bold baselines (tabpfn
+        # versions, stacked NonHP) stay in the visual foreground.
+        alpha = 1.0 if linewidth >= 1.6 else 0.6
+        zo = 3 if linewidth >= 1.6 else 2
+        ax.plot(xs, ranks[:, j], marker=marker, lw=linewidth, ls=linestyle,
+                ms=marker_size, color=color, alpha=alpha, zorder=zo)
+        styles.append((color, str(arch_labels[j])))
+
+    # Direct end-of-line labels at the right edge, de-collided so labels
+    # at tied/adjacent final ranks do not overlap (Tufte slopegraph
+    # convention - lets the eye trace a line to its name without a legend).
+    final_rank = ranks[:, -1]
+    order = np.argsort(final_rank)            # top (best) first
+    min_gap = 0.85                            # in rank units
+    placed_y = []
+    label_x = (n_cells - 1) + 0.08
+    for j in order:
+        y = final_rank[j]
+        if placed_y and y - placed_y[-1] < min_gap:
+            y = placed_y[-1] + min_gap
+        placed_y.append(y)
+        color, lbl = styles[j]
+        ax.plot([n_cells - 1, label_x - 0.02], [final_rank[j], y],
+                color=color, lw=0.5, alpha=0.5, zorder=1)
+        ax.text(label_x, y, lbl, color=color, fontsize=7.5,
+                ha="left", va="center", fontfamily="monospace")
+
     ax.invert_yaxis()
     ax.set_yticks(range(1, n_arch + 1))
     ax.set_ylabel("Rank (1 = best)")
     ax.set_xticks(xs)
-    ax.set_xticklabels(["/".join(c) for c in cells_used],
-                       rotation=35, ha="right", fontsize=8)
+    # Drop the feature_set prefix from the cell tick labels when every
+    # cell shares it (these benchmark plots are restricted to one
+    # feature set, named in the title) - removes redundant repetition.
+    one_fs = len({c[0] for c in cells_used}) == 1
+    tick_labels = ["/".join(c[1:] if one_fs else c) for c in cells_used]
+    ax.set_xticklabels(tick_labels, rotation=30, ha="right", fontsize=8)
+    ax.set_xlim(-0.3, label_x + 0.05)
+    ax.margins(x=0)
     ax.grid(alpha=0.3, axis="y")
     if title:
         ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
     if dropped_archs:
         ax.text(
-            0.5, -0.22,
+            0.5, -0.16,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
             transform=ax.transAxes, ha="center", fontsize=8.0,
             style="italic", color="#777",
         )
-    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
-              fontsize=7.5, ncol=1)
     plt.tight_layout()
-    plt.savefig(out_path, dpi=120, bbox_inches="tight")
+    save_journal_figure(fig, out_path)
     plt.close(fig)
 
 
