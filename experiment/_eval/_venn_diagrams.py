@@ -150,7 +150,7 @@ _SET_LABEL_POSITIONS = {
 _SET_LABEL_POSITIONS_NAMES_VARIANT = {
     'full':       (-0.85,  0.70),
     'spano':       (0.85,  0.70),
-    'no_rolling':  (0.00, -0.85),
+    'no_rolling':  (0.00, -0.55),
 }
 
 
@@ -427,18 +427,18 @@ def generate_names_venn_png(feature_sets, out_path):
     ax_list.set_title("All feature names by region (colour = origin)",
                       fontsize=12, pad=10)
 
-    # Origin legend in the figure's top margin (clear of both panels).
-    fig.text(0.5, 0.965,
-             "● original SHD column or 1:1 rename",
-             ha='right', fontsize=10, color=CATEGORY_COLORS['original'],
+    # Origin colour key for the name panel, placed underneath it (not in
+    # the top margin where it crowded the title). Centred under the right
+    # panel, the two halves meeting at the split point.
+    fig.text(0.70, 0.035, "● original SHD column or 1:1 rename",
+             ha='right', fontsize=9.5, color=CATEGORY_COLORS['original'],
              fontfamily='monospace')
-    fig.text(0.515, 0.965,
-             "   ● engineered (rolling / lag / interaction / state-derived)",
-             ha='left', fontsize=10, color=CATEGORY_COLORS['engineered'],
+    fig.text(0.71, 0.035, "● engineered: rolling / lag / interaction / state-derived",
+             ha='left', fontsize=9.5, color=CATEGORY_COLORS['engineered'],
              fontweight='bold', fontfamily='monospace')
 
     fig.suptitle("Feature-set inclusion - every feature name, colour-coded by origin",
-                 fontsize=14, y=0.995)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+                 fontsize=14, y=0.94)
+    plt.tight_layout(rect=[0, 0.06, 1, 0.91])
     save_journal_figure(fig, out_path)
     plt.close(fig)
