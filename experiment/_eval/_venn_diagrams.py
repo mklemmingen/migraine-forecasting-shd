@@ -201,11 +201,12 @@ def _park_sidebar(ax, park, full, lines_factory):
     ax.text(
         0.98, 0.02, "\n".join(lines),
         transform=ax.transAxes, fontsize=8.5,
-        color=VENN_COLORS['park'],
+        color='#111111',
         verticalalignment='bottom', horizontalalignment='right',
+        multialignment='right',
         fontfamily='monospace',
         bbox=dict(
-            facecolor='white', edgecolor=VENN_COLORS['park'],
+            facecolor='white', edgecolor='#333333',
             boxstyle='round,pad=0.5', linewidth=1.2,
         ),
     )
