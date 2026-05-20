@@ -21,7 +21,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
+from matplotlib_venn import venn3, venn3_circles
 from matplotlib_venn.layout.venn3 import cost_based
 
 from _figstyle import apply_journal_style, save_journal_figure
@@ -69,9 +69,14 @@ VENN_COLORS = {
     'no_rolling': '#059669',   # green
     'park':       '#a16207',   # amber - Park (2016) stepwise-selected
 }
+# Feature-origin colours form a deliberately separate system from the
+# set hues above: a neutral grey for raw columns and one warm accent for
+# engineered ones. Neither shares a hue with the set circles (blue / red
+# / green / amber) nor with their pairwise blends (purple, cyan, olive),
+# so a reader never confuses "which set" with "which origin".
 CATEGORY_COLORS = {
-    'engineered': '#7c2d92',   # dark purple - derived features
-    'original':   '#14532d',   # dark green  - raw / 1:1 rename
+    'engineered': '#ea580c',   # orange  - derived / engineered features
+    'original':   '#475569',   # slate grey - raw SHD column or 1:1 rename
 }
 
 
@@ -164,6 +169,25 @@ def _pin_set_labels(venn, positions, fontsize, color_lookup):
         s_lbl.set_color(color_lookup[color_key])
 
 
+def _outline_circles(ax, subsets, layout):
+    """Draw each set's circle as a coloured outline matching its label.
+
+    The translucent fills blend in the overlaps (and no_rolling, a near
+    subset of full, reads as cyan rather than its own green); a solid
+    set-coloured ring on every circle keeps each set's hue tied to its
+    boundary so circle, ring and label always agree.
+    """
+    circles = venn3_circles(subsets, ax=ax, layout_algorithm=layout,
+                            linewidth=2.2)
+    colours = (VENN_COLORS['full'], VENN_COLORS['spano'],
+               VENN_COLORS['no_rolling'])
+    for circle, colour in zip(circles, colours):
+        if circle is not None:
+            circle.set_edgecolor(colour)
+            circle.set_alpha(0.95)
+    return circles
+
+
 def _park_sidebar(ax, park, full, lines_factory):
     """Render the Park (2016) subset as a sidebar callout in the
     lower-right of the axes. ``lines_factory(park_in_full, park_only)``
@@ -196,7 +220,9 @@ def generate_count_venn_png(feature_sets, out_path):
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
 
-    fig, ax = plt.subplots(figsize=(13, 10))
+    apply_journal_style()
+    fig, ax = plt.subplots(figsize=(9.5, 9.0))
+    layout = cost_based.LayoutAlgorithm()
     v = venn3(
         [full, spano, no_rolling],
         set_labels=(
@@ -214,8 +240,12 @@ def generate_count_venn_png(feature_sets, out_path):
         # implied triangle inequality and emits "Bad circle positioning".
         # The cost-based optimizer minimises log-area error across all 7
         # regions and handles this case cleanly.
-        layout_algorithm=cost_based.LayoutAlgorithm(),
+        layout_algorithm=layout,
     )
+    # Coloured circle outlines anchor each set's hue to its boundary, so
+    # the green no_rolling ring matches its green label even where the
+    # fill blends to cyan inside the full circle it is nearly a subset of.
+    _outline_circles(ax, [full, spano, no_rolling], layout)
 
     regions = _build_venn_regions(full, spano, no_rolling)
     for rid, feats in regions.items():
@@ -359,11 +389,13 @@ def generate_names_venn_png(feature_sets, out_path):
     no_rolling = feature_sets["no_rolling"]
     regions    = _build_venn_regions(full, spano, no_rolling)
 
+    apply_journal_style()
     fig, (ax_venn, ax_list) = plt.subplots(
-        1, 2, figsize=(18, 11), gridspec_kw={"width_ratios": [1.0, 1.0]},
+        1, 2, figsize=(15, 8.5), gridspec_kw={"width_ratios": [1.0, 1.05]},
     )
 
     # --- left: Venn with region counts (structure context) ---
+    layout = cost_based.LayoutAlgorithm()
     v = venn3(
         [full, spano, no_rolling],
         set_labels=(
@@ -376,8 +408,9 @@ def generate_names_venn_png(feature_sets, out_path):
         ),
         alpha=0.28,
         ax=ax_venn,
-        layout_algorithm=cost_based.LayoutAlgorithm(),
+        layout_algorithm=layout,
     )
+    _outline_circles(ax_venn, [full, spano, no_rolling], layout)
     for rid, feats in regions.items():
         lbl = v.get_label_by_id(rid)
         if lbl is None:

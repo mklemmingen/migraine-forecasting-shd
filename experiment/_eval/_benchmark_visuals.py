@@ -397,17 +397,25 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # the page regardless of k.
     pitch = 1.0
     top_y = 0.0                     # rank axis sits at y = 0
-    first_row_y = 1.4               # first label row, below the axis
+    # Significance-clique bars stack just below the axis; the label rows
+    # begin immediately under that band (plus the optional all-tie note),
+    # so there is no fixed vertical dead band between the rank line and
+    # the labels however many clique levels there are.
+    clique_step = 0.16
+    clique_base = top_y + 0.22
+    single_full_clique = (len(cliques) == 1 and cliques[0] == (0, k - 1))
+    clique_band_top = clique_base + clique_step * max(len(cliques), 1)
+    first_row_y = clique_band_top + (0.75 if single_full_clique else 0.45)
     bottom_y = first_row_y + (rows_per_side - 1) * pitch
 
-    fig_h = 2.4 + 0.42 * rows_per_side
+    fig_h = 2.6 + 0.40 * rows_per_side
     fig, ax = plt.subplots(figsize=(11.5, fig_h))
     # Wide outer margins so the side labels, which grow outward from the
     # elbow toward the plot edge, have room; bbox_inches="tight" crops the
     # surplus on save.
     pad = max(3.0, 0.30 * k)
     ax.set_xlim(k + pad, 1 - pad)   # invert so rank 1 (best) on the right
-    ax.set_ylim(bottom_y + 0.8, top_y - 2.2)   # inverted: axis near top
+    ax.set_ylim(bottom_y + 0.5, top_y - 1.9)   # inverted: axis near top
     ax.set_yticks([])
     ax.spines["top"].set_visible(False)
     ax.spines["left"].set_visible(False)
@@ -466,9 +474,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # Significance cliques: heavy bars stacked just below the axis line,
     # connecting the rank positions of architectures that are NOT
     # significantly different. Each level is offset so overlapping cliques
-    # stay legible.
-    clique_step = 0.16
-    clique_base = top_y + 0.22
+    # stay legible. (clique_step / clique_base set with the geometry above.)
     for level, (lo, hi) in enumerate(cliques):
         y = clique_base + clique_step * level
         ax.plot([sorted_ranks[lo] - 0.04, sorted_ranks[hi] + 0.04],
@@ -504,20 +510,38 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         suffix = (" (" + ", ".join(sub) + ")") if sub else ""
         ax.set_title(title + suffix, fontsize=11, pad=14)
 
+    # How to read the diagram (Demsar 2006): make the ranking method
+    # explicit so the figure is self-contained for a reader unfamiliar
+    # with CD diagrams.
+    n_txt = str(n_cells) if n_cells is not None else "n"
+    fig.text(
+        0.5, 0.045,
+        f"Each method is ranked 1 (best) to {k} within every cell, then "
+        f"averaged over the {n_txt} cells to give its mean rank (dot). "
+        "Methods joined by a bar differ by less than the",
+        ha="center", va="bottom", fontsize=8.5, color="#444444",
+    )
+    fig.text(
+        0.5, 0.018,
+        "critical difference CD (Nemenyi post-hoc, alpha=0.05) and are "
+        "therefore not significantly different.",
+        ha="center", va="bottom", fontsize=8.5, color="#444444",
+    )
+
     if dropped_archs:
         # Honest disclosure: which architectures were excluded from the
         # statistical test because their per-cell coverage was below
         # the matched-design threshold (e.g. AutoTabPFN, which is
         # intentionally scaffolded to a subset of cells).
         fig.text(
-            0.5, 0.012,
+            0.5, 0.075,
             "Excluded from Friedman (incomplete cell coverage): "
             + ", ".join(dropped_archs),
-            ha="center", va="bottom", fontsize=8.5,
-            style="italic", color="#666666",
+            ha="center", va="bottom", fontsize=8.0,
+            style="italic", color="#777777",
         )
 
-    fig.subplots_adjust(left=0.04, right=0.96, top=0.90, bottom=0.06)
+    fig.subplots_adjust(left=0.04, right=0.96, top=0.90, bottom=0.14)
     save_journal_figure(fig, out_path)
     plt.close(fig)
 
