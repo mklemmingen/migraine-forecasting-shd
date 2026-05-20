@@ -132,12 +132,23 @@ def _enumerate_hp_variants(target: str) -> list[tuple[str, str]]:
 
 
 def enumerate_leaves() -> list[Leaf]:
+    # Three split semantics, each answering a different research question:
+    #   chrono     - time-forward; the next-day forecasting claim for a
+    #                known patient. Valid for the forecasting framing.
+    #   stratified - class-balanced random shuffle; leaks patient_id
+    #                (a patient's adjacent days land in train and test),
+    #                so it is the optimistic leakage-upper-bound contrast,
+    #                not a deployable result.
+    #   patient    - whole-patient hold-out; the leak-free generalisation
+    #                claim ("does it work on a NEW patient"). No CV
+    #                evaluation (the only CV parquet is time-series, which
+    #                is semantically wrong for a patient hold-out leaf).
     leaves: list[Leaf] = []
     for target in ("headache", "migraine"):
         # Stacked NonHP: full grid across the three target-agnostic feature sets.
         for fs in ("full_features", "no_rolling_features", "spano_features"):
             for ratio in ("70_15_15", "70_30", "80_20"):
-                for split_type in ("chrono", "stratified"):
+                for split_type in ("chrono", "stratified", "patient"):
                     with_cv = (ratio == "70_15_15" and split_type == "chrono")
                     leaves.append(Leaf(target, fs, STACKED, ratio, split_type, with_cv))
         # Blended NonHP: canonical anchor only - see module docstring.
@@ -153,7 +164,7 @@ def enumerate_leaves() -> list[Leaf]:
         # grid as the NonHP cells so HP rows sit as siblings of NonHP rows
         # under one architecture group in the comparison table.
         for ratio in ("70_15_15", "70_30", "80_20"):
-            for split_type in ("chrono", "stratified"):
+            for split_type in ("chrono", "stratified", "patient"):
                 # CV evaluation is intentionally skipped for HP variants;
                 # the standard evaluate_cv template's per-fold refit calls
                 # build_model with the NonHP signature. HP cells report
@@ -170,7 +181,7 @@ def enumerate_leaves() -> list[Leaf]:
     # any-headache target (Park did not run a headache-vs-no-headache
     # stepwise regression). See docs/park_features.md for the framing.
     for ratio in ("70_15_15", "70_30", "80_20"):
-        for split_type in ("chrono", "stratified"):
+        for split_type in ("chrono", "stratified", "patient"):
             with_cv = (ratio == "70_15_15" and split_type == "chrono")
             leaves.append(Leaf("migraine", "park_features", STACKED, ratio, split_type, with_cv))
     return leaves

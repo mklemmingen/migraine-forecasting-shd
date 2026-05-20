@@ -120,8 +120,8 @@ class Leaf(NamedTuple):
     feature_set: str        # 'full_features' | 'no_rolling_features'
     version: Version
     ratio: str              # '70_15_15' | '70_30' | '80_20'
-    split_type: str         # 'chrono' | 'stratified'
-    with_cv: bool           # generate evaluate_cv.py?
+    split_type: str         # 'chrono' (forecast) | 'stratified' (leakage contrast) | 'patient' (generalisation)
+    with_cv: bool           # generate evaluate_cv.py? (patient leaves: always False)
 
     @property
     def has_val(self) -> bool:
@@ -140,7 +140,7 @@ def enumerate_leaves() -> list[Leaf]:
         for fs in ("full_features", "no_rolling_features"):
             for version in VERSIONS:
                 for ratio in ("70_15_15", "70_30", "80_20"):
-                    for split_type in ("chrono", "stratified"):
+                    for split_type in ("chrono", "stratified", "patient"):
                         with_cv = (ratio == "70_15_15" and split_type == "chrono")
                         leaf = Leaf(target, fs, version, ratio, split_type, with_cv)
                         if version.leaf_filter is not None and not version.leaf_filter(leaf):
@@ -152,7 +152,7 @@ def enumerate_leaves() -> list[Leaf]:
     # any-headache target. See docs/park_features.md for the framing.
     for version in VERSIONS:
         for ratio in ("70_15_15", "70_30", "80_20"):
-            for split_type in ("chrono", "stratified"):
+            for split_type in ("chrono", "stratified", "patient"):
                 with_cv = (ratio == "70_15_15" and split_type == "chrono")
                 leaf = Leaf("migraine", "park_features", version, ratio, split_type, with_cv)
                 if version.leaf_filter is not None and not version.leaf_filter(leaf):
