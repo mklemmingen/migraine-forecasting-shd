@@ -17,14 +17,13 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 # Shared imports
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+from _dataRead.read import load_raw, prep_split, chronological_subsplit  # noqa: E402
 from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
 from _model_architecture.tabpfn_v3.model import build_tabpfn_v3  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
@@ -53,7 +52,7 @@ def main():
 
 def _main_inner():
     print(f"Loading {CV_PATH} ...")
-    cv = select_non_rolling_features(CV_PATH)
+    cv = load_raw(CV_PATH, loader=select_non_rolling_features)
     print(f"  Total rows: {len(cv):,}  |  cv_fold distribution: "
           f"{ dict(cv['cv_fold'].value_counts().sort_index()) }")
 

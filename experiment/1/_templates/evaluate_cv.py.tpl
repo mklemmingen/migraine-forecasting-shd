@@ -17,14 +17,13 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 # Shared imports
 _LEAF = Path(__file__).resolve()
 _EXP_ROOT = next(p for p in _LEAF.parents if p.name == 'experiment')
 _ADDITION_ROOT = next(p for p in _LEAF.parents if p.parent == _EXP_ROOT)
 sys.path[0:0] = [str(_EXP_ROOT), str(_ADDITION_ROOT)]
-from _dataRead.read import prep_split, chronological_subsplit  # noqa: E402
+from _dataRead.read import load_raw, prep_split, chronological_subsplit  # noqa: E402
 {extra_imports}from _model_architecture.{module}.model import {build_fn}  # noqa: E402
 from _train._training_script_output import capture_training_output  # noqa: E402
 from _eval.metrics_lib import find_operating_thresholds, score_fold  # noqa: E402
@@ -52,7 +51,7 @@ def main():
 
 def _main_inner():
     print(f"Loading {{CV_PATH}} ...")
-    cv = {cv_load_call}
+    cv = load_raw(CV_PATH, loader={raw_loader})
     print(f"  Total rows: {{len(cv):,}}  |  cv_fold distribution: "
           f"{{ dict(cv['cv_fold'].value_counts().sort_index()) }}")
 
