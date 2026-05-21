@@ -68,10 +68,17 @@ def find_leaves_in(addition: str, name: str) -> list[Path]:
     return sorted(out)
 
 
-def _run_once(script: Path, attempt: int) -> tuple[bool, int, float]:
-    """One subprocess attempt of a leaf script. Returns (ok, exit_code, elapsed)."""
+def _run_once(script: Path, attempt: int, extra_env: dict | None = None) -> tuple[bool, int, float]:
+    """One subprocess attempt of a leaf script. Returns (ok, exit_code, elapsed).
+
+    ``extra_env`` injects additional environment variables (e.g.
+    ``EMIT_INSIGHTS=1`` for the Addition-2 insight pass) on top of the
+    ROCm stability settings.
+    """
     env = dict(os.environ)
     env.update(_ROCM_ENV)
+    if extra_env:
+        env.update(extra_env)
     t0 = time.perf_counter()
     print(f"\n----- attempt {attempt}/{_MAX_ATTEMPTS} ----- "
           f"env: PYTORCH_HIP_ALLOC_CONF={env['PYTORCH_HIP_ALLOC_CONF']} "
@@ -85,19 +92,45 @@ def _run_once(script: Path, attempt: int) -> tuple[bool, int, float]:
     return ok, result.returncode, elapsed
 
 
-def run(script: Path, idx: int, total: int) -> tuple[bool, int]:
+def run(script: Path, idx: int, total: int, extra_env: dict | None = None) -> tuple[bool, int]:
     """Retry-aware leaf runner. Up to ``_MAX_ATTEMPTS`` subprocess attempts
     with a cool-down + cache-flushing ROCm env between attempts."""
     rel = script.relative_to(REPO_ROOT)
     print(f"\n{'=' * 70}\n[{idx}/{total}] {rel}\n{'=' * 70}", flush=True)
     for attempt in range(1, _MAX_ATTEMPTS + 1):
-        ok, _, _ = _run_once(script, attempt)
+        ok, _, _ = _run_once(script, attempt, extra_env=extra_env)
         if ok:
             return True, attempt
         if attempt < _MAX_ATTEMPTS:
             print(f"  cool-down {_COOLDOWN_SECONDS}s before retry...", flush=True)
             time.sleep(_COOLDOWN_SECONDS)
     return False, _MAX_ATTEMPTS
+
+
+def run_subset(
+    scripts: list[Path],
+    extra_env: dict | None = None,
+) -> tuple[int, int, list[Path], dict[Path, int]]:
+    """Run an explicit, ordered list of leaf scripts with the retry logic.
+
+    The Addition-2 insight pass passes the selected ``evaluate.py`` paths and
+    ``extra_env={'EMIT_INSIGHTS': '1'}``. An irrecoverable per-leaf failure
+    (e.g. a persistent ROCm crash) is recorded and the batch continues; the
+    caller decides what to do with the failure list. Returns
+    ``(ok_count, fail_count, fails, attempts_used)``.
+    """
+    ok_count = fail_count = 0
+    fails: list[Path] = []
+    attempts_used: dict[Path, int] = {}
+    for i, script in enumerate(scripts, 1):
+        ok, attempts = run(script, i, len(scripts), extra_env=extra_env)
+        attempts_used[script] = attempts
+        if ok:
+            ok_count += 1
+        else:
+            fail_count += 1
+            fails.append(script)
+    return ok_count, fail_count, fails, attempts_used
 
 
 def main() -> int:
@@ -125,21 +158,8 @@ def main() -> int:
           f"{_COOLDOWN_SECONDS}s cool-down between attempts (mirrors "
           f"_rerun_failed.py).", flush=True)
 
-    ok_count = 0
-    fail_count = 0
-    fails: list[Path] = []
-    attempts_used: dict[Path, int] = {}
     t_total_start = time.perf_counter()
-
-    for i, script in enumerate(plan, 1):
-        ok, attempts = run(script, i, len(plan))
-        attempts_used[script] = attempts
-        if ok:
-            ok_count += 1
-        else:
-            fail_count += 1
-            fails.append(script)
-
+    ok_count, fail_count, fails, attempts_used = run_subset(plan)
     total_elapsed = time.perf_counter() - t_total_start
     print(f"\n\n{'=' * 70}\nEVAL-ONLY SUMMARY\n{'=' * 70}", flush=True)
     print(f"  ok    : {ok_count:>4} / {len(plan)}", flush=True)
