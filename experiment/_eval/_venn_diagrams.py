@@ -143,14 +143,14 @@ def _build_venn_regions(full, spano, no_rolling):
 # no_rolling subset of full); the default solver emits "Bad circle
 # positioning" and sometimes hides labels. Pin to fixed positions.
 _SET_LABEL_POSITIONS = {
-    'full':       (-0.85,  0.65),
-    'spano':       (0.85,  0.65),
-    'no_rolling':  (0.00, -0.85),
+    'full':       (-0.65,  0.45),
+    'spano':       (0.65,  0.45),
+    'no_rolling':  (0.00, -0.65),
 }
 _SET_LABEL_POSITIONS_NAMES_VARIANT = {
-    'full':       (-0.85,  0.70),
-    'spano':       (0.85,  0.70),
-    'no_rolling':  (0.00, -0.55),
+    'full':       (-0.45,  0.50),
+    'spano':       (0.55,  0.50),
+    'no_rolling':  (0.00, -0.60),
 }
 
 
@@ -431,10 +431,10 @@ def generate_names_venn_png(feature_sets, out_path):
     # Origin colour key for the name panel, placed underneath it (not in
     # the top margin where it crowded the title). Centred under the right
     # panel, the two halves meeting at the split point.
-    fig.text(0.70, 0.035, "● original SHD column or 1:1 rename",
+    fig.text(0.70, 0.16, "● original SHD column or 1:1 rename",
              ha='right', fontsize=9.5, color=CATEGORY_COLORS['original'],
              fontfamily='monospace')
-    fig.text(0.71, 0.035, "● engineered: rolling / lag / interaction / state-derived",
+    fig.text(0.71, 0.16, "● engineered: rolling / lag / interaction / state-derived",
              ha='left', fontsize=9.5, color=CATEGORY_COLORS['engineered'],
              fontweight='bold', fontfamily='monospace')
 

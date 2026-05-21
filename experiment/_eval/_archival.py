@@ -33,13 +33,13 @@ def _archive_dest_for(src_path, dest_root):
     return day_dir / src_path.name
 
 
-def _migrate_flat_archive(archive_dir):
+def _migrate_flat_archive(archive_dir, patterns=OUTPUT_PATTERNS):
     """One-time bring-up: if any aggregator outputs sit directly under
     ``experiment/results/`` (from a flat-archive layout that predates
     the dated subfolders), file them into their YYYY-MM-DD subfolder.
     """
     migrated = 0
-    for pattern in OUTPUT_PATTERNS:
+    for pattern in patterns:
         for src in archive_dir.glob(pattern):
             if not src.is_file():
                 continue
@@ -55,24 +55,29 @@ def _migrate_flat_archive(archive_dir):
               f"into {archive_dir}/YYYY-MM-DD/ subfolders")
 
 
-def archive_previous_outputs(latest_dir: Path, archive_dir: Path):
-    """Move any prior aggregator outputs from ``latest_dir`` into
-    ``archive_dir`` under dated subfolders.
+def archive_previous_outputs(latest_dir: Path, archive_dir: Path,
+                             patterns=OUTPUT_PATTERNS):
+    """Move any prior outputs from ``latest_dir`` into ``archive_dir``
+    under dated subfolders.
 
     Each archived file is filed under ``archive_dir/YYYY-MM-DD/``
     (ISO-8601 calendar date) inferred from its mtime. This keeps the
-    archive browsable by day; dropping seven outputs at a time into a
+    archive browsable by day; dropping several outputs at a time into a
     single flat directory rapidly becomes unreadable, but per-day
     folders preserve the run-grouping a reader actually cares about.
+
+    ``patterns`` defaults to the aggregator's output globs; callers such
+    as the Addition-2 cross-leaf comparison pass their own globs to reuse
+    the same dated-archive algorithm.
 
     The scan over ``latest_dir`` is non-recursive so per-leaf ``.txt``
     files inside ``experiment/<.../>results/`` are untouched.
     """
     archive_dir.mkdir(exist_ok=True)
-    _migrate_flat_archive(archive_dir)
+    _migrate_flat_archive(archive_dir, patterns)
     moved = 0
     per_day_counts: dict[str, int] = {}
-    for pattern in OUTPUT_PATTERNS:
+    for pattern in patterns:
         for src in latest_dir.glob(pattern):
             if not src.is_file():
                 continue

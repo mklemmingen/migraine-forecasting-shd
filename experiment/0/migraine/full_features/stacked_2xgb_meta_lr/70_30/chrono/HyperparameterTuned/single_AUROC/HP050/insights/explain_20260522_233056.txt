@@ -1,0 +1,30 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 0 / full_features / stacked_2xgb_meta_lr
+======================================================================
+architecture family : xgboost
+attribution         : KernelSHAP (model-agnostic, over calibrated probability)
+background samples  : 706 (val/cal set in evaluate scope; never the train set)
+background summary  : k-means with k=50
+explained rows      : 400
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. headache_free_streak             0.017987
+   2. days_since_last_migraine         0.011547
+   3. consecutive_sedentary_days       0.008775
+   4. sleep_variability_7day           0.003859
+   5. migraine_rate_last7              0.003385
+   6. menstruation_today               0.003103
+   7. exercise_days_7day               0.003016
+   8. migraine_rate_last3              0.002922
+   9. dow                              0.002624
+  10. weather_instability_3day         0.002552
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  headache_free_streak             -0.084338
+  days_since_last_migraine         -0.029285
+  consecutive_sedentary_days       -0.026876
+  sleep_variability_7day           +0.004285
+  migraine_rate_last7              +0.030504
+----------------------------------------------------------------------

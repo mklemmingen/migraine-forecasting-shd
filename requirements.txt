@@ -50,7 +50,13 @@ tabpfn>=8.0.1           # Prior Labs release. 8.0.1 is the floor: build_tabpfn_v
 # The pinned SHA below is the head of main as of 2026-05-10. Bump when
 # PriorLabs publishes a 0.4.x release. AutoGluon's Python constraint
 # (`<3.14, >=3.10`) is the reason this project's venv runs on Python 3.13.
-tabpfn-extensions[post-hoc-ensembles] @ git+https://github.com/PriorLabs/tabpfn-extensions@b2f624fd20e4e9d629605693d2154d3c1f5a1041
+# The [interpretability] extra adds the model-matched explainability path
+# for Addition 2: tabpfn_extensions.interpretability.shap (TabPFN-native
+# SHAP), tabpfn_extensions.interpretability.shapiq (Shapley interactions),
+# and the top-level embedding.TabPFNEmbedding accessor. The extra pulls
+# shap>=0.41.0 and shapiq>=0.4.0 as leaf dependencies; both are pure
+# additions that leave the pinned numpy/scipy/numba/torch stack untouched.
+tabpfn-extensions[post-hoc-ensembles,interpretability] @ git+https://github.com/PriorLabs/tabpfn-extensions@b2f624fd20e4e9d629605693d2154d3c1f5a1041
 
 kditransform==1.2.0       # Optional preprocessor used by some TabPFN configs.
                           # Without it tabpfn falls back to PowerTransformer and
@@ -77,3 +83,24 @@ shapely>=2.0            # required by matplotlib_venn.layout.venn3.cost_based - 
                         # without violating the triangle inequality (emits "Bad circle positioning")
 seaborn>=0.13           # analytics reports (dataset_analysis.pdf, class_balance.pdf)
 statsmodels>=0.14       # ACF computation in temporal dependence page
+
+# ---- Explainability (Addition 2) -------------------------------------------------------------------------
+# shap and shapiq are pulled by the tabpfn-extensions[interpretability]
+# extra above (shap>=0.41.0, shapiq>=0.4.0). They are listed here as direct
+# dependencies because Addition 2 imports them outside the TabPFN-native
+# path too: model-agnostic KernelSHAP over the calibrated-probability
+# closure for the XGBoost leaves, and the shapiq pairwise interaction
+# explainer for the TabPFN headlines.
+shap>=0.41              # KernelSHAP over calibrated_proba (XGBoost leaves);
+                        # TabPFN-native explainer (Addition 1 leaves)
+shapiq>=0.4             # order-2 Shapley interaction indices (TabPFN headlines)
+umap-learn>=0.5         # 2D projection of TabPFN attention embeddings. numba
+                        # (its heavy transitive dependency) is already present
+                        # via kditransform. scikit-learn t-SNE is the documented
+                        # fallback if a umap-learn pin ever conflicts with the
+                        # AutoGluon/torch stack. LIME is intentionally not added.
+
+# ---- Temporal-dependence analysis (Addition 3) -----------------------------------------------------------
+lifelines>=0.27         # Andersen-Gill / PWP-gap-time recurrent-event models on
+                        # inter-attack gap times. Pure-python, additive; leaves the
+                        # pinned numpy/scipy/torch/autogluon stack untouched.
