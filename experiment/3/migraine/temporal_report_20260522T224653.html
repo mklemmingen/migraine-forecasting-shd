@@ -1,0 +1,17 @@
+<!doctype html><meta charset=utf-8>
+<title>Temporal dependence - migraine</title>
+<body style="font-family:sans-serif;max-width:760px;margin:24px auto">
+<h2>Temporal dependence - migraine</h2>
+<p>Patients 27; gap transitions
+208 (max 37 days);
+missing-day fraction 0.0955.</p>
+<p>Markov: P(attack tomorrow | attack today) = 0.315
+vs 0.050 without (risk ratio
+6.3). Self-excitation lag-1 OR
+5.43 (trigger-controlled).</p>
+<h3>Pre-registered primary tests (raw p)</h3>
+<table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>test</th><th>p</th></tr><tr><td>lag-1 Markov transition</td><td>8.76e-67</td></tr><tr><td>self-excitation LR (vs triggers-only)</td><td>2.48e-33</td></tr><tr><td>day-of-week omnibus</td><td>5.44e-01</td></tr></table>
+<h3>Exploratory ACF lags (BH-FDR adjusted)</h3>
+<table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>lag</th><th>p</th><th>p_adj</th></tr><tr><td>ACF lag 2</td><td>6.26e-27</td><td>8.14e-26</td></tr><tr><td>ACF lag 3</td><td>1.90e-18</td><td>1.24e-17</td></tr><tr><td>ACF lag 4</td><td>6.09e-12</td><td>1.32e-11</td></tr><tr><td>ACF lag 5</td><td>9.02e-17</td><td>3.91e-16</td></tr><tr><td>ACF lag 6</td><td>9.12e-15</td><td>2.97e-14</td></tr><tr><td>ACF lag 7</td><td>6.84e-13</td><td>1.78e-12</td></tr><tr><td>ACF lag 8</td><td>3.24e-11</td><td>6.02e-11</td></tr><tr><td>ACF lag 9</td><td>1.07e-05</td><td>1.07e-05</td></tr><tr><td>ACF lag 10</td><td>1.25e-09</td><td>1.79e-09</td></tr><tr><td>ACF lag 11</td><td>1.34e-06</td><td>1.45e-06</td></tr><tr><td>ACF lag 12</td><td>1.57e-07</td><td>1.85e-07</td></tr><tr><td>ACF lag 13</td><td>1.38e-09</td><td>1.79e-09</td></tr><tr><td>ACF lag 14</td><td>4.53e-11</td><td>7.35e-11</td></tr></table>
+<h3>Figures</h3><img src="acf_20260522T224653.png" style="max-width:680px;display:block;margin:8px 0"><img src="burstiness_20260522T224653.png" style="max-width:680px;display:block;margin:8px 0"><img src="dow_20260522T224653.png" style="max-width:680px;display:block;margin:8px 0"><img src="self_excitation_20260522T224653.png" style="max-width:680px;display:block;margin:8px 0"><img src="markov_20260522T224653.png" style="max-width:680px;display:block;margin:8px 0">
+</body>
