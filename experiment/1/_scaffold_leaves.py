@@ -76,6 +76,10 @@ class Version(NamedTuple):
     module: str       # _model_architecture/<module>/model.py
     build_fn: str     # callable name imported from that module
     leaf_filter: Optional[Callable[["Leaf"], bool]] = None  # restrict scaffolding
+    arch_family: str = "tabpfn"  # explainability dispatch key (docs Sec. 3.1):
+                                 # "tabpfn" (single-fit, native SHAP/ShapIQ/
+                                 # embedding) or "autotabpfn" (permutation
+                                 # importance over the public predict_proba)
 
 
 # AutoTabPFN is restricted to the four leaves where TabPFN-v2.6 baseline
@@ -107,7 +111,8 @@ VERSIONS: tuple[Version, ...] = (
     Version("3-binary",      "tabpfn_v3_binary",      "build_tabpfn_v3_binary"),
     Version("2-5-real",      "realtabpfn",            "build_realtabpfn"),
     Version("2-5-finetuned", "finetunedtabpfn_v2_5",  "build_finetunedtabpfn"),
-    Version("2-5-auto",      "autotabpfn_v2_5",       "build_autotabpfn", _autotabpfn_filter),
+    Version("2-5-auto",      "autotabpfn_v2_5",       "build_autotabpfn",
+            _autotabpfn_filter, arch_family="autotabpfn"),
 )
 
 
@@ -270,6 +275,7 @@ def render_evaluate(leaf: Leaf) -> str:
             addition=ADDITION,
             arch=ARCH_DIR,
             version_label=leaf.version.label,
+            arch_family=leaf.version.arch_family,
             target=leaf.target,
             feature_set=leaf.feature_set,
             ratio=leaf.ratio,
@@ -286,6 +292,7 @@ def render_evaluate(leaf: Leaf) -> str:
         addition=ADDITION,
         arch=ARCH_DIR,
         version_label=leaf.version.label,
+        arch_family=leaf.version.arch_family,
         target=leaf.target,
         feature_set=leaf.feature_set,
         ratio=leaf.ratio,

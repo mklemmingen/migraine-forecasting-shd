@@ -26,6 +26,10 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
 TITLE         = "STAGE 0 / spano_features / stacked_2xgb_meta_lr"
+ARCH_FAMILY   = "xgboost"
+# Off-by-default explainability flag. A normal sweep never sets it, so the
+# attribution / effect cost is paid only on the selected insight leaves.
+EMIT_INSIGHTS = os.environ.get("EMIT_INSIGHTS", "0") == "1"
 
 
 def load_and_prep_data(filepath):
@@ -75,6 +79,24 @@ def main():
     with open(filepath, "w") as f:
         f.write(output_text)
     print(f"\nResults successfully saved to: {filepath}")
+
+    if EMIT_INSIGHTS:
+        # SHAP background is the val set already in scope (never the train
+        # set). The closure explains the calibrated probability the
+        # benchmark scores; the bundle is passed as raw_model for parity
+        # with the TabPFN paths (unused by the XGBoost dispatch).
+        from _explain import emit_insights
+        emit_insights(
+            predict_fn=lambda X: calibrated_proba(bundle, X),
+            X_background=X_val,
+            X_explain=X_test,
+            y_explain=y_test,
+            leaf_dir=EXPERIMENT_DIR,
+            arch_family=ARCH_FAMILY,
+            raw_model=bundle,
+            title=TITLE,
+            y_background=y_val,
+        )
 
 
 if __name__ == "__main__":

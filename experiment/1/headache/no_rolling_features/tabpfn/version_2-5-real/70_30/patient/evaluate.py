@@ -26,6 +26,10 @@ MODEL_PATH = os.path.join(EXPERIMENT_DIR, "model.joblib")
 
 RESULT_PREFIX = "results"
 TITLE         = "STAGE 1 / no_rolling_features / tabpfn (version_2-5-real)"
+ARCH_FAMILY   = "tabpfn"
+# Off-by-default explainability flag. A normal sweep never sets it, so the
+# attribution / effect cost is paid only on the selected insight leaves.
+EMIT_INSIGHTS = os.environ.get("EMIT_INSIGHTS", "0") == "1"
 
 # 2-way ratio: no val parquet; reproduce the same chronological subsplit
 # of train used during fitting to derive operating thresholds.
@@ -75,6 +79,22 @@ def main():
     with open(filepath, "w") as f:
         f.write(output_text)
     print(f"\nResults successfully saved to: {filepath}")
+
+    if EMIT_INSIGHTS:
+        # 2-way leaves hold no val parquet; the SHAP background is the
+        # chronological cal sub-split already reconstructed above.
+        from _explain import emit_insights
+        emit_insights(
+            predict_fn=lambda X: model.predict_proba(X)[:, 1],
+            X_background=X_cal,
+            X_explain=X_test,
+            y_explain=y_test,
+            leaf_dir=EXPERIMENT_DIR,
+            arch_family=ARCH_FAMILY,
+            raw_model=model,
+            title=TITLE,
+            y_background=y_cal,
+        )
 
 
 if __name__ == "__main__":
