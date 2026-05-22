@@ -267,6 +267,75 @@ def _leaf_figures(sel: dict, label: str) -> str:
             f"{bee}{bar}</div>")
 
 
+SPLIT_FIG_COLORS = {
+    "chrono": "#0072B2",      # honest forecasting baseline (blue)
+    "stratified": "#D55E00",  # leakage-inflated contrast (vermillion)
+    "patient": "#009E73",     # generalisation to unseen patients (green)
+}
+SPLIT_FIG_LABELS = {
+    "chrono": "chronological (honest)",
+    "stratified": "stratified (leaky)",
+    "patient": "patient (generalisation)",
+}
+
+
+def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
+    """Grouped horizontal bar of the best (headline) hold-out AUROC per
+    (target, feature_set) cell, one bar per split type with 95% CI whiskers.
+
+    This is the split-selection figure: the chronological bar is the
+    deployable forecast, the stratified bar exposes the leakage inflation
+    carried by history / rolling features, and the patient bar is
+    generalisation to unseen patients. Feature sets without history features
+    (no_rolling) show little chrono-to-stratified gap, which is the visual
+    signature that the inflation is leakage rather than genuine skill.
+    """
+    cells, by_cell = [], {}
+    for s in headlines:
+        if s.get("role") != "headline":
+            continue
+        key = (s["target"], s["feature_set"])
+        if key not in by_cell:
+            by_cell[key] = {}
+            cells.append(key)
+        by_cell[key][s["splittype"]] = s
+    if not cells:
+        return None
+    cells.sort()
+    apply_journal_style()
+    splits = ("chrono", "stratified", "patient")
+    n, g = len(cells), len(splits)
+    bh = 0.8 / g
+    base = np.arange(n)[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
+    for gi, st in enumerate(splits):
+        ys, vals, los, his = [], [], [], []
+        for ci, key in enumerate(cells):
+            s = by_cell[key].get(st)
+            if s is None:
+                continue
+            ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
+            vals.append(s["auroc_mean"])
+            los.append(s["auroc_mean"] - s["auroc_lo"])
+            his.append(s["auroc_hi"] - s["auroc_mean"])
+        ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
+                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
+                label=SPLIT_FIG_LABELS[st])
+    ax.axvline(0.5, color="#444444", lw=0.9, ls=":", zorder=0)
+    ax.set_yticks(base)
+    ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
+                       fontsize=8)
+    ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
+                                    for s in c.values()) + 0.03))
+    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5)")
+    ax.set_title("Discrimination by split type, per cell (headline model)",
+                 fontsize=10)
+    ax.legend(fontsize=8, loc="lower right")
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
 def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     """Journal-styled grouped horizontal bar of mean |SHAP| for the union of
     each model's top features, headline vs runner-up, for one cross-family
@@ -551,7 +620,26 @@ def main() -> int:
     # Resolve each selection to a leaf that actually carries insight
     # artefacts (the insight pass and the live AUROC ranking can disagree).
     all_rows = _select.collect_holdout_rows()
-    selections = [resolve_insighted(s, all_rows) for s in select_insight_leaves()]
+    raw_selections = select_insight_leaves()
+    selections = [resolve_insighted(s, all_rows) for s in raw_selections]
+
+    # Split-selection figure from the pre-resolve headlines: this is a
+    # discrimination-performance chart, so it reads the true best AUROC per
+    # split regardless of which leaf has been insighted yet.
+    _FIG_DIR.mkdir(exist_ok=True)
+    split_fig = _split_auroc_figure(raw_selections, _FIG_DIR / "split_auroc.png")
+    split_block = ""
+    if split_fig is not None:
+        split_block = (
+            "<h2>Discrimination across split types</h2>"
+            "<p class='note'>Best hold-out AUROC per cell, one bar per split. "
+            "The <b>chronological</b> bar is the deployable forecast; "
+            "<b>stratified</b> exposes the optimistic inflation that history / "
+            "rolling features leak across a random train/test boundary; "
+            "<b>patient</b> is generalisation to unseen patients. A small "
+            "chronological-to-stratified gap for the no-rolling feature set is "
+            "the signature that the stratified inflation is leakage, not "
+            "skill.</p>" + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720))
 
     comp_html, has_cross = build_comparison(selections)
     comp_path = out_dir / f"comparison_shap_{ts}.html"
@@ -562,6 +650,7 @@ def main() -> int:
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
         f"{build_summary_table(selections)}"
+        f"{split_block}"
         f"{comp_html}</body></html>")
     print(f"wrote {comp_path}")
     if not has_cross:
