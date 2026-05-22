@@ -201,13 +201,19 @@ SPLIT_LABELS = {
 
 
 def _leaf_meta(sel: dict) -> str:
-    """One-line leaf provenance: architecture, ratio/split, and the metrics
+    """Full leaf provenance: architecture + version, hyperparameter-tuning
+    configuration, data-split ratio + split type, and the hold-out metrics
     the multi-metric selection used (AUROC, AUPRC, calibration slope)."""
     auprc = f"{sel['auprc_mean']:.3f}" if sel.get("auprc_mean") is not None else "n/a"
     calib = f"{sel['calib_slope']:+.2f}" if sel.get("calib_slope") is not None else "n/a"
     ver = f"/{sel['version']}" if sel.get("version") else ""
-    return (f"{sel['architecture']}{ver} | {sel['datasplit']}/{sel['splittype']} "
-            f"| AUROC {sel['auroc_mean']:.3f}, AUPRC {auprc}, calib {calib}")
+    if sel.get("hp_strategy"):
+        hp = sel["hp_strategy"] + (f"/{sel['hp_variant']}" if sel.get("hp_variant") else "")
+    else:
+        hp = "NonHP (library defaults)"
+    return (f"<b>{sel['architecture']}{ver}</b> [{hp}] | split "
+            f"{sel['datasplit']}/{sel['splittype']} | hold-out AUROC "
+            f"{sel['auroc_mean']:.3f}, AUPRC {auprc}, calib {calib}")
 
 
 def _latest_img(leaf_dir: Path, prefix: str) -> Path | None:

@@ -88,6 +88,7 @@ def collect_holdout_rows() -> list[dict]:
             "datasplit": dims["datasplit"],
             "splittype": dims["splittype"],
             "hp_strategy": dims["hp_strategy"],
+            "hp_variant": dims.get("hp_variant"),
             "family": arch_family(dims["addition"], dims["architecture"], dims["version"]),
             "leaf_dir": rd.parent,
             "auroc_mean": auroc[0],
