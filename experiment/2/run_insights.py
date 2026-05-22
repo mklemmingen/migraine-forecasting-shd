@@ -54,28 +54,39 @@ select_insight_leaves = _select.select_insight_leaves
 _describe = _select._describe
 
 
+def _has_insights(leaf_dir: Path) -> bool:
+    ins = leaf_dir / "insights"
+    return ins.is_dir() and any(ins.glob("explain_*.txt"))
+
+
 def main() -> int:
-    # The insight pass is idempotent: once per-leaf artefacts cover the
-    # claim-critical cells, treat the pass as complete and exit fast rather
-    # than recomputing the expensive SHAP leaves on every invocation.
-    existing = (list((EXPERIMENT_DIR / "0").glob("**/insights/explain_*.txt"))
-                + list((EXPERIMENT_DIR / "1").glob("**/insights/explain_*.txt")))
-    if len(existing) >= 8:
-        print(f"{'=' * 70}\nINSIGHT-PASS SUMMARY\n{'=' * 70}", flush=True)
-        print(f"  insight artefacts already present ({len(existing)} leaves); "
-              "pass treated as complete.", flush=True)
-        return 0
+    # Per-leaf idempotent: run only the selected leaves that do not yet have
+    # insight artefacts, so a re-run fills coverage gaps without recomputing
+    # the expensive SHAP leaves already on disk.
     selections = select_insight_leaves()
     scripts: list[Path] = []
+    seen: set = set()
+    skipped = 0
     for sel in selections:
-        evaluate = sel["leaf_dir"] / "evaluate.py"
+        leaf = sel["leaf_dir"]
+        if leaf in seen:
+            continue
+        seen.add(leaf)
+        if _has_insights(leaf):
+            skipped += 1
+            continue
+        evaluate = leaf / "evaluate.py"
         if evaluate.is_file():
             scripts.append(evaluate)
             print(f"  + {_describe(sel)}", flush=True)
         else:
-            print(f"  ! missing evaluate.py for {sel['leaf_dir']}", flush=True)
+            print(f"  ! missing evaluate.py for {leaf}", flush=True)
 
-    print(f"\nInsight pass: {len(scripts)} leaves, EMIT_INSIGHTS=1", flush=True)
+    print(f"\nInsight pass: {len(scripts)} leaves to run, {skipped} already "
+          f"insighted (skipped), EMIT_INSIGHTS=1", flush=True)
+    if not scripts:
+        print("nothing to do; all selected leaves already insighted.", flush=True)
+        return 0
     t0 = time.perf_counter()
     ok, fail, fails, attempts = run_subset(scripts, extra_env={"EMIT_INSIGHTS": "1"})
     elapsed = time.perf_counter() - t0
