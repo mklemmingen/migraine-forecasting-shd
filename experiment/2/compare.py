@@ -158,17 +158,23 @@ def latest_explain(leaf_dir: Path) -> Path | None:
 def resolve_insighted(sel: dict, all_rows: list[dict]) -> dict:
     """Map a selection to a leaf that actually has insight artefacts.
 
-    ``select.py`` picks the top-AUROC leaf per cell, but the insight pass
-    may have run a different leaf of the same cell (the metrics shift the
+    ``select.py`` picks the composite-best leaf per cell, but the insight
+    pass may have run a different leaf of the same cell (the metrics shift the
     headline between runs). When the selected leaf has no ``explain_*.txt``,
-    fall back to the highest-AUROC leaf of the same ``(target, feature_set,
+    fall back to the composite-best leaf of the same ``(target, feature_set,
     split_type, family)`` that does, so the comparison reads the evidence on
     disk rather than reporting a spurious miss. The split type is part of the
     key: chronological and stratified are different scientific regimes, so a
     chrono selection must never borrow a stratified leaf's attributions (that
     would file one split's evidence under another and collide with the real
-    occupant of the target bucket). Returns the original sel when no insighted
-    leaf of that cell-split-family exists (the caller then reports the miss).
+    occupant of the target bucket). Degenerate-calibration leaves are excluded
+    from the fallback: SHAP on an inverted or wildly mis-scaled calibrated
+    probability explains noise, so a substitute must clear the same
+    calibration guard the selection applies - never present such a leaf's
+    attributions as a stand-in. The fallback uses ``composite_sorted`` (not
+    raw AUROC) so it ranks candidates exactly as the selection does. Returns
+    the original sel when no trustworthy insighted leaf of that
+    cell-split-family exists (the caller then reports the miss / pending).
     """
     if latest_explain(sel["leaf_dir"]) is not None:
         return sel
@@ -177,10 +183,11 @@ def resolve_insighted(sel: dict, all_rows: list[dict]) -> dict:
             and r["feature_set"] == sel["feature_set"]
             and r["splittype"] == sel["splittype"]
             and r["family"] == sel["family"]
-            and latest_explain(r["leaf_dir"]) is not None]
+            and latest_explain(r["leaf_dir"]) is not None
+            and not _select._calibration_degenerate(r)]
     if not same:
         return sel
-    best = max(same, key=lambda r: r["auroc_mean"])
+    best = _select.composite_sorted(same)[0]
     return dict(best, role=sel["role"])
 
 
@@ -286,6 +293,40 @@ def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     ax.set_yticklabels(feats, fontsize=8)
     ax.set_xlabel("mean |SHAP| (calibrated positive-class probability)")
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
+                 fontsize=10)
+    ax.legend(fontsize=8, loc="lower right")
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
+def _park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path | None:
+    """Journal-styled scatter of Park-2016 odds-ratio rank (x) against the
+    model's mean |SHAP| rank (y) for the shared triggers, with the agreement
+    diagonal and each trigger labelled. Points on the diagonal mean the model
+    weights triggers in Park's order; the anti-diagonal (negative Spearman)
+    means it inverts that order.
+    """
+    if len(shared) < 3:
+        return None
+    apply_journal_style()
+    n = len(shared)
+    xs = [or_rank[f] for f in shared]
+    ys = [shap_rank[f] for f in shared]
+    fig, ax = plt.subplots(figsize=(5.2, 5.0))
+    ax.plot([1, n], [1, n], color="#999999", lw=1.0, ls="--", zorder=1,
+            label="perfect agreement")
+    ax.scatter(xs, ys, s=70, color="#0072B2", zorder=3, edgecolor="white")
+    for f, x, y in zip(shared, xs, ys):
+        ax.annotate(f.replace("_today", ""), (x, y), fontsize=7.5,
+                    xytext=(5, 4), textcoords="offset points")
+    ax.set_xlim(0.5, n + 0.5)
+    ax.set_ylim(n + 0.5, 0.5)  # rank 1 (most important) at top
+    ax.set_xticks(range(1, n + 1))
+    ax.set_yticks(range(1, n + 1))
+    ax.set_xlabel("Park 2016 odds-ratio rank (1 = strongest trigger)")
+    ax.set_ylabel("model mean |SHAP| rank (1 = most weighted)")
+    ax.set_title(f"{sel['role']} {sel['family']} - Spearman rho = {rho:+.2f}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
     save_journal_figure(fig, out_png)
@@ -437,14 +478,22 @@ def build_park_check(selections: list[dict]) -> str:
                 f"<td>{shap_rank.get(f, '-')}</td>"
                 f"<td>{f'{sval:.4f}' if sval is not None else '-'}</td></tr>")
         rho_str = f"{rho:+.3f}" if rho is not None else "n/a"
+        scatter = ""
+        if rho is not None:
+            _FIG_DIR.mkdir(exist_ok=True)
+            out_png = _FIG_DIR / f"parkrank_{sel['role']}_{sel['splittype']}.png"
+            if _park_scatter_figure(shared, or_rank, shap_rank, rho,
+                                    sel, out_png) is not None:
+                scatter = _embed_png(out_png, max_width=420)
         blocks.append(
             f"<h3>{sel['role']}: {sel['architecture']} "
             f"({ex['arch_family']}, {ex['metric']})</h3>"
+            f"<p>{_leaf_meta(sel)}</p>"
             f"<p>Spearman correlation (SHAP rank vs Park OR rank): "
             f"<b>{rho_str}</b> over {len(shared)} triggers.</p>"
             f"<table><tr><th>trigger</th><th>Park OR</th><th>OR rank</th>"
             f"<th>SHAP rank</th><th>{ex['metric']}</th></tr>"
-            + "".join(rows) + "</table>")
+            + "".join(rows) + f"</table>{scatter}")
     return "\n".join(blocks)
 
 
@@ -473,6 +522,22 @@ _PREAMBLE = (
     "across the train/test boundary (not deployable). <i>Patient hold-out</i> = "
     "generalisation to unseen patients. Attributions are comparable within a "
     "split type.</div>")
+
+
+_PARK_PREAMBLE = (
+    "<div class='note'><b>What this compares.</b> Park et al. 2016 report odds "
+    "ratios for self-reported migraine triggers in the SHD cohort - a "
+    "population-level, same-day association between a trigger and a migraine day. "
+    "The model's mean |SHAP| rank is a data-driven importance for <i>next-day</i> "
+    "individual prediction from the park trigger features. The two answer "
+    "different questions, so this is a convergence check, not a validation: a "
+    "positive Spearman correlation means the model recovers Park's trigger "
+    "ordering; a value near zero or negative means it weights the triggers "
+    "differently, which is expected when same-day cross-sectional odds ratios are "
+    "asked to drive a next-day forecast on a small feature set. Each panel shows "
+    "the leaf's full provenance (architecture, hyperparameter-tuning, data-split "
+    "ratio and split type) and the odds-ratio-rank vs SHAP-rank scatter against "
+    "the agreement diagonal.</div>")
 
 
 def main() -> int:
@@ -508,6 +573,7 @@ def main() -> int:
     park_path.write_text(
         f"<html><head>{_STYLE}</head><body>"
         f"<h1>Park 2016 Table-4 OR vs mean |SHAP| rank (migraine/park)</h1>"
+        f"{_PARK_PREAMBLE}"
         f"{park_html or '<p class=warn>No migraine/park insight artefacts found.</p>'}"
         f"</body></html>")
     print(f"wrote {park_path}")
