@@ -192,6 +192,23 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
             + "".join(rows) + "</table>")
 
 
+SPLIT_LABELS = {
+    "chrono": "Chronological (forecasting-honest)",
+    "stratified": "Stratified (leakage contrast - inflated, not deployable)",
+    "patient": "Patient hold-out (generalisation to unseen patients)",
+}
+
+
+def _leaf_meta(sel: dict) -> str:
+    """One-line leaf provenance: architecture, ratio/split, and the metrics
+    the multi-metric selection used (AUROC, AUPRC, calibration slope)."""
+    auprc = f"{sel['auprc_mean']:.3f}" if sel.get("auprc_mean") is not None else "n/a"
+    calib = f"{sel['calib_slope']:+.2f}" if sel.get("calib_slope") is not None else "n/a"
+    ver = f"/{sel['version']}" if sel.get("version") else ""
+    return (f"{sel['architecture']}{ver} | {sel['datasplit']}/{sel['splittype']} "
+            f"| AUROC {sel['auroc_mean']:.3f}, AUPRC {auprc}, calib {calib}")
+
+
 def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
     """HTML table of one leaf's top-N feature ranking (no comparison)."""
     rows = "".join(
@@ -201,53 +218,58 @@ def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
             f"<th>{ex['metric']}</th></tr>{rows}</table>")
 
 
-def build_comparison(selections: list[dict]) -> tuple[str, bool]:
-    """Build the headline-vs-runner-up ranking-diff HTML.
+def _cell_block(target, fset, roles) -> tuple[str, bool]:
+    """Render one (target, feature_set) cell within a split section.
 
-    Shows the cross-family ranking comparison when both roles have insight
-    artefacts; when only one architecture in the cell has them, shows that
-    leaf's ranking solo (labelled, no comparison available); reports a true
-    miss only when neither role has artefacts. Returns
-    ``(html, has_cross_family_pair)`` where the flag is True when at least
-    one cell pairs an xgboost leaf with a tabpfn / autotabpfn leaf.
+    Returns ``(html, is_cross_family)``. Shows the cross-family ranking
+    comparison when both roles have insight artefacts; a labelled solo
+    ranking when only one does; a true miss only when neither does.
     """
-    cells: dict[tuple, dict] = {}
+    h_sel, r_sel = roles.get("headline"), roles.get("runner_up")
+    h = parse_explain(latest_explain(h_sel["leaf_dir"])) if h_sel else None
+    r = parse_explain(latest_explain(r_sel["leaf_dir"])) if r_sel else None
+    head = f"<h3>{target} / {fset}</h3>"
+    if h is not None and r is not None:
+        fams = {h["arch_family"], r["arch_family"]}
+        cross = "xgboost" in fams and bool({"tabpfn", "autotabpfn"} & fams)
+        return (head
+                + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
+                  f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)), cross
+    if h is not None or r is not None:
+        sel = h_sel if h is not None else r_sel
+        ex = h if h is not None else r
+        return (head + f"<p>Only one architecture insighted in this cell: "
+                f"{_leaf_meta(sel)}. No cross-family comparison available.</p>"
+                + _single_ranking_table(ex)), False
+    return (head + "<p class='warn'>No insight artefacts on disk for this "
+            "cell.</p>"), False
+
+
+def build_comparison(selections: list[dict]) -> tuple[str, bool]:
+    """Build the headline-vs-runner-up ranking-diff HTML, categorised by
+    split type (chronological / stratified / patient) so the honest result
+    and the leakage/generalisation contrasts are read separately. Returns
+    ``(html, has_cross_family_pair)``.
+    """
+    by_split: dict[str, dict[tuple, dict]] = {}
     for sel in selections:
-        key = (sel["target"], sel["feature_set"])
-        cells.setdefault(key, {})[sel["role"]] = sel
+        by_split.setdefault(sel["splittype"], {}).setdefault(
+            (sel["target"], sel["feature_set"]), {})[sel["role"]] = sel
 
-    blocks = []
+    sections = []
     has_cross_family = False
-    for (target, fset), roles in sorted(cells.items()):
-        h_sel, r_sel = roles.get("headline"), roles.get("runner_up")
-        h = parse_explain(latest_explain(h_sel["leaf_dir"])) if h_sel else None
-        r = parse_explain(latest_explain(r_sel["leaf_dir"])) if r_sel else None
-        head = f"<h3>{target} / {fset}</h3>"
-
-        if h is not None and r is not None:
-            fams = {h["arch_family"], r["arch_family"]}
-            if "xgboost" in fams and ({"tabpfn", "autotabpfn"} & fams):
-                has_cross_family = True
-            blocks.append(
-                head
-                + f"<p>headline: {h_sel['architecture']} "
-                  f"(AUROC {h_sel['auroc_mean']:.3f}) | runner-up: "
-                  f"{r_sel['architecture']} (AUROC {r_sel['auroc_mean']:.3f})</p>"
-                + _rank_overlap_table(h, r))
-        elif h is not None or r is not None:
-            sel = h_sel if h is not None else r_sel
-            ex = h if h is not None else r
-            blocks.append(
-                head
-                + f"<p>Only one architecture insighted in this cell "
-                  f"({ex['arch_family']}, {sel['architecture']}, AUROC "
-                  f"{sel['auroc_mean']:.3f}); no cross-family comparison "
-                  f"available.</p>"
-                + _single_ranking_table(ex))
-        else:
-            blocks.append(head + "<p class='warn'>No insight artefacts on "
-                                 "disk for this cell.</p>")
-    return "\n".join(blocks), has_cross_family
+    for split_type in ("chrono", "stratified", "patient"):
+        cells = by_split.get(split_type)
+        if not cells:
+            continue
+        blocks = []
+        for (target, fset), roles in sorted(cells.items()):
+            block, cross = _cell_block(target, fset, roles)
+            has_cross_family = has_cross_family or cross
+            blocks.append(block)
+        label = SPLIT_LABELS.get(split_type, split_type)
+        sections.append(f"<h2>{label}</h2>\n" + "\n".join(blocks))
+    return "\n".join(sections), has_cross_family
 
 
 def build_park_check(selections: list[dict]) -> str:
