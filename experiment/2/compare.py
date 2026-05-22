@@ -356,7 +356,28 @@ def build_park_check(selections: list[dict]) -> str:
 _STYLE = ("<style>body{font-family:sans-serif;margin:2rem;max-width:60rem}"
           "table{border-collapse:collapse;margin:0.5rem 0}"
           "th,td{border:1px solid #ccc;padding:3px 8px;font-size:0.9rem}"
-          "th{background:#f0f0f0}.warn{color:#b2182b}h3{margin-top:1.5rem}</style>")
+          "th{background:#f0f0f0}.warn{color:#b2182b}h3{margin-top:1.5rem}"
+          ".note{background:#f6f8fa;border-left:4px solid #8895a7;"
+          "padding:8px 14px;font-size:0.9rem;margin:0.6rem 0}</style>")
+
+_PREAMBLE = (
+    "<div class='note'><b>How to read this report.</b> For each "
+    "(target, feature set) cell and split type, the <i>headline</i> is the leaf "
+    "chosen by a multi-metric composite - AUROC and AUPRC bucketed at a 0.02 "
+    "noise tolerance, then calibration slope closest to 1 as the tie-break, with "
+    "degenerate-calibration leaves excluded - and the <i>runner-up</i> is the "
+    "best such leaf of a different architecture family whose AUROC CI overlaps "
+    "the headline (the cross-architecture contrast). SHAP is computed on the "
+    "calibrated positive-class probability (KernelSHAP for the XGBoost stack, the "
+    "TabPFN-native explainer for TabPFN), so calibration quality is part of the "
+    "selection. All metrics are hold-out test, with the data-split ratio, split "
+    "type and hyperparameter-tuning configuration shown on every leaf line."
+    "<br><b>Split types.</b> <i>Chronological</i> = forecasting-honest (train on "
+    "the past) - the trustworthy section. <i>Stratified</i> = random shuffle, "
+    "optimistically biased because history features carry adjacent-day signal "
+    "across the train/test boundary (not deployable). <i>Patient hold-out</i> = "
+    "generalisation to unseen patients. Attributions are comparable within a "
+    "split type.</div>")
 
 
 def main() -> int:
@@ -376,7 +397,8 @@ def main() -> int:
     comp_path = out_dir / f"comparison_shap_{ts}.html"
     comp_path.write_text(
         f"<html><head>{_STYLE}</head><body>"
-        f"<h1>Headline vs runner-up SHAP-ranking diff</h1>"
+        f"<h1>Addition 2: cross-architecture SHAP comparison</h1>"
+        f"{_PREAMBLE}"
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
         f"{comp_html}</body></html>")
