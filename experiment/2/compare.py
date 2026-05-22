@@ -35,10 +35,18 @@ sys.path[:] = [p for p in sys.path if p not in ("", _THIS_DIR)]
 
 from datetime import datetime  # noqa: E402
 
+import matplotlib  # noqa: E402
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 from scipy.stats import spearmanr  # noqa: E402
 
 EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(EXPERIMENT_DIR))
+
+from _eval._figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+
+_FIG_DIR = Path(__file__).resolve().parent / "figures"
 
 
 def _load_local(name: str):
@@ -154,15 +162,20 @@ def resolve_insighted(sel: dict, all_rows: list[dict]) -> dict:
     may have run a different leaf of the same cell (the metrics shift the
     headline between runs). When the selected leaf has no ``explain_*.txt``,
     fall back to the highest-AUROC leaf of the same ``(target, feature_set,
-    family)`` that does, so the comparison reads the evidence on disk rather
-    than reporting a spurious miss. Returns the original sel when no
-    insighted leaf of that family exists (the caller then reports the miss).
+    split_type, family)`` that does, so the comparison reads the evidence on
+    disk rather than reporting a spurious miss. The split type is part of the
+    key: chronological and stratified are different scientific regimes, so a
+    chrono selection must never borrow a stratified leaf's attributions (that
+    would file one split's evidence under another and collide with the real
+    occupant of the target bucket). Returns the original sel when no insighted
+    leaf of that cell-split-family exists (the caller then reports the miss).
     """
     if latest_explain(sel["leaf_dir"]) is not None:
         return sel
     same = [r for r in all_rows
             if r["target"] == sel["target"]
             and r["feature_set"] == sel["feature_set"]
+            and r["splittype"] == sel["splittype"]
             and r["family"] == sel["family"]
             and latest_explain(r["leaf_dir"]) is not None]
     if not same:
@@ -247,6 +260,39 @@ def _leaf_figures(sel: dict, label: str) -> str:
             f"{bee}{bar}</div>")
 
 
+def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
+    """Journal-styled grouped horizontal bar of mean |SHAP| for the union of
+    each model's top features, headline vs runner-up, for one cross-family
+    cell. Saved as PNG + vector PDF via the shared figure style.
+    """
+    h_map, r_map = dict(h["ranking"]), dict(r["ranking"])
+    feats: list[str] = []
+    for f, _ in h["ranking"][:top_n] + r["ranking"][:top_n]:
+        if f not in feats:
+            feats.append(f)
+    feats.sort(key=lambda f: max(h_map.get(f, 0.0), r_map.get(f, 0.0)), reverse=True)
+    feats = feats[:12]
+    if not feats:
+        return None
+    apply_journal_style()
+    y = np.arange(len(feats))[::-1]
+    bw = 0.4
+    fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
+    ax.barh(y + bw / 2, [h_map.get(f, 0.0) for f in feats], height=bw,
+            color="#0072B2", label=f"headline ({h['arch_family']})")
+    ax.barh(y - bw / 2, [r_map.get(f, 0.0) for f in feats], height=bw,
+            color="#E69F00", label=f"runner-up ({r['arch_family']})")
+    ax.set_yticks(y)
+    ax.set_yticklabels(feats, fontsize=8)
+    ax.set_xlabel("mean |SHAP| (calibrated positive-class probability)")
+    ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
+                 fontsize=10)
+    ax.legend(fontsize=8, loc="lower right")
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
 def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
     """HTML table of one leaf's top-N feature ranking (no comparison)."""
     rows = "".join(
@@ -272,10 +318,26 @@ def _cell_block(target, fset, roles) -> tuple[str, bool]:
         cross = "xgboost" in fams and bool({"tabpfn", "autotabpfn"} & fams)
         figs = (_leaf_figures(h_sel, "headline")
                 + _leaf_figures(r_sel, "runner-up"))
+        crossfig = ""
+        # Only a genuine cross-architecture pair earns the comparison figure:
+        # different families and different leaves. Same-leaf / same-family
+        # pairs would draw a model against itself (identical bars).
+        if cross and h_sel["leaf_dir"] != r_sel["leaf_dir"]:
+            _FIG_DIR.mkdir(exist_ok=True)
+            out_png = (_FIG_DIR
+                       / f"crossarch_{target}_{fset}_{h_sel['splittype']}.png")
+            if _cross_arch_figure(h, r, h_sel, out_png) is not None:
+                crossfig = (
+                    "<div style='margin:0.6rem 0'>"
+                    "<div style='font-size:0.82rem;color:#555'>Cross-architecture "
+                    "attribution: mean |SHAP| of each model's top features "
+                    "(headline vs runner-up), same calibrated-probability "
+                    "target.</div>"
+                    + _embed_png(out_png, max_width=560) + "</div>")
         return (head
                 + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
                   f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)
-                + f"<div>{figs}</div>"), cross
+                + crossfig + f"<div>{figs}</div>"), cross
     if h is not None or r is not None:
         sel = h_sel if h is not None else r_sel
         ex = h if h is not None else r
