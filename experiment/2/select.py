@@ -114,41 +114,40 @@ def ci_overlap(a: dict, b: dict) -> bool:
 SPLIT_TYPES = ("chrono", "stratified", "patient")
 
 
-def composite_sorted(group: list[dict]) -> list[dict]:
-    """Sort a candidate group by a multi-metric composite, best first.
+CALIB_MIN = 0.0   # slope <= 0 is Platt-inverted: calibrated probs anti-correlate
+CALIB_MAX = 5.0   # slope this far above 1 means wildly mis-scaled probabilities
 
-    Selecting the leaf to explain by AUROC alone rewards a leaf that
-    discriminates well but whose probabilities are unreliable; since SHAP
-    runs on the calibrated probability, calibration matters. The composite
-    is the sum of three within-group ranks: AUROC (descending), AUPRC
-    (descending, the imbalance-aware metric), and calibration closeness
-    ``|slope - 1|`` (ascending). A missing AUPRC/calibration takes the
-    worst rank, so a leaf is never rewarded for an absent metric.
+
+def _calibration_degenerate(row: dict) -> bool:
+    """A leaf whose calibration slope is missing, non-positive (inverted) or
+    wildly off has unreliable calibrated probabilities; SHAP on
+    ``calibrated_proba`` would explain noise, so such leaves are de-prioritised.
     """
-    n = len(group)
+    s = row.get("calib_slope")
+    return s is None or s <= CALIB_MIN or s > CALIB_MAX
 
-    def rank_by(key, reverse):
-        vals = [(i, group[i].get(key)) for i in range(n)]
-        present = sorted([(i, v) for i, v in vals if v is not None],
-                         key=lambda t: t[1], reverse=reverse)
-        rm = {i: r for r, (i, _) in enumerate(present)}
-        for i, v in vals:
-            rm.setdefault(i, n)
-        return rm
 
-    r_auroc = rank_by("auroc_mean", True)
-    r_auprc = rank_by("auprc_mean", True)
-    calib_close = [(i, abs(group[i]["calib_slope"] - 1.0)
-                    if group[i].get("calib_slope") is not None else None)
-                   for i in range(n)]
-    present = sorted([(i, v) for i, v in calib_close if v is not None],
-                     key=lambda t: t[1])
-    r_calib = {i: r for r, (i, _) in enumerate(present)}
-    for i, v in calib_close:
-        r_calib.setdefault(i, n)
+def composite_sorted(group: list[dict]) -> list[dict]:
+    """Sort a candidate group best-first for choosing the leaf to explain.
 
-    order = sorted(range(n), key=lambda i: r_auroc[i] + r_auprc[i] + r_calib[i])
-    return [group[i] for i in order]
+    Discrimination is primary - the benchmark measures forecast quality, so a
+    well-calibrated but weakly-discriminating leaf is not the headline.
+    Calibration enters as a reliability GUARD, not an equal third vote:
+    leaves with degenerate calibration (inverted or wildly mis-scaled slope)
+    are sorted last so SHAP is never run on a model whose calibrated
+    probabilities are meaningless. Among the rest the order is AUROC
+    (descending), then AUPRC (descending, the imbalance-aware metric), then
+    calibration closeness ``|slope - 1|`` as the final tiebreak.
+    """
+    def key(row):
+        return (
+            _calibration_degenerate(row),                 # False (0) before True
+            -(row.get("auroc_mean") or 0.0),
+            -(row.get("auprc_mean") or 0.0),
+            abs((row.get("calib_slope") if row.get("calib_slope") is not None
+                 else 1.0) - 1.0),
+        )
+    return sorted(group, key=key)
 
 
 def select_for_cell_split(rows, target, feature_set, split_type) -> list[dict]:
