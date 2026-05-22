@@ -77,6 +77,8 @@ def collect_holdout_rows() -> list[dict]:
         auroc = parse_mean_ci(parsed.get("AUROC"))
         if auroc is None or auroc[1] is None or auroc[2] is None:
             continue
+        auprc = parse_mean_ci(parsed.get("AUPRC"))
+        calib = parse_mean_ci(parsed.get("Calibration Slope"))
         rows.append({
             "addition": dims["addition"],
             "target": dims["target"],
@@ -91,6 +93,8 @@ def collect_holdout_rows() -> list[dict]:
             "auroc_mean": auroc[0],
             "auroc_lo": auroc[1],
             "auroc_hi": auroc[2],
+            "auprc_mean": auprc[0] if auprc else None,
+            "calib_slope": calib[0] if calib else None,
         })
     return rows
 
@@ -107,17 +111,58 @@ def ci_overlap(a: dict, b: dict) -> bool:
     return a["auroc_lo"] <= b["auroc_hi"] and b["auroc_lo"] <= a["auroc_hi"]
 
 
-def select_for_cell(rows: list[dict], target: str, feature_set: str) -> list[dict]:
-    """Apply Rule A then Rule B for one ``(target, feature_set)`` cell.
+SPLIT_TYPES = ("chrono", "stratified", "patient")
 
-    Returns ``[headline]`` or ``[headline, runner_up]``. The runner-up is
-    the first CI-overlapping row whose architecture family differs from the
-    headline's; if none exists the cell contributes the headline only.
+
+def composite_sorted(group: list[dict]) -> list[dict]:
+    """Sort a candidate group by a multi-metric composite, best first.
+
+    Selecting the leaf to explain by AUROC alone rewards a leaf that
+    discriminates well but whose probabilities are unreliable; since SHAP
+    runs on the calibrated probability, calibration matters. The composite
+    is the sum of three within-group ranks: AUROC (descending), AUPRC
+    (descending, the imbalance-aware metric), and calibration closeness
+    ``|slope - 1|`` (ascending). A missing AUPRC/calibration takes the
+    worst rank, so a leaf is never rewarded for an absent metric.
     """
-    cell = [r for r in rows if r["target"] == target and r["feature_set"] == feature_set]
+    n = len(group)
+
+    def rank_by(key, reverse):
+        vals = [(i, group[i].get(key)) for i in range(n)]
+        present = sorted([(i, v) for i, v in vals if v is not None],
+                         key=lambda t: t[1], reverse=reverse)
+        rm = {i: r for r, (i, _) in enumerate(present)}
+        for i, v in vals:
+            rm.setdefault(i, n)
+        return rm
+
+    r_auroc = rank_by("auroc_mean", True)
+    r_auprc = rank_by("auprc_mean", True)
+    calib_close = [(i, abs(group[i]["calib_slope"] - 1.0)
+                    if group[i].get("calib_slope") is not None else None)
+                   for i in range(n)]
+    present = sorted([(i, v) for i, v in calib_close if v is not None],
+                     key=lambda t: t[1])
+    r_calib = {i: r for r, (i, _) in enumerate(present)}
+    for i, v in calib_close:
+        r_calib.setdefault(i, n)
+
+    order = sorted(range(n), key=lambda i: r_auroc[i] + r_auprc[i] + r_calib[i])
+    return [group[i] for i in order]
+
+
+def select_for_cell_split(rows, target, feature_set, split_type) -> list[dict]:
+    """Headline + cross-family runner-up for one (target, feature_set,
+    split_type), ranked by the multi-metric composite. The runner-up is the
+    best-composite candidate of a different architecture family whose AUROC
+    CI overlaps the headline's; absent that, the cell-split contributes the
+    headline only.
+    """
+    cell = [r for r in rows if r["target"] == target
+            and r["feature_set"] == feature_set and r["splittype"] == split_type]
     if not cell:
         return []
-    ranked = sorted(cell, key=lambda r: r["auroc_mean"], reverse=True)
+    ranked = composite_sorted(cell)
     headline = ranked[0]
     selection = [dict(headline, role="headline")]
     for cand in ranked[1:]:
@@ -127,30 +172,42 @@ def select_for_cell(rows: list[dict], target: str, feature_set: str) -> list[dic
     return selection
 
 
-def select_insight_leaves() -> list[dict]:
-    """Compute the full headline + runner-up selection across the 7 cells."""
+def select_by_split() -> list[dict]:
+    """Headline + runner-up per (target, feature_set, split_type), so the
+    cross-leaf comparison can be categorised by split type (chronological =
+    honest, stratified/patient = the leakage and generalisation contrasts).
+    """
     rows = collect_holdout_rows()
     out: list[dict] = []
     for target in TARGETS:
         for feature_set in FEATURE_SETS:
             if (target, feature_set) in EXCLUDED_CELLS:
                 continue
-            out.extend(select_for_cell(rows, target, feature_set))
+            for split_type in SPLIT_TYPES:
+                out.extend(select_for_cell_split(rows, target, feature_set, split_type))
     return out
+
+
+def select_insight_leaves() -> list[dict]:
+    """Full selection across all cells and split types (flattened)."""
+    return select_by_split()
 
 
 def _describe(sel: dict) -> str:
     ver = f"/{sel['version']}" if sel["version"] else ""
+    auprc = f"{sel['auprc_mean']:.3f}" if sel.get("auprc_mean") is not None else "n/a"
+    calib = f"{sel['calib_slope']:+.2f}" if sel.get("calib_slope") is not None else "n/a"
     return (f"{sel['role']:<10} {sel['target']}/{sel['feature_set']:<20} "
-            f"AUROC={sel['auroc_mean']:.3f} [{sel['auroc_lo']:.3f}-{sel['auroc_hi']:.3f}] "
-            f"family={sel['family']:<10} {sel['architecture']}{ver} "
-            f"{sel['datasplit']}/{sel['splittype']}")
+            f"{sel['splittype']:<11} AUROC={sel['auroc_mean']:.3f} AUPRC={auprc} "
+            f"calib={calib} family={sel['family']:<10} {sel['architecture']}{ver} "
+            f"{sel['datasplit']}")
 
 
 if __name__ == "__main__":
-    selections = select_insight_leaves()
-    print(f"Selected {len(selections)} insight leaves "
-          f"across {len(TARGETS) * len(FEATURE_SETS) - len(EXCLUDED_CELLS)} cells:\n")
+    selections = select_by_split()
+    n_cells = (len(TARGETS) * len(FEATURE_SETS) - len(EXCLUDED_CELLS)) * len(SPLIT_TYPES)
+    print(f"Selected {len(selections)} insight leaves across up to {n_cells} "
+          f"(cell x split) groups:\n")
     for s in selections:
         print("  " + _describe(s))
         print(f"             -> {s['leaf_dir'].relative_to(EXPERIMENT_DIR)}")
