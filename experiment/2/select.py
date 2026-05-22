@@ -116,6 +116,8 @@ SPLIT_TYPES = ("chrono", "stratified", "patient")
 
 CALIB_MIN = 0.0   # slope <= 0 is Platt-inverted: calibrated probs anti-correlate
 CALIB_MAX = 5.0   # slope this far above 1 means wildly mis-scaled probabilities
+AUROC_TOL = 0.02  # AUROC differences below this are noise-level (treated as tied)
+AUPRC_TOL = 0.02  # AUPRC differences below this are noise-level (treated as tied)
 
 
 def _calibration_degenerate(row: dict) -> bool:
@@ -127,25 +129,35 @@ def _calibration_degenerate(row: dict) -> bool:
     return s is None or s <= CALIB_MIN or s > CALIB_MAX
 
 
+def _calib_distance(row: dict) -> float:
+    """Distance of the calibration slope from the ideal 1.0 (large if absent)."""
+    s = row.get("calib_slope")
+    return abs(s - 1.0) if s is not None else 1e9
+
+
 def composite_sorted(group: list[dict]) -> list[dict]:
     """Sort a candidate group best-first for choosing the leaf to explain.
 
-    Discrimination is primary - the benchmark measures forecast quality, so a
-    well-calibrated but weakly-discriminating leaf is not the headline.
-    Calibration enters as a reliability GUARD, not an equal third vote:
-    leaves with degenerate calibration (inverted or wildly mis-scaled slope)
-    are sorted last so SHAP is never run on a model whose calibrated
-    probabilities are meaningless. Among the rest the order is AUROC
-    (descending), then AUPRC (descending, the imbalance-aware metric), then
-    calibration closeness ``|slope - 1|`` as the final tiebreak.
+    Discrimination is primary, but only at a meaningful resolution: AUROC and
+    AUPRC are bucketed at a noise-level tolerance, so leaves that differ by
+    less than ``AUROC_TOL`` / ``AUPRC_TOL`` are treated as tied rather than
+    letting a 0.001 edge decide. Calibration is a reliability factor, not an
+    equal vote: degenerate calibration (inverted or wildly mis-scaled slope)
+    sorts last so SHAP is never run on a model whose calibrated probabilities
+    are meaningless, and among discrimination-tied leaves the one with
+    calibration slope closest to 1 wins. The exact AUROC is the final
+    tiebreak. This avoids both failure modes - calibration cannot override a
+    real AUROC gap, and a trivial AUROC gap cannot override calibration.
     """
     def key(row):
+        au = row.get("auroc_mean") or 0.0
+        ap = row.get("auprc_mean") or 0.0
         return (
-            _calibration_degenerate(row),                 # False (0) before True
-            -(row.get("auroc_mean") or 0.0),
-            -(row.get("auprc_mean") or 0.0),
-            abs((row.get("calib_slope") if row.get("calib_slope") is not None
-                 else 1.0) - 1.0),
+            _calibration_degenerate(row),          # False (0) before True
+            -round(au / AUROC_TOL),                 # AUROC bucket (desc)
+            -round(ap / AUPRC_TOL),                 # AUPRC bucket (desc)
+            _calib_distance(row),                   # within tie: best calibration
+            -au,                                    # exact AUROC tiebreak
         )
     return sorted(group, key=key)
 
