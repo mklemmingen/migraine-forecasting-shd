@@ -22,6 +22,7 @@ only on artefacts already on disk, not on re-running any model.
 """
 from __future__ import annotations
 
+import base64
 import importlib.util
 import sys
 from pathlib import Path
@@ -209,6 +210,37 @@ def _leaf_meta(sel: dict) -> str:
             f"| AUROC {sel['auroc_mean']:.3f}, AUPRC {auprc}, calib {calib}")
 
 
+def _latest_img(leaf_dir: Path, prefix: str) -> Path | None:
+    """Latest ``insights/<prefix>_<ts>.png`` for a leaf, or None."""
+    ins = leaf_dir / "insights"
+    files = sorted(ins.glob(f"{prefix}_*.png")) if ins.is_dir() else []
+    return files[-1] if files else None
+
+
+def _embed_png(path: Path | None, max_width: int = 460) -> str:
+    """Inline a PNG as a base64 data-URI so the report stays self-contained
+    when archived into a dated subfolder (relative paths would break)."""
+    if path is None or not path.is_file():
+        return ""
+    b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    return (f'<img src="data:image/png;base64,{b64}" loading="lazy" '
+            f'style="max-width:{max_width}px;width:100%;border:1px solid #ddd;'
+            f'border-radius:4px;margin:4px 6px 4px 0">')
+
+
+def _leaf_figures(sel: dict, label: str) -> str:
+    """Embed a leaf's SHAP beeswarm (distributional summary) and bar chart."""
+    bee = _embed_png(_latest_img(sel["leaf_dir"], "shap_beeswarm"))
+    bar = _embed_png(_latest_img(sel["leaf_dir"], "shap_bar"))
+    if not bee and not bar:
+        return ""
+    cap = (f"{label}: {sel['family']} {sel['architecture']} "
+           f"({sel['datasplit']}/{sel['splittype']})")
+    return (f"<div style='display:inline-block;vertical-align:top;max-width:480px'>"
+            f"<div style='font-size:0.82rem;color:#555;margin-top:6px'>{cap}</div>"
+            f"{bee}{bar}</div>")
+
+
 def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
     """HTML table of one leaf's top-N feature ranking (no comparison)."""
     rows = "".join(
@@ -232,15 +264,19 @@ def _cell_block(target, fset, roles) -> tuple[str, bool]:
     if h is not None and r is not None:
         fams = {h["arch_family"], r["arch_family"]}
         cross = "xgboost" in fams and bool({"tabpfn", "autotabpfn"} & fams)
+        figs = (_leaf_figures(h_sel, "headline")
+                + _leaf_figures(r_sel, "runner-up"))
         return (head
                 + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
-                  f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)), cross
+                  f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)
+                + f"<div>{figs}</div>"), cross
     if h is not None or r is not None:
         sel = h_sel if h is not None else r_sel
         ex = h if h is not None else r
         return (head + f"<p>Only one architecture insighted in this cell: "
                 f"{_leaf_meta(sel)}. No cross-family comparison available.</p>"
-                + _single_ranking_table(ex)), False
+                + _single_ranking_table(ex)
+                + f"<div>{_leaf_figures(sel, 'leaf')}</div>"), False
     return (head + "<p class='warn'>No insight artefacts on disk for this "
             "cell.</p>"), False
 
