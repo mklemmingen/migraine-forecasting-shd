@@ -55,6 +55,12 @@ def _load_local(name: str):
 _select = _load_local("select")
 select_insight_leaves = _select.select_insight_leaves
 
+from _eval._archival import archive_previous_outputs  # noqa: E402
+
+# Compare outputs rotate into experiment/2/results/YYYY-MM-DD/ with the same
+# dated-archive algorithm the aggregator uses for its figures.
+COMPARE_PATTERNS = ("comparison_shap_*.html", "park_or_check_*.html")
+
 # Park et al. 2016 Table 4 [park2016shd, Tab. 4, p. 8] stepwise-selected
 # trigger odds ratios; the park feature loader maps the two Korean hormonal
 # sub-fields into hormonal_changes_today.
@@ -140,6 +146,30 @@ def latest_explain(leaf_dir: Path) -> Path | None:
     return files[-1] if files else None
 
 
+def resolve_insighted(sel: dict, all_rows: list[dict]) -> dict:
+    """Map a selection to a leaf that actually has insight artefacts.
+
+    ``select.py`` picks the top-AUROC leaf per cell, but the insight pass
+    may have run a different leaf of the same cell (the metrics shift the
+    headline between runs). When the selected leaf has no ``explain_*.txt``,
+    fall back to the highest-AUROC leaf of the same ``(target, feature_set,
+    family)`` that does, so the comparison reads the evidence on disk rather
+    than reporting a spurious miss. Returns the original sel when no
+    insighted leaf of that family exists (the caller then reports the miss).
+    """
+    if latest_explain(sel["leaf_dir"]) is not None:
+        return sel
+    same = [r for r in all_rows
+            if r["target"] == sel["target"]
+            and r["feature_set"] == sel["feature_set"]
+            and r["family"] == sel["family"]
+            and latest_explain(r["leaf_dir"]) is not None]
+    if not same:
+        return sel
+    best = max(same, key=lambda r: r["auroc_mean"])
+    return dict(best, role=sel["role"])
+
+
 def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
     """HTML table aligning the two leaves' top-N feature rankings + the
     Spearman rank correlation over their shared features."""
@@ -162,12 +192,24 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
             + "".join(rows) + "</table>")
 
 
+def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
+    """HTML table of one leaf's top-N feature ranking (no comparison)."""
+    rows = "".join(
+        f"<tr><td>{i + 1}</td><td>{f}</td><td>{v:.4f}</td></tr>"
+        for i, (f, v) in enumerate(ex["ranking"][:top_n]))
+    return (f"<table><tr><th>rank</th><th>feature ({ex['arch_family']})</th>"
+            f"<th>{ex['metric']}</th></tr>{rows}</table>")
+
+
 def build_comparison(selections: list[dict]) -> tuple[str, bool]:
     """Build the headline-vs-runner-up ranking-diff HTML.
 
-    Returns ``(html, has_cross_family_pair)``. ``has_cross_family_pair`` is
-    True when at least one cell pairs an xgboost leaf with a tabpfn /
-    autotabpfn leaf (the required Addition-0-vs-Addition-1 comparison).
+    Shows the cross-family ranking comparison when both roles have insight
+    artefacts; when only one architecture in the cell has them, shows that
+    leaf's ranking solo (labelled, no comparison available); reports a true
+    miss only when neither role has artefacts. Returns
+    ``(html, has_cross_family_pair)`` where the flag is True when at least
+    one cell pairs an xgboost leaf with a tabpfn / autotabpfn leaf.
     """
     cells: dict[tuple, dict] = {}
     for sel in selections:
@@ -176,26 +218,35 @@ def build_comparison(selections: list[dict]) -> tuple[str, bool]:
 
     blocks = []
     has_cross_family = False
-    for (target, fset), roles in cells.items():
-        if "headline" not in roles or "runner_up" not in roles:
-            continue
-        h_sel, r_sel = roles["headline"], roles["runner_up"]
-        h = parse_explain(latest_explain(h_sel["leaf_dir"]))
-        r = parse_explain(latest_explain(r_sel["leaf_dir"]))
-        if h is None or r is None:
-            blocks.append(f"<h3>{target} / {fset}</h3>"
-                          f"<p class='warn'>Missing insight artefact "
-                          f"(headline={h is not None}, runner-up={r is not None}).</p>")
-            continue
-        fams = {h["arch_family"], r["arch_family"]}
-        if "xgboost" in fams and ({"tabpfn", "autotabpfn"} & fams):
-            has_cross_family = True
-        blocks.append(
-            f"<h3>{target} / {fset}</h3>"
-            f"<p>headline: {h_sel['architecture']} "
-            f"(AUROC {h_sel['auroc_mean']:.3f}) | runner-up: "
-            f"{r_sel['architecture']} (AUROC {r_sel['auroc_mean']:.3f})</p>"
-            + _rank_overlap_table(h, r))
+    for (target, fset), roles in sorted(cells.items()):
+        h_sel, r_sel = roles.get("headline"), roles.get("runner_up")
+        h = parse_explain(latest_explain(h_sel["leaf_dir"])) if h_sel else None
+        r = parse_explain(latest_explain(r_sel["leaf_dir"])) if r_sel else None
+        head = f"<h3>{target} / {fset}</h3>"
+
+        if h is not None and r is not None:
+            fams = {h["arch_family"], r["arch_family"]}
+            if "xgboost" in fams and ({"tabpfn", "autotabpfn"} & fams):
+                has_cross_family = True
+            blocks.append(
+                head
+                + f"<p>headline: {h_sel['architecture']} "
+                  f"(AUROC {h_sel['auroc_mean']:.3f}) | runner-up: "
+                  f"{r_sel['architecture']} (AUROC {r_sel['auroc_mean']:.3f})</p>"
+                + _rank_overlap_table(h, r))
+        elif h is not None or r is not None:
+            sel = h_sel if h is not None else r_sel
+            ex = h if h is not None else r
+            blocks.append(
+                head
+                + f"<p>Only one architecture insighted in this cell "
+                  f"({ex['arch_family']}, {sel['architecture']}, AUROC "
+                  f"{sel['auroc_mean']:.3f}); no cross-family comparison "
+                  f"available.</p>"
+                + _single_ranking_table(ex))
+        else:
+            blocks.append(head + "<p class='warn'>No insight artefacts on "
+                                 "disk for this cell.</p>")
     return "\n".join(blocks), has_cross_family
 
 
@@ -209,8 +260,9 @@ def build_park_check(selections: list[dict]) -> str:
         if ex is None:
             continue
         shap_rank = {f: i + 1 for i, (f, _) in enumerate(ex["ranking"])}
-        # Park OR rank: highest OR = rank 1.
-        or_rank = {f: i + 1 for i, (f, _) in enumerate(
+        # Park OR rank: highest OR = rank 1. ``sorted`` over a dict yields
+        # its keys (feature names), so unpack a single name per item.
+        or_rank = {f: i + 1 for i, f in enumerate(
             sorted(PARK_TABLE4_OR, key=PARK_TABLE4_OR.get, reverse=True))}
         shared = [f for f in PARK_TABLE4_OR if f in shap_rank]
         rho = None
@@ -246,7 +298,15 @@ _STYLE = ("<style>body{font-family:sans-serif;margin:2rem;max-width:60rem}"
 def main() -> int:
     ts = datetime.now().strftime("%Y%m%dT%H%M%S")
     out_dir = Path(__file__).resolve().parent
-    selections = select_insight_leaves()
+
+    # Rotate any prior comparison outputs into experiment/2/results/<date>/
+    # using the shared dated-archive algorithm before writing the new ones.
+    archive_previous_outputs(out_dir, out_dir / "results", COMPARE_PATTERNS)
+
+    # Resolve each selection to a leaf that actually carries insight
+    # artefacts (the insight pass and the live AUROC ranking can disagree).
+    all_rows = _select.collect_holdout_rows()
+    selections = [resolve_insighted(s, all_rows) for s in select_insight_leaves()]
 
     comp_html, has_cross = build_comparison(selections)
     comp_path = out_dir / f"comparison_shap_{ts}.html"
