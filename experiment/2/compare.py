@@ -314,6 +314,39 @@ def build_comparison(selections: list[dict]) -> tuple[str, bool]:
     return "\n".join(sections), has_cross_family
 
 
+def build_summary_table(selections: list[dict]) -> str:
+    """Per-cell best model (headline) in each split type, so the reader sees
+    which architecture/HP wins per cell and how the honest chronological
+    result compares to the leakage-inflated stratified one and the
+    patient-generalisation one. Reports full provenance per entry.
+    """
+    head = {(s["target"], s["feature_set"], s["splittype"]): s
+            for s in selections if s["role"] == "headline"}
+    cells = sorted({(s["target"], s["feature_set"]) for s in selections})
+
+    def cell_entry(s):
+        if s is None:
+            return "<td style='color:#999'>-</td>"
+        hp = s["hp_strategy"] or "NonHP"
+        calib = f"{s['calib_slope']:+.2f}" if s.get("calib_slope") is not None else "n/a"
+        return (f"<td>{s['family']} {s['datasplit']} <i>{hp}</i><br>"
+                f"AUROC {s['auroc_mean']:.3f}, calib {calib}</td>")
+
+    rows = []
+    for (t, fs) in cells:
+        tds = "".join(cell_entry(head.get((t, fs, st)))
+                      for st in ("chrono", "stratified", "patient"))
+        rows.append(f"<tr><td><b>{t}</b><br>{fs}</td>{tds}</tr>")
+    return ("<h2>Best model per cell and split (headline)</h2>"
+            "<p class='note'>The <b>chronological</b> column is the deployable, "
+            "forecasting-honest best; <b>stratified</b> is optimistically inflated "
+            "by history-feature leakage (not deployable); <b>patient</b> is "
+            "generalisation to unseen patients. AUROC is hold-out test.</p>"
+            "<table><tr><th>target / feature set</th><th>chronological "
+            "(honest)</th><th>stratified (leaky)</th><th>patient "
+            "(generalisation)</th></tr>" + "".join(rows) + "</table>")
+
+
 def build_park_check(selections: list[dict]) -> str:
     """Build the Park-OR check HTML for the migraine/park cells."""
     park = [s for s in selections
@@ -401,6 +434,7 @@ def main() -> int:
         f"{_PREAMBLE}"
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
+        f"{build_summary_table(selections)}"
         f"{comp_html}</body></html>")
     print(f"wrote {comp_path}")
     if not has_cross:
