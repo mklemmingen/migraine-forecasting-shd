@@ -727,6 +727,67 @@ def build_summary_table(selections: list[dict]) -> str:
             "(generalisation)</th></tr>" + "".join(rows) + "</table>")
 
 
+def build_key_results(headlines: list[dict]) -> str:
+    """A concise, data-driven key-results box for a paper reader.
+
+    Every figure is computed from the current sweep, so the summary stays
+    accurate as coverage changes. It states only CI-defensible claims: the
+    best deployable (chronological) forecast and its AUPRC lift, the
+    architecture and tuning win counts, the leakage verdict by CI separation,
+    and the cells not significantly above chance.
+    """
+    heads = [s for s in headlines if s.get("role") == "headline"]
+    if not heads:
+        return ""
+    chrono = [s for s in heads if s["splittype"] == "chrono"
+              and s.get("auroc_lo") is not None and s["auroc_lo"] > 0.5]
+    bits = []
+    if chrono:
+        best = max(chrono, key=lambda s: s["auroc_mean"])
+        prev = _test_prevalence(best["target"], best["datasplit"],
+                                best["splittype"])
+        lift = (f", AUPRC lift {best['auprc_mean'] / prev:.1f}x"
+                if prev and best.get("auprc_mean") else "")
+        bits.append(
+            f"<li><b>Best deployable (chronological) forecast:</b> "
+            f"{best['target']} / {best['feature_set'].replace('_features','')} "
+            f"({best['family']}, {best['datasplit']}), AUROC "
+            f"{best['auroc_mean']:.3f} [{best['auroc_lo']:.3f}-"
+            f"{best['auroc_hi']:.3f}]{lift}.</li>")
+    fam = {}
+    hp_nonhp = 0
+    for s in heads:
+        fam[s["family"]] = fam.get(s["family"], 0) + 1
+        if not s.get("hp_strategy"):
+            hp_nonhp += 1
+    fam_str = ", ".join(f"{v} {k}" for k, v in sorted(fam.items(),
+                                                      key=lambda kv: -kv[1]))
+    bits.append(
+        f"<li><b>Architecture and tuning:</b> {fam_str} across {len(heads)} "
+        f"headlines; library-default (NonHP) models win {hp_nonhp} of "
+        f"{len(heads)}.</li>")
+    # leakage: count chronological vs stratified CI separations
+    by = {}
+    for s in heads:
+        by.setdefault((s["target"], s["feature_set"]), {})[s["splittype"]] = s
+    n_sig = sum(1 for v in by.values()
+                if "chrono" in v and "stratified" in v
+                and v["stratified"]["auroc_lo"] > v["chrono"]["auroc_hi"])
+    bits.append(
+        f"<li><b>Stratified leakage:</b> excluded by split design; in "
+        f"{n_sig} of {len(by)} cells does the stratified AUROC CI separate "
+        f"above chronological, so no measured inflation is claimed.</li>")
+    nac = [f"{s['target']}/{s['feature_set'].replace('_features','')}/"
+           f"{s['splittype']}" for s in heads
+           if s.get("auroc_lo") is not None and s["auroc_lo"] <= 0.5]
+    if nac:
+        bits.append(
+            f"<li><b>Not above chance</b> (95% CI includes 0.5): "
+            f"{', '.join(nac)}.</li>")
+    return ("<h2>Key results</h2><div class='note'><ul style='margin:0'>"
+            + "".join(bits) + "</ul></div>")
+
+
 def build_headline_composition(headlines: list[dict]) -> str:
     """Aggregate which architecture families and hyperparameter-tuning
     strategies actually win the headline, per split type.
@@ -979,6 +1040,7 @@ def main() -> int:
         f"<html><head>{_STYLE}</head><body>"
         f"<h1>Addition 2: cross-architecture SHAP comparison</h1>"
         f"{_PREAMBLE}"
+        f"{build_key_results(raw_selections)}"
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
         f"{build_summary_table(selections)}"
