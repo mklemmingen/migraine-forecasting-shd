@@ -308,8 +308,9 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     bh = 0.8 / g
     base = np.arange(n)[::-1]
     fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
+    any_subchance = False
     for gi, st in enumerate(splits):
-        ys, vals, los, his = [], [], [], []
+        ys, vals, los, his, subchance = [], [], [], [], []
         for ci, key in enumerate(cells):
             s = by_cell[key].get(st)
             if s is None:
@@ -318,19 +319,36 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
             vals.append(s["auroc_mean"])
             los.append(s["auroc_mean"] - s["auroc_lo"])
             his.append(s["auroc_hi"] - s["auroc_mean"])
-        ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
-                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
-                label=SPLIT_FIG_LABELS[st])
+            subchance.append(s["auroc_lo"] <= 0.5)
+        bars = ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
+                       xerr=[los, his],
+                       error_kw={"elinewidth": 0.8, "capsize": 2},
+                       label=SPLIT_FIG_LABELS[st])
+        # Hatch bars whose 95% CI reaches chance: not significantly forecastable.
+        for patch, sc in zip(bars.patches, subchance):
+            if sc:
+                patch.set_hatch("////")
+                patch.set_edgecolor("white")
+                any_subchance = True
     ax.axvline(0.5, color="#444444", lw=0.9, ls=":", zorder=0)
+    if any_subchance:
+        from matplotlib.patches import Patch
+        handles, labels = ax.get_legend_handles_labels()
+        handles.append(Patch(facecolor="#cccccc", hatch="////",
+                             edgecolor="white", label="CI reaches chance (ns)"))
+        ax.legend(handles=handles, fontsize=8, loc="upper left",
+                  bbox_to_anchor=(1.01, 1.0))
+    else:
+        ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     ax.set_yticks(base)
     ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
                        fontsize=8)
     ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
                                     for s in c.values()) + 0.03))
-    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5)")
+    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5); "
+                  "hatched = CI reaches chance", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
-    ax.legend(fontsize=8, loc="lower right")
     save_journal_figure(fig, out_png)
     plt.close(fig)
     return out_png
