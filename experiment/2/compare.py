@@ -497,12 +497,29 @@ def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
             f"<th>{ex['metric']}</th></tr>{rows}</table>")
 
 
+def _chance_caveat(sel: dict) -> str:
+    """Warn when a leaf's 95% AUROC CI reaches chance (lower bound <= 0.5).
+
+    Such a leaf is not significantly better than random, so its SHAP
+    attributions explain a near-chance decision surface and should be read as
+    descriptive only - the same threshold the discrimination figure hatches.
+    """
+    if sel is None or sel.get("auroc_lo") is None or sel["auroc_lo"] > 0.5:
+        return ""
+    return ("<p class='warn'>This cell's headline is not significantly above "
+            f"chance (AUROC 95% CI [{sel['auroc_lo']:.3f}-{sel['auroc_hi']:.3f}] "
+            "includes 0.5); its attributions describe a near-chance model and "
+            "are not evidence of a real effect.</p>")
+
+
 def _cell_block(target, fset, roles) -> tuple[str, bool]:
     """Render one (target, feature_set) cell within a split section.
 
     Returns ``(html, is_cross_family)``. Shows the cross-family ranking
     comparison when both roles have insight artefacts; a labelled solo
-    ranking when only one does; a true miss only when neither does.
+    ranking when only one does; a true miss only when neither does. A cell
+    whose headline AUROC CI reaches chance carries a caveat, since its SHAP
+    explains a near-random decision surface.
     """
     h_sel, r_sel = roles.get("headline"), roles.get("runner_up")
     h = parse_explain(latest_explain(h_sel["leaf_dir"])) if h_sel else None
@@ -530,14 +547,15 @@ def _cell_block(target, fset, roles) -> tuple[str, bool]:
                     "because the two explainers' absolute magnitudes are not "
                     "comparable; rank agreement is in the table above.</div>"
                     + _embed_png(out_png, max_width=560) + "</div>")
-        return (head
+        return (head + _chance_caveat(h_sel)
                 + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
                   f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)
                 + crossfig + f"<div>{figs}</div>"), cross
     if h is not None or r is not None:
         sel = h_sel if h is not None else r_sel
         ex = h if h is not None else r
-        return (head + f"<p>Only one architecture insighted in this cell: "
+        return (head + _chance_caveat(sel)
+                + f"<p>Only one architecture insighted in this cell: "
                 f"{_leaf_meta(sel)}. No cross-family comparison available.</p>"
                 + _single_ranking_table(ex)
                 + f"<div>{_leaf_figures(sel, 'leaf')}</div>"), False
