@@ -408,16 +408,30 @@ def _calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
 
 
 def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
-    """Journal-styled grouped horizontal bar of mean |SHAP| for the union of
-    each model's top features, headline vs runner-up, for one cross-family
+    """Journal-styled grouped horizontal bar comparing the two architectures'
+    relative feature attribution, headline vs runner-up, for one cross-family
     cell. Saved as PNG + vector PDF via the shared figure style.
+
+    The headline (KernelSHAP over the XGBoost stack) and runner-up
+    (TabPFN-native explainer) attributions are computed by different
+    estimators, so their *absolute* mean |SHAP| magnitudes are not comparable
+    - each scales with its model's prediction variance. To make the
+    cross-architecture comparison fair, each model's attribution is normalised
+    to its share of that model's total mean |SHAP| (relative importance, %),
+    so both axes mean "fraction of this model's attribution". Rank agreement
+    is reported separately in the overlap table.
     """
     h_map, r_map = dict(h["ranking"]), dict(r["ranking"])
+    h_total = sum(abs(v) for v in h_map.values()) or 1.0
+    r_total = sum(abs(v) for v in r_map.values()) or 1.0
+    h_share = {f: 100.0 * abs(v) / h_total for f, v in h_map.items()}
+    r_share = {f: 100.0 * abs(v) / r_total for f, v in r_map.items()}
     feats: list[str] = []
     for f, _ in h["ranking"][:top_n] + r["ranking"][:top_n]:
         if f not in feats:
             feats.append(f)
-    feats.sort(key=lambda f: max(h_map.get(f, 0.0), r_map.get(f, 0.0)), reverse=True)
+    feats.sort(key=lambda f: max(h_share.get(f, 0.0), r_share.get(f, 0.0)),
+               reverse=True)
     feats = feats[:12]
     if not feats:
         return None
@@ -425,13 +439,13 @@ def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     y = np.arange(len(feats))[::-1]
     bw = 0.4
     fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
-    ax.barh(y + bw / 2, [h_map.get(f, 0.0) for f in feats], height=bw,
+    ax.barh(y + bw / 2, [h_share.get(f, 0.0) for f in feats], height=bw,
             color="#0072B2", label=f"headline ({h['arch_family']})")
-    ax.barh(y - bw / 2, [r_map.get(f, 0.0) for f in feats], height=bw,
+    ax.barh(y - bw / 2, [r_share.get(f, 0.0) for f in feats], height=bw,
             color="#E69F00", label=f"runner-up ({r['arch_family']})")
     ax.set_yticks(y)
     ax.set_yticklabels(feats, fontsize=8)
-    ax.set_xlabel("mean |SHAP| (calibrated positive-class probability)")
+    ax.set_xlabel("relative attribution: share of each model's total mean |SHAP| (%)")
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
@@ -511,9 +525,10 @@ def _cell_block(target, fset, roles) -> tuple[str, bool]:
                 crossfig = (
                     "<div style='margin:0.6rem 0'>"
                     "<div style='font-size:0.82rem;color:#555'>Cross-architecture "
-                    "attribution: mean |SHAP| of each model's top features "
-                    "(headline vs runner-up), same calibrated-probability "
-                    "target.</div>"
+                    "attribution: each model's top features as a share of its "
+                    "own total mean |SHAP| (headline vs runner-up). Normalised "
+                    "because the two explainers' absolute magnitudes are not "
+                    "comparable; rank agreement is in the table above.</div>"
                     + _embed_png(out_png, max_width=560) + "</div>")
         return (head
                 + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
