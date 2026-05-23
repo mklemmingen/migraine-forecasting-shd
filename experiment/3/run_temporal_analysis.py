@@ -14,7 +14,9 @@ import numpy as np
 from statsmodels.stats.multitest import multipletests
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE / "_temporal"))
+from _eval._html_to_pdf import html_to_pdf  # noqa: E402
 import series as S          # noqa: E402
 import markov as MK         # noqa: E402
 import acf as ACF           # noqa: E402
@@ -143,8 +145,9 @@ def main():
         all_res[t] = res
         primary, exploratory = fdr_table(res)
         names, ts = write_figures(t, res, HERE / t)
-        (HERE / t / f"temporal_report_{ts}.html").write_text(
-            report_html(t, res, names, primary, exploratory))
+        report_path = HERE / t / f"temporal_report_{ts}.html"
+        report_path.write_text(report_html(t, res, names, primary, exploratory))
+        html_to_pdf(report_path)
         fig_idx[t] = ts
         print(f"{t}: report written ({len(names)} figures)")
     head, lines = verdict(all_res)
@@ -153,7 +156,9 @@ def main():
                "<body style='font-family:sans-serif;max-width:760px;margin:24px auto'>"
                f"<h2>Temporal-dependence summary</h2><p><b>{head}</b></p><ul>"
                + "".join(f"<li>{x}</li>" for x in lines) + "</ul></body>")
-    (HERE / f"temporal_summary_{ts}.html").write_text(summary)
+    summary_path = HERE / f"temporal_summary_{ts}.html"
+    summary_path.write_text(summary)
+    html_to_pdf(summary_path)
     print("VERDICT:", head)
 
 

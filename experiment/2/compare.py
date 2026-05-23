@@ -39,12 +39,39 @@ import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 from scipy.stats import spearmanr  # noqa: E402
 
 EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT = EXPERIMENT_DIR.parent
 sys.path.insert(0, str(EXPERIMENT_DIR))
 
 from _eval._figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+from _eval._html_to_pdf import html_to_pdf  # noqa: E402
+
+_PREV_CACHE: dict = {}
+
+
+def _test_prevalence(target: str, datasplit: str, splittype: str):
+    """Positive-class prevalence of a leaf's hold-out test set, the no-skill
+    AUPRC baseline for that exact (target, ratio, split). Cached; the label
+    column is ``migraine_target`` in both pipelines (next-day headache in the
+    headache dataset, next-day migraine in the migraine dataset). Returns None
+    when the test parquet is absent."""
+    key = (target, datasplit, splittype)
+    if key in _PREV_CACHE:
+        return _PREV_CACHE[key]
+    p = (REPO_ROOT / "data" / "processed" / target / datasplit / splittype
+         / "diary_test.parquet")
+    prev = None
+    if p.is_file():
+        try:
+            prev = float(pd.read_parquet(p, columns=["migraine_target"])
+                         ["migraine_target"].mean())
+        except Exception:
+            prev = None
+    _PREV_CACHE[key] = prev
+    return prev
 
 _FIG_DIR = Path(__file__).resolve().parent / "figures"
 
@@ -68,7 +95,8 @@ from _eval._archival import archive_previous_outputs  # noqa: E402
 
 # Compare outputs rotate into experiment/2/results/YYYY-MM-DD/ with the same
 # dated-archive algorithm the aggregator uses for its figures.
-COMPARE_PATTERNS = ("comparison_shap_*.html", "park_or_check_*.html")
+COMPARE_PATTERNS = ("comparison_shap_*.html", "comparison_shap_*.pdf",
+                    "park_or_check_*.html", "park_or_check_*.pdf")
 
 # Park et al. 2016 Table 4 [park2016shd, Tab. 4, p. 8] stepwise-selected
 # trigger odds ratios; the park feature loader maps the two Korean hormonal
@@ -206,8 +234,17 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
         rf = runner["ranking"][i][0] if i < len(runner["ranking"]) else ""
         rows.append(f"<tr><td>{i + 1}</td><td>{hf}</td><td>{rf}</td></tr>")
     rho_str = f"{rho:+.3f}" if rho is not None else "n/a"
-    return (f"<p>Spearman rank correlation over {len(shared)} shared "
-            f"features: <b>{rho_str}</b></p>"
+    if rho is None:
+        verdict = ""
+    else:
+        mag = abs(rho)
+        strength = ("strong" if mag >= 0.7 else "moderate" if mag >= 0.4
+                    else "weak")
+        direction = "agreement" if rho >= 0 else "disagreement"
+        verdict = (f" - {strength} cross-architecture {direction} on feature "
+                   "ordering")
+    return (f"<p>Spearman rank correlation over all {len(shared)} shared "
+            f"features: <b>{rho_str}</b>{verdict}.</p>"
             f"<table><tr><th>rank</th><th>headline ({headline['arch_family']})</th>"
             f"<th>runner-up ({runner['arch_family']})</th></tr>"
             + "".join(rows) + "</table>")
@@ -215,7 +252,7 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
 
 SPLIT_LABELS = {
     "chrono": "Chronological (forecasting-honest)",
-    "stratified": "Stratified (leakage contrast - inflated, not deployable)",
+    "stratified": "Stratified (leakage contrast - not deployable by construction)",
     "patient": "Patient hold-out (generalisation to unseen patients)",
 }
 
@@ -308,8 +345,9 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     bh = 0.8 / g
     base = np.arange(n)[::-1]
     fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
+    any_subchance = False
     for gi, st in enumerate(splits):
-        ys, vals, los, his = [], [], [], []
+        ys, vals, los, his, subchance = [], [], [], [], []
         for ci, key in enumerate(cells):
             s = by_cell[key].get(st)
             if s is None:
@@ -318,35 +356,186 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
             vals.append(s["auroc_mean"])
             los.append(s["auroc_mean"] - s["auroc_lo"])
             his.append(s["auroc_hi"] - s["auroc_mean"])
-        ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
-                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
-                label=SPLIT_FIG_LABELS[st])
+            subchance.append(s["auroc_lo"] <= 0.5)
+        bars = ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
+                       xerr=[los, his],
+                       error_kw={"elinewidth": 0.8, "capsize": 2},
+                       label=SPLIT_FIG_LABELS[st])
+        # Hatch bars whose 95% CI reaches chance: not significantly forecastable.
+        for patch, sc in zip(bars.patches, subchance):
+            if sc:
+                patch.set_hatch("////")
+                patch.set_edgecolor("white")
+                any_subchance = True
     ax.axvline(0.5, color="#444444", lw=0.9, ls=":", zorder=0)
+    if any_subchance:
+        from matplotlib.patches import Patch
+        handles, labels = ax.get_legend_handles_labels()
+        handles.append(Patch(facecolor="#cccccc", hatch="////",
+                             edgecolor="white", label="CI reaches chance (ns)"))
+        ax.legend(handles=handles, fontsize=8, loc="upper left",
+                  bbox_to_anchor=(1.01, 1.0))
+    else:
+        ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     ax.set_yticks(base)
     ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
                        fontsize=8)
     ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
                                     for s in c.values()) + 0.03))
-    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5)")
+    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5); "
+                  "hatched = CI reaches chance", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
-    ax.legend(fontsize=8, loc="lower right")
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
+def _auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
+    """Grouped horizontal bars of AUPRC lift over the no-skill baseline per
+    cell, one bar per split, with a reference line at 1.0 (no skill).
+
+    AUPRC is the honest discrimination metric under heavy class imbalance
+    (the migraine positive rate is ~5-7 %), but a raw AUPRC is only
+    interpretable against its no-skill baseline, which is the test set's
+    positive prevalence. Lift = AUPRC / prevalence expresses precision-recall
+    skill on a common scale across the two targets (headache prevalence is
+    much higher than migraine), so 1.0 means no better than predicting the
+    base rate. The baseline is each leaf's own test-set prevalence.
+    """
+    cells, by_cell = [], {}
+    for s in headlines:
+        if s.get("role") != "headline" or s.get("auprc_mean") is None:
+            continue
+        prev = _test_prevalence(s["target"], s["datasplit"], s["splittype"])
+        if not prev:
+            continue
+        key = (s["target"], s["feature_set"])
+        if key not in by_cell:
+            by_cell[key] = {}
+            cells.append(key)
+        by_cell[key][s["splittype"]] = (s, prev)
+    if not cells:
+        return None
+    cells.sort()
+    apply_journal_style()
+    splits = ("chrono", "stratified", "patient")
+    n, g = len(cells), len(splits)
+    bh = 0.8 / g
+    base = np.arange(n)[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
+    xmax = 1.0
+    for gi, st in enumerate(splits):
+        ys, vals, los, his = [], [], [], []
+        for ci, key in enumerate(cells):
+            sp = by_cell[key].get(st)
+            if sp is None:
+                continue
+            s, prev = sp
+            lift = s["auprc_mean"] / prev
+            ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
+            vals.append(lift)
+            lo = (s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0
+            hi = (s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0
+            los.append(lo)
+            his.append(hi)
+            xmax = max(xmax, lift + hi)
+        ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
+                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
+                label=SPLIT_FIG_LABELS[st])
+    ax.axvline(1.0, color="#444444", lw=0.9, ls=":", zorder=0)
+    ax.set_yticks(base)
+    ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
+                       fontsize=8)
+    ax.set_xlim(0, xmax * 1.05)
+    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence; "
+                  "dotted line = 1.0 = no skill)", fontsize=9)
+    ax.set_title("Precision-recall skill by split type, per cell (headline)",
+                 fontsize=10)
+    ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
+def _calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
+    """Dot plot of the headline calibration slope per cell, one marker per
+    split type, against the perfect-calibration line at 1.0 with the
+    degenerate zones (<= 0 inverted, > 5 mis-scaled) shaded.
+
+    Calibration is the second axis of forecast quality: discrimination ranks
+    days, calibration scales the probabilities. The selection prefers a slope
+    near 1.0 and excludes the shaded zones, so this chart shows how
+    trustworthy each cell's headline probabilities are.
+    """
+    cells, by_cell = [], {}
+    for s in headlines:
+        if s.get("role") != "headline" or s.get("calib_slope") is None:
+            continue
+        key = (s["target"], s["feature_set"])
+        if key not in by_cell:
+            by_cell[key] = {}
+            cells.append(key)
+        by_cell[key][s["splittype"]] = s["calib_slope"]
+    if not cells:
+        return None
+    cells.sort()
+    apply_journal_style()
+    splits = ("chrono", "stratified", "patient")
+    n = len(cells)
+    base = np.arange(n)[::-1]
+    vals = [v for c in by_cell.values() for v in c.values()]
+    xmax = max(2.2, max(vals) + 0.3)
+    fig, ax = plt.subplots(figsize=(7.0, 0.55 * n + 1.4))
+    ax.axvspan(xmax * -0.02, 0.0, color="#D55E00", alpha=0.10, zorder=0)
+    ax.axvspan(5.0, xmax, color="#D55E00", alpha=0.10, zorder=0)
+    ax.axvline(1.0, color="#444444", lw=1.0, ls="--", zorder=1,
+               label="perfect calibration (1.0)")
+    for gi, st in enumerate(splits):
+        ys = [base[ci] + (1 - gi) * 0.18 for ci, k in enumerate(cells)
+              if st in by_cell[k]]
+        xs = [by_cell[k][st] for k in cells if st in by_cell[k]]
+        ax.scatter(xs, ys, s=55, color=SPLIT_FIG_COLORS[st], zorder=3,
+                   edgecolor="white", label=SPLIT_FIG_LABELS[st])
+    ax.set_yticks(base)
+    ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
+                       fontsize=8)
+    ax.set_xlim(xmax * -0.02, xmax)
+    ax.set_xlabel("calibration slope (1.0 = perfect; shaded zones excluded "
+                  "from selection)", fontsize=9)
+    ax.set_title("Calibration of the headline model, by split type",
+                 fontsize=10)
+    ax.legend(fontsize=7.5, loc="upper right", ncol=1, framealpha=0.95)
     save_journal_figure(fig, out_png)
     plt.close(fig)
     return out_png
 
 
 def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
-    """Journal-styled grouped horizontal bar of mean |SHAP| for the union of
-    each model's top features, headline vs runner-up, for one cross-family
+    """Journal-styled grouped horizontal bar comparing the two architectures'
+    relative feature attribution, headline vs runner-up, for one cross-family
     cell. Saved as PNG + vector PDF via the shared figure style.
+
+    The headline (KernelSHAP over the XGBoost stack) and runner-up
+    (TabPFN-native explainer) attributions are computed by different
+    estimators, so their *absolute* mean |SHAP| magnitudes are not comparable
+    - each scales with its model's prediction variance. To make the
+    cross-architecture comparison fair, each model's attribution is normalised
+    to its share of that model's total mean |SHAP| (relative importance, %),
+    so both axes mean "fraction of this model's attribution". Rank agreement
+    is reported separately in the overlap table.
     """
     h_map, r_map = dict(h["ranking"]), dict(r["ranking"])
+    h_total = sum(abs(v) for v in h_map.values()) or 1.0
+    r_total = sum(abs(v) for v in r_map.values()) or 1.0
+    h_share = {f: 100.0 * abs(v) / h_total for f, v in h_map.items()}
+    r_share = {f: 100.0 * abs(v) / r_total for f, v in r_map.items()}
     feats: list[str] = []
     for f, _ in h["ranking"][:top_n] + r["ranking"][:top_n]:
         if f not in feats:
             feats.append(f)
-    feats.sort(key=lambda f: max(h_map.get(f, 0.0), r_map.get(f, 0.0)), reverse=True)
+    feats.sort(key=lambda f: max(h_share.get(f, 0.0), r_share.get(f, 0.0)),
+               reverse=True)
     feats = feats[:12]
     if not feats:
         return None
@@ -354,13 +543,13 @@ def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     y = np.arange(len(feats))[::-1]
     bw = 0.4
     fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
-    ax.barh(y + bw / 2, [h_map.get(f, 0.0) for f in feats], height=bw,
+    ax.barh(y + bw / 2, [h_share.get(f, 0.0) for f in feats], height=bw,
             color="#0072B2", label=f"headline ({h['arch_family']})")
-    ax.barh(y - bw / 2, [r_map.get(f, 0.0) for f in feats], height=bw,
+    ax.barh(y - bw / 2, [r_share.get(f, 0.0) for f in feats], height=bw,
             color="#E69F00", label=f"runner-up ({r['arch_family']})")
     ax.set_yticks(y)
     ax.set_yticklabels(feats, fontsize=8)
-    ax.set_xlabel("mean |SHAP| (calibrated positive-class probability)")
+    ax.set_xlabel("relative attribution: share of each model's total mean |SHAP| (%)")
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
@@ -412,12 +601,29 @@ def _single_ranking_table(ex: dict, top_n: int = 10) -> str:
             f"<th>{ex['metric']}</th></tr>{rows}</table>")
 
 
+def _chance_caveat(sel: dict) -> str:
+    """Warn when a leaf's 95% AUROC CI reaches chance (lower bound <= 0.5).
+
+    Such a leaf is not significantly better than random, so its SHAP
+    attributions explain a near-chance decision surface and should be read as
+    descriptive only - the same threshold the discrimination figure hatches.
+    """
+    if sel is None or sel.get("auroc_lo") is None or sel["auroc_lo"] > 0.5:
+        return ""
+    return ("<p class='warn'>This cell's headline is not significantly above "
+            f"chance (AUROC 95% CI [{sel['auroc_lo']:.3f}-{sel['auroc_hi']:.3f}] "
+            "includes 0.5); its attributions describe a near-chance model and "
+            "are not evidence of a real effect.</p>")
+
+
 def _cell_block(target, fset, roles) -> tuple[str, bool]:
     """Render one (target, feature_set) cell within a split section.
 
     Returns ``(html, is_cross_family)``. Shows the cross-family ranking
     comparison when both roles have insight artefacts; a labelled solo
-    ranking when only one does; a true miss only when neither does.
+    ranking when only one does; a true miss only when neither does. A cell
+    whose headline AUROC CI reaches chance carries a caveat, since its SHAP
+    explains a near-random decision surface.
     """
     h_sel, r_sel = roles.get("headline"), roles.get("runner_up")
     h = parse_explain(latest_explain(h_sel["leaf_dir"])) if h_sel else None
@@ -440,18 +646,20 @@ def _cell_block(target, fset, roles) -> tuple[str, bool]:
                 crossfig = (
                     "<div style='margin:0.6rem 0'>"
                     "<div style='font-size:0.82rem;color:#555'>Cross-architecture "
-                    "attribution: mean |SHAP| of each model's top features "
-                    "(headline vs runner-up), same calibrated-probability "
-                    "target.</div>"
+                    "attribution: each model's top features as a share of its "
+                    "own total mean |SHAP| (headline vs runner-up). Normalised "
+                    "because the two explainers' absolute magnitudes are not "
+                    "comparable; rank agreement is in the table above.</div>"
                     + _embed_png(out_png, max_width=560) + "</div>")
-        return (head
+        return (head + _chance_caveat(h_sel)
                 + f"<p>headline: {_leaf_meta(h_sel)}<br>runner-up: "
                   f"{_leaf_meta(r_sel)}</p>" + _rank_overlap_table(h, r)
                 + crossfig + f"<div>{figs}</div>"), cross
     if h is not None or r is not None:
         sel = h_sel if h is not None else r_sel
         ex = h if h is not None else r
-        return (head + f"<p>Only one architecture insighted in this cell: "
+        return (head + _chance_caveat(sel)
+                + f"<p>Only one architecture insighted in this cell: "
                 f"{_leaf_meta(sel)}. No cross-family comparison available.</p>"
                 + _single_ranking_table(ex)
                 + f"<div>{_leaf_figures(sel, 'leaf')}</div>"), False
@@ -511,12 +719,175 @@ def build_summary_table(selections: list[dict]) -> str:
         rows.append(f"<tr><td><b>{t}</b><br>{fs}</td>{tds}</tr>")
     return ("<h2>Best model per cell and split (headline)</h2>"
             "<p class='note'>The <b>chronological</b> column is the deployable, "
-            "forecasting-honest best; <b>stratified</b> is optimistically inflated "
-            "by history-feature leakage (not deployable); <b>patient</b> is "
-            "generalisation to unseen patients. AUROC is hold-out test.</p>"
+            "forecasting-honest best; <b>stratified</b> is not deployable - a "
+            "random shuffle leaks adjacent-day signal through history features "
+            "across the train/test boundary, so it is excluded by construction "
+            "regardless of its measured AUROC; <b>patient</b> is generalisation "
+            "to unseen patients. AUROC is hold-out test.</p>"
             "<table><tr><th>target / feature set</th><th>chronological "
             "(honest)</th><th>stratified (leaky)</th><th>patient "
             "(generalisation)</th></tr>" + "".join(rows) + "</table>")
+
+
+def build_key_results(headlines: list[dict]) -> str:
+    """A concise, data-driven key-results box for a paper reader.
+
+    Every figure is computed from the current sweep, so the summary stays
+    accurate as coverage changes. It states only CI-defensible claims: the
+    best deployable (chronological) forecast and its AUPRC lift, the
+    architecture and tuning win counts, the leakage verdict by CI separation,
+    and the cells not significantly above chance.
+    """
+    heads = [s for s in headlines if s.get("role") == "headline"]
+    if not heads:
+        return ""
+    chrono = [s for s in heads if s["splittype"] == "chrono"
+              and s.get("auroc_lo") is not None and s["auroc_lo"] > 0.5]
+    bits = []
+    if chrono:
+        best = max(chrono, key=lambda s: s["auroc_mean"])
+        prev = _test_prevalence(best["target"], best["datasplit"],
+                                best["splittype"])
+        lift = (f", AUPRC lift {best['auprc_mean'] / prev:.1f}x"
+                if prev and best.get("auprc_mean") else "")
+        bits.append(
+            f"<li><b>Best deployable (chronological) forecast:</b> "
+            f"{best['target']} / {best['feature_set'].replace('_features','')} "
+            f"({best['family']}, {best['datasplit']}), AUROC "
+            f"{best['auroc_mean']:.3f} [{best['auroc_lo']:.3f}-"
+            f"{best['auroc_hi']:.3f}]{lift}.</li>")
+    fam = {}
+    hp_nonhp = 0
+    for s in heads:
+        fam[s["family"]] = fam.get(s["family"], 0) + 1
+        if not s.get("hp_strategy"):
+            hp_nonhp += 1
+    fam_str = ", ".join(f"{v} {k}" for k, v in sorted(fam.items(),
+                                                      key=lambda kv: -kv[1]))
+    bits.append(
+        f"<li><b>Architecture and tuning:</b> {fam_str} across {len(heads)} "
+        f"headlines; library-default (NonHP) models win {hp_nonhp} of "
+        f"{len(heads)}.</li>")
+    # leakage: count chronological vs stratified CI separations
+    by = {}
+    for s in heads:
+        by.setdefault((s["target"], s["feature_set"]), {})[s["splittype"]] = s
+    n_sig = sum(1 for v in by.values()
+                if "chrono" in v and "stratified" in v
+                and v["stratified"]["auroc_lo"] > v["chrono"]["auroc_hi"])
+    bits.append(
+        f"<li><b>Stratified leakage:</b> excluded by split design; in "
+        f"{n_sig} of {len(by)} cells does the stratified AUROC CI separate "
+        f"above chronological, so no measured inflation is claimed.</li>")
+    nac = [f"{s['target']}/{s['feature_set'].replace('_features','')}/"
+           f"{s['splittype']}" for s in heads
+           if s.get("auroc_lo") is not None and s["auroc_lo"] <= 0.5]
+    if nac:
+        bits.append(
+            f"<li><b>Not above chance</b> (95% CI includes 0.5): "
+            f"{', '.join(nac)}.</li>")
+    return ("<h2>Key results</h2><div class='note'><ul style='margin:0'>"
+            + "".join(bits) + "</ul></div>")
+
+
+def build_headline_composition(headlines: list[dict]) -> str:
+    """Aggregate which architecture families and hyperparameter-tuning
+    strategies actually win the headline, per split type.
+
+    The per-cell table answers "what won here"; this answers "what wins
+    overall". It counts the headline leaves by architecture family and by HP
+    strategy (NonHP = library defaults, the TabPFN zero-shot regime and the
+    untuned XGBoost stack) for each split type, so the reader sees at a glance
+    whether tuning earns its keep and which family carries the benchmark.
+    """
+    rows = [s for s in headlines if s.get("role") == "headline"]
+    if not rows:
+        return ""
+    splits = ("chrono", "stratified", "patient")
+
+    def tally(field, transform):
+        seen, counts = {}, {}
+        for st in splits:
+            counts[st] = {}
+            for s in rows:
+                if s["splittype"] != st:
+                    continue
+                key = transform(s)
+                counts[st][key] = counts[st].get(key, 0) + 1
+                seen[key] = True
+        return list(seen), counts
+
+    def render(title, field, transform):
+        keys, counts = tally(field, transform)
+        keys.sort()
+        body = []
+        for k in keys:
+            tds = "".join(f"<td>{counts[st].get(k, 0)}</td>" for st in splits)
+            total = sum(counts[st].get(k, 0) for st in splits)
+            body.append(f"<tr><td>{k}</td>{tds}<td><b>{total}</b></td></tr>")
+        return (f"<p class='note'>{title}</p><table><tr><th></th>"
+                "<th>chronological</th><th>stratified</th><th>patient</th>"
+                "<th>total</th></tr>" + "".join(body) + "</table>")
+
+    fam = render("Headline architecture family (count of cells won per split):",
+                 "family", lambda s: s["family"])
+    hp = render("Headline hyperparameter-tuning strategy:",
+                "hp", lambda s: (s.get("hp_strategy")
+                                 + (f"/{s['hp_variant']}" if s.get("hp_variant")
+                                    else "")) if s.get("hp_strategy")
+                else "NonHP (library defaults)")
+    return ("<h2>What wins the headline, overall</h2>" + fam + hp)
+
+
+def build_split_contrast(headlines: list[dict]) -> str:
+    """Per-cell chronological-vs-stratified AUROC contrast with a CI-separation
+    verdict, so the leakage claim is reported only as far as the data support.
+
+    Stratified is excluded on principle (the split design leaks), but whether
+    it *measurably* inflates AUROC is an empirical question. This table gives
+    the chronological and stratified headline AUROCs, their difference, and
+    whether the 95% CIs separate: only a stratified interval lying entirely
+    above the chronological one is evidence of inflation at this sample size.
+    """
+    head = {(s["target"], s["feature_set"]): {} for s in headlines
+            if s.get("role") == "headline"}
+    for s in headlines:
+        if s.get("role") == "headline":
+            head[(s["target"], s["feature_set"])][s["splittype"]] = s
+    rows, n_sig = [], 0
+    for (t, fs), by in sorted(head.items()):
+        c, st = by.get("chrono"), by.get("stratified")
+        if not c or not st:
+            continue
+        delta = st["auroc_mean"] - c["auroc_mean"]
+        if st["auroc_lo"] > c["auroc_hi"]:
+            verdict, color = "stratified higher (CIs separate)", "#b2182b"
+            n_sig += 1
+        elif c["auroc_lo"] > st["auroc_hi"]:
+            verdict, color = "chronological higher (CIs separate)", "#1a7a3a"
+        else:
+            verdict, color = "not distinguishable (CIs overlap)", "#666666"
+        rows.append(
+            f"<tr><td>{t} / {fs.replace('_features','')}</td>"
+            f"<td>{c['auroc_mean']:.3f} [{c['auroc_lo']:.3f}-{c['auroc_hi']:.3f}]</td>"
+            f"<td>{st['auroc_mean']:.3f} [{st['auroc_lo']:.3f}-{st['auroc_hi']:.3f}]</td>"
+            f"<td>{delta:+.3f}</td>"
+            f"<td style='color:{color}'>{verdict}</td></tr>")
+    if not rows:
+        return ""
+    verdict_line = (
+        f"In {n_sig} of {len(rows)} cells the stratified CI lies entirely above "
+        "the chronological one; elsewhere the difference is within sampling "
+        "noise. The stratified split is excluded for its leakage mechanism, not "
+        "on the strength of a measured inflation." if n_sig else
+        "In no cell does the stratified CI separate from the chronological one, "
+        "so the data do not establish a measurable inflation at this sample "
+        "size; the stratified split is excluded for its leakage mechanism, not "
+        "for an observed inflation.")
+    return ("<p class='note'>" + verdict_line + "</p>"
+            "<table><tr><th>cell</th><th>chronological AUROC</th>"
+            "<th>stratified AUROC</th><th>&Delta;</th><th>CI verdict</th></tr>"
+            + "".join(rows) + "</table>")
 
 
 def build_park_check(selections: list[dict]) -> str:
@@ -634,12 +1005,36 @@ def main() -> int:
             "<h2>Discrimination across split types</h2>"
             "<p class='note'>Best hold-out AUROC per cell, one bar per split. "
             "The <b>chronological</b> bar is the deployable forecast; "
-            "<b>stratified</b> exposes the optimistic inflation that history / "
-            "rolling features leak across a random train/test boundary; "
-            "<b>patient</b> is generalisation to unseen patients. A small "
-            "chronological-to-stratified gap for the no-rolling feature set is "
-            "the signature that the stratified inflation is leakage, not "
-            "skill.</p>" + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720))
+            "<b>stratified</b> is the leakage contrast - a random shuffle places "
+            "adjacent days, which share history / rolling feature values, on both "
+            "sides of the train/test boundary; <b>patient</b> is generalisation "
+            "to unseen patients. The leakage is a property of the split design, "
+            "so stratified is excluded by construction; the magnitude of any "
+            "empirical inflation is reported separately below, since the wide CIs "
+            "at this sample size do not by themselves establish it.</p>"
+            + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720)
+            + build_split_contrast(raw_selections))
+    lift_fig = _auprc_lift_figure(raw_selections, _FIG_DIR / "auprc_lift.png")
+    if lift_fig is not None:
+        split_block += (
+            "<p class='note'>Under the heavy class imbalance (the migraine "
+            "positive rate is ~5-7 %), AUROC can look respectable while "
+            "precision-recall stays near the base rate. AUPRC lift = AUPRC "
+            "divided by the test-set positive prevalence puts both targets on a "
+            "common scale; <b>1.0 is no skill</b> (no better than predicting the "
+            "base rate). Each bar uses its own leaf's test prevalence as the "
+            "baseline.</p>"
+            + _embed_png(_FIG_DIR / "auprc_lift.png", max_width=720))
+    calib_fig = _calib_slope_figure(raw_selections, _FIG_DIR / "calib_slope.png")
+    if calib_fig is not None:
+        split_block += (
+            "<p class='note'>Calibration is the second axis of forecast "
+            "quality: discrimination ranks days, calibration scales the "
+            "probabilities. The selection prefers a slope near 1.0 and excludes "
+            "the shaded (inverted or mis-scaled) zones, so a cell sitting far "
+            "from 1.0 discriminates without yielding trustworthy "
+            "probabilities.</p>"
+            + _embed_png(_FIG_DIR / "calib_slope.png", max_width=720))
 
     comp_html, has_cross = build_comparison(selections)
     comp_path = out_dir / f"comparison_shap_{ts}.html"
@@ -647,9 +1042,11 @@ def main() -> int:
         f"<html><head>{_STYLE}</head><body>"
         f"<h1>Addition 2: cross-architecture SHAP comparison</h1>"
         f"{_PREAMBLE}"
+        f"{build_key_results(raw_selections)}"
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
         f"{build_summary_table(selections)}"
+        f"{build_headline_composition(raw_selections)}"
         f"{split_block}"
         f"{comp_html}</body></html>")
     print(f"wrote {comp_path}")
@@ -666,6 +1063,10 @@ def main() -> int:
         f"{park_html or '<p class=warn>No migraine/park insight artefacts found.</p>'}"
         f"</body></html>")
     print(f"wrote {park_path}")
+
+    # Emit a shareable PDF alongside each HTML report (best-effort).
+    html_to_pdf(comp_path)
+    html_to_pdf(park_path)
     return 0
 
 

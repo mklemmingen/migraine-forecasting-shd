@@ -33,7 +33,7 @@
   month   = jan,
   doi     = {10.1038/s41586-024-08328-6},
   url     = {https://doi.org/10.1038/s41586-024-08328-6},
-  note    = {Paywalled. Bibliographic data verified via the publisher landing page; no local PDF cached.}
+  note    = {Paywalled (Nature).}
 }
 
 @misc{garg2025realtabpfn,
@@ -330,4 +330,271 @@
   doi       = {10.1109/ICDCSW.2011.20},
   url       = {https://doi.org/10.1109/ICDCSW.2011.20},
   note      = {Kneedle algorithm for knee-point detection on monotonic curves. The HP variant's pareto knee-picker uses the geometric core of Kneedle (maximum perpendicular distance to the chord through the two extreme points, after axis normalisation) and omits the spline-smoothing pass because the 500-trial NSGA-II frontier is already smooth at this scale.}
+}
+
+% ====================================================================
+% Prior ML / forecasting work on the SHD dataset and related
+% smartphone-diary migraine prediction (related-work positioning).
+% Full per-paper provenance is in docs/prior_research_park_ml.md.
+% ====================================================================
+
+% --- Direct ML reuse of the Park 2016 SHD dataset ---
+
+@article{zhu2020mygraine,
+  author  = {Zhu, Rebecca S. and Dave, Rucha},
+  title   = {{MyGraine}: Predicting Migraines Through Various Machine Learning Models Utilizing User-Inputted Data},
+  journal = {International Journal of High School Research},
+  volume  = {2},
+  number  = {4},
+  pages   = {65--71},
+  year    = {2020},
+  doi     = {10.36838/v2i4.13},
+  url     = {https://doi.org/10.36838/v2i4.13},
+  note    = {Open access (Terra Science and Education). The only located published ML study to reuse the Park et al. 2016 SHD dataset itself: the paper names the dataset verbatim ("Analysis of Trigger Factors in Episodic Migraineurs Using a Smartphone Headache Diary Applications", Park, Chu, et al., PLOS ONE) and reports 4580 diary entries with the 18 binary trigger flags. Trains logistic regression and random forest on a random 70/30 split with SMOTE on the training fold, predicting same-day migraine-vs-no-migraine and headlining 97 percent accuracy. Methodologically limited for benchmarking: high-school research journal, accuracy headline on an imbalanced target, random patient-overlapping split (no temporal or held-out-patient evaluation), and same-day rather than next-day framing.}
+}
+
+% --- Same SHD application / Park research group (non-ML; data lineage) ---
+
+@article{cho2018exercise,
+  author  = {Cho, Soo-Jin and Chu, Min Kyung and Park, Sang-Gue and Park, Jeong-Wook},
+  title   = {Investigation of the Effect of Exercise on Headache in Migraineurs Using a Smartphone Diary},
+  journal = {European Neurology},
+  volume  = {79},
+  number  = {1-2},
+  pages   = {79--81},
+  year    = {2018},
+  doi     = {10.1159/000485668},
+  url     = {https://doi.org/10.1159/000485668},
+  note    = {Report from the same research group as Park et al. 2016, examining exercise as a headache modifier using the Smartphone Headache and Exercise Diary (SHED), an exercise-tracking extension of the SHD. 142 enrolled, 82 analysed after dropouts, 6104 diary entries, 1491 headache days. Non-ML clinical analysis. Uses the same expanded 82-patient SHED cohort as park2018circadian, distinct from the 62-patient SHD S1 dataset of Park et al. 2016. Subscription access (Karger).}
+}
+
+@article{park2018circadian,
+  author  = {Park, Jeong-Wook and Cho, Soo-Jin and Park, Sang-Gue and Chu, Min Kyung},
+  title   = {Circadian variations in the clinical presentation of headaches among migraineurs: A study using a smartphone headache diary},
+  journal = {Chronobiology International},
+  volume  = {35},
+  number  = {4},
+  pages   = {546--554},
+  year    = {2018},
+  doi     = {10.1080/07420528.2017.1420076},
+  url     = {https://doi.org/10.1080/07420528.2017.1420076},
+  note    = {Same research group as Park et al. 2016, analysing day-of-week and circadian timing of headache presentation. Shares the expanded 82-participant / 1491-headache-day cohort with cho2018exercise (474 migraine, 1017 non-migraine, per the PubMed abstract), larger than and distinct from the 62-patient SHD S1 dataset. Non-ML clinical analysis; relevant to Addition 3's day-of-week periodicity question. Paywalled (Taylor and Francis).}
+}
+
+% --- Trigger-exposure-based ML next-day migraine prediction ---
+
+@article{holsteen2020triggers,
+  author  = {Holsteen, Katherine K. and Hittle, Michael and Barad, Meredith and Nelson, Lorene M.},
+  title   = {Development and Internal Validation of a Multivariable Prediction Model for Individual Episodic Migraine Attacks Based on Daily Trigger Exposures},
+  journal = {Headache: The Journal of Head and Face Pain},
+  volume  = {60},
+  number  = {10},
+  pages   = {2364--2379},
+  year    = {2020},
+  doi     = {10.1111/head.13960},
+  pmid    = {33022773},
+  note    = {Closest methodological comparator: next-day new-onset migraine forecasting from daily trigger exposures, the same premise as the Park feature set, on an independent US cohort. 178 participants, 10,696 at-risk days, 1,870 attacks; multilevel logistic regression with varying intercepts plus a grouped-lasso variant; within-person cross-validated C-statistic 0.56 (95\% CI 0.54-0.58), barely above chance. Predictive factors: yesterday's caffeine reduction, self-predicted probability, yesterday's stress, and proximity to menstruation onset. Cites Park et al. 2016 for trigger selection. Free author manuscript (NIHMS-1846630) (PMC9645460); not in the PMC open-access licence subset.}
+}
+
+@inproceedings{alves2021protocol,
+  author    = {Alves, Tatiane Vieira and da Hora Rodrigues, Kamila Rios and Ponti, Moacir Antonelli},
+  title     = {Interactive protocol for acquisition of migraine diaries with a mobile app and machine learning data analysis},
+  booktitle = {Proceedings of the XX Brazilian Symposium on Human Factors in Computing Systems (IHC '21)},
+  pages     = {1--9},
+  year      = {2021},
+  publisher = {ACM},
+  doi       = {10.1145/3472301.3484322},
+  url       = {https://doi.org/10.1145/3472301.3484322},
+  note      = {Designs and evaluates a mobile migraine-diary data-collection protocol and fits a decision tree to the collected data, recovering stress, caffeine, sleep, and environmental effects as the dominant trigger domains. Uses its own small collected dataset, not Park's; cites Park et al. 2016 for trigger context. Published in the SBC open library (sol.sbc.org.br).}
+}
+
+% --- Closely related diary / mobile / wearable ML migraine forecasting ---
+
+@article{houle2017stress,
+  author  = {Houle, Timothy T. and Turner, Dana P. and Golding, Adrienne N. and Porter, John A. H. and Martin, Vincent T. and Penzien, Donald B. and Tegeler, Charles H.},
+  title   = {Forecasting Individual Headache Attacks Using Perceived Stress: Development of a Multivariable Prediction Model for Persons With Episodic Migraine},
+  journal = {Headache: The Journal of Head and Face Pain},
+  volume  = {57},
+  number  = {7},
+  pages   = {1041--1050},
+  year    = {2017},
+  doi     = {10.1111/head.13137},
+  note    = {Diary-only next-24h headache forecasting from daily perceived stress (Daily Stress Inventory) via a generalized linear mixed-effects model. N=95, 4,626 electronic-diary days; AUC 0.73 (95\% CI 0.71-0.75) in-sample and 0.65 (0.60-0.67) under leave-one-out validation. Diary-only forecasting comparator at a cohort and diary-day scale close to ours. Published version paywalled (Wiley); free author manuscript (PMC5950708).}
+}
+
+@article{houle2021bayesian,
+  author  = {Houle, Timothy T. and Deng, Hao and Tegeler, Charles H. and Turner, Dana P.},
+  title   = {Continuous updating of individual headache forecasting models using Bayesian methods},
+  journal = {Headache: The Journal of Head and Face Pain},
+  volume  = {61},
+  number  = {8},
+  pages   = {1264--1273},
+  year    = {2021},
+  doi     = {10.1111/head.14182},
+  note    = {Per-person headache-forecasting methodology: Bayesian sequential updating of individual forecasting models as new diary days accrue, directly relevant to the personalisation question raised by the Addition 3 heterogeneity finding. Published version paywalled (Wiley); free author manuscript (NIHMS-1749615, PMC8672809).}
+}
+
+@article{pagan2015ambulatory,
+  author  = {Pag{\'a}n, Josu{\'e} and De Orbe, M. Irene and Gago, Ana and Sobrado, M{\'o}nica and Risco-Mart{\'i}n, Jos{\'e} L. and Vivancos Mora, J. and Moya, Jos{\'e} M. and Ayala, Jos{\'e} L.},
+  title   = {Robust and Accurate Modeling Approaches for Migraine Per-Patient Prediction from Ambulatory Data},
+  journal = {Sensors},
+  volume  = {15},
+  number  = {7},
+  pages   = {15419--15442},
+  year    = {2015},
+  month   = jul,
+  doi     = {10.3390/s150715419},
+  url     = {https://doi.org/10.3390/s150715419},
+  note    = {Open access (MDPI). Per-patient migraine prediction from hemodynamic signals captured by a wireless body sensor network (WBSN) in ambulatory conditions; state-space (N4SID) models achieve an average 47-minute forecast horizon with low false-positive rate. Wearable/physiological modality and minutes-ahead horizon, distinct from our diary-only next-day forecasting; does not use Park's data.}
+}
+
+@article{pagan2016modeling,
+  author  = {Pag{\'a}n, Josu{\'e} and Risco-Mart{\'i}n, Jos{\'e} L. and Moya, Jos{\'e} M. and Ayala, Jos{\'e} L.},
+  title   = {Modeling methodology for the accurate and prompt prediction of symptomatic events in chronic diseases},
+  journal = {Journal of Biomedical Informatics},
+  volume  = {62},
+  pages   = {136--147},
+  year    = {2016},
+  doi     = {10.1016/j.jbi.2016.05.008},
+  url     = {https://doi.org/10.1016/j.jbi.2016.05.008},
+  note    = {Generalises the WBSN-based per-patient symptomatic-event prediction methodology (migraine as the worked example) into a reusable modeling pipeline. Wearable/physiological modality, minutes-to-tens-of-minutes horizon; does not use Park's data. Published version paywalled (Elsevier); authors' postprint available on arXiv (2402.10972).}
+}
+
+@article{siirtola2018sleep,
+  author  = {Siirtola, Pekka and Koskim{\"a}ki, Heli and M{\"o}nttinen, Henna and R{\"o}ning, Juha},
+  title   = {Using Sleep Time Data from Wearable Sensors for Early Detection of Migraine Attacks},
+  journal = {Sensors},
+  volume  = {18},
+  number  = {5},
+  pages   = {1374},
+  year    = {2018},
+  month   = apr,
+  doi     = {10.3390/s18051374},
+  url     = {https://doi.org/10.3390/s18051374},
+  note    = {Open access (MDPI). Detects migraine attacks one night ahead from overnight Empatica E4 wrist-sensor signals (acceleration, EDA, BVP, heart rate and HRV, temperature) using per-person quadratic discriminant analysis; balanced accuracy over 84\% but on only 7 subjects with wide between-subject variance, so explicitly preliminary. Wearable modality; does not use Park's data.}
+}
+
+@article{katsuki2023weather,
+  author  = {Katsuki, Masahito and Tatsumoto, Muneto and Kimoto, Kazuhito and Iiyama, Takashige and Tajima, Masato and Munakata, Tsuyoshi and Miyamoto, Taihei and Shimazu, Tomokazu},
+  title   = {Investigating the effects of weather on headache occurrence using a smartphone application and artificial intelligence: A retrospective observational cross-sectional study},
+  journal = {Headache: The Journal of Head and Face Pain},
+  volume  = {63},
+  number  = {5},
+  pages   = {585--600},
+  year    = {2023},
+  doi     = {10.1111/head.14482},
+  note    = {Large-scale smartphone-app study (4375 filtered users) modelling hourly headache occurrence from weather using a generalized linear mixed model, a feedforward neural network, and XGBoost; lower barometric pressure, pressure change, higher humidity, and rainfall were associated with headache onset. Diary-app ML at population scale with a weather-feature focus, complementary to our diary-trigger setup; does not use Park's data. Paywalled (Wiley).}
+}
+
+% --- Positioning review ---
+
+@article{dumkrieger2025review,
+  author  = {Dumkrieger, Gina M.},
+  title   = {The promise of machine learning in predicting migraine attacks},
+  journal = {Cephalalgia},
+  volume  = {45},
+  number  = {11},
+  year    = {2025},
+  doi     = {10.1177/03331024251391207},
+  url     = {https://doi.org/10.1177/03331024251391207},
+  note    = {Narrative review of ML for individual migraine-attack prediction, covering trigger- and premonitory-based approaches, diary and wearable inputs, and evaluation standards; reports that individualised models consistently beat generalised ones and that achievable skill varies widely between individuals. Notably does not cite Park et al. 2016, reinforcing that the SHD dataset is under-exploited in the ML-prediction literature.}
+}
+
+% --- Temporal-forecasting and evaluation-methodology anchors for Additions 4-6 ---
+
+@article{houle2005timeseries,
+  author  = {Houle, Timothy T. and Penzien, Donald B. and Rains, Jeanetta C.},
+  title   = {Time-Series Features of Headache: Individual Distributions, Patterns, and Predictability of Pain},
+  journal = {Headache: The Journal of Head and Face Pain},
+  volume  = {45},
+  number  = {5},
+  pages   = {445--458},
+  year    = {2005},
+  doi     = {10.1111/j.1526-4610.2005.05096.x},
+  note    = {Foundational time-series characterisation of daily headache diaries: headache days cluster, with day 1 a good predictor of day 2 (positive autocorrelation) for both tension-type and migraine (p. 445). Anchors the serial-dependence premise of Addition 3 and the sequence-model motivation of Addition 4. Subscription access (Wiley).}
+}
+
+@misc{albelali2025leakage,
+  author        = {Albelali, Salma and Ahmed, Moataz},
+  title         = {Hidden Leaks in Time Series Forecasting: How Data Leakage Affects {LSTM} Evaluation Across Configurations and Validation Strategies},
+  year          = {2025},
+  eprint        = {2512.06932},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2512.06932},
+  url           = {https://arxiv.org/abs/2512.06932},
+  note          = {Shows that constructing input-output sequences before the train/test partition leaks future information into LSTM evaluation (p. 2), quantified by an RMSE-Gain metric. Evaluation-hygiene anchor for the sequence-model split protocol in Addition 4.}
+}
+
+@article{vickers2019dca,
+  author  = {Vickers, Andrew J. and van Calster, Ben and Steyerberg, Ewout W.},
+  title   = {A simple, step-by-step guide to interpreting decision curve analysis},
+  journal = {Diagnostic and Prognostic Research},
+  volume  = {3},
+  pages   = {18},
+  year    = {2019},
+  doi     = {10.1186/s41512-019-0064-7},
+  note    = {Open access (CC BY, BMC). Net benefit is plotted against threshold probability, where the threshold encodes the relative harm of a false positive versus a false negative (pp. 1, 3-4). Methodology anchor for the clinical-utility layer of Addition 6.}
+}
+
+@article{vickers2006dca,
+  author  = {Vickers, Andrew J. and Elkin, Elena B.},
+  title   = {Decision Curve Analysis: A Novel Method for Evaluating Prediction Models},
+  journal = {Medical Decision Making},
+  volume  = {26},
+  number  = {6},
+  pages   = {565--574},
+  year    = {2006},
+  doi     = {10.1177/0272989X06295361},
+  note    = {Original decision-curve-analysis method paper: net benefit is plotted against threshold probability across the full range of decision preferences (p. 565), with the net-benefit formula given (p. 567). Primary-source method citation for the clinical-utility layer of Addition 6, complementing the open-access interpretation guide vickers2019dca. Subscription access (SAGE); free author manuscript at PMC2577036.}
+}
+
+@article{murphy1993forecast,
+  author  = {Murphy, Allan H.},
+  title   = {What Is a Good Forecast? An Essay on the Nature of Goodness in Weather Forecasting},
+  journal = {Weather and Forecasting},
+  volume  = {8},
+  number  = {2},
+  pages   = {281--293},
+  year    = {1993},
+  doi     = {10.1175/1520-0434(1993)008<0281:WIAGFA>2.0.CO;2},
+  note    = {Decomposes forecast goodness into three types: consistency (type 1), quality (type 2, the correspondence between forecasts and observations), and value (type 3, the incremental economic or other benefits realised by decision makers using the forecasts) (p. 281). The quality-vs-value distinction anchors the forecast-value layer of Addition 6. Subscription access (American Meteorological Society); the cached copy is a scanned image without a text layer, so its facts were read visually.}
+}
+
+% --- Addition 4 design-decision anchors (sequence-model implementation) ---
+
+@article{vandengoorbergh2022imbalance,
+  author  = {van den Goorbergh, Ruben and van Smeden, Maarten and Timmerman, Dirk and Van Calster, Ben},
+  title   = {The harm of class imbalance corrections for risk prediction models: illustration and simulation using logistic regression},
+  journal = {Journal of the American Medical Informatics Association},
+  volume  = {29},
+  number  = {9},
+  pages   = {1525--1534},
+  year    = {2022},
+  doi     = {10.1093/jamia/ocac093},
+  note    = {Open access (CC BY). Simulation and real-data study: imbalance corrections (undersampling, oversampling, SMOTE) strongly overestimated the minority-class probability and did not result in better discrimination (abstract, p. 1525); models trained on imbalance-corrected data did not lead to better AUROC than models trained on the uncorrected data (p. 1530). Anchor for the Addition 4 decision to NOT reweight/resample for imbalance and instead rely on the external operating-threshold step, keeping the calibration panel honest. Page numbers verified in the published JAMIA PDF; also on arXiv (2202.09101).}
+}
+
+@article{che2018grud,
+  author  = {Che, Zhengping and Purushotham, Sanjay and Cho, Kyunghyun and Sontag, David and Liu, Yan},
+  title   = {Recurrent Neural Networks for Multivariate Time Series with Missing Values},
+  journal = {Scientific Reports},
+  volume  = {8},
+  number  = {1},
+  pages   = {6085},
+  year    = {2018},
+  doi     = {10.1038/s41598-018-24271-9},
+  note    = {Open access (CC BY). Irregularly sampled clinical series carry informative missingness (Rubin) (p. 1); GRU-D encodes two representations of the missing pattern, masking and the time interval since the last observation, with a trainable decay toward the empirical mean (pp. 1-2, 4). Anchor for the Addition 4 windowing decision to encode the gap structure (mask + time-since-last-record) rather than treat recorded days as contiguous. Page numbers verified in the published Scientific Reports PDF; also on arXiv (1606.01865).}
+}
+
+@misc{grinsztajn2022tabular,
+  author        = {Grinsztajn, L{\'e}o and Oyallon, Edouard and Varoquaux, Ga{\"e}l},
+  title         = {Why do tree-based models still outperform deep learning on tabular data?},
+  year          = {2022},
+  eprint        = {2207.08815},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2207.08815},
+  url           = {https://arxiv.org/abs/2207.08815},
+  note          = {NeurIPS 2022 Datasets and Benchmarks. Tree-based models remain state-of-the-art on medium-sized (~10K-sample) tabular data even after hyperparameter search (p. 1); MLP-like neural nets are hurt by their rotation invariance and by uninformative features (p. 2). Anchor for the Addition 4 expectation-setting (a small-data diary sequence net is unlikely to beat the tabular models) and for the keep-it-small, fixed-hyperparameter regularisation stance.}
 }
