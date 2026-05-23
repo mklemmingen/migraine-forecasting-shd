@@ -336,6 +336,59 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     return out_png
 
 
+def _calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
+    """Dot plot of the headline calibration slope per cell, one marker per
+    split type, against the perfect-calibration line at 1.0 with the
+    degenerate zones (<= 0 inverted, > 5 mis-scaled) shaded.
+
+    Calibration is the second axis of forecast quality: discrimination ranks
+    days, calibration scales the probabilities. The selection prefers a slope
+    near 1.0 and excludes the shaded zones, so this chart shows how
+    trustworthy each cell's headline probabilities are.
+    """
+    cells, by_cell = [], {}
+    for s in headlines:
+        if s.get("role") != "headline" or s.get("calib_slope") is None:
+            continue
+        key = (s["target"], s["feature_set"])
+        if key not in by_cell:
+            by_cell[key] = {}
+            cells.append(key)
+        by_cell[key][s["splittype"]] = s["calib_slope"]
+    if not cells:
+        return None
+    cells.sort()
+    apply_journal_style()
+    splits = ("chrono", "stratified", "patient")
+    n = len(cells)
+    base = np.arange(n)[::-1]
+    vals = [v for c in by_cell.values() for v in c.values()]
+    xmax = max(2.2, max(vals) + 0.3)
+    fig, ax = plt.subplots(figsize=(7.0, 0.55 * n + 1.4))
+    ax.axvspan(xmax * -0.02, 0.0, color="#D55E00", alpha=0.10, zorder=0)
+    ax.axvspan(5.0, xmax, color="#D55E00", alpha=0.10, zorder=0)
+    ax.axvline(1.0, color="#444444", lw=1.0, ls="--", zorder=1,
+               label="perfect calibration (1.0)")
+    for gi, st in enumerate(splits):
+        ys = [base[ci] + (1 - gi) * 0.18 for ci, k in enumerate(cells)
+              if st in by_cell[k]]
+        xs = [by_cell[k][st] for k in cells if st in by_cell[k]]
+        ax.scatter(xs, ys, s=55, color=SPLIT_FIG_COLORS[st], zorder=3,
+                   edgecolor="white", label=SPLIT_FIG_LABELS[st])
+    ax.set_yticks(base)
+    ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
+                       fontsize=8)
+    ax.set_xlim(xmax * -0.02, xmax)
+    ax.set_xlabel("calibration slope (1.0 = perfect; shaded zones excluded "
+                  "from selection)", fontsize=9)
+    ax.set_title("Calibration of the headline model, by split type",
+                 fontsize=10)
+    ax.legend(fontsize=7.5, loc="upper right", ncol=1, framealpha=0.95)
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
 def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     """Journal-styled grouped horizontal bar of mean |SHAP| for the union of
     each model's top features, headline vs runner-up, for one cross-family
@@ -640,6 +693,16 @@ def main() -> int:
             "chronological-to-stratified gap for the no-rolling feature set is "
             "the signature that the stratified inflation is leakage, not "
             "skill.</p>" + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720))
+    calib_fig = _calib_slope_figure(raw_selections, _FIG_DIR / "calib_slope.png")
+    if calib_fig is not None:
+        split_block += (
+            "<p class='note'>Calibration is the second axis of forecast "
+            "quality: discrimination ranks days, calibration scales the "
+            "probabilities. The selection prefers a slope near 1.0 and excludes "
+            "the shaded (inverted or mis-scaled) zones, so a cell sitting far "
+            "from 1.0 discriminates without yielding trustworthy "
+            "probabilities.</p>"
+            + _embed_png(_FIG_DIR / "calib_slope.png", max_width=720))
 
     comp_html, has_cross = build_comparison(selections)
     comp_path = out_dir / f"comparison_shap_{ts}.html"
