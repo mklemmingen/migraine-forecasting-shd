@@ -48,27 +48,60 @@ def per_patient_scores(
     return pd.DataFrame(rows, columns=["patient", "n", "n_pos", "auroc", "auprc", "estimable"])
 
 
+def _hanley_mcneil_var(auc: float, n_pos: int, n_neg: int) -> float:
+    """Variance of a single AUROC estimate (Hanley & McNeil 1982).
+
+    var = [A(1-A) + (m-1)(Q1 - A^2) + (n-1)(Q2 - A^2)] / (m n), with
+    Q1 = A/(2-A), Q2 = 2A^2/(1+A), m = n_pos, n = n_neg.
+    """
+    a = float(auc)
+    q1 = a / (2.0 - a)
+    q2 = 2.0 * a * a / (1.0 + a)
+    num = a * (1 - a) + (n_pos - 1) * (q1 - a * a) + (n_neg - 1) * (q2 - a * a)
+    return num / (n_pos * n_neg)
+
+
 def within_person_cstatistic(scores: pd.DataFrame) -> dict:
-    """Precision-weighted within-person C-statistic across patients.
+    """Precision-weighted random-effects within-person C-statistic.
 
     Combines the estimable per-patient AUROCs into a cohort summary, weighting
     short/noisy patient series less than long ones - the partial-pooling
     discipline Addition 3 adopted for clustered longitudinal estimates
-    (docs/addition3_temporal.md Section 9), applied here to discrimination.
+    (docs/addition3_temporal.md Section 9), applied to discrimination. Per
+    docs Section 9, Decision 1: per-patient variance via Hanley-McNeil,
+    between-patient heterogeneity tau^2 via DerSimonian-Laird, and the
+    random-effects weighted mean (the version to report, because the
+    between-patient variation is the whole point, RQ3).
 
-    TODO (decision: aggregation, docs Section 9):
-        Implement the precision-weighted random-effects pool:
-          - per-patient AUROC variance via the Hanley-McNeil approximation
-            (function of n_pos, n_neg), giving weight w_i = 1 / (var_i + tau^2);
-          - between-patient heterogeneity tau^2 by DerSimonian-Laird;
-          - report the weighted mean and its 95% CI.
-        The inverse-variance (fixed-effect) special case (tau^2 = 0) is the
-        minimal version; the random-effects version is the one to report because
-        between-patient variation is the whole point (RQ3). ~15-20 lines.
-        Until implemented, callers can fall back to the unweighted median of the
-        estimable per-patient AUROCs as a placeholder summary.
+    Returns: estimate, ci_low, ci_high, tau2, k_estimable, median_auroc.
     """
-    raise NotImplementedError("within-person C-statistic aggregation - see TODO")
+    est = scores[scores["estimable"]].dropna(subset=["auroc"])
+    k = len(est)
+    base = {"k_estimable": int(k),
+            "median_auroc": float(est["auroc"].median()) if k else float("nan")}
+    if k == 0:
+        return {**base, "estimate": float("nan"), "ci_low": float("nan"),
+                "ci_high": float("nan"), "tau2": float("nan")}
+
+    a = est["auroc"].to_numpy(dtype=float)
+    n_pos = est["n_pos"].to_numpy(dtype=int)
+    n_neg = (est["n"] - est["n_pos"]).to_numpy(dtype=int)
+    v = np.array([_hanley_mcneil_var(ai, p, q) for ai, p, q in zip(a, n_pos, n_neg)])
+    v = np.clip(v, 1e-6, None)
+
+    w = 1.0 / v
+    a_fe = float(np.sum(w * a) / np.sum(w))
+    if k > 1:
+        Q = float(np.sum(w * (a - a_fe) ** 2))
+        C = float(np.sum(w) - np.sum(w ** 2) / np.sum(w))
+        tau2 = max(0.0, (Q - (k - 1)) / C) if C > 0 else 0.0
+    else:
+        tau2 = 0.0
+    ws = 1.0 / (v + tau2)
+    est_re = float(np.sum(ws * a) / np.sum(ws))
+    se_re = float(np.sqrt(1.0 / np.sum(ws)))
+    return {**base, "estimate": est_re, "ci_low": est_re - 1.96 * se_re,
+            "ci_high": est_re + 1.96 * se_re, "tau2": tau2}
 
 
 def pooled_vs_within(pooled_auroc: float, within: dict) -> dict:
