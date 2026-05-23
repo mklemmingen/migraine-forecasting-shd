@@ -572,6 +572,55 @@ def build_summary_table(selections: list[dict]) -> str:
             "(generalisation)</th></tr>" + "".join(rows) + "</table>")
 
 
+def build_headline_composition(headlines: list[dict]) -> str:
+    """Aggregate which architecture families and hyperparameter-tuning
+    strategies actually win the headline, per split type.
+
+    The per-cell table answers "what won here"; this answers "what wins
+    overall". It counts the headline leaves by architecture family and by HP
+    strategy (NonHP = library defaults, the TabPFN zero-shot regime and the
+    untuned XGBoost stack) for each split type, so the reader sees at a glance
+    whether tuning earns its keep and which family carries the benchmark.
+    """
+    rows = [s for s in headlines if s.get("role") == "headline"]
+    if not rows:
+        return ""
+    splits = ("chrono", "stratified", "patient")
+
+    def tally(field, transform):
+        seen, counts = {}, {}
+        for st in splits:
+            counts[st] = {}
+            for s in rows:
+                if s["splittype"] != st:
+                    continue
+                key = transform(s)
+                counts[st][key] = counts[st].get(key, 0) + 1
+                seen[key] = True
+        return list(seen), counts
+
+    def render(title, field, transform):
+        keys, counts = tally(field, transform)
+        keys.sort()
+        body = []
+        for k in keys:
+            tds = "".join(f"<td>{counts[st].get(k, 0)}</td>" for st in splits)
+            total = sum(counts[st].get(k, 0) for st in splits)
+            body.append(f"<tr><td>{k}</td>{tds}<td><b>{total}</b></td></tr>")
+        return (f"<p class='note'>{title}</p><table><tr><th></th>"
+                "<th>chronological</th><th>stratified</th><th>patient</th>"
+                "<th>total</th></tr>" + "".join(body) + "</table>")
+
+    fam = render("Headline architecture family (count of cells won per split):",
+                 "family", lambda s: s["family"])
+    hp = render("Headline hyperparameter-tuning strategy:",
+                "hp", lambda s: (s.get("hp_strategy")
+                                 + (f"/{s['hp_variant']}" if s.get("hp_variant")
+                                    else "")) if s.get("hp_strategy")
+                else "NonHP (library defaults)")
+    return ("<h2>What wins the headline, overall</h2>" + fam + hp)
+
+
 def build_park_check(selections: list[dict]) -> str:
     """Build the Park-OR check HTML for the migraine/park cells."""
     park = [s for s in selections
@@ -713,6 +762,7 @@ def main() -> int:
         f"<p>Cross-family (XGBoost vs TabPFN) pair present: "
         f"<b>{'yes' if has_cross else 'NO'}</b>.</p>"
         f"{build_summary_table(selections)}"
+        f"{build_headline_composition(raw_selections)}"
         f"{split_block}"
         f"{comp_html}</body></html>")
     print(f"wrote {comp_path}")
