@@ -232,8 +232,17 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
         rf = runner["ranking"][i][0] if i < len(runner["ranking"]) else ""
         rows.append(f"<tr><td>{i + 1}</td><td>{hf}</td><td>{rf}</td></tr>")
     rho_str = f"{rho:+.3f}" if rho is not None else "n/a"
-    return (f"<p>Spearman rank correlation over {len(shared)} shared "
-            f"features: <b>{rho_str}</b></p>"
+    if rho is None:
+        verdict = ""
+    else:
+        mag = abs(rho)
+        strength = ("strong" if mag >= 0.7 else "moderate" if mag >= 0.4
+                    else "weak")
+        direction = "agreement" if rho >= 0 else "disagreement"
+        verdict = (f" - {strength} cross-architecture {direction} on feature "
+                   "ordering")
+    return (f"<p>Spearman rank correlation over all {len(shared)} shared "
+            f"features: <b>{rho_str}</b>{verdict}.</p>"
             f"<table><tr><th>rank</th><th>headline ({headline['arch_family']})</th>"
             f"<th>runner-up ({runner['arch_family']})</th></tr>"
             + "".join(rows) + "</table>")
