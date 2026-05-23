@@ -39,12 +39,38 @@ import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 from scipy.stats import spearmanr  # noqa: E402
 
 EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT = EXPERIMENT_DIR.parent
 sys.path.insert(0, str(EXPERIMENT_DIR))
 
 from _eval._figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+
+_PREV_CACHE: dict = {}
+
+
+def _test_prevalence(target: str, datasplit: str, splittype: str):
+    """Positive-class prevalence of a leaf's hold-out test set, the no-skill
+    AUPRC baseline for that exact (target, ratio, split). Cached; the label
+    column is ``migraine_target`` in both pipelines (next-day headache in the
+    headache dataset, next-day migraine in the migraine dataset). Returns None
+    when the test parquet is absent."""
+    key = (target, datasplit, splittype)
+    if key in _PREV_CACHE:
+        return _PREV_CACHE[key]
+    p = (REPO_ROOT / "data" / "processed" / target / datasplit / splittype
+         / "diary_test.parquet")
+    prev = None
+    if p.is_file():
+        try:
+            prev = float(pd.read_parquet(p, columns=["migraine_target"])
+                         ["migraine_target"].mean())
+        except Exception:
+            prev = None
+    _PREV_CACHE[key] = prev
+    return prev
 
 _FIG_DIR = Path(__file__).resolve().parent / "figures"
 
@@ -349,6 +375,73 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
                   "hatched = CI reaches chance", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
+    save_journal_figure(fig, out_png)
+    plt.close(fig)
+    return out_png
+
+
+def _auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
+    """Grouped horizontal bars of AUPRC lift over the no-skill baseline per
+    cell, one bar per split, with a reference line at 1.0 (no skill).
+
+    AUPRC is the honest discrimination metric under heavy class imbalance
+    (the migraine positive rate is ~5-7 %), but a raw AUPRC is only
+    interpretable against its no-skill baseline, which is the test set's
+    positive prevalence. Lift = AUPRC / prevalence expresses precision-recall
+    skill on a common scale across the two targets (headache prevalence is
+    much higher than migraine), so 1.0 means no better than predicting the
+    base rate. The baseline is each leaf's own test-set prevalence.
+    """
+    cells, by_cell = [], {}
+    for s in headlines:
+        if s.get("role") != "headline" or s.get("auprc_mean") is None:
+            continue
+        prev = _test_prevalence(s["target"], s["datasplit"], s["splittype"])
+        if not prev:
+            continue
+        key = (s["target"], s["feature_set"])
+        if key not in by_cell:
+            by_cell[key] = {}
+            cells.append(key)
+        by_cell[key][s["splittype"]] = (s, prev)
+    if not cells:
+        return None
+    cells.sort()
+    apply_journal_style()
+    splits = ("chrono", "stratified", "patient")
+    n, g = len(cells), len(splits)
+    bh = 0.8 / g
+    base = np.arange(n)[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
+    xmax = 1.0
+    for gi, st in enumerate(splits):
+        ys, vals, los, his = [], [], [], []
+        for ci, key in enumerate(cells):
+            sp = by_cell[key].get(st)
+            if sp is None:
+                continue
+            s, prev = sp
+            lift = s["auprc_mean"] / prev
+            ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
+            vals.append(lift)
+            lo = (s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0
+            hi = (s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0
+            los.append(lo)
+            his.append(hi)
+            xmax = max(xmax, lift + hi)
+        ax.barh(ys, vals, height=bh, color=SPLIT_FIG_COLORS[st],
+                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
+                label=SPLIT_FIG_LABELS[st])
+    ax.axvline(1.0, color="#444444", lw=0.9, ls=":", zorder=0)
+    ax.set_yticks(base)
+    ax.set_yticklabels([f"{t}\n{fs.replace('_features','')}" for t, fs in cells],
+                       fontsize=8)
+    ax.set_xlim(0, xmax * 1.05)
+    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence; "
+                  "dotted line = 1.0 = no skill)", fontsize=9)
+    ax.set_title("Precision-recall skill by split type, per cell (headline)",
+                 fontsize=10)
+    ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     save_journal_figure(fig, out_png)
     plt.close(fig)
     return out_png
@@ -849,6 +942,17 @@ def main() -> int:
             "at this sample size do not by themselves establish it.</p>"
             + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720)
             + build_split_contrast(raw_selections))
+    lift_fig = _auprc_lift_figure(raw_selections, _FIG_DIR / "auprc_lift.png")
+    if lift_fig is not None:
+        split_block += (
+            "<p class='note'>Under the heavy class imbalance (the migraine "
+            "positive rate is ~5-7 %), AUROC can look respectable while "
+            "precision-recall stays near the base rate. AUPRC lift = AUPRC "
+            "divided by the test-set positive prevalence puts both targets on a "
+            "common scale; <b>1.0 is no skill</b> (no better than predicting the "
+            "base rate). Each bar uses its own leaf's test prevalence as the "
+            "baseline.</p>"
+            + _embed_png(_FIG_DIR / "auprc_lift.png", max_width=720))
     calib_fig = _calib_slope_figure(raw_selections, _FIG_DIR / "calib_slope.png")
     if calib_fig is not None:
         split_block += (
