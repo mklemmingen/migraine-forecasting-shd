@@ -215,7 +215,7 @@ def _rank_overlap_table(headline: dict, runner: dict, top_n: int = 10) -> str:
 
 SPLIT_LABELS = {
     "chrono": "Chronological (forecasting-honest)",
-    "stratified": "Stratified (leakage contrast - inflated, not deployable)",
+    "stratified": "Stratified (leakage contrast - not deployable by construction)",
     "patient": "Patient hold-out (generalisation to unseen patients)",
 }
 
@@ -564,9 +564,11 @@ def build_summary_table(selections: list[dict]) -> str:
         rows.append(f"<tr><td><b>{t}</b><br>{fs}</td>{tds}</tr>")
     return ("<h2>Best model per cell and split (headline)</h2>"
             "<p class='note'>The <b>chronological</b> column is the deployable, "
-            "forecasting-honest best; <b>stratified</b> is optimistically inflated "
-            "by history-feature leakage (not deployable); <b>patient</b> is "
-            "generalisation to unseen patients. AUROC is hold-out test.</p>"
+            "forecasting-honest best; <b>stratified</b> is not deployable - a "
+            "random shuffle leaks adjacent-day signal through history features "
+            "across the train/test boundary, so it is excluded by construction "
+            "regardless of its measured AUROC; <b>patient</b> is generalisation "
+            "to unseen patients. AUROC is hold-out test.</p>"
             "<table><tr><th>target / feature set</th><th>chronological "
             "(honest)</th><th>stratified (leaky)</th><th>patient "
             "(generalisation)</th></tr>" + "".join(rows) + "</table>")
@@ -619,6 +621,57 @@ def build_headline_composition(headlines: list[dict]) -> str:
                                     else "")) if s.get("hp_strategy")
                 else "NonHP (library defaults)")
     return ("<h2>What wins the headline, overall</h2>" + fam + hp)
+
+
+def build_split_contrast(headlines: list[dict]) -> str:
+    """Per-cell chronological-vs-stratified AUROC contrast with a CI-separation
+    verdict, so the leakage claim is reported only as far as the data support.
+
+    Stratified is excluded on principle (the split design leaks), but whether
+    it *measurably* inflates AUROC is an empirical question. This table gives
+    the chronological and stratified headline AUROCs, their difference, and
+    whether the 95% CIs separate: only a stratified interval lying entirely
+    above the chronological one is evidence of inflation at this sample size.
+    """
+    head = {(s["target"], s["feature_set"]): {} for s in headlines
+            if s.get("role") == "headline"}
+    for s in headlines:
+        if s.get("role") == "headline":
+            head[(s["target"], s["feature_set"])][s["splittype"]] = s
+    rows, n_sig = [], 0
+    for (t, fs), by in sorted(head.items()):
+        c, st = by.get("chrono"), by.get("stratified")
+        if not c or not st:
+            continue
+        delta = st["auroc_mean"] - c["auroc_mean"]
+        if st["auroc_lo"] > c["auroc_hi"]:
+            verdict, color = "stratified higher (CIs separate)", "#b2182b"
+            n_sig += 1
+        elif c["auroc_lo"] > st["auroc_hi"]:
+            verdict, color = "chronological higher (CIs separate)", "#1a7a3a"
+        else:
+            verdict, color = "not distinguishable (CIs overlap)", "#666666"
+        rows.append(
+            f"<tr><td>{t} / {fs.replace('_features','')}</td>"
+            f"<td>{c['auroc_mean']:.3f} [{c['auroc_lo']:.3f}-{c['auroc_hi']:.3f}]</td>"
+            f"<td>{st['auroc_mean']:.3f} [{st['auroc_lo']:.3f}-{st['auroc_hi']:.3f}]</td>"
+            f"<td>{delta:+.3f}</td>"
+            f"<td style='color:{color}'>{verdict}</td></tr>")
+    if not rows:
+        return ""
+    verdict_line = (
+        f"In {n_sig} of {len(rows)} cells the stratified CI lies entirely above "
+        "the chronological one; elsewhere the difference is within sampling "
+        "noise. The stratified split is excluded for its leakage mechanism, not "
+        "on the strength of a measured inflation." if n_sig else
+        "In no cell does the stratified CI separate from the chronological one, "
+        "so the data do not establish a measurable inflation at this sample "
+        "size; the stratified split is excluded for its leakage mechanism, not "
+        "for an observed inflation.")
+    return ("<p class='note'>" + verdict_line + "</p>"
+            "<table><tr><th>cell</th><th>chronological AUROC</th>"
+            "<th>stratified AUROC</th><th>&Delta;</th><th>CI verdict</th></tr>"
+            + "".join(rows) + "</table>")
 
 
 def build_park_check(selections: list[dict]) -> str:
@@ -736,12 +789,15 @@ def main() -> int:
             "<h2>Discrimination across split types</h2>"
             "<p class='note'>Best hold-out AUROC per cell, one bar per split. "
             "The <b>chronological</b> bar is the deployable forecast; "
-            "<b>stratified</b> exposes the optimistic inflation that history / "
-            "rolling features leak across a random train/test boundary; "
-            "<b>patient</b> is generalisation to unseen patients. A small "
-            "chronological-to-stratified gap for the no-rolling feature set is "
-            "the signature that the stratified inflation is leakage, not "
-            "skill.</p>" + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720))
+            "<b>stratified</b> is the leakage contrast - a random shuffle places "
+            "adjacent days, which share history / rolling feature values, on both "
+            "sides of the train/test boundary; <b>patient</b> is generalisation "
+            "to unseen patients. The leakage is a property of the split design, "
+            "so stratified is excluded by construction; the magnitude of any "
+            "empirical inflation is reported separately below, since the wide CIs "
+            "at this sample size do not by themselves establish it.</p>"
+            + _embed_png(_FIG_DIR / "split_auroc.png", max_width=720)
+            + build_split_contrast(raw_selections))
     calib_fig = _calib_slope_figure(raw_selections, _FIG_DIR / "calib_slope.png")
     if calib_fig is not None:
         split_block += (
