@@ -47,6 +47,7 @@ REPO_ROOT = EXPERIMENT_DIR.parent
 sys.path.insert(0, str(EXPERIMENT_DIR))
 
 from _eval._figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+from _eval._html_to_pdf import html_to_pdf  # noqa: E402
 
 _PREV_CACHE: dict = {}
 
@@ -94,7 +95,8 @@ from _eval._archival import archive_previous_outputs  # noqa: E402
 
 # Compare outputs rotate into experiment/2/results/YYYY-MM-DD/ with the same
 # dated-archive algorithm the aggregator uses for its figures.
-COMPARE_PATTERNS = ("comparison_shap_*.html", "park_or_check_*.html")
+COMPARE_PATTERNS = ("comparison_shap_*.html", "comparison_shap_*.pdf",
+                    "park_or_check_*.html", "park_or_check_*.pdf")
 
 # Park et al. 2016 Table 4 [park2016shd, Tab. 4, p. 8] stepwise-selected
 # trigger odds ratios; the park feature loader maps the two Korean hormonal
@@ -1061,6 +1063,10 @@ def main() -> int:
         f"{park_html or '<p class=warn>No migraine/park insight artefacts found.</p>'}"
         f"</body></html>")
     print(f"wrote {park_path}")
+
+    # Emit a shareable PDF alongside each HTML report (best-effort).
+    html_to_pdf(comp_path)
+    html_to_pdf(park_path)
     return 0
 
 

@@ -45,6 +45,7 @@ from _parsing import (   # noqa: E402
     format_ts, parse_file, postprocess_cv, warn_na,
 )
 from _archival import archive_previous_outputs   # noqa: E402
+from _html_to_pdf import html_to_pdf   # noqa: E402
 from _interactive_html import build_html   # noqa: E402
 from _comparison_html import build_comparison_html   # noqa: E402
 from _venn_diagrams import (   # noqa: E402
@@ -282,6 +283,7 @@ def main():
     output = LATEST_DIR / f"results_{ts_flat}_{short_uid}.html"
     output.write_text(html, encoding="utf-8")
     print(f"Saved: {output}")
+    html_to_pdf(output)
 
     figs = _generate_figures(all_entries, ts_flat, short_uid)
 
@@ -295,6 +297,7 @@ def main():
     output_cmp = LATEST_DIR / f"comparison_{ts_flat}_{short_uid}.html"
     output_cmp.write_text(html_cmp, encoding="utf-8")
     print(f"Saved: {output_cmp}")
+    html_to_pdf(output_cmp)
 
     output_csv = LATEST_DIR / f"comparison_{ts_flat}_{short_uid}.csv"
     _write_csv(all_entries, output_csv)

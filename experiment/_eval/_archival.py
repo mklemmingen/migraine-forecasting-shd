@@ -11,7 +11,9 @@ from pathlib import Path
 
 OUTPUT_PATTERNS = (
     "results_*.html",
+    "results_*.pdf",
     "comparison_*.html",
+    "comparison_*.pdf",
     "comparison_*.csv",
     # PNG (HTML preview) + vector PDF (journal asset) for every figure.
     "venn_counts_*.png", "venn_counts_*.pdf",
