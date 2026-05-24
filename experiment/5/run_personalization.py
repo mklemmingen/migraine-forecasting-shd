@@ -151,20 +151,63 @@ def run_regimes_cell(target: str, feature_set: str, ratio: str = "70_15_15",
     return rows
 
 
-def run_regimes(cells=None):
-    """Fit the personalisation regimes on a set of (target, feature_set) cells.
-    Default: the migraine cells where per-patient modelling is EPV-defensible."""
+def _regime_oof(regime_name: str, cv, fc, n_splits: int = 5):
+    """Pooled out-of-fold predictions for one regime: refit on cv_fold < k,
+    predict cv_fold == k, across the expanding-window folds. Returns (y, p, pid)
+    so every patient is scored across the full date range (vs the sparse hold-out)."""
+    fn = RG.REGIMES[regime_name]
+    ys, ps, pids = [], [], []
+    for fold in range(1, n_splits + 1):
+        tr = cv[cv["cv_fold"] < fold]
+        ev = cv[cv["cv_fold"] == fold]
+        if tr.empty or ev.empty:
+            continue
+        _, p = fn(tr, ev, ev, fc)   # fit on tr, predict held-out fold ev
+        ps.append(np.asarray(p, dtype=float))
+        ys.append(ev[TARGET_COL].to_numpy(dtype=float))
+        pids.append(ev["patient_id"].to_numpy().astype(str))
+    return np.concatenate(ys), np.concatenate(ps), np.concatenate(pids)
+
+
+def run_regimes_cv_cell(target: str, feature_set: str, min_pos: int = 5) -> list[dict]:
+    """CV out-of-fold within-person C-statistic per regime (estimable, unlike the
+    hold-out which is k~1)."""
+    cv = load_raw(str(REPO / "data" / "processed" / target / "diary_cv5_timeseries.parquet"),
+                  loader=REGIME_LOADERS.get(feature_set))
+    fc = [c for c in cv.columns if c not in NON_FEATURE_COLS]
+    rows = []
+    for name in RG.REGIMES:
+        y, p, pid = _regime_oof(name, cv, fc)
+        within = WP.within_person_cstatistic(WP.per_patient_scores(y, p, pid, min_pos))
+        pooled_auc = float(roc_auc_score(y, p)) if len(set(y)) > 1 else float("nan")
+        rows.append({"target": target, "feature_set": feature_set, "regime": name,
+                     "pooled_auroc": pooled_auc, "within_person": within["estimate"],
+                     "within_ci_low": within["ci_low"], "within_ci_high": within["ci_high"],
+                     "k_estimable": within["k_estimable"]})
+        wp = (f"{within['estimate']:.3f} [{within['ci_low']:.3f}-{within['ci_high']:.3f}]"
+              if within["estimate"] == within["estimate"] else "n/a")
+        print(f"  {target:<8} {feature_set:<20} {name:<13} "
+              f"pooled {pooled_auc:.3f} | within {wp} (k={within['k_estimable']})")
+    return rows
+
+
+def run_regimes(cells=None, cv: bool = False):
+    """Personalisation regimes over (target, feature_set) cells. With cv=False,
+    fit hold-out and emit the standard contract (folds into comparison_*.html);
+    with cv=True, report the CV out-of-fold within-person C-statistic per regime."""
     cells = cells or [("migraine", "park_features"), ("migraine", "no_rolling_features")]
+    mode = "CV out-of-fold within-person" if cv else "hold-out (standard contract)"
     print(f"Personalisation regimes (LR base; pooled / per_patient / partial_pool) "
-          f"over {len(cells)} cell(s)")
+          f"- {mode} - over {len(cells)} cell(s)")
     rows = []
     for target, fs in cells:
-        rows.extend(run_regimes_cell(target, fs))
+        rows.extend(run_regimes_cv_cell(target, fs) if cv else run_regimes_cell(target, fs))
     if rows:
         ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-        out = HERE / f"regimes_summary_{ts}.csv"
+        out = HERE / f"regimes_{'cv' if cv else 'holdout'}_summary_{ts}.csv"
         pd.DataFrame(rows).to_csv(out, index=False)
-        print(f"\nSaved summary: {out}  (regime results_*.txt fold into comparison_*.html)")
+        tail = "" if cv else "  (regime results_*.txt fold into comparison_*.html)"
+        print(f"\nSaved summary: {out}{tail}")
 
 
 def main(leaves=None, cv: bool = False):
@@ -196,6 +239,6 @@ def main(leaves=None, cv: bool = False):
 
 if __name__ == "__main__":
     if "--regimes" in sys.argv:
-        run_regimes()
+        run_regimes(cv="--cv" in sys.argv)
     else:
         main(cv="--cv" in sys.argv)
