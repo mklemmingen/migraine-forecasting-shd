@@ -28,8 +28,16 @@ from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent          # experiment/5/
 EXP = HERE.parent                               # experiment/
+REPO = EXP.parent
 sys.path[0:0] = [str(EXP), str(HERE), str(HERE / "_personal")]
 import within_person as WP  # noqa: E402
+import regimes as RG  # noqa: E402
+from _dataRead.read import load_raw, NON_FEATURE_COLS, TARGET_COL  # noqa: E402
+from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
+from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
+
+REGIME_LOADERS = {"full_features": None, "park_features": select_park_features,
+                  "no_rolling_features": select_non_rolling_features}
 
 RATIOS = ("70_15_15", "70_30", "80_20")
 SPLITS = ("chrono", "stratified", "patient")
@@ -113,6 +121,52 @@ def default_leaves() -> list[Path]:
     return leaves
 
 
+def run_regimes_cell(target: str, feature_set: str, ratio: str = "70_15_15",
+                     split: str = "chrono", min_pos: int = 3) -> list[dict]:
+    """Fit pooled / per_patient / partial_pool on one cell, emit the standard
+    results contract per regime (folds into comparison_*.html), and report each
+    regime's within-person C-statistic on the test split."""
+    base = REPO / "data" / "processed" / target / ratio / split
+    loader = REGIME_LOADERS.get(feature_set)
+    train = load_raw(str(base / "diary_train.parquet"), loader=loader)
+    val = load_raw(str(base / "diary_val.parquet"), loader=loader)
+    test = load_raw(str(base / "diary_test.parquet"), loader=loader)
+    fc = [c for c in train.columns if c not in NON_FEATURE_COLS]
+    y_te = test[TARGET_COL].to_numpy()
+    pid_te = test["patient_id"].to_numpy().astype(str)
+    rows = []
+    for name, fn in RG.REGIMES.items():
+        p_val, p_test = fn(train, val, test, fc)
+        out_dir = HERE / target / feature_set / name / ratio / split
+        RG.emit_holdout_results(str(out_dir), f"STAGE 5 / {feature_set} / {name}",
+                                val[TARGET_COL], p_val, test[TARGET_COL], p_test)
+        within = WP.within_person_cstatistic(WP.per_patient_scores(y_te, p_test, pid_te, min_pos))
+        pooled_auc = float(roc_auc_score(y_te, p_test)) if len(set(y_te)) > 1 else float("nan")
+        rows.append({"target": target, "feature_set": feature_set, "regime": name,
+                     "pooled_auroc": pooled_auc, "within_person": within["estimate"],
+                     "k_estimable": within["k_estimable"]})
+        wp = (f"{within['estimate']:.3f}" if within["estimate"] == within["estimate"] else "n/a")
+        print(f"  {target:<8} {feature_set:<20} {name:<13} "
+              f"pooled {pooled_auc:.3f} | within {wp} (k={within['k_estimable']})")
+    return rows
+
+
+def run_regimes(cells=None):
+    """Fit the personalisation regimes on a set of (target, feature_set) cells.
+    Default: the migraine cells where per-patient modelling is EPV-defensible."""
+    cells = cells or [("migraine", "park_features"), ("migraine", "no_rolling_features")]
+    print(f"Personalisation regimes (LR base; pooled / per_patient / partial_pool) "
+          f"over {len(cells)} cell(s)")
+    rows = []
+    for target, fs in cells:
+        rows.extend(run_regimes_cell(target, fs))
+    if rows:
+        ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        out = HERE / f"regimes_summary_{ts}.csv"
+        pd.DataFrame(rows).to_csv(out, index=False)
+        print(f"\nSaved summary: {out}  (regime results_*.txt fold into comparison_*.html)")
+
+
 def main(leaves=None, cv: bool = False):
     leaves = leaves or default_leaves()
     worker = CV_WORKER if cv else WORKER
@@ -141,4 +195,7 @@ def main(leaves=None, cv: bool = False):
 
 
 if __name__ == "__main__":
-    main(cv="--cv" in sys.argv)
+    if "--regimes" in sys.argv:
+        run_regimes()
+    else:
+        main(cv="--cv" in sys.argv)
