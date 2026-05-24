@@ -32,6 +32,7 @@ REPO = EXP.parent
 sys.path[0:0] = [str(EXP), str(HERE), str(HERE / "_personal")]
 import within_person as WP  # noqa: E402
 import regimes as RG  # noqa: E402
+import walkforward as WF  # noqa: E402
 from _dataRead.read import load_raw, NON_FEATURE_COLS, TARGET_COL  # noqa: E402
 from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
 from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
@@ -210,6 +211,32 @@ def run_regimes(cells=None, cv: bool = False):
         print(f"\nSaved summary: {out}{tail}")
 
 
+def run_coldstart(targets=("migraine", "headache"), alpha: float = 5.0):
+    """Cold-start curve per target: when does a patient's own running attack rate
+    start beating the cohort rate (Brier), as a function of own-days seen."""
+    print("Cold-start curve (personalised = own running rate vs population = cohort rate; Brier)")
+    allrows = []
+    for tgt in targets:
+        diary = pd.read_parquet(REPO / "data" / "processed" / tgt / "diary.parquet")
+        tcol = next(c for c in diary.columns if c.endswith("_target"))
+        curve = WF.cold_start_curve(diary, target_col=tcol, alpha=alpha)
+        binned = WF.binned_curve(curve)
+        point = WF.cold_start_point(curve)
+        pt = f"n_prior={point} own days" if point >= 0 else "never sustainably helps"
+        print(f"\n== {tgt} (cohort rate {diary[tcol].mean():.3f}) | cold-start point: {pt} ==")
+        for _, r in binned.iterrows():
+            flag = "personalised better" if r["personalised_helps"] else "population better"
+            print(f"  own_days {r['own_days']:<7} n={r['rows']:<5} "
+                  f"pop {r['brier_population']:.4f} | pers {r['brier_personalised']:.4f}  ({flag})")
+        binned.insert(0, "target", tgt)
+        allrows.append(binned)
+    if allrows:
+        ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        out = HERE / f"coldstart_summary_{ts}.csv"
+        pd.concat(allrows, ignore_index=True).to_csv(out, index=False)
+        print(f"\nSaved summary: {out}")
+
+
 def main(leaves=None, cv: bool = False):
     leaves = leaves or default_leaves()
     worker = CV_WORKER if cv else WORKER
@@ -238,7 +265,9 @@ def main(leaves=None, cv: bool = False):
 
 
 if __name__ == "__main__":
-    if "--regimes" in sys.argv:
+    if "--coldstart" in sys.argv:
+        run_coldstart()
+    elif "--regimes" in sys.argv:
         run_regimes(cv="--cv" in sys.argv)
     else:
         main(cv="--cv" in sys.argv)
