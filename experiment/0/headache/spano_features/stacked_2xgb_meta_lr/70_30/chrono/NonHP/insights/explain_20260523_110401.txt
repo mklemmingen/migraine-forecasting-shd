@@ -1,0 +1,30 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 0 / spano_features / stacked_2xgb_meta_lr
+======================================================================
+architecture family : xgboost
+attribution         : KernelSHAP (model-agnostic, over calibrated probability)
+background samples  : 706 (val/cal set in evaluate scope; never the train set)
+background summary  : k-means with k=50
+explained rows      : 400
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. consecutive_sedentary_days       0.023318
+   2. migraine_rate_last7              0.018684
+   3. days_since_last_migraine         0.014947
+   4. dow                              0.005129
+   5. exercise_days_7day               0.003710
+   6. lack_of_sleep_today              0.002725
+   7. sleep_variability_7day           0.002106
+   8. weather_instability_3day         0.002026
+   9. migraine_yesterday               0.001537
+  10. migraine_rate_last3              0.001402
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  consecutive_sedentary_days       -0.069909
+  migraine_rate_last7              +0.065868
+  days_since_last_migraine         -0.071596
+  dow                              -0.009529
+  exercise_days_7day               -0.018602
+----------------------------------------------------------------------
