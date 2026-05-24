@@ -1,0 +1,32 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / full_features / tabpfn (version_3-default)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 180 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. migraine_rate_last7              0.025914
+   2. headache_free_streak             0.018032
+   3. migraine_rate_last3              0.016162
+   4. days_since_last_migraine         0.013723
+   5. migraine_yesterday               0.010982
+   6. consecutive_sedentary_days       0.007262
+   7. days_since_last_record           0.003359
+   8. recording_gap_flag               0.002906
+   9. physical_fatigue_today           0.002822
+  10. inappropriate_lighting           0.002716
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  migraine_rate_last7              +0.239080
+  headache_free_streak             -0.090585
+  migraine_rate_last3              +0.141502
+  days_since_last_migraine         -0.050497
+  migraine_yesterday               +0.015371
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------

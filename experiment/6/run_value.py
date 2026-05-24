@@ -1,62 +1,164 @@
 """Driver for the clinical-forecast-value layer (Addition 6).
 
-Post-hoc pass (like Addition 2): load the selected leaf models from Additions
-0/1/4/5, regenerate their calibrated test predictions, and add the value layer:
+Post-hoc pass over the selected leaf models from Additions 0/1/4 (and, where
+present, the Addition 5 regimes): regenerate their out-of-sample predictions
+(reusing the Addition 5 subprocess worker, so the conflicting _model_architecture
+packages and the TabPFN-GPU/CPU split stay isolated), then add the value layer:
 
-  1. decision curves (net benefit vs threshold) overlaying the architectures per
-     (target, feature_set) cell - so the value comparison spans additions;
-  2. Brier skill vs each patient's training-set climatology;
-  3. the operating-point mapping (val-MCC threshold vs net-benefit-optimal) and
-     sensitivity at a tolerated false-alarm rate;
-  4. (optional, headache only) the measured-weather ablation.
+  1. decision curves (net benefit vs threshold) overlaid across architectures per
+     (target, feature_set) cell - the cross-addition value comparison;
+  2. Brier skill vs each patient's TRAIN-set climatology (a leakage-free
+     per-patient base rate);
+  3. the operating point: net-benefit-optimal threshold, the MCC threshold for
+     reference, and sensitivity at a tolerated false-alarm rate.
 
-Adds no core model and does not touch evaluate.py. No clinical-utility claim is
-made beyond the development stage [vasey2022decideAI, p. 1].
+Adds no core model and makes no clinical-utility claim beyond the development
+stage [vasey2022decideAI, p. 1]. The optional measured-weather ablation
+(_value/weather_join.py) is left for when that external data is sourced.
 Design and decisions: docs/addition6_clinical_value.md.
 """
+import datetime as _dt
+import os
+import subprocess
 import sys
+import tempfile
+import uuid
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent          # experiment/6/
-EXP = HERE.parent                               # experiment/
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from sklearn.metrics import roc_auc_score  # noqa: E402
+
+HERE = Path(__file__).resolve().parent      # experiment/6/
+EXP = HERE.parent                           # experiment/
 REPO = EXP.parent
 sys.path[0:0] = [str(EXP), str(HERE), str(HERE / "_value")]
-from _dataRead.read import load_raw, prep_split  # noqa: E402
-import decision_curve as DC   # noqa: E402
-import skill as SK            # noqa: E402
+import decision_curve as DC  # noqa: E402
+import skill as SK  # noqa: E402
 import operating_point as OP  # noqa: E402
+from _dataRead.read import load_raw, TARGET_COL  # noqa: E402
+from _eval.metrics_lib import find_operating_thresholds  # noqa: E402
 
-TARGETS = ("headache", "migraine")
-
-
-def cell_value(leaf_models, val_split, test_split, train_split) -> dict:
-    """Value layer for one (target, feature_set) cell across architectures.
-
-    TODO: for each architecture's leaf model, regenerate calibrated p_test (and
-    p_val), then:
-      - DC.decision_curve(y_test, p_test) -> store the model curve for the
-        cross-architecture overlay;
-      - climatology from the TRAIN split base rates (SK.per_patient_climatology),
-        then SK.brier_skill_score(y_test, p_test, ref);
-      - OP.map_threshold(val_mcc_threshold, curve thresholds, model NB) and
-        OP.sensitivity_at_fpr(y_test, p_test).
-    The decision-curve primitives are already implemented; this function is the
-    orchestration + per-row prediction regeneration (retaining patient_id for the
-    climatology). ~30-40 lines.
-    """
-    raise NotImplementedError("per-cell value orchestration - see TODO")
+WP_WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
+RATIOS = ("70_15_15", "70_30", "80_20")
+SPLITS = ("chrono", "stratified", "patient")
 
 
-def main():
-    # TODO: discover the leaves to compare (reuse experiment/2/select.py across
-    # Additions 0/1/4/5), run cell_value per (target, feature_set), and emit:
-    #   - one decision-curve figure per cell overlaying all architectures
-    #     (cross-addition by construction),
-    #   - a Brier-skill-vs-climatology table,
-    #   - comparison_value_<ts>.html.
-    # Optionally run the headache-only measured-weather ablation
-    # (_value/weather_join.py) if the external data is sourced.
-    raise NotImplementedError("driver orchestration - see TODO")
+def _dims(model_dir: Path) -> dict:
+    parts = model_dir.relative_to(EXP).parts
+    return {"addition": parts[0], "target": parts[1], "feature_set": parts[2],
+            "architecture": parts[3] if len(parts) > 3 else "?",
+            "ratio": next((p for p in parts if p in RATIOS), "?"),
+            "split": next((p for p in parts if p in SPLITS), "?")}
+
+
+def _env(addition: str) -> dict:
+    env = os.environ.copy()
+    if addition != "1":  # GPU only for TabPFN; CPU for XGBoost/sequence
+        env["CUDA_VISIBLE_DEVICES"] = ""
+        env["HIP_VISIBLE_DEVICES"] = ""
+    return env
+
+
+def _predict(model_dir: Path):
+    """(y, p, patient_id) on the leaf's val+test horizon via the shared worker."""
+    d = _dims(model_dir)
+    out = Path(tempfile.gettempdir()) / f"v6_{uuid.uuid4().hex}.npz"
+    try:
+        r = subprocess.run([sys.executable, str(WP_WORKER), str(model_dir), str(out)],
+                           capture_output=True, text=True, timeout=1800, env=_env(d["addition"]))
+        if r.returncode != 0 or not out.exists():
+            raise RuntimeError((r.stderr.strip().splitlines() or ["worker failed"])[-1])
+        z = np.load(out)
+        return z["y"], z["p"], z["pid"], d
+    finally:
+        out.unlink(missing_ok=True)
+
+
+def _train_climatology(target, ratio, split):
+    tr = load_raw(str(REPO / "data" / "processed" / target / ratio / split / "diary_train.parquet"))
+    rates = tr.groupby("patient_id")[TARGET_COL].mean()
+    rates.index = rates.index.astype(str)
+    return rates.to_dict(), float(tr[TARGET_COL].mean())
+
+
+def value_for_leaf(model_dir: Path) -> tuple:
+    y, p, pid, d = _predict(model_dir)
+    rates, cohort = _train_climatology(d["target"], d["ratio"], d["split"])
+    ref = SK.per_patient_climatology(pid, rates, cohort)
+    dc = DC.decision_curve(y, p)
+    mcc_t, _ = find_operating_thresholds(pd.Series(y), p)
+    om = OP.map_threshold(mcc_t, dc["thresholds"], dc["model"])
+    thr, sens, fpr = OP.sensitivity_at_fpr(y, p, target_fpr=0.10)
+    # threshold band where the model's net benefit beats treat-all and treat-none
+    beats = (dc["model"] > np.maximum(dc["treat_all"], 0.0))
+    band = dc["thresholds"][beats]
+    row = {"addition": d["addition"], "target": d["target"],
+           "feature_set": d["feature_set"], "architecture": d["architecture"],
+           "auroc": float(roc_auc_score(y, p)) if len(set(y)) > 1 else float("nan"),
+           "brier_skill": SK.brier_skill_score(y, p, ref),
+           "nb_optimal_threshold": om["net_benefit_optimal_threshold"],
+           "nb_at_optimal": om["net_benefit_at_optimal"],
+           "sens_at_fpr0.10": sens,
+           "nb_positive_band": f"{band.min():.2f}-{band.max():.2f}" if band.size else "none"}
+    return row, d, dc
+
+
+def _plot_cell(cell, curves, out_png):
+    plt.figure(figsize=(6, 4))
+    any_ref = next(iter(curves.values()))
+    t = any_ref["thresholds"]
+    plt.plot(t, any_ref["treat_all"], "--", color="grey", lw=1, label="treat all")
+    plt.plot(t, any_ref["treat_none"], ":", color="black", lw=1, label="treat none")
+    for arch, dc in curves.items():
+        plt.plot(dc["thresholds"], dc["model"], lw=1.5, label=arch)
+    plt.ylim(bottom=min(-0.01, float(any_ref["treat_all"].min())))
+    plt.xlabel("threshold probability"); plt.ylabel("net benefit")
+    plt.title(f"Decision curve - {cell[0]} / {cell[1]}")
+    plt.legend(fontsize=7); plt.tight_layout()
+    plt.savefig(out_png, dpi=130); plt.close()
+
+
+def default_leaves() -> list[Path]:
+    leaves = []
+    for tgt in ("headache", "migraine"):
+        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
+            d = _dims(m.parent)
+            if d["ratio"] == "70_15_15" and d["split"] == "chrono" and "stacked_2xgb" in str(m):
+                leaves.append(m.parent); break
+        for sub in ("1/{t}/full_features/tabpfn/version_3-default/70_15_15/chrono",
+                    "4/{t}/full_features/sequence/version_window-mlp/70_15_15/chrono"):
+            dd = EXP / sub.format(t=tgt)
+            if (dd / "model.joblib").exists():
+                leaves.append(dd)
+    return leaves
+
+
+def main(leaves=None):
+    leaves = leaves or default_leaves()
+    print(f"Clinical-forecast-value layer over {len(leaves)} leaf(s)")
+    rows, curves = [], {}
+    for leaf in leaves:
+        try:
+            row, d, dc = value_for_leaf(leaf)
+            rows.append(row)
+            curves.setdefault((d["target"], d["feature_set"]), {})[
+                f"add{d['addition']} {d['architecture']}"] = dc
+            print(f"  add{row['addition']} {row['target']:<8} {row['architecture']:<18} "
+                  f"AUROC {row['auroc']:.3f} | Brier skill {row['brier_skill']:+.3f} | "
+                  f"NB+band {row['nb_positive_band']} | sens@FPR0.10 {row['sens_at_fpr0.10']:.2f}")
+        except Exception as e:  # noqa: BLE001
+            print(f"  SKIP {leaf.relative_to(EXP)}: {type(e).__name__}: {e}")
+    ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+    for cell, cv in curves.items():
+        _plot_cell(cell, cv, HERE / f"decision_curve_{cell[0]}_{cell[1]}_{ts}.png")
+    if rows:
+        out = HERE / f"value_summary_{ts}.csv"
+        pd.DataFrame(rows).to_csv(out, index=False)
+        print(f"\nSaved summary: {out} and decision-curve figures")
 
 
 if __name__ == "__main__":

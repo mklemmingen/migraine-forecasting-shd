@@ -1,0 +1,28 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / park_features / tabpfn (version_3-default)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 217 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. hormonal_changes_today           0.013589
+   2. noise_today                      0.009877
+   3. stress_today                     0.007543
+   4. overeating_today                 0.005666
+   5. travel_today                     0.004550
+   6. alcohol_today                    0.003365
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  hormonal_changes_today           +0.130311
+  noise_today                      +0.037691
+  stress_today                     +0.049812
+  overeating_today                 +0.029195
+  travel_today                     +0.064562
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------
