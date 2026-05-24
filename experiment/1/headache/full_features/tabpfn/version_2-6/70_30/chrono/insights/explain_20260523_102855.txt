@@ -1,0 +1,45 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / full_features / tabpfn (version_2-6)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 706 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. migraine_rate_last3              0.030058
+   2. migraine_rate_last7              0.027731
+   3. headache_free_streak             0.018770
+   4. days_since_last_migraine         0.014001
+   5. migraine_yesterday               0.005755
+   6. inappropriate_lighting           0.005648
+   7. days_since_last_record           0.003875
+   8. menstruation_today               0.003854
+   9. consecutive_sedentary_days       0.003374
+  10. inappropriate_lighting_today     0.003281
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  migraine_rate_last3              +0.137680
+  migraine_rate_last7              +0.177532
+  headache_free_streak             -0.074373
+  days_since_last_migraine         -0.046766
+  migraine_yesterday               +0.017014
+----------------------------------------------------------------------
+Top pairwise interactions (ShapIQ k-SII order-2, mean |interaction|):
+  vigorous_exercise_min    x oversleeping_today       0.669938
+  vigorous_exercise_min    x exercise_as_trigger_today 0.523259
+  moderate_exercise_min    x menstruation_today       0.475102
+  vigorous_exercise_min    x consecutive_stress_days  0.449066
+  sleep_debt_3day          x exercise_days_7day       0.427721
+  vigorous_exercise_min    x exercise_as_trigger      0.404002
+  vigorous_exercise_min    x excessive_smoking        0.396511
+  moderate_exercise_min    x oversleeping_today       0.393755
+  vigorous_exercise_min    x exercise_days_7day       0.386222
+  exercise_as_trigger      x exercise_as_trigger_today 0.351722
+  [background n=706, explained n=6, seed=42]
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------
