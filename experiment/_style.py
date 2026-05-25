@@ -76,6 +76,25 @@ listed at the bottom of this docstring.
      via save(). Recompute every number from data/CSVs in the figure script - never
      transcribe results into a plot.
 
+------------------------------- PROGRAMMATIC API -----------------------------
+Everything above is enforced/contracted in code, so figure scripts never re-type a
+rule. apply() sets all rcParams (incl. suptitle 11.5 pt, TrueType embedding, grid
+off). Constants: OI, GREY/INK/SOFT, PALE_FILL, REF_COLOR/REF_LW, CI_ALPHA,
+COL_SINGLE/COL_DOUBLE, BOX_EDGE. Colour maps: TARGET, ARCH, SPLIT, FEATURE_SET.
+Helpers:
+  color(role, name) / arch_color / target_color / split_color / feature_set_color
+                              - resolve a colour, raising on an unknown entity
+                                (never a silent None that collapses two series).
+  box(...role=) / arrow(...) - schematic primitives; box edge by role
+                                (normal/output/exclude), no inline hex.
+  panel_label(ax, "a")       - bold lowercase multi-panel label (top-left).
+  refline(ax, y=/x=)         - black dashed reference line (chance, perfect, ...).
+  ci_band(ax, xs, lo, hi)    - light grey CI shading.
+  framed_legend(ax)          - the heatmap-only framed-legend exception.
+  figsize(cols="single"|"double", h) - final-size width by column count.
+  save(fig, out)             - PDF + 300 dpi PNG.
+==============================================================================
+
 References (verified against the primary source; see design guide for full entries):
   [okabeito2008] Okabe & Ito 2008, Color Universal Design, jfly.uni-koeln.de/color
   [wong2011]     Wong 2011, Nature Methods 8:441, doi:10.1038/nmeth.1618
@@ -104,6 +123,11 @@ OI = {"orange": "#E69F00", "skyblue": "#56B4E9", "green": "#009E73",
 GREY = "#555555"
 INK = "#222222"      # text
 SOFT = "#444444"     # axes / ticks
+PALE_FILL = "#eef3f8"               # default schematic box fill
+REF_COLOR = OI["black"]             # reference lines: chance, perfect, treat-none
+REF_LW = 0.9                        # reference-line width (guide Section 1.3: 0.8-1.2)
+CI_ALPHA = 0.18                     # CI-band shading alpha (guide: 0.15-0.20)
+COL_SINGLE, COL_DOUBLE = 3.5, 7.2   # final figure widths (in): ~89 mm / ~183 mm
 
 TARGET = {"headache": OI["blue"], "migraine": OI["vermillion"]}
 
@@ -127,6 +151,36 @@ SPLIT = {"chrono": OI["blue"], "stratified": OI["vermillion"],
 FEATURE_SET = {"full": OI["blue"], "spano": OI["vermillion"],
                "no_rolling": OI["green"], "park": OI["orange"]}
 
+# Schematic box edge roles (guide Section 7): normal / output / exclusion.
+BOX_EDGE = {"normal": OI["blue"], "output": OI["green"], "exclude": OI["vermillion"]}
+
+# Registry so a colour can be resolved by (role, name) and FAIL LOUDLY - a silent
+# None would let matplotlib fall back to black and collapse two entities to one.
+_ROLES = {"target": TARGET, "arch": ARCH, "split": SPLIT, "feature_set": FEATURE_SET}
+
+
+def color(role: str, name: str) -> str:
+    """Colour for one entity; raises KeyError on an unknown role or name."""
+    table = _ROLES.get(role)
+    if table is None:
+        raise KeyError(f"unknown palette role {role!r}; choose from {sorted(_ROLES)}")
+    if name not in table:
+        raise KeyError(f"no colour for {name!r} in role {role!r}; known: {sorted(table)}")
+    return table[name]
+
+
+def arch_color(name): return color("arch", name)
+def target_color(name): return color("target", name)
+def split_color(name): return color("split", name)
+def feature_set_color(name): return color("feature_set", name)
+
+
+# NOTE: the other three palette roles are role-scoped by design (guide Section 9):
+# the diverging metric heatmap lives in experiment/_eval/_metric_palette.py, the
+# many-variant architecture family palette in _eval/_benchmark_visuals.py (its
+# anchors should derive from OI / ARCH above), and the ordinal tree ramp in
+# _eval/_tree_diagram.py. This module owns the qualitative role + shared rcParams.
+
 
 def apply():
     """Set the global rcParams for every figure. Idempotent enough to re-call."""
@@ -136,9 +190,11 @@ def apply():
         "font.size": 9,
         "axes.titlesize": 10.5, "axes.titleweight": "regular", "axes.titlepad": 8,
         "axes.titlecolor": INK,
+        "figure.titlesize": 11.5, "figure.titleweight": "regular",  # suptitle
         "axes.labelsize": 9, "axes.labelcolor": INK,
         "text.color": INK,
         "axes.edgecolor": SOFT, "axes.linewidth": 0.8,
+        "axes.grid": False,
         "axes.spines.top": False, "axes.spines.right": False,
         "xtick.color": SOFT, "ytick.color": SOFT,
         "xtick.labelcolor": INK, "ytick.labelcolor": INK,
@@ -153,9 +209,13 @@ def apply():
     })
 
 
-def box(ax, xy, w, h, text, fc="#eef3f8", ec=OI["blue"], fontsize=8.5, weight="normal"):
-    """Rounded text box centred at xy; returns (x, y, w, h) for arrow anchoring."""
+def box(ax, xy, w, h, text, fc=PALE_FILL, ec=None, role="normal", fontsize=8.5,
+        weight="normal"):
+    """Rounded text box centred at xy; returns (x, y, w, h) for arrow anchoring.
+    Edge colour comes from the schematic ``role`` (normal/output/exclude) unless an
+    explicit ``ec`` is given - so flowcharts use palette colours, not inline hex."""
     x, y = xy
+    ec = ec or BOX_EDGE.get(role, OI["blue"])
     ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h, zorder=2, fc=fc, ec=ec,
                                 lw=1.2, boxstyle="round,pad=0.01,rounding_size=0.015"))
     ax.text(x, y, text, ha="center", va="center", fontsize=fontsize, zorder=3, weight=weight)
@@ -165,6 +225,41 @@ def box(ax, xy, w, h, text, fc="#eef3f8", ec=OI["blue"], fontsize=8.5, weight="n
 def arrow(ax, p0, p1, color=SOFT):
     ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=12,
                                  lw=1.1, color=color, zorder=1))
+
+
+def panel_label(ax, letter, x=-0.06, y=1.04, fontsize=10):
+    """Bold lowercase panel label (a, b, ...) at the panel's top-left (guide S4)."""
+    ax.text(x, y, letter, transform=ax.transAxes, fontsize=fontsize, fontweight="bold",
+            va="bottom", ha="right", color=INK)
+
+
+def refline(ax, *, y=None, x=None, label=None, ls="--", lw=REF_LW, color=REF_COLOR):
+    """Black dashed/dotted reference line (chance 0.5, perfect, O:E=1, treat-none)."""
+    if y is not None:
+        ax.axhline(y, color=color, ls=ls, lw=lw, label=label, zorder=0)
+    if x is not None:
+        ax.axvline(x, color=color, ls=ls, lw=lw, label=label, zorder=0)
+
+
+def ci_band(ax, xs, lo, hi, color=GREY, alpha=CI_ALPHA, **kw):
+    """Light grey confidence-interval shading (guide Section 1.3)."""
+    return ax.fill_between(xs, lo, hi, color=color, alpha=alpha, lw=0, zorder=0, **kw)
+
+
+def framed_legend(ax, **kw):
+    """Legend WITH a light frame - the documented exception for a legend sitting
+    over a filled background (heatmap), where the global frameless default is
+    unreadable (guide Section 6)."""
+    kw.setdefault("framealpha", 0.92)
+    leg = ax.legend(frameon=True, **kw)
+    leg.get_frame().set_edgecolor("#cccccc")
+    leg.get_frame().set_linewidth(0.6)
+    return leg
+
+
+def figsize(cols="double", h=4.0):
+    """Final-size figure width by column count: 'single' ~89 mm, 'double' ~183 mm."""
+    return (COL_DOUBLE if cols == "double" else COL_SINGLE, h)
 
 
 def save(fig, out, dpi=300) -> str:
