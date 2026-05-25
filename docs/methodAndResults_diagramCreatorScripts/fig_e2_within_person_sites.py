@@ -52,16 +52,16 @@ def main():
                            alpha=0.85, edgecolor="white", lw=0.5,
                            label=MLAB[m] if si == 0 else None)
                 print(f"  {tgt:<9} {site:<10} {m:<16} within {v:.3f}")
-        ax.axhline(0.5, color="black", lw=1.0, ls="--", label="chance")
+        S.refline(ax, y=0.5, label="chance")
         ax.axhline(INTERNAL[tgt], color=S.TARGET[tgt], lw=1.4,
                    label=f"internal within-person {INTERNAL[tgt]:.2f}")
         ax.set_xticks(range(len(SITES)))
         ax.set_xticklabels([f"held-out\n{s}" for s in SITES])
-        ax.set_ylim(0.40, 0.75)
+        ax.set_ylim(0.40, 0.85)
         ax.set_title(tgt)
     axes[0].set_ylabel("within-person C-statistic")
-    axes[0].legend(fontsize=7, loc="upper center", ncol=2)
-    fig.suptitle("Within-person discrimination stays near chance off-site", y=1.02, fontsize=12)
+    axes[0].legend(fontsize=8, loc="upper center", ncol=2)
+    fig.suptitle("Within-person discrimination stays near chance off-site", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_e2_within_person_sites"))
 
 

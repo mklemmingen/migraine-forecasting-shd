@@ -44,12 +44,13 @@ def main():
         ax.set_xticks(list(x)); ax.set_xticklabels(b["own_days"])
         ax.set_xlabel("own diary days seen")
         ax.set_ylabel("Brier score (lower is better)")
-        ax.set_title(f"{tgt}  (personalisation helps from ~{cp} own day{'s' if cp != 1 else ''})")
+        ax.set_title(tgt)   # cold-start crossover is stated in the suptitle/caption
+        print(f"  {tgt}: personalisation helps from ~{cp} own day(s)")
         ax.legend(fontsize=8)
         print(f"  {tgt}: cold-start point n_prior={cp}")
         print(b.to_string(index=False))
     fig.suptitle("Cold start: own running rate overtakes the cohort rate within days",
-                 y=1.02, fontsize=12)
+                 y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d1_cold_start"))
 
 

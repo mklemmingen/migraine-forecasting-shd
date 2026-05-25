@@ -116,7 +116,7 @@ def main():
         ax.set_aspect("equal", adjustable="box")   # honest 45-degree perfect line
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency")
-        ax.set_title(f"{tgt} (full_features, chrono)")
+        ax.set_title(tgt)
         ax.legend(loc="upper left")
     fig.suptitle("Reliability diagrams", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_c3_calibration"))

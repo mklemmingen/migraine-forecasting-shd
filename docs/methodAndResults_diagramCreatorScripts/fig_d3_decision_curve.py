@@ -96,8 +96,8 @@ def main():
             ax.set_ylim(ymin - 0.03, ymax + 0.03)
         ax.set_xlabel("threshold probability")
         ax.set_ylabel("net benefit")
-        ax.set_title(f"{tgt} (full_features, chrono)")
-        ax.legend(fontsize=7.5)
+        ax.set_title(tgt)
+        ax.legend(fontsize=8)
     fig.suptitle("Decision-curve analysis", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
 

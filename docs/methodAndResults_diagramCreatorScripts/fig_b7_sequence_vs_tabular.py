@@ -83,16 +83,16 @@ def main():
     x = np.arange(len(ORDER)); w = 0.38
     for i, tgt in enumerate(("headache", "migraine")):
         vals = [aurocs[tgt].get(l, np.nan) for l in ORDER]
-        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt, alpha=0.85)
+        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
         for b, v in zip(bars, vals):
             if v == v:
                 ax.text(b.get_x() + b.get_width() / 2, v + 0.005, f"{v:.2f}",
                         ha="center", fontsize=7)
-    ax.axhline(0.5, color="black", lw=0.8, ls="--")
+    S.refline(ax, y=0.5)
     ax.axvline(1.5, color=S.FAINT, lw=1, ls=":")        # tabular | sequence divider
-    ax.text(0.5, 0.83, "tabular", ha="center", fontsize=8, color="#555",
+    ax.text(0.5, 0.83, "tabular", ha="center", fontsize=8, color=S.GREY,
             transform=ax.get_xaxis_transform())
-    ax.text(3.0, 0.83, "sequence", ha="center", fontsize=8, color="#555",
+    ax.text(3.0, 0.83, "sequence", ha="center", fontsize=8, color=S.GREY,
             transform=ax.get_xaxis_transform())
     ax.set_xticks(x); ax.set_xticklabels(ORDER)
     ax.set_ylim(0.5, 0.85)

@@ -70,7 +70,7 @@ def main():
         ax.set_xticks(range(len(SITES))); ax.set_xticklabels(xticklab, fontsize=8)
         ax.set_title(f"{tgt}  (bars from O:E = 1)")
     axes[0].set_ylabel("observed / expected (O:E)")
-    axes[0].legend(fontsize=7.5, ncol=2, loc="upper center")
+    axes[0].legend(fontsize=8, ncol=2, loc="upper center")
     fig.suptitle("Calibration drift on the held-out site tracks the base-rate gap",
                  y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_e1_calibration_drift"))

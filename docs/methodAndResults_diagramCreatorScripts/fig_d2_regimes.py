@@ -69,14 +69,14 @@ def main():
         ax.plot(x, pooled_auc, "o-", color=S.TARGET[tgt], lw=1.6, label="pooled AUROC")
         ax.errorbar(x, within, yerr=[ci_lo, ci_hi], fmt="s--", color=S.SOFT, lw=1.3,
                     capsize=3, label="within-person C")
-        ax.axhline(0.5, color="black", lw=0.8, ls=":", label="chance")
+        S.refline(ax, y=0.5, ls=":", label="chance")
         ax.set_xticks(x); ax.set_xticklabels([RLAB[r] for r in REGIMES])
-        ax.set_ylim(0.45, 0.85)
+        ax.set_ylim(0.40, 0.85)
         ax.set_title(tgt)
     axes[0].set_ylabel("AUROC / C-statistic")
     axes[0].legend(fontsize=8, loc="center left")
     fig.suptitle(f"Personalisation regimes ({FEATURE_SET}): pooled gain is between-patient",
-                 y=1.02, fontsize=12)
+                 y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d2_regimes"))
 
 

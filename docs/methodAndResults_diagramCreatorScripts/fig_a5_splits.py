@@ -22,7 +22,7 @@ from matplotlib.patches import Patch
 
 HERE = Path(__file__).resolve().parent
 N_PT, N_DAY = 6, 12
-CMAP = ListedColormap(["#d9e6f2", "#fdae6b", "#b2182b"])   # train, val, test
+CMAP = ListedColormap(S.SPLIT_GRID)   # train, val, test (shared ramp from _style)
 NORM = BoundaryNorm([-0.5, 0.5, 1.5, 2.5], CMAP.N)
 
 
@@ -55,11 +55,11 @@ def main():
         for j in range(N_DAY + 1):
             ax.axvline(j - 0.5, color="white", lw=0.6)
     axes[0].set_ylabel("patients", fontsize=8)
-    fig.legend(handles=[Patch(fc="#d9e6f2", label="train"),
-                        Patch(fc="#fdae6b", label="val"),
-                        Patch(fc="#b2182b", label="test")],
+    fig.legend(handles=[Patch(fc=S.SPLIT_GRID[0], label="train"),
+                        Patch(fc=S.SPLIT_GRID[1], label="val"),
+                        Patch(fc=S.SPLIT_GRID[2], label="test")],
                loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.06))
-    fig.suptitle("Split strategies over patient-days", y=1.02, fontsize=12)
+    fig.suptitle("Split strategies over patient-days", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_a5_splits"))
 
 

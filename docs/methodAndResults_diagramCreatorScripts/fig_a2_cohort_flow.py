@@ -44,9 +44,9 @@ def main():
     S.box(ax, (8.7, 8.0), 3.0, 0.95,
           "- 1 reconciliation patient\n(38 days), excluded\nfrom site analysis",
           role="exclude", fontsize=7.5)
-    bh = S.box(ax, (2.7, 4.6), 3.4, 1.15, f"Headache target\n{hea_r:.1%} positive days",
+    bh = S.box(ax, (2.7, 4.6), 3.4, 1.15, f"Headache target\n{hea_r:.1%} of all days",
                fc=S.PALE_FILL, ec=S.TARGET["headache"])
-    bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} positive days",
+    bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} of all days",
                 fc=S.PALE_FILL, ec=S.TARGET["migraine"])
     b4 = S.box(ax, (5, 2.2), 7.6, 1.35,
                f"Chronological 70/15/15 split (identical rows across targets)\n"
@@ -58,7 +58,7 @@ def main():
     S.arrow(ax, (b2[0], b2[1] - b2[3] / 2), (bmg[0], bmg[1] + bmg[3] / 2))
     S.arrow(ax, (bh[0], bh[1] - bh[3] / 2), (b4[0] - 1.5, b4[1] + b4[3] / 2))
     S.arrow(ax, (bmg[0], bmg[1] - bmg[3] / 2), (b4[0] + 1.5, b4[1] + b4[3] / 2))
-    ax.set_title("Cohort flow", fontsize=12)
+    ax.set_title("Cohort flow")
     print(f"  {n_pt} patients, {n_rows} days; headache {hea_r:.1%}, migraine {mig_r:.1%}; "
           f"split {sizes}")
     print("saved", S.save(fig, HERE / "figures" / "fig_a2_cohort_flow"))

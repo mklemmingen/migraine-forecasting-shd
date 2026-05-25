@@ -155,6 +155,13 @@ FEATURE_SET = {"full": OI["blue"], "spano": OI["vermillion"],
 # Schematic box edge roles (guide Section 7): normal / output / exclusion.
 BOX_EDGE = {"normal": OI["blue"], "output": OI["green"], "exclude": OI["vermillion"]}
 
+# Discrete categorical ramps (single source, so A3 & A5 stop drifting). Ordered
+# light -> dark; the headache/val category is OI orange and migraine/test is the
+# canonical vermillion, so a named entity keeps its brand colour in the heatmaps.
+PALE_BLUE = "#d9e6f2"
+COVERAGE = ["#ffffff", PALE_BLUE, OI["orange"], OI["vermillion"]]   # absent, free, headache, migraine
+SPLIT_GRID = [PALE_BLUE, OI["orange"], OI["vermillion"]]            # train, val, test
+
 # Registry so a colour can be resolved by (role, name) and FAIL LOUDLY - a silent
 # None would let matplotlib fall back to black and collapse two entities to one.
 _ROLES = {"target": TARGET, "arch": ARCH, "split": SPLIT, "feature_set": FEATURE_SET}

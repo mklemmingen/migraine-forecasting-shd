@@ -36,7 +36,7 @@ def main():
         r = _rates(tgt).to_numpy()
         y = i + (rng.random(len(r)) - 0.5) * 0.5
         ax.scatter(r, y, s=22, color=S.TARGET[tgt], alpha=0.6, edgecolor="white", lw=0.4)
-        ax.plot([r.mean(), r.mean()], [i - 0.32, i + 0.32], color="black", lw=1.6)
+        ax.plot([r.mean(), r.mean()], [i - 0.32, i + 0.32], color=S.INK, lw=1.6)
         ax.text(r.mean(), i + 0.42, f"mean {r.mean():.1%}", ha="center", fontsize=8)
         print(f"  {tgt:<9} per-patient rate: min {r.min():.1%} median {np.median(r):.1%} "
               f"max {r.max():.1%} | cohort mean {r.mean():.1%}")
