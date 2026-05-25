@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
 from matplotlib_venn.layout.venn3 import cost_based
 
-from _style import apply, save
+from _style import apply, save, FEATURE_SET, OI, GREY
 
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
@@ -63,20 +63,18 @@ ENGINEERED_FEATURES = {
 
 # Plot palette - kept centralised so both Venn variants stay visually
 # consistent and the HTML legend colours match the figure.
-VENN_COLORS = {
-    'full':       '#2563eb',   # blue
-    'spano':      '#dc2626',   # red
-    'no_rolling': '#059669',   # green
-    'park':       '#a16207',   # amber - Park (2016) stepwise-selected
-}
+# Canonical feature-set hues (single source = _style.FEATURE_SET), so the Venn
+# matches every other figure: full=blue, spano=vermillion, no_rolling=green,
+# park=orange (Okabe-Ito; the vermillion+green pair is CVD-safe, unlike red+green).
+VENN_COLORS = dict(FEATURE_SET)
 # Feature-origin colours form a deliberately separate system from the
 # set hues above: a neutral grey for raw columns and one warm accent for
 # engineered ones. Neither shares a hue with the set circles (blue / red
 # / green / amber) nor with their pairwise blends (purple, cyan, olive),
 # so a reader never confuses "which set" with "which origin".
 CATEGORY_COLORS = {
-    'engineered': '#ea580c',   # orange  - derived / engineered features
-    'original':   '#475569',   # slate grey - raw SHD column or 1:1 rename
+    'engineered': OI["purple"],  # purple - distinct from the set hues (incl. park orange)
+    'original':   GREY,          # neutral grey - raw SHD column or 1:1 rename
 }
 
 

@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
-from _style import apply, save
+from _style import apply, save, OI, GREY
 
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
@@ -217,16 +217,21 @@ def _short_arch_label(arch_tuple):
 # "what's a tuning variant". This addresses the core readability problem
 # of matplotlib's tab10/tab20 cycles when k >= 10: similar shades
 # scattered across unrelated competitors.
+# Okabe-Ito family anchors (brand: XGBoost-stack family = green, TabPFN family =
+# purple, matching _style.ARCH in the custom figures). Cross-family separation is
+# by hue (green/purple/vermillion); WITHIN-family tiers separate by the
+# brightness gradient + per-member marker + per-family line style below. The line
+# end-labels carry the exact variant name, so hue need only group families.
 _FAMILY_ANCHORS = {
-    "stacked_NonHP":             "#1f1f1f",   # near-black: canonical XGBoost stack
-    "stacked_single_AUROC":      "#d62728",   # red gradient -> 5 budget tiers
-    "stacked_pareto_AUROC":      "#2ca02c",   # green gradient -> 3 frontier picks
-    "stacked_pareto_AUPRC":      "#9467bd",   # purple gradient -> 3 frontier picks
-    "tabpfn_v2_5_family":        "#17becf",   # teal: v2-5 sub-family (real, finetuned, auto)
-    "tabpfn_v2_6":               "#1f77b4",   # blue: v2-6 standalone
-    "tabpfn_v3_family":          "#0b3d77",   # deep navy: v3 sub-family (default, binary)
-    "blended":                   "#ff7f0e",   # orange: Spano replicator
-    "other":                     "#7f7f7f",   # grey fallback
+    "stacked_NonHP":             OI["green"],       # canonical XGBoost stack (= ARCH)
+    "stacked_single_AUROC":      OI["green"],       # XGBoost-stack family
+    "stacked_pareto_AUROC":      OI["green"],
+    "stacked_pareto_AUPRC":      OI["green"],
+    "tabpfn_v2_5_family":        OI["purple"],      # TabPFN family (= ARCH)
+    "tabpfn_v2_6":               OI["purple"],
+    "tabpfn_v3_family":          OI["purple"],
+    "blended":                   OI["vermillion"],  # Spano replicator
+    "other":                     GREY,
 }
 
 _FAMILY_LINESTYLE = {
