@@ -13,10 +13,19 @@ The ``_``-prefixed directories (``_eval``, ``_templates``, etc.) are
 skipped so this discovery does not pick up template scaffolds or
 runner-output directories.
 """
+import csv
 from pathlib import Path
 
 RED   = "\033[91m"
 RESET = "\033[0m"
+
+# Canonical experiment-path dimensions, in the order ``parse_path`` emits
+# them and ``run_aggregate_results._write_csv`` writes them. Shared so the
+# CSV writer and the CSV reader agree on the column contract by construction.
+PATH_DIMS = (
+    "addition", "target", "feature_set", "architecture", "version",
+    "datasplit", "splittype", "hyperparameter", "hp_strategy", "hp_variant",
+)
 
 
 def find_results_dirs(experiment_dir):
@@ -175,3 +184,50 @@ def warn_na(entry):
         for key, val in metrics.items():
             if val is None:
                 print(f"{RED}WARNING: N/A - '{key}' missing in {label}: {path_str}{RESET}")
+
+
+def latest_comparison_csv(experiment_dir):
+    """Return the newest ``comparison_*.csv`` under ``experiment_dir``, or
+    None when no aggregate run has produced one yet.
+
+    Filenames embed a sortable ``YYYYMMDDTHHMMSS`` stamp, so lexical sort
+    yields chronological order and ``[-1]`` is the most recent snapshot.
+    """
+    files = sorted(Path(experiment_dir).glob("comparison_*.csv"))
+    return files[-1] if files else None
+
+
+def entries_from_csv(csv_path):
+    """Reconstruct the aggregator's ``all_entries`` list from a frozen
+    ``comparison_*.csv``.
+
+    Each row becomes ``{"path": {...dims}, "holdout": {...}|None,
+    "cv": {...}|None}`` - the exact shape the figure generators consume, so
+    they render from a pinned results snapshot rather than re-walking the
+    live ``experiment/`` tree. Two normalisations preserve the in-memory
+    semantics: empty path cells become None (so the tree builder skips
+    absent levels instead of drawing blank nodes), and a metric block that
+    is entirely empty collapses to None (so the holdout>cv source
+    preference in ``build_metric_matrix`` still fires).
+
+    Feature *names* are not a CSV column, so the Venn figures read them
+    from the filesystem (``compute_feature_sets``) rather than from here.
+    """
+    def _block(row, prefix, ts_col):
+        return {
+            k[len(prefix):]: (v or None)
+            for k, v in row.items()
+            if k.startswith(prefix) and k != ts_col
+        }
+
+    entries = []
+    with Path(csv_path).open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            holdout = _block(row, "holdout_", "holdout_ts")
+            cv      = _block(row, "cv_",      "cv_ts")
+            entries.append({
+                "path":    {k: (row.get(k) or None) for k in PATH_DIMS},
+                "holdout": holdout if any(holdout.values()) else None,
+                "cv":      cv      if any(cv.values())      else None,
+            })
+    return entries

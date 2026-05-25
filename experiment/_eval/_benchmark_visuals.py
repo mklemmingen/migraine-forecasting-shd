@@ -802,88 +802,53 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     plt.close(fig)
 
 
-def render_benchmark_triplet(all_entries, metric_key, target, out_dir,
-                             ts_flat, short_uid,
-                             metric_label=None,
-                             higher_is_better=True,
-                             restrict_feature_sets=None,
-                             cv_alias=None,
-                             label_fn=None):
-    """Generate CD + performance-profile + slopegraph for one
-    (metric, target) pair and return the produced filenames as a dict.
+def prepare_benchmark(all_entries, metric_key, target,
+                      higher_is_better=True,
+                      restrict_feature_sets=None,
+                      cv_alias=None,
+                      label_fn=None):
+    """Build the coverage-filtered metric matrix, architecture labels, and
+    Friedman/Nemenyi result for one (metric, target) - the shared input
+    that the critical-difference, performance-profile, and rank-slopegraph
+    renderers all draw from.
 
-    Returns empty dict (and prints a note) when the matrix has fewer
-    than 2 complete cells - the three plots all require matched
-    multi-cell data.
+    Sparse-coverage architectures (per-cell coverage < 0.7) are dropped
+    once here so all three views see the same matched-design subset: the
+    Friedman test requires every classifier on every cell, and without the
+    filter the perf-profile and slopegraph would compute their stats on the
+    few cells where *every* listed architecture has a value, collapsing to
+    ~2 cells when even one architecture (e.g. AutoTabPFN, scaffolded to a
+    subset of cells) has incomplete coverage.
+
+    Returns None when fewer than two architectures survive the coverage
+    filter; otherwise a dict with the kept matrix, kept architecture tuples
+    and their short labels, the cell labels, the dropped-architecture
+    labels, the ``friedman_nemenyi`` tuple (or None when the Nemenyi table
+    has no entry for k), and ``higher_is_better``.
     """
     matrix, cell_labels, arch_labels = build_metric_matrix(
         all_entries, metric_key, target,
         restrict_feature_sets=restrict_feature_sets,
         cv_alias=cv_alias,
     )
-    label_fn = label_fn or _short_arch_label
+    if matrix.shape[0] == 0:
+        return None
+    label_fn  = label_fn or _short_arch_label
     arch_text = [label_fn(a) for a in arch_labels]
 
-    out = {}
-    mlabel = metric_label or metric_key
-    base = f"{target}_{metric_label or metric_key}".replace(" ", "_")
-
-    # Drop sparse-coverage architectures once at the top so all three
-    # views (CD, performance profile, slopegraph) see the same
-    # matched-design subset. Without this filter the perf-profile and
-    # slopegraph would compute their stats on the few cells where
-    # *every* listed architecture has a value, which collapses to ~2
-    # cells when even one architecture (e.g. AutoTabPFN, scaffolded
-    # to a subset of cells) has incomplete coverage.
-    n_total_cells = matrix.shape[0]
-    if n_total_cells == 0:
-        return out
-    coverage = (~np.isnan(matrix)).sum(axis=0) / float(n_total_cells)
+    coverage    = (~np.isnan(matrix)).sum(axis=0) / float(matrix.shape[0])
     kept_idx    = [j for j, c in enumerate(coverage) if c >= 0.7]
     dropped_idx = [j for j, c in enumerate(coverage) if c < 0.7]
     if len(kept_idx) < 2:
-        return out
+        return None
 
-    matrix_kept   = matrix[:, kept_idx]
-    arch_kept     = [arch_labels[j] for j in kept_idx]
-    text_kept     = [arch_text[j]   for j in kept_idx]
-    dropped_text  = [arch_text[j]   for j in dropped_idx]
-
-    # CD diagram (skips quietly when k is outside the Nemenyi table or
-    # there are fewer than 2 complete cells).
-    nem = friedman_nemenyi(matrix_kept, higher_is_better=higher_is_better)
-    if nem is not None:
-        mean_ranks, cd, p_value, n_cells, _, _kept2, _dropped2 = nem
-        cd_path = out_dir / f"cd_{base}_{ts_flat}_{short_uid}.png"
-        render_cd_diagram(
-            mean_ranks, cd, text_kept, cd_path,
-            title=f"Critical Difference - {target} {mlabel}",
-            p_value=p_value, n_cells=n_cells,
-            arch_tuples=arch_kept,
-            dropped_archs=dropped_text,
-        )
-        out["cd"] = cd_path.name
-
-    # Performance profile (uses the same coverage-filtered architecture set).
-    pp_path = out_dir / f"perfprofile_{base}_{ts_flat}_{short_uid}.png"
-    render_performance_profile(
-        matrix_kept, text_kept, pp_path,
-        title=f"Performance profile (Dolan-More) - {target} {mlabel}",
-        higher_is_better=higher_is_better,
-        arch_tuples=arch_kept,
-        dropped_archs=dropped_text,
-    )
-    out["perfprofile"] = pp_path.name
-
-    # Slopegraph (same subset).
-    sg_path = out_dir / f"slopegraph_{base}_{ts_flat}_{short_uid}.png"
-    render_rank_slopegraph(
-        matrix_kept, cell_labels, text_kept, sg_path,
-        title=f"Rank slopegraph - {target} {mlabel}",
-        higher_is_better=higher_is_better,
-        arch_tuples=arch_kept,
-        dropped_archs=dropped_text,
-    )
-    out["slopegraph"] = sg_path.name
-
-    return out
+    matrix_kept = matrix[:, kept_idx]
+    return {
+        "matrix_kept":      matrix_kept,
+        "arch_kept":        [arch_labels[j] for j in kept_idx],
+        "text_kept":        [arch_text[j]   for j in kept_idx],
+        "cell_labels":      cell_labels,
+        "dropped_text":     [arch_text[j]   for j in dropped_idx],
+        "nem":              friedman_nemenyi(matrix_kept, higher_is_better=higher_is_better),
+        "higher_is_better": higher_is_better,
+    }

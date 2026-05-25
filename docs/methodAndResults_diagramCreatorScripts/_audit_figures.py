@@ -24,18 +24,28 @@ NAMED = re.compile(r"""color\s*=\s*["'](black|grey|gray|red|green|blue|orange|""
 # but should still migrate to named _style constants.
 HEATMAP_LIKE = {"fig_a3_coverage", "fig_a5_splits"}
 
+# Generator modules under experiment/_eval that own their own _style contract
+# (apply/save/palette). A fig_*.py that imports one of these and does no inline
+# plotting is a delegating wrapper: the structural checks below are enforced one
+# layer down, so this lint only applies the colour-literal and raw-save guards.
+GENERATOR_MODULES = ("_benchmark_visuals", "_venn_diagrams", "_tree_diagram")
+
 
 def _check(path: Path) -> dict:
     src = path.read_text()
     name = path.stem
     findings = []  # (severity, code, message)
 
-    if "import _style as S" not in src:
-        findings.append(("FAIL", "import", "does not `import _style as S`"))
-    if "S.apply()" not in src:
-        findings.append(("FAIL", "apply", "never calls S.apply()"))
-    if "S.save(" not in src:
-        findings.append(("FAIL", "save", "does not save via S.save() (PDF+PNG contract)"))
+    delegated = (any(f"from {m} import" in src for m in GENERATOR_MODULES)
+                 and "plt.subplots(" not in src)
+
+    if not delegated:
+        if "import _style as S" not in src:
+            findings.append(("FAIL", "import", "does not `import _style as S`"))
+        if "S.apply()" not in src:
+            findings.append(("FAIL", "apply", "never calls S.apply()"))
+        if "S.save(" not in src:
+            findings.append(("FAIL", "save", "does not save via S.save() (PDF+PNG contract)"))
     if re.search(r"\b(fig|plt)\.savefig\(", src):
         findings.append(("FAIL", "raw-save", "calls savefig() directly, bypassing S.save()"))
 
@@ -49,6 +59,9 @@ def _check(path: Path) -> dict:
     if named:
         findings.append(("FAIL", "named-colour",
                          f"literal colour name(s) {named} - use S.* colours"))
+
+    if delegated:
+        return {"name": name, "findings": findings, "delegated": True}
 
     # figure width: every figsize=(W, H) should be a column width (3.5 or 7.2 in)
     for w, h in re.findall(r"figsize=\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\)", src):
@@ -76,7 +89,7 @@ def _check(path: Path) -> dict:
     if re.search(r"ax\w*\.ax[hv]line\([^)]*(black|--|':'|\"--\")", src) and "S.refline(" not in src:
         findings.append(("WARN", "refline", "hand-rolled reference line; prefer S.refline()"))
 
-    return {"name": name, "findings": findings}
+    return {"name": name, "findings": findings, "delegated": False}
 
 
 def main():
@@ -90,7 +103,8 @@ def main():
         fails += len(fa)
         status = "PASS" if not fa else f"FAIL({len(fa)})"
         extra = f" warn({len(wa)})" if wa else ""
-        print(f"{status:<8}{extra:<10} {r['name']}")
+        tag = " [wrapper]" if r.get("delegated") else ""
+        print(f"{status:<8}{extra:<10} {r['name']}{tag}")
         for sev, code, msg in r["findings"]:
             print(f"         {sev:<5} [{code}] {msg}")
     print("=" * 64)
