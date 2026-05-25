@@ -87,12 +87,15 @@ def _arch_predict(leaf: Path, held: str, addition: str):
 
 
 def _record(rows, model, target, feature_set, held, train_rate,
-            y_val, p_val, y_test, p_test, pid):
-    """Emit the standard contract and append the transport-metrics row."""
-    out_dir = HERE / target / feature_set / model / "external" / f"site_{held}"
-    RG.emit_holdout_results(str(out_dir), f"ROUTE A / {feature_set} / {model} / site_{held}",
-                            pd.Series(np.asarray(y_val, dtype=float)), np.asarray(p_val, dtype=float),
-                            pd.Series(np.asarray(y_test, dtype=float)), np.asarray(p_test, dtype=float))
+            y_val, p_val, y_test, p_test, pid, emit=True):
+    """Append the transport-metrics row; emit the standard contract unless emit is
+    False (the figure pass regenerates only the summary CSV, without re-writing the
+    already-committed results_*.txt cells)."""
+    if emit:
+        out_dir = HERE / target / feature_set / model / "external" / f"site_{held}"
+        RG.emit_holdout_results(str(out_dir), f"ROUTE A / {feature_set} / {model} / site_{held}",
+                                pd.Series(np.asarray(y_val, dtype=float)), np.asarray(p_val, dtype=float),
+                                pd.Series(np.asarray(y_test, dtype=float)), np.asarray(p_test, dtype=float))
     y = np.asarray(y_test, dtype=float); p = np.asarray(p_test, dtype=float)
     pid = np.asarray(pid).astype(str)
     within = WP.within_person_cstatistic(WP.per_patient_scores(y, p, pid, WP.MIN_POS))
@@ -127,7 +130,7 @@ def default_leaves() -> dict:
     return out
 
 
-def run_cell(target: str, feature_set: str, leaves: list) -> list:
+def run_cell(target: str, feature_set: str, leaves: list, emit: bool = True) -> list:
     df = SITE.attach_site(load_raw(
         str(REPO / "data" / "processed" / target / "diary_cv5_timeseries.parquet"),
         loader=LOADERS.get(feature_set))).dropna(subset=["site"])
@@ -149,30 +152,31 @@ def run_cell(target: str, feature_set: str, leaves: list) -> list:
         # cold-start result - personalisation cannot transfer to a new patient).
         p_val, p_test = RG.pooled(tr, ca, test, fc)
         _record(rows, "pooled_lr", target, feature_set, held, train_rate,
-                ca[TARGET_COL], p_val, test[TARGET_COL], p_test, test["patient_id"])
+                ca[TARGET_COL], p_val, test[TARGET_COL], p_test, test["patient_id"], emit=emit)
         for leaf in leaves:
             add = leaf.relative_to(EXP).parts[0]
             z = _arch_predict(leaf, held, add)
             if z is None:
                 continue
             _record(rows, ARCH_LABEL[add], target, feature_set, held, train_rate,
-                    z["y_val"], z["p_val"], z["y_test"], z["p_test"], z["pid_test"])
+                    z["y_val"], z["p_val"], z["y_test"], z["p_test"], z["pid_test"], emit=emit)
     return rows
 
 
-def main(feature_set: str = "full_features"):
+def main(feature_set: str = "full_features", emit: bool = True):
     leaves = default_leaves()
     rows = []
     for target in ("headache", "migraine"):
-        rows += run_cell(target, feature_set, leaves.get(target, []))
+        rows += run_cell(target, feature_set, leaves.get(target, []), emit=emit)
     if rows:
         ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
         out = HERE / f"external_site_summary_{ts}.csv"
         pd.DataFrame(rows).to_csv(out, index=False)
         print(f"\nSaved summary: {out}")
-        print("Site-holdout cells emit the standard contract -> comparison_*.html "
-              "(datasplit=external, splittype=site_<held>)")
+        if emit:
+            print("Site-holdout cells emit the standard contract -> comparison_*.html "
+                  "(datasplit=external, splittype=site_<held>)")
 
 
 if __name__ == "__main__":
-    main()
+    main(emit="--no-emit" not in sys.argv)
