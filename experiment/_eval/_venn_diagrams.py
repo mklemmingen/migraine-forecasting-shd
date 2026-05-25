@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
 from matplotlib_venn.layout.venn3 import cost_based
 
-from _figstyle import apply_journal_style, save_journal_figure
+from _style import apply, save
 
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
@@ -216,12 +216,12 @@ def generate_count_venn_png(feature_sets, out_path):
     """Render a 3-set Venn showing region counts, split by engineered
     vs original SHD columns.
     """
-    apply_journal_style()
+    apply()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
 
-    apply_journal_style()
+    apply()
     fig, ax = plt.subplots(figsize=(9.5, 9.0))
     layout = cost_based.LayoutAlgorithm()
     v = venn3(
@@ -292,7 +292,7 @@ def generate_count_venn_png(feature_sets, out_path):
     _park_sidebar(ax, feature_sets.get("park", set()), full, _count_lines)
 
     plt.tight_layout()
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
@@ -384,13 +384,13 @@ def generate_names_venn_png(feature_sets, out_path):
     the names into a dedicated panel makes every name individually
     legible and non-overlapping.
     """
-    apply_journal_style()
+    apply()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
     regions    = _build_venn_regions(full, spano, no_rolling)
 
-    apply_journal_style()
+    apply()
     fig, (ax_venn, ax_list) = plt.subplots(
         1, 2, figsize=(15, 8.5), gridspec_kw={"width_ratios": [1.0, 1.05]},
     )
@@ -441,5 +441,5 @@ def generate_names_venn_png(feature_sets, out_path):
     fig.suptitle("Feature-set inclusion - every feature name, colour-coded by origin",
                  fontsize=14, y=0.94)
     plt.tight_layout(rect=[0, 0.06, 1, 0.91])
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
