@@ -406,14 +406,18 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # begin immediately under that band (plus the optional all-tie note),
     # so there is no fixed vertical dead band between the rank line and
     # the labels however many clique levels there are.
-    clique_step = 0.18
+    clique_step = 0.26   # generous separation so stacked clique bars stay distinct
     clique_base = top_y + 0.13
     single_full_clique = (len(cliques) == 1 and cliques[0] == (0, k - 1))
+    # When the Friedman omnibus is not significant, the mean-rank ladder is
+    # descriptive only (no pairwise difference is supported); the diagram
+    # de-emphasises the ladder and states this prominently (see below).
+    omnibus_sig = (p_value is None) or (p_value < 0.05)
     clique_band_top = clique_base + clique_step * max(len(cliques), 1)
     first_row_y = clique_band_top + (0.70 if single_full_clique else 0.40)
     bottom_y = first_row_y + (rows_per_side - 1) * pitch
 
-    fig_h = 2.6 + 0.40 * rows_per_side
+    fig_h = 2.6 + 0.40 * (bottom_y - top_y)   # tracks rows AND the clique band
     fig, ax = plt.subplots(figsize=(11.5, fig_h))
     # Wide outer margins so the side labels, which grow outward from the
     # elbow toward the plot edge, have room; bbox_inches="tight" crops the
@@ -448,6 +452,8 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     x_elbow_right = 1.0             # right edge (near rank 1)
     x_elbow_left  = float(k)        # left edge (near worst rank)
     text_gap = 0.55
+    conn_alpha = 1.0 if omnibus_sig else 0.45        # fade the ladder if non-sig
+    lbl_color = text_dark if omnibus_sig else "#9a9a9a"
 
     def _draw_side(row_indices, side):
         for row, r in enumerate(row_indices):
@@ -464,21 +470,21 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             # elbow. Rounded joins keep the corner clean; the dark label
             # text (higher zorder) still reads on top where they meet.
             ax.plot([rank, rank, x_elbow], [top_y, y, y],
-                    "-", lw=1.7, color=color, alpha=1.0, zorder=2,
+                    "-", lw=1.7, color=color, alpha=conn_alpha, zorder=2,
                     solid_capstyle="round", solid_joinstyle="round")
             # Endpoint dot where the connector meets its label.
             ax.plot([x_elbow], [y], marker="o", ms=4.5, color=color,
-                    zorder=3)
+                    alpha=conn_alpha, zorder=3)
             # Text sits beyond the elbow, growing outward toward the plot
             # edge so it never overlaps the connector lines or the marker.
             # On the inverted axis the right column grows toward smaller x
             # and the left column toward larger x.
             if side == "right":
                 ax.text(x_elbow - text_gap, y, label, va="center",
-                        ha="left", fontsize=9, color=text_dark, zorder=4)
+                        ha="left", fontsize=9, color=lbl_color, zorder=4)
             else:
                 ax.text(x_elbow + text_gap, y, label, va="center",
-                        ha="right", fontsize=9, color=text_dark, zorder=4)
+                        ha="right", fontsize=9, color=lbl_color, zorder=4)
 
     _draw_side(right_idx, "right")
     _draw_side(left_idx, "left")
@@ -490,16 +496,22 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     for level, (lo, hi) in enumerate(cliques):
         y = clique_base + clique_step * level
         ax.plot([sorted_ranks[lo] - 0.06, sorted_ranks[hi] + 0.06],
-                [y, y], "-", color=text_dark, lw=5.5,
+                [y, y], "-", color=text_dark, lw=3.2,
                 solid_capstyle="round", zorder=5)
-    if len(cliques) == 1 and cliques[0] == (0, k - 1):
-        ax.text(
-            (sorted_ranks[0] + sorted_ranks[-1]) / 2.0,
-            clique_base + clique_step * len(cliques) + 0.34,
-            "no pair significantly different at alpha=0.05",
-            ha="center", va="top", fontsize=9, style="italic",
-            color="#444444", zorder=4,
-        )
+    banner_y = clique_base + clique_step * len(cliques) + 0.30
+    if not omnibus_sig:
+        # Make non-significance the dominant message so the ranked ladder
+        # cannot be screenshot/misread as "X is significantly best".
+        ax.text((1 + k) / 2.0, banner_y,
+                f"Friedman omnibus NOT significant (p = {p_value:.3f}) - mean-rank order "
+                "below is descriptive only; no pairwise difference is significant",
+                ha="center", va="top", fontsize=10.5, fontweight="bold",
+                color=OI["vermillion"], zorder=6)
+    elif single_full_clique:
+        ax.text((1 + k) / 2.0, banner_y,
+                "no pair significantly different (Nemenyi, alpha=0.05)",
+                ha="center", va="top", fontsize=9.5, style="italic",
+                color="#444444", zorder=4)
 
     # CD scale bar just above the rank numbers, anchored at rank 1, so the
     # critical-difference span reads against the same scale without a gap.
