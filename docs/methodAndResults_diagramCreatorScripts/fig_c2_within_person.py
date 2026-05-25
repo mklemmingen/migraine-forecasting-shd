@@ -70,8 +70,8 @@ def _panel(ax, tgt, y, p, pid):
         r.auroc, int(r.n_pos), int(r.n - r.n_pos))) for r in est.itertuples()])
     ax.errorbar(x, est["auroc"], yerr=err, fmt="o", ms=3, lw=0.5,
                 color=S.TARGET[tgt], alpha=0.6, ecolor=S.FAINT, capsize=0)
-    ax.axhspan(within["ci_low"], within["ci_high"], color="grey", alpha=0.18, zorder=0)
-    ax.axhline(0.5, color="black", lw=0.8, ls="--", label="chance (0.5)")
+    ax.axhspan(within["ci_low"], within["ci_high"], color=S.GREY, alpha=S.CI_ALPHA, zorder=0)
+    S.refline(ax, y=0.5, label="chance (0.5)")
     ax.axhline(within["estimate"], color=S.SOFT, lw=1.5,
                label=f"within-person C {within['estimate']:.2f}")
     ax.axhline(pooled, color=S.ARCH["TabPFN"], lw=1.6,

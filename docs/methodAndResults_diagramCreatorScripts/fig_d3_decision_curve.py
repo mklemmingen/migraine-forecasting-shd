@@ -75,26 +75,30 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3))
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
+    mark = {"XGBoost stack": "o", "TabPFN": "s", "window-MLP": "^"}  # CVD/grayscale reinforcement
     for ax, tgt in zip(axes, ("headache", "migraine")):
         ref = None
+        ymin = ymax = 0.0
         for label, leaf in leaves[tgt]:
             r = _predict(leaf)
             if r is None:
                 continue
             dc = DC.decision_curve(*r)
             ref = dc
-            ax.plot(dc["thresholds"], dc["model"], lw=1.6, color=S.ARCH.get(label),
-                    label=label)
+            ax.plot(dc["thresholds"], dc["model"], lw=1.6, color=S.arch_color(label),
+                    marker=mark.get(label, "o"), markevery=8, markersize=4, label=label)
+            ymin = min(ymin, float(dc["model"].min())); ymax = max(ymax, float(dc["model"].max()))
             print(f"  {tgt:<9} {label:<13} max net benefit {np.max(dc['model']):.3f}")
         if ref is not None:
-            ax.plot(ref["thresholds"], ref["treat_all"], "--", color="grey", lw=1, label="treat all")
-            ax.plot(ref["thresholds"], ref["treat_none"], ":", color="black", lw=1, label="treat none")
-            ax.set_ylim(bottom=min(-0.01, float(ref["treat_all"].min())))
+            ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.GREY, lw=1, label="treat all")
+            ax.plot(ref["thresholds"], ref["treat_none"], ":", color=S.REF_COLOR, lw=1, label="treat none")
+            # scale to the model curves (the message); treat-all may clip below
+            ax.set_ylim(ymin - 0.03, ymax + 0.03)
         ax.set_xlabel("threshold probability")
         ax.set_ylabel("net benefit")
         ax.set_title(f"{tgt} (full_features, chrono)")
         ax.legend(fontsize=7.5)
-    fig.suptitle("Decision-curve analysis", y=1.02, fontsize=12)
+    fig.suptitle("Decision-curve analysis", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
 
 

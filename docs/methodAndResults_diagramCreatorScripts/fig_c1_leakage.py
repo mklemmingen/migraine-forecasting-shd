@@ -72,10 +72,14 @@ def main():
         pts.sort()
         xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
         ax.plot(xs, ys, "o-", color=S.TARGET[tgt], label=tgt, lw=1.5, ms=6)
+        placed = {}   # labels at a shared x (e.g. no_rolling & park both at 0) stagger apart
         for x, y, lab in pts:
-            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(6, 4),
-                        fontsize=7, color=S.TARGET[tgt])
-    ax.axhline(0, color="black", lw=0.8, ls="--")
+            k = placed.get(x, 0); placed[x] = k + 1
+            dy = (7 + 14 * k) if tgt == "headache" else -(7 + 14 * k)  # split targets up/down
+            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(8, dy),
+                        fontsize=7, color=S.TARGET[tgt], va="center")
+    ax.set_ylim(bottom=-0.05)   # headroom for the staggered x=0 cluster labels
+    S.refline(ax, y=0)
     ax.set_xlabel("history (lag / rolling) features in set")
     ax.set_ylabel("stratified - chronological AUROC")
     ax.set_title("Stratified-split optimism scales with history features")

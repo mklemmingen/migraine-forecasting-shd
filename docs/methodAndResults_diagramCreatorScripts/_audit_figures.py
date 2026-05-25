@@ -14,7 +14,11 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-HEX = re.compile(r"#[0-9A-Fa-f]{6}")
+HEX = re.compile(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b")   # 6- and 3-digit literals
+# named matplotlib colours used as a literal colour= argument (white allowed for
+# marker edges); these bypass the _style palette just like hex does.
+NAMED = re.compile(r"""color\s*=\s*["'](black|grey|gray|red|green|blue|orange|"""
+                   r"""purple|pink|brown|cyan|magenta|yellow|navy|teal)["']""")
 # figures whose categorical heatmap/grid legitimately needs discrete fills not in
 # the qualitative palette (guide Section 7); inline hex there is WARN, not FAIL,
 # but should still migrate to named _style constants.
@@ -35,12 +39,16 @@ def _check(path: Path) -> dict:
     if re.search(r"\b(fig|plt)\.savefig\(", src):
         findings.append(("FAIL", "raw-save", "calls savefig() directly, bypassing S.save()"))
 
-    # inline hex (allow the ones inside string of a comment? keep simple: any code hex)
+    # inline hex (6- or 3-digit) and named colour= literals both bypass the palette
     hexes = sorted(set(HEX.findall(src)))
     if hexes:
         sev = "WARN" if name in HEATMAP_LIKE else "FAIL"
         findings.append((sev, "inline-hex",
                          f"{len(hexes)} inline hex literal(s) {hexes[:6]} - use S.* colours"))
+    named = sorted(set(NAMED.findall(src)))
+    if named:
+        findings.append(("FAIL", "named-colour",
+                         f"literal colour name(s) {named} - use S.* colours"))
 
     # figure width: every figsize=(W, H) should be a column width (3.5 or 7.2 in)
     for w, h in re.findall(r"figsize=\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\)", src):

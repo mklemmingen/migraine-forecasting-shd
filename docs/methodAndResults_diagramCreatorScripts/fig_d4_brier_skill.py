@@ -99,13 +99,13 @@ def main():
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):
         vals = [skills[tgt].get(l, np.nan) for l in labels]
-        ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt, alpha=0.85)
-    ax.axhline(0, color="black", lw=1)
+        ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
+    ax.axhline(0, color=S.REF_COLOR, lw=1)
     ax.set_xticks(x); ax.set_xticklabels(labels)
     ax.set_ylabel("Brier skill vs per-patient climatology")
     ax.set_title("Probabilistic value over the patient base rate")
     ax.text(0.02, 0.04, "below 0 = worse than predicting the patient's own base rate",
-            transform=ax.transAxes, fontsize=7.5, style="italic", color="#555")
+            transform=ax.transAxes, fontsize=7.5, style="italic", color=S.GREY)
     ax.legend(title="target")
     print("saved", S.save(fig, HERE / "figures" / "fig_d4_brier_skill"))
 
