@@ -1,11 +1,21 @@
-"""Feature-set Venn diagrams for the comparison report.
+"""Feature-set inclusion diagrams for the comparison report.
+
+The three engineered sets nest: ``spano`` and ``no_rolling`` are strict
+subsets of ``full`` (each is ``full`` with columns removed), so a
+three-circle Venn would be the wrong chart type - it always draws three
+mutually-overlapping circles and would show ``spano`` / ``no_rolling``
+bulging outside ``full`` into regions that are empty. These figures use a
+**nested Euler** layout instead: ``full`` is the outer container and the
+two subsets are drawn wholly inside it, overlapping each other. The layout
+is schematic (circle areas are not to scale); the exact sizes live in the
+region-count labels.
 
 Two PNG variants:
 
-- :func:`generate_count_venn_png`: 3-set Venn with region counts split
-  into engineered vs original SHD columns.
-- :func:`generate_names_venn_png`: same regions but every feature name
-  is rendered in-place, colour-coded by origin.
+- :func:`generate_count_venn_png`: region counts split into engineered vs
+  original SHD columns.
+- :func:`generate_names_venn_png`: the same structure with every feature
+  name listed in a side panel, colour-coded by origin.
 
 The Park (2016) [Tab. 4] stepwise-selected subset is shown as a sidebar
 rather than a 4th circle because it is a near-strict subset of ``full``
@@ -21,10 +31,9 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib_venn import venn3, venn3_circles
-from matplotlib_venn.layout.venn3 import cost_based
+from matplotlib.patches import Circle
 
-from _style import apply, save
+from _style import apply, save, FEATURE_SET, OI, GREY, INK, SOFT, FAINT
 
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
@@ -63,20 +72,18 @@ ENGINEERED_FEATURES = {
 
 # Plot palette - kept centralised so both Venn variants stay visually
 # consistent and the HTML legend colours match the figure.
-VENN_COLORS = {
-    'full':       '#2563eb',   # blue
-    'spano':      '#dc2626',   # red
-    'no_rolling': '#059669',   # green
-    'park':       '#a16207',   # amber - Park (2016) stepwise-selected
-}
+# Canonical feature-set hues (single source = _style.FEATURE_SET), so the Venn
+# matches every other figure: full=blue, spano=vermillion, no_rolling=green,
+# park=orange (Okabe-Ito; the vermillion+green pair is CVD-safe, unlike red+green).
+VENN_COLORS = dict(FEATURE_SET)
 # Feature-origin colours form a deliberately separate system from the
 # set hues above: a neutral grey for raw columns and one warm accent for
 # engineered ones. Neither shares a hue with the set circles (blue / red
 # / green / amber) nor with their pairwise blends (purple, cyan, olive),
 # so a reader never confuses "which set" with "which origin".
 CATEGORY_COLORS = {
-    'engineered': '#ea580c',   # orange  - derived / engineered features
-    'original':   '#475569',   # slate grey - raw SHD column or 1:1 rename
+    'engineered': OI["purple"],  # purple - distinct from the set hues (incl. park orange)
+    'original':   GREY,          # neutral grey - raw SHD column or 1:1 rename
 }
 
 
@@ -125,8 +132,10 @@ def _split_by_category(features):
 
 
 def _build_venn_regions(full, spano, no_rolling):
-    """The seven non-empty regions of a three-set Venn, keyed by the
-    matplotlib_venn region ID convention (``'100'`` = only-A, etc.).
+    """The seven regions of three sets (full=A, spano=B, no_rolling=C),
+    keyed by a binary membership ID: ``'100'`` = in-A-only, ``'110'`` =
+    in-A-and-B-not-C, ``'111'`` = in all three, etc. With these nested sets
+    only '100', '110', '101', '111' are non-empty.
     """
     return {
         '100': full - spano - no_rolling,
@@ -139,53 +148,63 @@ def _build_venn_regions(full, spano, no_rolling):
     }
 
 
-# Auto-placement breaks for nested subsets (spano subset of full,
-# no_rolling subset of full); the default solver emits "Bad circle
-# positioning" and sometimes hides labels. Pin to fixed positions.
-_SET_LABEL_POSITIONS = {
-    'full':       (-0.65,  0.45),
-    'spano':       (0.65,  0.45),
-    'no_rolling':  (0.00, -0.65),
+# Schematic nested-Euler geometry. spano and no_rolling are strict subsets of
+# full (verified: the spano-only, no_rolling-only, and spano-no_rolling-outside-
+# full regions are all empty), so both are drawn as circles wholly inside the
+# full circle and overlapping each other. Circle AREAS are schematic, not to
+# scale - the region labels carry the exact counts; the geometry carries only
+# the (correct) containment + mutual-overlap topology. Positions are tuned so
+# each region label lands unambiguously inside its own region.
+_EULER = {
+    'full':       (0.00, 0.00, 1.00),   # (cx, cy, r) - outer container, outline only
+    'spano':      (-0.27, 0.05, 0.60),  # inner subset, left
+    'no_rolling': (0.27, 0.05, 0.56),   # inner subset, right
 }
-_SET_LABEL_POSITIONS_NAMES_VARIANT = {
-    'full':       (-0.45,  0.50),
-    'spano':       (0.55,  0.50),
-    'no_rolling':  (0.00, -0.60),
+_EULER_REGION_XY = {
+    '100': (0.00, 0.78),    # full only (top annulus)
+    '110': (-0.52, 0.05),   # spano, not no_rolling (left lobe)
+    '101': (0.52, 0.05),    # no_rolling, not spano (right lobe)
+    '111': (0.00, 0.05),    # all three (centre lens)
+}
+_EULER_SET_LABEL = {
+    'full':       (0.00, 1.12, 'center', 'bottom'),
+    'spano':      (-1.08, 0.05, 'right', 'center'),
+    'no_rolling': (1.08, 0.05, 'left', 'center'),
 }
 
 
-def _pin_set_labels(venn, positions, fontsize, color_lookup):
-    """Move the three set labels to known-good positions, recolour, and
-    bold them so they match the circle they describe.
+def _draw_nested_euler(ax, regions, set_sizes, region_label_fn):
+    """Draw the schematic nested-Euler diagram (full outer; spano and
+    no_rolling inner, overlapping) and label the four non-empty regions.
+
+    ``region_label_fn(region_id, features)`` returns the text for each region
+    (count only, or count plus engineered/original split); an empty string
+    suppresses the label. ``full`` is drawn as an outline only so its
+    exclusive annulus stays clean white, while the two subsets are filled so
+    their hues - and their overlap - read directly.
     """
-    for sid, color_key in zip(('A', 'B', 'C'), ('full', 'spano', 'no_rolling')):
-        s_lbl = venn.get_label_by_id(sid)
-        if s_lbl is None:
-            continue
-        s_lbl.set_position(positions[color_key])
-        s_lbl.set_horizontalalignment('center')
-        s_lbl.set_fontsize(fontsize)
-        s_lbl.set_fontweight('bold')
-        s_lbl.set_color(color_lookup[color_key])
+    ax.set_xlim(-1.6, 1.6)
+    ax.set_ylim(-1.25, 1.30)
+    ax.set_aspect('equal')
+    ax.axis('off')
 
+    fcx, fcy, fr = _EULER['full']
+    ax.add_patch(Circle((fcx, fcy), fr, facecolor='none',
+                        edgecolor=VENN_COLORS['full'], linewidth=2.4, zorder=2))
+    for key in ('spano', 'no_rolling'):
+        cx, cy, r = _EULER[key]
+        ax.add_patch(Circle((cx, cy), r, facecolor=VENN_COLORS[key], alpha=0.30,
+                            edgecolor=VENN_COLORS[key], linewidth=2.2, zorder=1))
 
-def _outline_circles(ax, subsets, layout):
-    """Draw each set's circle as a coloured outline matching its label.
+    for rid, (x, y) in _EULER_REGION_XY.items():
+        txt = region_label_fn(rid, regions.get(rid) or set())
+        if txt:
+            ax.text(x, y, txt, ha='center', va='center', fontsize=10,
+                    fontweight='bold', color=INK, zorder=4)
 
-    The translucent fills blend in the overlaps (and no_rolling, a near
-    subset of full, reads as cyan rather than its own green); a solid
-    set-coloured ring on every circle keeps each set's hue tied to its
-    boundary so circle, ring and label always agree.
-    """
-    circles = venn3_circles(subsets, ax=ax, layout_algorithm=layout,
-                            linewidth=2.2)
-    colours = (VENN_COLORS['full'], VENN_COLORS['spano'],
-               VENN_COLORS['no_rolling'])
-    for circle, colour in zip(circles, colours):
-        if circle is not None:
-            circle.set_edgecolor(colour)
-            circle.set_alpha(0.95)
-    return circles
+    for key, (x, y, ha, va) in _EULER_SET_LABEL.items():
+        ax.text(x, y, f"{key} ({set_sizes[key]})", ha=ha, va=va,
+                fontsize=13, fontweight='bold', color=VENN_COLORS[key], zorder=4)
 
 
 def _park_sidebar(ax, park, full, lines_factory):
@@ -201,70 +220,40 @@ def _park_sidebar(ax, park, full, lines_factory):
     ax.text(
         0.98, 0.02, "\n".join(lines),
         transform=ax.transAxes, fontsize=8.5,
-        color='#111111',
+        color=INK,
         verticalalignment='bottom', horizontalalignment='right',
         multialignment='right',
         fontfamily='monospace',
         bbox=dict(
-            facecolor='white', edgecolor='#333333',
+            facecolor='white', edgecolor=SOFT,
             boxstyle='round,pad=0.5', linewidth=1.2,
         ),
     )
 
 
 def generate_count_venn_png(feature_sets, out_path):
-    """Render a 3-set Venn showing region counts, split by engineered
-    vs original SHD columns.
+    """Render the nested-Euler diagram with region counts split by
+    engineered vs original SHD columns.
     """
     apply()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
+    regions    = _build_venn_regions(full, spano, no_rolling)
+    sizes      = {'full': len(full), 'spano': len(spano), 'no_rolling': len(no_rolling)}
 
-    apply()
     fig, ax = plt.subplots(figsize=(9.5, 9.0))
-    layout = cost_based.LayoutAlgorithm()
-    v = venn3(
-        [full, spano, no_rolling],
-        set_labels=(
-            f'full ({len(full)})',
-            f'spano ({len(spano)})',
-            f'no_rolling ({len(no_rolling)})',
-        ),
-        set_colors=(
-            VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling'],
-        ),
-        alpha=0.32,
-        ax=ax,
-        # spano subset full superset no_rolling is a near-subset
-        # configuration; the default pairwise solver cannot satisfy the
-        # implied triangle inequality and emits "Bad circle positioning".
-        # The cost-based optimizer minimises log-area error across all 7
-        # regions and handles this case cleanly.
-        layout_algorithm=layout,
-    )
-    # Coloured circle outlines anchor each set's hue to its boundary, so
-    # the green no_rolling ring matches its green label even where the
-    # fill blends to cyan inside the full circle it is nearly a subset of.
-    _outline_circles(ax, [full, spano, no_rolling], layout)
 
-    regions = _build_venn_regions(full, spano, no_rolling)
-    for rid, feats in regions.items():
-        lbl = v.get_label_by_id(rid)
-        if lbl is None:
-            continue
+    def _count_label(_rid, feats):
         if not feats:
-            lbl.set_text('')
-            continue
+            return ''
         eng, orig = _split_by_category(feats)
-        lbl.set_text(f"{len(feats)}\n({eng} eng + {orig} orig)")
-        lbl.set_fontsize(10)
-        lbl.set_fontweight('bold')
-
-    _pin_set_labels(v, _SET_LABEL_POSITIONS, 13, VENN_COLORS)
+        return f"{len(feats)}\n({eng} eng + {orig} orig)"
+    _draw_nested_euler(ax, regions, sizes, _count_label)
 
     ax.set_title(
-        "Feature-set inclusion - region counts (engineered + original SHD columns)",
+        "Feature-set inclusion - nested Euler "
+        "(spano, no_rolling subset full; schematic, areas not to scale)",
         fontsize=12, pad=14,
     )
 
@@ -274,9 +263,9 @@ def generate_count_venn_png(feature_sets, out_path):
         0.01, 0.99,
         "eng = engineered (rolling / lag / interaction / state-derived)\n"
         "orig = original SHD column or 1:1 rename",
-        transform=ax.transAxes, fontsize=8.5, color='#444',
+        transform=ax.transAxes, fontsize=8.5, color=SOFT,
         verticalalignment='top', horizontalalignment='left',
-        bbox=dict(facecolor='white', edgecolor='#bbb', boxstyle='round,pad=0.4'),
+        bbox=dict(facecolor='white', edgecolor=FAINT, boxstyle='round,pad=0.4'),
     )
 
     def _count_lines(park_in_full, park_only):
@@ -362,7 +351,7 @@ def _render_name_panel(ax, regions, park=None):
             state['row'] = 0
             state['col'] += 1
         place(f"{title}  ({len(feats)})", indent=0.005,
-              color='#111', weight='bold', size=9.5)
+              color=INK, weight='bold', size=9.5)
         for f in sorted(feats):
             is_eng = f in ENGINEERED_FEATURES
             place(
@@ -375,52 +364,29 @@ def _render_name_panel(ax, regions, park=None):
 
 
 def generate_names_venn_png(feature_sets, out_path):
-    """Two-panel feature-name figure: a 3-set Venn (with region counts)
-    on the left for set-structure context, and a column-flowed,
+    """Two-panel feature-name figure: the nested-Euler diagram (with region
+    counts) on the left for set-structure context, and a column-flowed,
     colour-coded list of every feature name per region on the right.
 
-    The earlier single-panel version stacked all names at the region
-    centroids, which overlapped badly at this feature count; splitting
-    the names into a dedicated panel makes every name individually
-    legible and non-overlapping.
+    The names live in a dedicated panel rather than at the region centroids
+    because at this feature count centroid-stacked names overlap badly; the
+    side panel keeps every name individually legible.
     """
     apply()
     full       = feature_sets["full"]
     spano      = feature_sets["spano"]
     no_rolling = feature_sets["no_rolling"]
     regions    = _build_venn_regions(full, spano, no_rolling)
+    sizes      = {'full': len(full), 'spano': len(spano), 'no_rolling': len(no_rolling)}
 
-    apply()
     fig, (ax_venn, ax_list) = plt.subplots(
         1, 2, figsize=(15, 8.5), gridspec_kw={"width_ratios": [1.0, 1.05]},
     )
 
-    # --- left: Venn with region counts (structure context) ---
-    layout = cost_based.LayoutAlgorithm()
-    v = venn3(
-        [full, spano, no_rolling],
-        set_labels=(
-            f'full  ({len(full)})',
-            f'spano  ({len(spano)})',
-            f'no_rolling  ({len(no_rolling)})',
-        ),
-        set_colors=(
-            VENN_COLORS['full'], VENN_COLORS['spano'], VENN_COLORS['no_rolling'],
-        ),
-        alpha=0.28,
-        ax=ax_venn,
-        layout_algorithm=layout,
-    )
-    _outline_circles(ax_venn, [full, spano, no_rolling], layout)
-    for rid, feats in regions.items():
-        lbl = v.get_label_by_id(rid)
-        if lbl is None:
-            continue
-        lbl.set_text(str(len(feats)) if feats else '')
-        lbl.set_fontsize(13)
-        lbl.set_fontweight('bold')
-    _pin_set_labels(v, _SET_LABEL_POSITIONS_NAMES_VARIANT, 14, VENN_COLORS)
-    ax_venn.set_title("Feature-set structure (region counts)",
+    # --- left: nested Euler with region counts (structure context) ---
+    _draw_nested_euler(ax_venn, regions, sizes,
+                       lambda _rid, feats: str(len(feats)) if feats else '')
+    ax_venn.set_title("Feature-set structure - nested Euler (schematic)",
                       fontsize=12, pad=10)
 
     # --- right: colour-coded name lists per region ---

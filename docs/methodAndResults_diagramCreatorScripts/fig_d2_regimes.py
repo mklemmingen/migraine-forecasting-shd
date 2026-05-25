@@ -50,7 +50,9 @@ def _regime_oof(name, cv, fc, n_splits=5):
 
 def main():
     S.apply()
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.3), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3), sharey=True)
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
         cv = load_raw(str(REPO / "data" / "processed" / tgt / "diary_cv5_timeseries.parquet"))
         fc = [c for c in cv.columns if c not in NON_FEATURE_COLS]
@@ -65,16 +67,16 @@ def main():
                   f"[{w['ci_low']:.3f}-{w['ci_high']:.3f}]")
         x = np.arange(len(REGIMES))
         ax.plot(x, pooled_auc, "o-", color=S.TARGET[tgt], lw=1.6, label="pooled AUROC")
-        ax.errorbar(x, within, yerr=[ci_lo, ci_hi], fmt="s--", color="#444444", lw=1.3,
+        ax.errorbar(x, within, yerr=[ci_lo, ci_hi], fmt="s--", color=S.SOFT, lw=1.3,
                     capsize=3, label="within-person C")
-        ax.axhline(0.5, color="black", lw=0.8, ls=":", label="chance")
+        S.refline(ax, y=0.5, ls=":", label="chance")
         ax.set_xticks(x); ax.set_xticklabels([RLAB[r] for r in REGIMES])
-        ax.set_ylim(0.45, 0.85)
+        ax.set_ylim(0.40, 0.85)
         ax.set_title(tgt)
     axes[0].set_ylabel("AUROC / C-statistic")
     axes[0].legend(fontsize=8, loc="center left")
     fig.suptitle(f"Personalisation regimes ({FEATURE_SET}): pooled gain is between-patient",
-                 y=1.02, fontsize=12)
+                 y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d2_regimes"))
 
 

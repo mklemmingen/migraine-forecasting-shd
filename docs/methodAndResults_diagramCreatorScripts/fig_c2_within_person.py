@@ -69,10 +69,10 @@ def _panel(ax, tgt, y, p, pid):
     err = np.array([1.96 * np.sqrt(WP._hanley_mcneil_var(
         r.auroc, int(r.n_pos), int(r.n - r.n_pos))) for r in est.itertuples()])
     ax.errorbar(x, est["auroc"], yerr=err, fmt="o", ms=3, lw=0.5,
-                color=S.TARGET[tgt], alpha=0.6, ecolor="#cccccc", capsize=0)
-    ax.axhspan(within["ci_low"], within["ci_high"], color="grey", alpha=0.18, zorder=0)
-    ax.axhline(0.5, color="black", lw=0.8, ls="--", label="chance (0.5)")
-    ax.axhline(within["estimate"], color="#444444", lw=1.5,
+                color=S.TARGET[tgt], alpha=0.6, ecolor=S.FAINT, capsize=0)
+    ax.axhspan(within["ci_low"], within["ci_high"], color=S.GREY, alpha=S.CI_ALPHA, zorder=0)
+    S.refline(ax, y=0.5, label="chance (0.5)")
+    ax.axhline(within["estimate"], color=S.SOFT, lw=1.5,
                label=f"within-person C {within['estimate']:.2f}")
     ax.axhline(pooled, color=S.ARCH["TabPFN"], lw=1.6,
                label=f"pooled AUROC {pooled:.2f}")
@@ -87,7 +87,9 @@ def _panel(ax, tgt, y, p, pid):
 
 def main():
     S.apply()
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6))
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.6))
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
         leaf = EXP / "1" / tgt / "full_features/tabpfn/version_3-default/70_15_15/chrono"
         r = _cv_predict(leaf)

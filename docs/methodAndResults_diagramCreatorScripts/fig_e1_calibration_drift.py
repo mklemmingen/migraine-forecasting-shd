@@ -25,8 +25,6 @@ EXP = HERE.parents[1] / "experiment"
 MODELS = ["pooled_lr", "add0_stacked", "add1_tabpfn", "add4_window_mlp"]
 MLAB = {"pooled_lr": "pooled LR", "add0_stacked": "XGBoost stack",
         "add1_tabpfn": "TabPFN", "add4_window_mlp": "window-MLP"}
-MCOL = {"pooled_lr": "#666666", "add0_stacked": "#1b9e77",
-        "add1_tabpfn": "#7570b3", "add4_window_mlp": "#d95f02"}
 SITES = ["uijeongbu", "dongtan"]
 
 
@@ -38,7 +36,9 @@ def main():
     S.apply()
     rows = list(csv.DictReader(open(_latest())))
     d = {(r["target"], r["held_out"], r["model"]): r for r in rows}
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.3), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3), sharey=True)
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     w = 0.2
     for ax, tgt in zip(axes, ("headache", "migraine")):
         xticklab = []
@@ -53,22 +53,26 @@ def main():
                 if not r:
                     continue
                 oe = float(r["oe_ratio"])
-                ax.bar(si + (mi - 1.5) * w, oe, w, color=MCOL[m],
-                       label=MLAB[m] if si == 0 else None, alpha=0.85)
+                # bars emanate from the O:E=1 neutral, so bar length = deviation
+                # from perfect calibration (a ratio drawn from 0 would exaggerate
+                # over-prediction relative to equal-magnitude under-prediction).
+                ax.bar(si + (mi - 1.5) * w, oe - 1.0, w, bottom=1.0, color=S.ARCH[m],
+                       label=MLAB[m] if si == 0 else None)
                 print(f"  {tgt:<9} {site:<10} {m:<16} O:E {oe:.2f}")
-        ax.axhline(1.0, color="black", lw=1.2)
-        ax.text(0.5, 1.02, "perfect (O:E = 1)", transform=ax.get_yaxis_transform(),
-                ha="center", fontsize=7, va="bottom")
+        S.refline(ax, y=1.0)
+        ax.text(0.5, 1.0, "perfect (O:E = 1)", transform=ax.get_yaxis_transform(),
+                ha="center", va="bottom", fontsize=7, color=S.INK)
+        ax.set_ylim(0.4, 1.65)
+        ax.text(0.99, 0.72, "under-predicts", transform=ax.transAxes, ha="right",
+                va="center", fontsize=7, color=S.GREY, style="italic")
+        ax.text(0.99, 0.18, "over-predicts", transform=ax.transAxes, ha="right",
+                va="center", fontsize=7, color=S.GREY, style="italic")
         ax.set_xticks(range(len(SITES))); ax.set_xticklabels(xticklab, fontsize=8)
-        ax.set_title(f"{tgt}")
-        ax.annotate("under-predicts", (1.0, 1.0), xytext=(-0.45, 1.32), fontsize=7,
-                    color="#777", style="italic")
-        ax.annotate("over-predicts", (1.0, 1.0), xytext=(-0.45, 0.55), fontsize=7,
-                    color="#777", style="italic")
+        ax.set_title(f"{tgt}  (bars from O:E = 1)")
     axes[0].set_ylabel("observed / expected (O:E)")
-    axes[0].legend(fontsize=7.5, ncol=2, loc="upper center")
+    axes[0].legend(fontsize=8, ncol=2, loc="upper center")
     fig.suptitle("Calibration drift on the held-out site tracks the base-rate gap",
-                 y=1.02, fontsize=12)
+                 y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_e1_calibration_drift"))
 
 

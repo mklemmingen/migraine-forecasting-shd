@@ -1,10 +1,12 @@
 """Output rotation for the aggregator.
 
-Each run produces ~7 files (the current comparison HTML plus its
-supporting PNGs and the legacy interactive HTML). Left in place they
-quickly clutter ``experiment/``; this module moves prior outputs into
-dated ``experiment/results/YYYY-MM-DD/`` subfolders so the active
-working directory stays one click away from the current artefacts.
+Each run produces five files: the comparison HTML and its PDF render, the
+interactive explorer HTML and its PDF render, and the flat metric CSV.
+Left in place they quickly clutter ``experiment/``; this module moves
+prior outputs into dated ``experiment/results/YYYY-MM-DD/`` subfolders so
+the active working directory stays one click away from the current
+artefacts. (The publication figures are written by the per-figure scripts
+under ``docs/`` into their own ``figures/`` directory, not here.)
 """
 from datetime import datetime
 from pathlib import Path
@@ -15,13 +17,6 @@ OUTPUT_PATTERNS = (
     "comparison_*.html",
     "comparison_*.pdf",
     "comparison_*.csv",
-    # PNG (HTML preview) + vector PDF (journal asset) for every figure.
-    "venn_counts_*.png", "venn_counts_*.pdf",
-    "venn_names_*.png",  "venn_names_*.pdf",
-    "tree_*.png",        "tree_*.pdf",
-    "cd_*.png",          "cd_*.pdf",
-    "perfprofile_*.png", "perfprofile_*.pdf",
-    "slopegraph_*.png",  "slopegraph_*.pdf",
 )
 
 

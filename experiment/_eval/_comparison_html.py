@@ -26,7 +26,6 @@ from _metric_palette import (
     compute_color,
     parse_mean_ci,
 )
-from _venn_diagrams import CATEGORY_COLORS
 
 
 # Feature-set short labels and the glossary that explains them. Explicit
@@ -341,53 +340,6 @@ def _render_column_headers(col_keys):
 
 
 # ---------------------------------------------------------------------------
-# Embed helpers (Venn / tree PNGs reference their file by basename)
-# ---------------------------------------------------------------------------
-
-def _venn_count_html(filename):
-    if not filename:
-        return ""
-    return f"""
-    <div class="venn">
-      <h3>Feature-set inclusion (region counts)</h3>
-      <p>Computed from the canonical <code>diary_train.parquet</code> by running both filters
-         (<code>remove_non_spano_features</code>, <code>remove_rolling_features</code>) at aggregation time.
-         <b>full</b> = all engineered columns; <b>spano</b> = Spano-faithful subset; <b>no_rolling</b> = drops rolling/lag/interaction features.
-         Each region label shows <i>total (engineered + original SHD columns)</i>.</p>
-      <img src="{filename}" alt="Feature-set Venn - region counts (full / spano / no_rolling)">
-    </div>
-    """
-
-
-def _venn_names_html(filename):
-    if not filename:
-        return ""
-    return f"""
-    <div class="venn">
-      <h3>Feature-set inclusion (every feature by name)</h3>
-      <p>Same three sets as above, but each region lists the actual feature names.
-         <span style="color:{CATEGORY_COLORS['original']}">●</span> <b>green</b> = original SHD column or 1:1 rename.
-         <span style="color:{CATEGORY_COLORS['engineered']};font-weight:bold">●</span> <b>purple bold</b> = engineered (rolling, lag, interaction, or state-derived).</p>
-      <img src="{filename}" alt="Feature-set Venn - feature names colour-coded by origin">
-    </div>
-    """
-
-
-def _tree_html_section(filename, n_leaves):
-    if not filename:
-        return ""
-    return f"""
-    <div class="tree">
-      <h3>Discovered leaves ({n_leaves} total)</h3>
-      <p>One row per discovered <code>results/</code> directory. Path levels mirror the directory layout:
-         <code>experiment/&lt;addition&gt;/&lt;target&gt;/&lt;feature_set&gt;/&lt;architecture&gt;/[&lt;version&gt;]/&lt;datasplit&gt;/&lt;splittype&gt;/[&lt;hyperparameter&gt;]</code>.
-         Each column has its own colour; node labels use the directory name verbatim.</p>
-      <img src="{filename}" alt="Tree diagram of all discovered experiment leaves">
-    </div>
-    """
-
-
-# ---------------------------------------------------------------------------
 # CSS block (kept inline so each comparison HTML is a single self-
 # contained file portable to any machine without an asset-server).
 # ---------------------------------------------------------------------------
@@ -546,37 +498,6 @@ _COMPARISON_CSS = """
         font-family: 'Courier New', monospace; font-size: 0.95em;
         background: #fff; padding: 0 4px; border-radius: 2px;
       }
-
-      .venn {
-        margin-top: 22px; max-width: 1100px;
-        border: 1px solid #ddd; border-radius: 3px;
-        padding: 10px 14px; background: #fff;
-      }
-      .venn h3 { font-size: 0.88em; margin: 0 0 7px; }
-      .venn p { font-size: 0.78em; margin: 4px 0 8px; color: #555; line-height: 1.4; }
-      .venn img { max-width: 100%; height: auto; display: block; }
-
-      .tree {
-        margin-top: 22px; max-width: 1400px;
-        border: 1px solid #ddd; border-radius: 3px;
-        padding: 10px 14px; background: #fff;
-      }
-      .tree h3 { font-size: 0.88em; margin: 0 0 7px; }
-      .tree p { font-size: 0.78em; margin: 4px 0 8px; color: #555; line-height: 1.4; }
-      .tree img { max-width: 100%; height: auto; display: block; }
-
-      .benchmark {
-        margin-top: 22px; max-width: 1400px;
-        border: 1px solid #ddd; border-radius: 3px;
-        padding: 10px 14px; background: #fff;
-      }
-      .benchmark h3 { font-size: 0.88em; margin: 0 0 7px; }
-      .benchmark h4 { font-size: 0.82em; margin: 12px 0 5px; color: #444; }
-      .benchmark p  { font-size: 0.78em; margin: 4px 0 8px; color: #555; line-height: 1.4; }
-      .benchmark ul { font-size: 0.78em; color: #555; line-height: 1.5; }
-      .bench-target { margin: 18px 0; padding: 8px 0; border-top: 1px solid #eee; }
-      .bench-fig { margin: 6px 0 18px; }
-      .bench-fig img { max-width: 100%; height: auto; display: block; }
 """
 
 
@@ -584,11 +505,7 @@ _COMPARISON_CSS = """
 # Top-level renderer
 # ---------------------------------------------------------------------------
 
-def build_comparison_html(all_entries, iso_timestamp, uid,
-                          venn_count_filename=None,
-                          venn_names_filename=None,
-                          tree_filename=None,
-                          benchmark_html=""):
+def build_comparison_html(all_entries, iso_timestamp, uid):
     """Render the architecture comparison HTML as a string.
 
     Rows are architectures, columns are data packages, cells carry the
@@ -601,8 +518,11 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     vertically as new variants land.
 
     Layout (top -> bottom): heatmap table -> best-cell-marker legend
-    -> colour legend -> feature-set glossary -> Venn / tree / benchmark
-    embeds -> blended Spano caveat (when applicable).
+    -> colour legend -> feature-set glossary -> blended Spano caveat
+    (when applicable). Benchmark, Venn, and leaf-tree figures live in the
+    per-figure scripts under
+    ``docs/methodAndResults_diagramCreatorScripts/``, fed by the
+    ``comparison_<ts>.csv`` this run emits alongside the HTML.
     """
     # Architecture-axis sort: (addition, architecture, version,
     # feature_set, hp_label). HP variants sort after NonHP siblings
@@ -705,10 +625,6 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     fs_glossary_rows = _render_fs_glossary_rows(row_keys, _FS_LABELS, _FS_GLOSS)
     caveat_html      = _render_blended_caveat(row_keys)
 
-    venn_count_html = _venn_count_html(venn_count_filename)
-    venn_names_html = _venn_names_html(venn_names_filename)
-    tree_html       = _tree_html_section(tree_filename, len(all_entries))
-
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -783,10 +699,6 @@ def build_comparison_html(all_entries, iso_timestamp, uid,
     {fs_glossary_rows}
   </table>
 </div>
-{venn_count_html}
-{venn_names_html}
-{tree_html}
-{benchmark_html}
 {caveat_html}
 </body>
 </html>"""

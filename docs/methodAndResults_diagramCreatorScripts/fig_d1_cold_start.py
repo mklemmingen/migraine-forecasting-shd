@@ -28,26 +28,29 @@ import walkforward as WF  # noqa: E402
 
 def main():
     S.apply()
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.2))
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.2))
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
         diary = pd.read_parquet(REPO / "data" / "processed" / tgt / "diary_cv5_timeseries.parquet")
         curve = WF.cold_start_curve(diary, "migraine_target", alpha=5.0)
         b = WF.binned_curve(curve)
         cp = WF.cold_start_point(curve)
         x = range(len(b))
-        ax.plot(x, b["brier_population"], "o--", color="#999999",
+        ax.plot(x, b["brier_population"], "o--", color=S.GREY,
                 label="population (cohort rate)")
         ax.plot(x, b["brier_personalised"], "o-", color=S.TARGET[tgt],
                 label="personalised (own running rate)")
         ax.set_xticks(list(x)); ax.set_xticklabels(b["own_days"])
         ax.set_xlabel("own diary days seen")
         ax.set_ylabel("Brier score (lower is better)")
-        ax.set_title(f"{tgt}  (personalisation helps from ~{cp} own day{'s' if cp != 1 else ''})")
+        ax.set_title(tgt)   # cold-start crossover is stated in the suptitle/caption
+        print(f"  {tgt}: personalisation helps from ~{cp} own day(s)")
         ax.legend(fontsize=8)
         print(f"  {tgt}: cold-start point n_prior={cp}")
         print(b.to_string(index=False))
     fig.suptitle("Cold start: own running rate overtakes the cohort rate within days",
-                 y=1.02, fontsize=12)
+                 y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d1_cold_start"))
 
 

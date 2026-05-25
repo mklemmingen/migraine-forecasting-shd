@@ -43,9 +43,9 @@ def main():
     for p, d, c in zip(df["patient_id"], df["date"], df["code"]):
         grid[pi[p], di[d]] = c
 
-    cmap = ListedColormap(["#ffffff", "#d9e6f2", "#f4a582", "#b2182b"])
+    cmap = ListedColormap(S.COVERAGE)        # absent, headache-free, headache, migraine
     norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
-    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 5.2))
     ax.imshow(grid, aspect="auto", cmap=cmap, norm=norm, interpolation="nearest")
     # month ticks
     months = pd.date_range(dates.min(), dates.max(), freq="MS")
@@ -55,10 +55,10 @@ def main():
     ax.set_xlabel("calendar date")
     ax.set_title("Diary coverage: staggered enrolment and gaps (63 patients)")
     from matplotlib.patches import Patch
-    ax.legend(handles=[Patch(fc="#d9e6f2", label="headache-free"),
-                       Patch(fc="#f4a582", label="headache"),
-                       Patch(fc="#b2182b", label="migraine")],
-              loc="lower right", framealpha=0.9, fontsize=8)
+    S.framed_legend(ax, handles=[Patch(fc=S.COVERAGE[1], label="headache-free"),
+                                 Patch(fc=S.COVERAGE[2], label="headache"),
+                                 Patch(fc=S.COVERAGE[3], label="migraine")],
+                    loc="lower right")
     print(f"  grid {grid.shape[0]} patients x {grid.shape[1]} days; "
           f"coverage {100 * (grid > 0).mean():.1f}%")
     print("saved", S.save(fig, HERE / "figures" / "fig_a3_coverage"))

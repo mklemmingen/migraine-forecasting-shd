@@ -123,6 +123,7 @@ OI = {"orange": "#E69F00", "skyblue": "#56B4E9", "green": "#009E73",
 GREY = "#555555"
 INK = "#222222"      # text
 SOFT = "#444444"     # axes / ticks
+FAINT = "#cccccc"    # faint grey: error-bar whiskers, subtle dividers
 PALE_FILL = "#eef3f8"               # default schematic box fill
 REF_COLOR = OI["black"]             # reference lines: chance, perfect, treat-none
 REF_LW = 0.9                        # reference-line width (guide Section 1.3: 0.8-1.2)
@@ -153,6 +154,13 @@ FEATURE_SET = {"full": OI["blue"], "spano": OI["vermillion"],
 
 # Schematic box edge roles (guide Section 7): normal / output / exclusion.
 BOX_EDGE = {"normal": OI["blue"], "output": OI["green"], "exclude": OI["vermillion"]}
+
+# Discrete categorical ramps (single source, so A3 & A5 stop drifting). Ordered
+# light -> dark; the headache/val category is OI orange and migraine/test is the
+# canonical vermillion, so a named entity keeps its brand colour in the heatmaps.
+PALE_BLUE = "#d9e6f2"
+COVERAGE = ["#ffffff", PALE_BLUE, OI["orange"], OI["vermillion"]]   # absent, free, headache, migraine
+SPLIT_GRID = [PALE_BLUE, OI["orange"], OI["vermillion"]]            # train, val, test
 
 # Registry so a colour can be resolved by (role, name) and FAIL LOUDLY - a silent
 # None would let matplotlib fall back to black and collapse two entities to one.

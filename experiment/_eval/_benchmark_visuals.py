@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
-from _style import apply, save
+from _style import apply, save, OI, GREY
 
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
@@ -217,16 +217,21 @@ def _short_arch_label(arch_tuple):
 # "what's a tuning variant". This addresses the core readability problem
 # of matplotlib's tab10/tab20 cycles when k >= 10: similar shades
 # scattered across unrelated competitors.
+# Okabe-Ito family anchors (brand: XGBoost-stack family = green, TabPFN family =
+# purple, matching _style.ARCH in the custom figures). Cross-family separation is
+# by hue (green/purple/vermillion); WITHIN-family tiers separate by the
+# brightness gradient + per-member marker + per-family line style below. The line
+# end-labels carry the exact variant name, so hue need only group families.
 _FAMILY_ANCHORS = {
-    "stacked_NonHP":             "#1f1f1f",   # near-black: canonical XGBoost stack
-    "stacked_single_AUROC":      "#d62728",   # red gradient -> 5 budget tiers
-    "stacked_pareto_AUROC":      "#2ca02c",   # green gradient -> 3 frontier picks
-    "stacked_pareto_AUPRC":      "#9467bd",   # purple gradient -> 3 frontier picks
-    "tabpfn_v2_5_family":        "#17becf",   # teal: v2-5 sub-family (real, finetuned, auto)
-    "tabpfn_v2_6":               "#1f77b4",   # blue: v2-6 standalone
-    "tabpfn_v3_family":          "#0b3d77",   # deep navy: v3 sub-family (default, binary)
-    "blended":                   "#ff7f0e",   # orange: Spano replicator
-    "other":                     "#7f7f7f",   # grey fallback
+    "stacked_NonHP":             OI["green"],       # canonical XGBoost stack (= ARCH)
+    "stacked_single_AUROC":      OI["green"],       # XGBoost-stack family
+    "stacked_pareto_AUROC":      OI["green"],
+    "stacked_pareto_AUPRC":      OI["green"],
+    "tabpfn_v2_5_family":        OI["purple"],      # TabPFN family (= ARCH)
+    "tabpfn_v2_6":               OI["purple"],
+    "tabpfn_v3_family":          OI["purple"],
+    "blended":                   OI["vermillion"],  # Spano replicator
+    "other":                     GREY,
 }
 
 _FAMILY_LINESTYLE = {
@@ -401,14 +406,18 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # begin immediately under that band (plus the optional all-tie note),
     # so there is no fixed vertical dead band between the rank line and
     # the labels however many clique levels there are.
-    clique_step = 0.18
+    clique_step = 0.26   # generous separation so stacked clique bars stay distinct
     clique_base = top_y + 0.13
     single_full_clique = (len(cliques) == 1 and cliques[0] == (0, k - 1))
+    # When the Friedman omnibus is not significant, the mean-rank ladder is
+    # descriptive only (no pairwise difference is supported); the diagram
+    # de-emphasises the ladder and states this prominently (see below).
+    omnibus_sig = (p_value is None) or (p_value < 0.05)
     clique_band_top = clique_base + clique_step * max(len(cliques), 1)
     first_row_y = clique_band_top + (0.70 if single_full_clique else 0.40)
     bottom_y = first_row_y + (rows_per_side - 1) * pitch
 
-    fig_h = 2.6 + 0.40 * rows_per_side
+    fig_h = 2.6 + 0.40 * (bottom_y - top_y)   # tracks rows AND the clique band
     fig, ax = plt.subplots(figsize=(11.5, fig_h))
     # Wide outer margins so the side labels, which grow outward from the
     # elbow toward the plot edge, have room; bbox_inches="tight" crops the
@@ -443,6 +452,8 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     x_elbow_right = 1.0             # right edge (near rank 1)
     x_elbow_left  = float(k)        # left edge (near worst rank)
     text_gap = 0.55
+    conn_alpha = 1.0 if omnibus_sig else 0.45        # fade the ladder if non-sig
+    lbl_color = text_dark if omnibus_sig else "#9a9a9a"
 
     def _draw_side(row_indices, side):
         for row, r in enumerate(row_indices):
@@ -459,21 +470,21 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             # elbow. Rounded joins keep the corner clean; the dark label
             # text (higher zorder) still reads on top where they meet.
             ax.plot([rank, rank, x_elbow], [top_y, y, y],
-                    "-", lw=1.7, color=color, alpha=1.0, zorder=2,
+                    "-", lw=1.7, color=color, alpha=conn_alpha, zorder=2,
                     solid_capstyle="round", solid_joinstyle="round")
             # Endpoint dot where the connector meets its label.
             ax.plot([x_elbow], [y], marker="o", ms=4.5, color=color,
-                    zorder=3)
+                    alpha=conn_alpha, zorder=3)
             # Text sits beyond the elbow, growing outward toward the plot
             # edge so it never overlaps the connector lines or the marker.
             # On the inverted axis the right column grows toward smaller x
             # and the left column toward larger x.
             if side == "right":
                 ax.text(x_elbow - text_gap, y, label, va="center",
-                        ha="left", fontsize=9, color=text_dark, zorder=4)
+                        ha="left", fontsize=9, color=lbl_color, zorder=4)
             else:
                 ax.text(x_elbow + text_gap, y, label, va="center",
-                        ha="right", fontsize=9, color=text_dark, zorder=4)
+                        ha="right", fontsize=9, color=lbl_color, zorder=4)
 
     _draw_side(right_idx, "right")
     _draw_side(left_idx, "left")
@@ -485,16 +496,22 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     for level, (lo, hi) in enumerate(cliques):
         y = clique_base + clique_step * level
         ax.plot([sorted_ranks[lo] - 0.06, sorted_ranks[hi] + 0.06],
-                [y, y], "-", color=text_dark, lw=5.5,
+                [y, y], "-", color=text_dark, lw=3.2,
                 solid_capstyle="round", zorder=5)
-    if len(cliques) == 1 and cliques[0] == (0, k - 1):
-        ax.text(
-            (sorted_ranks[0] + sorted_ranks[-1]) / 2.0,
-            clique_base + clique_step * len(cliques) + 0.34,
-            "no pair significantly different at alpha=0.05",
-            ha="center", va="top", fontsize=9, style="italic",
-            color="#444444", zorder=4,
-        )
+    banner_y = clique_base + clique_step * len(cliques) + 0.30
+    if not omnibus_sig:
+        # Make non-significance the dominant message so the ranked ladder
+        # cannot be screenshot/misread as "X is significantly best".
+        ax.text((1 + k) / 2.0, banner_y,
+                f"Friedman omnibus NOT significant (p = {p_value:.3f}) - mean-rank order "
+                "below is descriptive only; no pairwise difference is significant",
+                ha="center", va="top", fontsize=10.5, fontweight="bold",
+                color=OI["vermillion"], zorder=6)
+    elif single_full_clique:
+        ax.text((1 + k) / 2.0, banner_y,
+                "no pair significantly different (Nemenyi, alpha=0.05)",
+                ha="center", va="top", fontsize=9.5, style="italic",
+                color="#444444", zorder=4)
 
     # CD scale bar just above the rank numbers, anchored at rank 1, so the
     # critical-difference span reads against the same scale without a gap.
@@ -785,88 +802,53 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     plt.close(fig)
 
 
-def render_benchmark_triplet(all_entries, metric_key, target, out_dir,
-                             ts_flat, short_uid,
-                             metric_label=None,
-                             higher_is_better=True,
-                             restrict_feature_sets=None,
-                             cv_alias=None,
-                             label_fn=None):
-    """Generate CD + performance-profile + slopegraph for one
-    (metric, target) pair and return the produced filenames as a dict.
+def prepare_benchmark(all_entries, metric_key, target,
+                      higher_is_better=True,
+                      restrict_feature_sets=None,
+                      cv_alias=None,
+                      label_fn=None):
+    """Build the coverage-filtered metric matrix, architecture labels, and
+    Friedman/Nemenyi result for one (metric, target) - the shared input
+    that the critical-difference, performance-profile, and rank-slopegraph
+    renderers all draw from.
 
-    Returns empty dict (and prints a note) when the matrix has fewer
-    than 2 complete cells - the three plots all require matched
-    multi-cell data.
+    Sparse-coverage architectures (per-cell coverage < 0.7) are dropped
+    once here so all three views see the same matched-design subset: the
+    Friedman test requires every classifier on every cell, and without the
+    filter the perf-profile and slopegraph would compute their stats on the
+    few cells where *every* listed architecture has a value, collapsing to
+    ~2 cells when even one architecture (e.g. AutoTabPFN, scaffolded to a
+    subset of cells) has incomplete coverage.
+
+    Returns None when fewer than two architectures survive the coverage
+    filter; otherwise a dict with the kept matrix, kept architecture tuples
+    and their short labels, the cell labels, the dropped-architecture
+    labels, the ``friedman_nemenyi`` tuple (or None when the Nemenyi table
+    has no entry for k), and ``higher_is_better``.
     """
     matrix, cell_labels, arch_labels = build_metric_matrix(
         all_entries, metric_key, target,
         restrict_feature_sets=restrict_feature_sets,
         cv_alias=cv_alias,
     )
-    label_fn = label_fn or _short_arch_label
+    if matrix.shape[0] == 0:
+        return None
+    label_fn  = label_fn or _short_arch_label
     arch_text = [label_fn(a) for a in arch_labels]
 
-    out = {}
-    mlabel = metric_label or metric_key
-    base = f"{target}_{metric_label or metric_key}".replace(" ", "_")
-
-    # Drop sparse-coverage architectures once at the top so all three
-    # views (CD, performance profile, slopegraph) see the same
-    # matched-design subset. Without this filter the perf-profile and
-    # slopegraph would compute their stats on the few cells where
-    # *every* listed architecture has a value, which collapses to ~2
-    # cells when even one architecture (e.g. AutoTabPFN, scaffolded
-    # to a subset of cells) has incomplete coverage.
-    n_total_cells = matrix.shape[0]
-    if n_total_cells == 0:
-        return out
-    coverage = (~np.isnan(matrix)).sum(axis=0) / float(n_total_cells)
+    coverage    = (~np.isnan(matrix)).sum(axis=0) / float(matrix.shape[0])
     kept_idx    = [j for j, c in enumerate(coverage) if c >= 0.7]
     dropped_idx = [j for j, c in enumerate(coverage) if c < 0.7]
     if len(kept_idx) < 2:
-        return out
+        return None
 
-    matrix_kept   = matrix[:, kept_idx]
-    arch_kept     = [arch_labels[j] for j in kept_idx]
-    text_kept     = [arch_text[j]   for j in kept_idx]
-    dropped_text  = [arch_text[j]   for j in dropped_idx]
-
-    # CD diagram (skips quietly when k is outside the Nemenyi table or
-    # there are fewer than 2 complete cells).
-    nem = friedman_nemenyi(matrix_kept, higher_is_better=higher_is_better)
-    if nem is not None:
-        mean_ranks, cd, p_value, n_cells, _, _kept2, _dropped2 = nem
-        cd_path = out_dir / f"cd_{base}_{ts_flat}_{short_uid}.png"
-        render_cd_diagram(
-            mean_ranks, cd, text_kept, cd_path,
-            title=f"Critical Difference - {target} {mlabel}",
-            p_value=p_value, n_cells=n_cells,
-            arch_tuples=arch_kept,
-            dropped_archs=dropped_text,
-        )
-        out["cd"] = cd_path.name
-
-    # Performance profile (uses the same coverage-filtered architecture set).
-    pp_path = out_dir / f"perfprofile_{base}_{ts_flat}_{short_uid}.png"
-    render_performance_profile(
-        matrix_kept, text_kept, pp_path,
-        title=f"Performance profile (Dolan-More) - {target} {mlabel}",
-        higher_is_better=higher_is_better,
-        arch_tuples=arch_kept,
-        dropped_archs=dropped_text,
-    )
-    out["perfprofile"] = pp_path.name
-
-    # Slopegraph (same subset).
-    sg_path = out_dir / f"slopegraph_{base}_{ts_flat}_{short_uid}.png"
-    render_rank_slopegraph(
-        matrix_kept, cell_labels, text_kept, sg_path,
-        title=f"Rank slopegraph - {target} {mlabel}",
-        higher_is_better=higher_is_better,
-        arch_tuples=arch_kept,
-        dropped_archs=dropped_text,
-    )
-    out["slopegraph"] = sg_path.name
-
-    return out
+    matrix_kept = matrix[:, kept_idx]
+    return {
+        "matrix_kept":      matrix_kept,
+        "arch_kept":        [arch_labels[j] for j in kept_idx],
+        "text_kept":        [arch_text[j]   for j in kept_idx],
+        "cell_labels":      cell_labels,
+        "dropped_text":     [arch_text[j]   for j in dropped_idx],
+        "nem":              friedman_nemenyi(matrix_kept, higher_is_better=higher_is_better),
+        "higher_is_better": higher_is_better,
+    }

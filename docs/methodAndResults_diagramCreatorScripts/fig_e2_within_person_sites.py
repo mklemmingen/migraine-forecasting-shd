@@ -24,8 +24,6 @@ EXP = HERE.parents[1] / "experiment"
 MODELS = ["pooled_lr", "add0_stacked", "add1_tabpfn", "add4_window_mlp"]
 MLAB = {"pooled_lr": "pooled LR", "add0_stacked": "XGBoost stack",
         "add1_tabpfn": "TabPFN", "add4_window_mlp": "window-MLP"}
-MCOL = {"pooled_lr": "#666666", "add0_stacked": "#1b9e77",
-        "add1_tabpfn": "#7570b3", "add4_window_mlp": "#d95f02"}
 SITES = ["uijeongbu", "dongtan"]
 # internal CV-OOF within-person (TabPFN, Figure C2 / Addition 5 Section 9b)
 INTERNAL = {"headache": 0.538, "migraine": 0.573}
@@ -40,7 +38,9 @@ def main():
     rows = list(csv.DictReader(open(_latest())))
     d = {(r["target"], r["held_out"], r["model"]): r for r in rows}
     rng = np.random.default_rng(0)
-    fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.3), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3), sharey=True)
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
         for si, site in enumerate(SITES):
             for m in MODELS:
@@ -48,20 +48,23 @@ def main():
                 if not r or r["within_cstat"] in ("", "nan"):
                     continue
                 v = float(r["within_cstat"])
-                ax.scatter(si + (rng.random() - 0.5) * 0.4, v, s=55, color=MCOL[m],
+                ax.scatter(si + (rng.random() - 0.5) * 0.4, v, s=55, color=S.ARCH[m],
                            alpha=0.85, edgecolor="white", lw=0.5,
                            label=MLAB[m] if si == 0 else None)
                 print(f"  {tgt:<9} {site:<10} {m:<16} within {v:.3f}")
-        ax.axhline(0.5, color="black", lw=1.0, ls="--", label="chance")
-        ax.axhline(INTERNAL[tgt], color=S.TARGET[tgt], lw=1.4,
-                   label=f"internal within-person {INTERNAL[tgt]:.2f}")
+        S.refline(ax, y=0.5, label="chance")
+        # neutral reference line + per-panel value, so the shared legend swatch
+        # cannot mismatch the drawn colour (the internal estimate is target-specific)
+        ax.axhline(INTERNAL[tgt], color=S.SOFT, lw=1.4)
+        ax.text(0.02, INTERNAL[tgt], f"internal C {INTERNAL[tgt]:.2f}",
+                transform=ax.get_yaxis_transform(), va="bottom", fontsize=7, color=S.SOFT)
         ax.set_xticks(range(len(SITES)))
         ax.set_xticklabels([f"held-out\n{s}" for s in SITES])
-        ax.set_ylim(0.40, 0.75)
+        ax.set_ylim(0.40, 0.85)
         ax.set_title(tgt)
     axes[0].set_ylabel("within-person C-statistic")
-    axes[0].legend(fontsize=7, loc="upper center", ncol=2)
-    fig.suptitle("Within-person discrimination stays near chance off-site", y=1.02, fontsize=12)
+    axes[0].legend(fontsize=8, loc="upper center", ncol=2)
+    fig.suptitle("Within-person discrimination stays near chance off-site", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_e2_within_person_sites"))
 
 

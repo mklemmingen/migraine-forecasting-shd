@@ -35,7 +35,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from _style import apply, save
+from _style import apply, save, INK
 
 
 # Path-segment levels in the order they appear under experiment/.
@@ -56,20 +56,13 @@ TREE_LEVELS = (
     ('hp_variant',     'HP operating point'),
 )
 
-# One distinct hue per level so each stripe is its own colour band.
-# The three HP-related rows share a purple gradient so a reader sees
-# them as one "HP-tuning subtree" while still distinguishing levels.
+# Ordinal single-hue (blue) depth ramp: shallow -> deep. Tree depth has an
+# inherent order with no divergence, so the guide's ordinal role (Sec 1.0/Sec 9)
+# requires one ordered hue family, NOT the former rainbow (which read as
+# categorical/diverging). Kept dark enough for white cell labels at alpha 0.85.
 TREE_LEVEL_COLORS = [
-    '#1a3550',   # addition           - deep navy
-    '#2563eb',   # target             - blue
-    '#0891b2',   # feature_set        - teal
-    '#059669',   # architecture       - green
-    '#65a30d',   # version            - olive
-    '#ca8a04',   # datasplit          - amber
-    '#dc2626',   # splittype          - red
-    '#7c2d92',   # hyperparameter     - purple
-    '#9333ea',   # hp_strategy        - lighter purple
-    '#a855f7',   # hp_variant         - lightest purple
+    '#5a9bc9', '#4a8ec2', '#3b81bb', '#2d74b3', '#2167ab',
+    '#185aa0', '#114e92', '#0c4283', '#093872', '#08306b',
 ]
 
 
@@ -269,7 +262,7 @@ def generate_tree_png(all_entries, out_path):
             -0.005, y_mid, header,
             ha='right', va='center', fontsize=9,
             fontweight='bold', fontfamily='monospace',
-            color=TREE_LEVEL_COLORS[lvl],
+            color=INK,   # monotone ramp -> dark labels for legibility (not per-level hue)
         )
 
     ax.set_xlim(-0.12, 1.005)

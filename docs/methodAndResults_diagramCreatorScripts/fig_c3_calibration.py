@@ -89,9 +89,12 @@ def _discover():
 def main():
     S.apply()
     leaves = _discover()
-    fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2))
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.2))
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
+    mark = {"XGBoost stack": "o", "TabPFN": "s", "window-MLP": "^"}  # CVD/grayscale reinforcement
     for ax, tgt in zip(axes, ("headache", "migraine")):
-        ax.plot([0, 1], [0, 1], color="black", lw=0.8, ls="--", label="perfect")
+        ax.plot([0, 1], [0, 1], color=S.REF_COLOR, lw=S.REF_LW, ls="--", label="perfect")
         hi = 0.0
         for label, leaf in leaves[tgt]:
             r = _predict(leaf)
@@ -101,19 +104,21 @@ def main():
             xs, ys, ns = _reliability(y, p)
             slope = calibration_slope(y, p)
             sizes = 12 + 120 * ns / ns.max()
-            col = S.ARCH.get(label, None)
-            ax.plot(xs, ys, "-", color=col, lw=1.2, alpha=0.9)
-            ax.scatter(xs, ys, s=sizes, color=col, alpha=0.85,
+            col = S.arch_color(label)
+            mk = mark.get(label, "o")
+            ax.plot(xs, ys, "-", color=col, lw=1.2, marker=mk, markersize=4)
+            ax.scatter(xs, ys, s=sizes, color=col, marker=mk,
                        label=f"{label} (slope {slope:.2f})")
             hi = max(hi, xs.max(), ys.max())
             print(f"  {tgt:<9} {label:<13} slope {slope:+.2f}  bins {len(xs)}")
         lim = min(1.0, hi * 1.1 + 0.02)
         ax.set_xlim(0, lim); ax.set_ylim(0, lim)
+        ax.set_aspect("equal", adjustable="box")   # honest 45-degree perfect line
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency")
-        ax.set_title(f"{tgt} (full_features, chrono)")
+        ax.set_title(tgt)
         ax.legend(loc="upper left")
-    fig.suptitle("Reliability diagrams - marker size proportional to bin count", y=1.02)
+    fig.suptitle("Reliability diagrams", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_c3_calibration"))
 
 

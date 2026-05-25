@@ -4,7 +4,7 @@ Each patient's own fraction of headache days and migraine days, across all their
 diary days. The wide between-patient spread (some patients near 0, others well
 above the cohort mean) is the variation that a pooled C-statistic absorbs as
 discrimination - which is why pooled AUROC overstates within-person ranking
-(Figure C2). One marker per patient; the dashed line is the cohort mean.
+(Figure C2). One marker per patient; the solid tick is the cohort mean.
 
 Usage: python fig_a4_base_rates.py
 """
@@ -31,12 +31,12 @@ def _rates(target):
 def main():
     S.apply()
     rng = np.random.default_rng(0)
-    fig, ax = plt.subplots(figsize=(6.2, 4.0))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.0))
     for i, tgt in enumerate(("headache", "migraine")):
         r = _rates(tgt).to_numpy()
         y = i + (rng.random(len(r)) - 0.5) * 0.5
         ax.scatter(r, y, s=22, color=S.TARGET[tgt], alpha=0.6, edgecolor="white", lw=0.4)
-        ax.plot([r.mean(), r.mean()], [i - 0.32, i + 0.32], color="black", lw=1.6)
+        ax.plot([r.mean(), r.mean()], [i - 0.32, i + 0.32], color=S.INK, lw=1.6)
         ax.text(r.mean(), i + 0.42, f"mean {r.mean():.1%}", ha="center", fontsize=8)
         print(f"  {tgt:<9} per-patient rate: min {r.min():.1%} median {np.median(r):.1%} "
               f"max {r.max():.1%} | cohort mean {r.mean():.1%}")
