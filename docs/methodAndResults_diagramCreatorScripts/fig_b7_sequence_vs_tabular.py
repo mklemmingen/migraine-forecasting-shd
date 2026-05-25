@@ -79,7 +79,7 @@ def main():
             if a is not None:
                 aurocs[tgt][label] = a
                 print(f"  {tgt:<9} {label:<14} AUROC {a:.3f}")
-    fig, ax = plt.subplots(figsize=(8.2, 4.3))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.3))
     x = np.arange(len(ORDER)); w = 0.38
     for i, tgt in enumerate(("headache", "migraine")):
         vals = [aurocs[tgt].get(l, np.nan) for l in ORDER]
@@ -89,7 +89,7 @@ def main():
                 ax.text(b.get_x() + b.get_width() / 2, v + 0.005, f"{v:.2f}",
                         ha="center", fontsize=7)
     ax.axhline(0.5, color="black", lw=0.8, ls="--")
-    ax.axvline(1.5, color="#bbbbbb", lw=1, ls=":")        # tabular | sequence divider
+    ax.axvline(1.5, color=S.FAINT, lw=1, ls=":")        # tabular | sequence divider
     ax.text(0.5, 0.83, "tabular", ha="center", fontsize=8, color="#555",
             transform=ax.get_xaxis_transform())
     ax.text(3.0, 0.83, "sequence", ha="center", fontsize=8, color="#555",

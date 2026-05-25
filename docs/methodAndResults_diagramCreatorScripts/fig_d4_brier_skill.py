@@ -95,7 +95,7 @@ def main():
             ref = SK.per_patient_climatology(pid, rates, cohort)
             skills[tgt][label] = SK.brier_skill_score(y, p, ref)
             print(f"  {tgt:<9} {label:<13} Brier skill {skills[tgt][label]:+.3f}")
-    fig, ax = plt.subplots(figsize=(7.0, 4.2))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.2))
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):
         vals = [skills[tgt].get(l, np.nan) for l in labels]

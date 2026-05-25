@@ -31,7 +31,7 @@ def _rates(target):
 def main():
     S.apply()
     rng = np.random.default_rng(0)
-    fig, ax = plt.subplots(figsize=(6.2, 4.0))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.0))
     for i, tgt in enumerate(("headache", "migraine")):
         r = _rates(tgt).to_numpy()
         y = i + (rng.random(len(r)) - 0.5) * 0.5

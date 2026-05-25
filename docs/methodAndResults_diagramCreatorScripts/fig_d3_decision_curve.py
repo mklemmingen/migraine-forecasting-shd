@@ -72,7 +72,9 @@ def _discover():
 def main():
     S.apply()
     leaves = _discover()
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.3))
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3))
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
         ref = None
         for label, leaf in leaves[tgt]:

@@ -45,7 +45,7 @@ def main():
 
     cmap = ListedColormap(["#ffffff", "#d9e6f2", "#f4a582", "#b2182b"])
     norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
-    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 5.2))
     ax.imshow(grid, aspect="auto", cmap=cmap, norm=norm, interpolation="nearest")
     # month ticks
     months = pd.date_range(dates.min(), dates.max(), freq="MS")

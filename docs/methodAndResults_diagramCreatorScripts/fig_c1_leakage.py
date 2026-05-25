@@ -57,7 +57,7 @@ def main():
         if a is not None:
             agg.setdefault((x["target"], x["feature_set"], x["splittype"]), []).append(a)
 
-    fig, ax = plt.subplots(figsize=(5.4, 4.0))
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.0))
     print(f"source: {csv_path.name}")
     for tgt in ("headache", "migraine"):
         pts = []

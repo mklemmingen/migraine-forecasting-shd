@@ -42,7 +42,9 @@ def _grids():
 def main():
     S.apply()
     grids = _grids()
-    fig, axes = plt.subplots(1, 4, figsize=(11, 2.9))
+    fig, axes = plt.subplots(1, 4, figsize=S.figsize("double", 2.9))
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     for ax, (name, g) in zip(axes, grids.items()):
         ax.imshow(g, cmap=CMAP, norm=NORM, aspect="auto", interpolation="nearest")
         ax.set_xticks([]); ax.set_yticks([])

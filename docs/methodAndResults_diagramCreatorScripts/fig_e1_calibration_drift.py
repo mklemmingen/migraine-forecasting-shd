@@ -25,8 +25,6 @@ EXP = HERE.parents[1] / "experiment"
 MODELS = ["pooled_lr", "add0_stacked", "add1_tabpfn", "add4_window_mlp"]
 MLAB = {"pooled_lr": "pooled LR", "add0_stacked": "XGBoost stack",
         "add1_tabpfn": "TabPFN", "add4_window_mlp": "window-MLP"}
-MCOL = {"pooled_lr": "#666666", "add0_stacked": "#1b9e77",
-        "add1_tabpfn": "#7570b3", "add4_window_mlp": "#d95f02"}
 SITES = ["uijeongbu", "dongtan"]
 
 
@@ -38,7 +36,9 @@ def main():
     S.apply()
     rows = list(csv.DictReader(open(_latest())))
     d = {(r["target"], r["held_out"], r["model"]): r for r in rows}
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.3), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3), sharey=True)
+    for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
+        S.panel_label(_ax, _lt)
     w = 0.2
     for ax, tgt in zip(axes, ("headache", "migraine")):
         xticklab = []
@@ -53,7 +53,7 @@ def main():
                 if not r:
                     continue
                 oe = float(r["oe_ratio"])
-                ax.bar(si + (mi - 1.5) * w, oe, w, color=MCOL[m],
+                ax.bar(si + (mi - 1.5) * w, oe, w, color=S.ARCH[m],
                        label=MLAB[m] if si == 0 else None, alpha=0.85)
                 print(f"  {tgt:<9} {site:<10} {m:<16} O:E {oe:.2f}")
         ax.axhline(1.0, color="black", lw=1.2)
