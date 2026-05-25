@@ -9,6 +9,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
 
 TARGET = {"headache": "#1f77b4", "migraine": "#d62728"}
 ARCH = {
@@ -26,6 +27,20 @@ def apply():
         "legend.fontsize": 8, "xtick.labelsize": 9, "ytick.labelsize": 9,
         "axes.spines.top": False, "axes.spines.right": False,
     })
+
+
+def box(ax, xy, w, h, text, fc="#eef3f8", ec="#3a6ea5", fontsize=8.5, weight="normal"):
+    """Rounded text box centred at xy; returns (x, y, w, h) for arrow anchoring."""
+    x, y = xy
+    ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h, zorder=2, fc=fc, ec=ec,
+                                lw=1.2, boxstyle="round,pad=0.01,rounding_size=0.015"))
+    ax.text(x, y, text, ha="center", va="center", fontsize=fontsize, zorder=3, weight=weight)
+    return (x, y, w, h)
+
+
+def arrow(ax, p0, p1, color="#555555"):
+    ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=12,
+                                 lw=1.1, color=color, zorder=1))
 
 
 def save(fig, stem: Path) -> str:

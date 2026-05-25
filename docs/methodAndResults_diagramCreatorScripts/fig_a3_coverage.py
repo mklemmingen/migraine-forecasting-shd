@@ -1,0 +1,65 @@
+"""Figure A3 - diary-coverage calendar heatmap.
+
+Patient (rows, sorted by enrolment start) by calendar date (columns), coloured by
+the day's record: absent, headache-free, headache (non-migraine), or migraine.
+Shows the staggered enrolment and coverage gaps - the reason a late-enrolment
+chronological hold-out is sparse per patient and the within-person estimate needs
+the CV out-of-fold pooling (Figure C2).
+
+Usage: python fig_a3_coverage.py
+"""
+from pathlib import Path
+
+import _figstyle as S
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.colors import BoundaryNorm, ListedColormap
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+BASE = REPO / "data" / "processed"
+
+
+def main():
+    S.apply()
+    mig = pd.read_parquet(BASE / "migraine/diary_cv5_timeseries.parquet")[
+        ["patient_id", "date", "migraine_target"]].rename(columns={"migraine_target": "mig"})
+    hea = pd.read_parquet(BASE / "headache/diary_cv5_timeseries.parquet")[
+        ["patient_id", "date", "migraine_target"]].rename(columns={"migraine_target": "hea"})
+    df = mig.merge(hea, on=["patient_id", "date"])
+    df["date"] = pd.to_datetime(df["date"])
+    # day code: 1 present/headache-free, 2 headache (non-migraine), 3 migraine
+    df["code"] = 1 + (df["hea"] > 0).astype(int) + (df["mig"] > 0).astype(int)
+
+    order = df.groupby("patient_id")["date"].min().sort_values().index
+    dates = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
+    grid = np.zeros((len(order), len(dates)))            # 0 = absent
+    di = {d: j for j, d in enumerate(dates)}
+    pi = {p: i for i, p in enumerate(order)}
+    for p, d, c in zip(df["patient_id"], df["date"], df["code"]):
+        grid[pi[p], di[d]] = c
+
+    cmap = ListedColormap(["#ffffff", "#d9e6f2", "#f4a582", "#b2182b"])
+    norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
+    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    ax.imshow(grid, aspect="auto", cmap=cmap, norm=norm, interpolation="nearest")
+    # month ticks
+    months = pd.date_range(dates.min(), dates.max(), freq="MS")
+    ax.set_xticks([di[m] for m in months if m in di])
+    ax.set_xticklabels([m.strftime("%b %Y") for m in months if m in di], rotation=45, ha="right")
+    ax.set_ylabel("patient (sorted by enrolment start)")
+    ax.set_xlabel("calendar date")
+    ax.set_title("Diary coverage: staggered enrolment and gaps (63 patients)")
+    from matplotlib.patches import Patch
+    ax.legend(handles=[Patch(fc="#d9e6f2", label="headache-free"),
+                       Patch(fc="#f4a582", label="headache"),
+                       Patch(fc="#b2182b", label="migraine")],
+              loc="lower right", framealpha=0.9, fontsize=8)
+    print(f"  grid {grid.shape[0]} patients x {grid.shape[1]} days; "
+          f"coverage {100 * (grid > 0).mean():.1f}%")
+    print("saved", S.save(fig, HERE / "figures" / "fig_a3_coverage"))
+
+
+if __name__ == "__main__":
+    main()
