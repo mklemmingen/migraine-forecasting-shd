@@ -46,7 +46,7 @@ EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = EXPERIMENT_DIR.parent
 sys.path.insert(0, str(EXPERIMENT_DIR))
 
-from _eval._figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+from _style import apply, save  # noqa: E402
 from _eval._html_to_pdf import html_to_pdf  # noqa: E402
 
 _PREV_CACHE: dict = {}
@@ -339,7 +339,7 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     if not cells:
         return None
     cells.sort()
-    apply_journal_style()
+    apply()
     splits = ("chrono", "stratified", "patient")
     n, g = len(cells), len(splits)
     bh = 0.8 / g
@@ -386,7 +386,7 @@ def _split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
                   "hatched = CI reaches chance", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
-    save_journal_figure(fig, out_png)
+    save(fig, out_png)
     plt.close(fig)
     return out_png
 
@@ -418,7 +418,7 @@ def _auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     if not cells:
         return None
     cells.sort()
-    apply_journal_style()
+    apply()
     splits = ("chrono", "stratified", "patient")
     n, g = len(cells), len(splits)
     bh = 0.8 / g
@@ -453,7 +453,7 @@ def _auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_title("Precision-recall skill by split type, per cell (headline)",
                  fontsize=10)
     ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    save_journal_figure(fig, out_png)
+    save(fig, out_png)
     plt.close(fig)
     return out_png
 
@@ -480,7 +480,7 @@ def _calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     if not cells:
         return None
     cells.sort()
-    apply_journal_style()
+    apply()
     splits = ("chrono", "stratified", "patient")
     n = len(cells)
     base = np.arange(n)[::-1]
@@ -506,7 +506,7 @@ def _calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_title("Calibration of the headline model, by split type",
                  fontsize=10)
     ax.legend(fontsize=7.5, loc="upper right", ncol=1, framealpha=0.95)
-    save_journal_figure(fig, out_png)
+    save(fig, out_png)
     plt.close(fig)
     return out_png
 
@@ -539,7 +539,7 @@ def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     feats = feats[:12]
     if not feats:
         return None
-    apply_journal_style()
+    apply()
     y = np.arange(len(feats))[::-1]
     bw = 0.4
     fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
@@ -553,7 +553,7 @@ def _cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
-    save_journal_figure(fig, out_png)
+    save(fig, out_png)
     plt.close(fig)
     return out_png
 
@@ -567,7 +567,7 @@ def _park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path 
     """
     if len(shared) < 3:
         return None
-    apply_journal_style()
+    apply()
     n = len(shared)
     xs = [or_rank[f] for f in shared]
     ys = [shap_rank[f] for f in shared]
@@ -587,7 +587,7 @@ def _park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path 
     ax.set_title(f"{sel['role']} {sel['family']} - Spearman rho = {rho:+.2f}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
-    save_journal_figure(fig, out_png)
+    save(fig, out_png)
     plt.close(fig)
     return out_png
 

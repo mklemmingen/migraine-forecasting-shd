@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
-from _figstyle import apply_journal_style, save_journal_figure
+from _style import apply, save
 
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
@@ -359,7 +359,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     small filled marker at each connector elbow carries the family colour
     as a secondary cue only.
     """
-    apply_journal_style()
+    apply()
     k = len(mean_ranks)
     order = np.argsort(mean_ranks)
     sorted_ranks = mean_ranks[order]
@@ -549,7 +549,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         )
 
     fig.subplots_adjust(left=0.04, right=0.96, top=0.90, bottom=0.14)
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
@@ -602,7 +602,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
         x_max = tau_max
     x_max = max(1.05, min(x_max, tau_max))
 
-    apply_journal_style()
+    apply()
     fig, ax = plt.subplots(figsize=(8.4, 5.0))
     taus = np.linspace(1.0, x_max, 400)
     # Markevery base spacing and a per-curve phase so that overlapping
@@ -647,7 +647,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
               fontsize=7.5, framealpha=0.9, ncol=1,
               handlelength=3.0, borderaxespad=0.2)
     fig.tight_layout(pad=0.6)
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
@@ -701,7 +701,7 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     x_right = x_text + text_w                     # outer x-limit, hugs text
 
     fig_w = 2.4 + cell_step * (n_cells + text_w)
-    apply_journal_style()
+    apply()
     fig, ax = plt.subplots(figsize=(fig_w, 1.4 + 0.29 * n_arch))
 
     line_style = []
@@ -781,7 +781,7 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
             style="italic", color="#777",
         )
     fig.tight_layout(pad=0.6)
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 

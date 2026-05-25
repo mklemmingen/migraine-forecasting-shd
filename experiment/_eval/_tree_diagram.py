@@ -35,7 +35,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from _figstyle import apply_journal_style, save_journal_figure
+from _style import apply, save
 
 
 # Path-segment levels in the order they appear under experiment/.
@@ -233,7 +233,7 @@ def generate_tree_png(all_entries, out_path):
     the bottom row gets enough pixels to be discernible (cell counts
     vs widths are summarised in the title).
     """
-    apply_journal_style()
+    apply()
     root = _build_tree(all_entries)
     if not root.children:
         return
@@ -283,5 +283,5 @@ def generate_tree_png(all_entries, out_path):
     )
 
     plt.tight_layout()
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)

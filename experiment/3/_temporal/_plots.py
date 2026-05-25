@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(REPO / "experiment" / "_eval"))
-from _figstyle import apply_journal_style, save_journal_figure  # noqa: E402
+sys.path.insert(0, str(REPO / "experiment"))
+from _style import apply, save  # noqa: E402
 
 # Okabe-Ito colour-blind-safe accents.
 _BLUE = "#0072B2"
@@ -26,7 +26,7 @@ _GREY = "#999999"
 
 def acf_plot(acf_table, target, out_path):
     """ACF stems over lags 1..n with the +/-95% band shaded."""
-    apply_journal_style()
+    apply()
     lags = [k for k in sorted(acf_table) if k >= 1]
     r = [acf_table[k]["r"] for k in lags]
     ci = [acf_table[k]["ci"] for k in lags]
@@ -40,13 +40,13 @@ def acf_plot(acf_table, target, out_path):
     ax.set_ylabel("Autocorrelation")
     ax.set_title(f"Daily attack autocorrelation - {target}")
     ax.legend(fontsize=8)
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
 def burstiness_plot(rows, target, out_path):
     """Per-patient burstiness B vs memory M scatter with zero quadrants."""
-    apply_journal_style()
+    apply()
     B = [x["B"] for x in rows]
     M = [x["M"] for x in rows]
     fig, ax = plt.subplots(figsize=(5.5, 5))
@@ -58,13 +58,13 @@ def burstiness_plot(rows, target, out_path):
     ax.set_title(f"Inter-attack burstiness and memory - {target}")
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
 def dow_plot(period, target, out_path):
     """Attack rate by weekday."""
-    apply_journal_style()
+    apply()
     from periodicity import WEEKDAYS
     rate = period["rate_per_dow"]
     fig, ax = plt.subplots(figsize=(7, 4))
@@ -72,13 +72,13 @@ def dow_plot(period, target, out_path):
     ax.set_ylabel("Attack rate")
     ax.set_title(f"Attack rate by day of week - {target} "
                  f"(chi-square p = {period['p_value']:.2f})")
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
 def self_excitation_plot(se, target, out_path):
     """Forest plot of attack-lag odds ratios (trigger-controlled)."""
-    apply_journal_style()
+    apply()
     coefs = se["lag_coefs"]
     names = list(coefs)
     or_ = [coefs[n]["odds_ratio"] for n in names]
@@ -95,13 +95,13 @@ def self_excitation_plot(se, target, out_path):
     ax.set_title(f"Attack-lag self-excitation - {target}\n"
                  f"LR vs triggers-only: chi2={se['lr_stat']:.0f}, "
                  f"p={se['lr_p_value']:.1e}")
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)
 
 
 def markov_plot(mk, target, out_path):
     """Conditional next-day attack probabilities vs the marginal rate."""
-    apply_journal_style()
+    apply()
     labels = ["no attack today", "attack today", "marginal"]
     vals = [mk["p_attack_tomorrow_given_no_attack_today"],
             mk["p_attack_tomorrow_given_attack_today"],
@@ -111,5 +111,5 @@ def markov_plot(mk, target, out_path):
     ax.set_ylabel("P(attack tomorrow)")
     ax.set_title(f"First-order transition - {target}  "
                  f"(RR={mk['risk_ratio']:.1f}, p={mk['p_value']:.1e})")
-    save_journal_figure(fig, out_path)
+    save(fig, out_path)
     plt.close(fig)

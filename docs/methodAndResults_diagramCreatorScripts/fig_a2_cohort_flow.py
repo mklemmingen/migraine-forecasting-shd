@@ -10,7 +10,10 @@ Usage: python fig_a2_cohort_flow.py
 """
 from pathlib import Path
 
-import _figstyle as S
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "experiment"))
+import _style as S
 import matplotlib.pyplot as plt
 import pandas as pd
 
