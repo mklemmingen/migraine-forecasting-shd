@@ -99,7 +99,12 @@ def main():
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):
         vals = [skills[tgt].get(l, np.nan) for l in labels]
-        ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
+        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
+        for b, v in zip(bars, vals):
+            if v == v:   # skip NaN
+                ax.annotate(f"{v:+.2f}", (b.get_x() + b.get_width() / 2, v),
+                            ha="center", va="bottom" if v >= 0 else "top", fontsize=7,
+                            xytext=(0, 2 if v >= 0 else -2), textcoords="offset points")
     ax.axhline(0, color=S.REF_COLOR, lw=1)
     ax.set_xticks(x); ax.set_xticklabels(labels)
     ax.set_ylabel("Brier skill vs per-patient climatology")

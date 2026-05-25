@@ -49,7 +49,6 @@ def main():
         ax.imshow(g, cmap=CMAP, norm=NORM, aspect="auto", interpolation="nearest")
         ax.set_xticks([]); ax.set_yticks([])
         ax.set_title(name, fontsize=9)
-        ax.set_xlabel("days ->", fontsize=8)
         for i in range(N_PT + 1):
             ax.axhline(i - 0.5, color="white", lw=0.6)
         for j in range(N_DAY + 1):
@@ -59,6 +58,7 @@ def main():
                         Patch(fc=S.SPLIT_GRID[1], label="val"),
                         Patch(fc=S.SPLIT_GRID[2], label="test")],
                loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.06))
+    fig.supxlabel("days →", fontsize=9)
     fig.suptitle("Split strategies over patient-days", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_a5_splits"))
 

@@ -41,9 +41,9 @@ def main():
     b2 = S.box(ax, (5, 6.8), 7.2, 1.3,
                "Recruitment site recovered from Sheet 1\n"
                "62 patients mapped: Uijeongbu 32 - Dongtan 30")
-    S.box(ax, (8.7, 8.0), 3.0, 0.95,
-          "- 1 reconciliation patient\n(38 days), excluded\nfrom site analysis",
-          role="exclude", fontsize=7.5)
+    bex = S.box(ax, (8.5, 7.95), 2.8, 0.85,
+                "- 1 reconciliation patient\n(38 days), excluded\nfrom site analysis",
+                role="exclude", fontsize=7.5)
     bh = S.box(ax, (2.7, 4.6), 3.4, 1.15, f"Headache target\n{hea_r:.1%} of all days",
                fc=S.PALE_FILL, ec=S.TARGET["headache"])
     bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} of all days",
@@ -54,6 +54,7 @@ def main():
                role="output")
     for a, b in [(b1, b2)]:
         S.arrow(ax, (a[0], a[1] - a[3] / 2), (b[0], b[1] + b[3] / 2))
+    S.arrow(ax, (5.0, 7.95), (bex[0] - bex[2] / 2, 7.95))   # branch to the exclusion note
     S.arrow(ax, (b2[0], b2[1] - b2[3] / 2), (bh[0], bh[1] + bh[3] / 2))
     S.arrow(ax, (b2[0], b2[1] - b2[3] / 2), (bmg[0], bmg[1] + bmg[3] / 2))
     S.arrow(ax, (bh[0], bh[1] - bh[3] / 2), (b4[0] - 1.5, b4[1] + b4[3] / 2))

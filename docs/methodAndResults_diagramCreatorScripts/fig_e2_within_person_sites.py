@@ -53,8 +53,11 @@ def main():
                            label=MLAB[m] if si == 0 else None)
                 print(f"  {tgt:<9} {site:<10} {m:<16} within {v:.3f}")
         S.refline(ax, y=0.5, label="chance")
-        ax.axhline(INTERNAL[tgt], color=S.TARGET[tgt], lw=1.4,
-                   label=f"internal within-person {INTERNAL[tgt]:.2f}")
+        # neutral reference line + per-panel value, so the shared legend swatch
+        # cannot mismatch the drawn colour (the internal estimate is target-specific)
+        ax.axhline(INTERNAL[tgt], color=S.SOFT, lw=1.4)
+        ax.text(0.02, INTERNAL[tgt], f"internal C {INTERNAL[tgt]:.2f}",
+                transform=ax.get_yaxis_transform(), va="bottom", fontsize=7, color=S.SOFT)
         ax.set_xticks(range(len(SITES)))
         ax.set_xticklabels([f"held-out\n{s}" for s in SITES])
         ax.set_ylim(0.40, 0.85)

@@ -4,7 +4,7 @@ Each patient's own fraction of headache days and migraine days, across all their
 diary days. The wide between-patient spread (some patients near 0, others well
 above the cohort mean) is the variation that a pooled C-statistic absorbs as
 discrimination - which is why pooled AUROC overstates within-person ranking
-(Figure C2). One marker per patient; the dashed line is the cohort mean.
+(Figure C2). One marker per patient; the solid tick is the cohort mean.
 
 Usage: python fig_a4_base_rates.py
 """
