@@ -1,8 +1,13 @@
 # XGBoost in this study: architecture, tuning protocol, and findings
 
+> Position in the paper: **Architectures (3.1)**. Reads after
+> `park_features.md`; precedes `tabPfn.MD`. The composite migraine
+> headline cell that `results_findings.md` reports is one of the leaves
+> trained under the HP-search protocol documented here.
+
 This document covers the XGBoost-based learner family in Addition 0 of
-the comparison: the stacking architecture I use in the NonHP baselines,
-the hyperparameter-tuning protocol I apply to it for the
+the comparison: the stacking architecture we use in the NonHP baselines,
+the hyperparameter-tuning protocol we apply to it for the
 `HyperparameterTuned/` branch, and the findings the tuning sweep
 surfaced. It is the source of truth for the XGBoost-related material in
 the paper's methods section.
@@ -17,6 +22,23 @@ to generate the out-of-fold base-learner probabilities the meta-learner
 trains on. A Platt sigmoid (LogisticRegression at `C=1e10`, unpenalised)
 calibrates the meta-output on the calibration parquet (3-way ratios)
 or on the chronological `cal_sub` (2-way ratios).
+
+The choice of `KFold(shuffle=False)` for the **inner** stacking CV is a
+deliberate disclosure: on a chronological cell the training parquet is
+already in time order, so a non-shuffled KFold partitions the training
+window into five contiguous time-ordered chunks, and the base-learner
+out-of-fold predictions for chunk k are produced from a model fit on
+the other four chunks. This is *approximately* time-respecting (each
+fold's training set is contiguous-in-time relative to its held-out
+chunk) but is not strictly an expanding-window TimeSeriesSplit (the
+held-out chunk is not always the latest). The outer CV, which drives
+the headline benchmark, is expanding-window TimeSeriesSplit.
+KFold(shuffle=False) is chosen for the inner stack because it keeps
+the out-of-fold size per fold balanced (which matters for the L1
+meta's fit stability) whereas a strict TimeSeriesSplit would feed it
+progressively smaller earlier-fold OOF samples; the inner-vs-outer
+asymmetry is therefore a fit-strategy detail of the stacker, not part
+of the evaluation protocol.
 
 The diverse-depth design intent is to give the meta-learner access to
 both a "main-effect" view of the trigger panel (the shallow tree) and
@@ -56,9 +78,9 @@ a prefix of a 500-trial NSGA-II run is NOT equivalent to a stand-alone
 NSGA-II run at that shorter budget: trials 1-49 are random
 initialisation before the first generation completes, and selection
 pressure only begins to operate from trial 51 onwards. Reporting
-"NSGA-II Pareto at trial 20" would conflate random-initialisation
-samples with converged-frontier samples and would mislead a reader
-trying to read it as a budget-sensitivity story. The Pareto cells
+"NSGA-II Pareto at trial 20" would therefore conflate
+random-initialisation samples with converged-frontier samples and
+would not represent a budget-sensitivity result. The Pareto cells
 therefore report the single converged 10-generation frontier at three
 operating points, and the bias-from-search-size story is told
 exclusively by the single-objective ladder.
@@ -188,16 +210,16 @@ For Pareto cells, three points are reported from the non-dominated
 subset of the search trajectory in (x_objective, \|slope-1\|) space:
 
 - `auroc_max` (or `auprc_max` on AUPRC-Pareto): frontier point with
-  the highest discrimination metric. Useful as the "I tuned for
+  the highest discrimination metric. Useful as the "we tuned for
   AUROC and accepted the calibration cost" reference.
 - `slope_closest`: frontier point with the lowest \|slope-1\|. Useful
-  as the "I tuned for calibration and accepted the discrimination
+  as the "we tuned for calibration and accepted the discrimination
   cost" reference.
 - `knee`: frontier point with the maximum perpendicular distance to
   the chord connecting the two extremes, after normalising both axes
   to [0, 1]. Useful as the "balanced trade-off" reference. The
   geometric core of the Kneedle algorithm [5]; full Kneedle adds a
-  spline-smoothing pass that I skip because at 500 NSGA-II trials the
+  spline-smoothing pass that we skip because at 500 NSGA-II trials the
   frontier is already smoother than the smoothing window would
   resolve.
 
@@ -216,8 +238,8 @@ across all HP variants:
   unpenalised)
 
 These choices preserve the NonHP architecture's structural identity,
-so the HP variants are honest "same architecture, tuned base
-learners" rows rather than de-facto different architectures.
+so the HP variants remain a "same architecture, tuned base learners"
+comparison rather than introducing de-facto different architectures.
 
 ## 8. Findings from the May 2026 sweep
 
@@ -225,7 +247,7 @@ The HP grid spans 12 (target, ratio, split) cells. The single-objective
 budget ladder produces 5 variants per cell (HP020/050/100/200/500), the
 AUROC-Pareto track produces 3 variants per cell (auroc_max / knee /
 slope_closest), and the AUPRC-Pareto track adds another 3 variants on
-migraine cells only. I report the three results that I think bear on
+migraine cells only. Three results are reported below that bear on
 the paper's methods discussion.
 
 ### 8.1 Budget convergence at approximately 100 trials
@@ -258,7 +280,7 @@ search tracks pick different operating points:
 
 The Pareto knee trades 0.027 AUROC for a 0.108 closer-to-1
 calibration slope. It is a valid alternative operating point but does
-not dominate the single-objective AUROC pick on this cell. I report
+not dominate the single-objective AUROC pick on this cell. We report
 both tracks in the comparison HTML so the trade-off is visible rather
 than collapsed into one number.
 
@@ -316,7 +338,7 @@ the stratified branch reported as a negative-finding ablation.
 The 70/15/15 chronological cell on the headache target has the
 smallest absolute test holdout (~155 rows, ~30% positive rate, ~46
 positive events). Every HP variant on this cell clusters AUROC near
-0.49 with NonHP also at 0.507. I report this as a holdout-size
+0.49 with NonHP also at 0.507. We report this as a holdout-size
 ceiling, not an HP failure: the cell does not have enough events to
 discriminate between HP configurations, and the bootstrap confidence
 intervals on its metrics are wider than the across-variant spread.
