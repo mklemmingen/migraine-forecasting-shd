@@ -163,8 +163,8 @@ Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe)
 
 | Severity | Count | Percent |
 |----------|-------|---------|
-| Mild (약함) | 548 | 49.8% |
-| Moderate (중간) | 402 | 36.5% |
+| Mild (약함) | 548 | 49.9% |
+| Moderate (중간) | 402 | 36.6% |
 | Severe (심함) | 117 | 10.6% |
 
 > This sheet is the data source for Stage 5 (disability prediction feasibility). It links to Sheet 3 via Patient ID and Date. It is excluded from the Stage 0–4 predictor sets.
