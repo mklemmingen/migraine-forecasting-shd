@@ -1,5 +1,10 @@
 # Korean Smartphone Headache Diary - Source Dataset
 
+> Position in the paper: **Data and features (2.1)**. Reads after the
+> repository README; precedes `park_features.md`. The engineered-feature
+> EPV bands documented here are referenced from every per-Addition methods
+> doc.
+
 ## Source Publication
 
 **Park J-W, Chu MK, Kim J-M, Park S-G, Cho S-J (2016)**  
@@ -9,13 +14,34 @@ https://doi.org/10.1371/journal.pone.0149577
 
 The SHD dataset is the supplementary file S1 of the above publication, redistributed under the Creative Commons Attribution License (CC BY 4.0) under which the original article was published. Consult the original publication for usage conditions.
 
+### Why this dataset
+
+Park 2016 SHD is the appropriate starting point for this benchmark for four
+reasons. First, **it is publicly released under CC BY 4.0** (file S1 of the
+PLOS ONE article), so a reproducible benchmark can ship the engineered
+features without re-licensing the raw rows. Second, **it has the right
+granularity**: daily diary entries for ~85 days per patient give the
+patient-day temporal resolution next-day forecasting needs, unlike
+millisecond wearable streams (Faisal 2026) or visit-only EHR snapshots.
+Third, **it is the right cohort definition**: ICHD-3 episodic migraine,
+2-14 headache days per month, formally diagnosed at two Korean university
+neurology clinics, with documented inclusion criteria - the population a
+clinical pre-emptive-medication forecast would target. Fourth, **the
+trigger structure is documented at source**: Park et al. published trigger
+odds-ratios in Table 4 of the original paper, giving the benchmark a
+ready-made comparator for the SHAP-attribution recovery check (Addition 2
+§1b Claim 2). The next-best publicly available cohort with similar
+properties (Houle 2005, 132 patients) uses a different diary instrument
+and lacks the published trigger-OR table that anchors the Addition 2
+Park-rank comparison.
+
 **Related document:** For prior work on the intermediate and engineered representations of this data as produced by Marco Samuel Spano [2], see [`cc_MarcoSpano-oldSet/dataset.md`](data/cc_MarcoSpano-oldSet/dataset.md).
 
 ---
 
 ## File
 
-`data/SHD-Dataset.xls` - 5,764,608 bytes, last modified 2026-01-19.  
+`data/raw/SHD-Dataset.xls` - 5,764,608 bytes, last modified 2026-04-29.  
 Engine required: xlrd (pin `xlrd < 2.0`).  
 Three sheets. All column headers in Korean throughout.
 
@@ -431,8 +457,8 @@ is the explanation.
 |---------|-------------|
 | dow | day of week (0=Monday); standard time-series context feature |
 
-**Total effective features: 47**
-(added 2 gap features detailing days since last record)
+**Total effective features: 52**
+(includes 2 gap features detailing days since last record)
 
 **Structural columns dropped at engineering:** `headache_ongoing` (redundant with `migraine_today`), `severity_category` and `severity_vas` (populated on headache days only - mostly null on non-headache days, introducing structural missingness correlated with the target).
 
@@ -520,20 +546,21 @@ discipline check: events divided by candidate predictor parameters. The
 TRIPOD+AI 2024 reporting guideline [5] explicitly flags EPV-style sample-size
 considerations as a required reporting item; the recent Martin et al. 2025
 statistical primer [6] surveys the formal sample-size calculation literature
-that supersedes the rule of thumb [6, p. 1]. The classical EPV bands are
-`<5` high overfitting risk, `5-9` moderate, `>=10` low; modern sample-size
+that supersedes the rule of thumb [6, p. 1]. We adopt the conservative
+reading consistent with Peduzzi 1996 and Riley 2020: `<10` high
+overfitting risk, `10-19` marginal, `>=20` low; modern sample-size
 calculations are more nuanced but the bands remain useful as a first-pass
 indicator.
 
 On the canonical 70_15_15 chrono split (train = 3941 rows), the four feature
 sets we benchmark yield the following EPV against the two targets:
 
-| Feature set | n features | events on migraine (~5.1% pos rate, ~201 events) | EPV migraine | events on headache (~23.5% pos rate, ~926 events) | EPV headache |
+| Feature set | n features | events on migraine (~7.2% pos rate, 287 events) | EPV migraine | events on headache (~24.0% pos rate, 948 events) | EPV headache |
 |---|---|---|---|---|---|
-| `full_features`         | 52 | 201 | **3.9 (high risk)** | 926 | 17.8 (low)        |
-| `spano_features`        | 31 | 201 | 6.5 (moderate)      | 926 | 29.9 (low)        |
-| `no_rolling_features`   | 26 | 201 | 7.7 (moderate)      | 926 | 35.6 (low)        |
-| `park_features`         |  6 | 201 | **33.5 (low)**      | n/a | n/a (migraine-only - see docs/park_features.md) |
+| `full_features`         | 52 | 287 | **5.5 (high risk)** | 948 | 18.2 (marginal)   |
+| `spano_features`        | 31 | 287 | 9.3 (high risk)     | 948 | 30.6 (low)        |
+| `no_rolling_features`   | 26 | 287 | 11.0 (marginal)     | 948 | 36.5 (low)        |
+| `park_features`         |  6 | 287 | **47.8 (low)**      | n/a | n/a (migraine-only - see docs/park_features.md) |
 
 Two implications carry into the methodology and discussion:
 
@@ -544,7 +571,7 @@ Two implications carry into the methodology and discussion:
    alongside discrimination [5, 6] is the discipline check; a slope
    markedly below 1 on test confirms the overfitting fingerprint.
 2. The migraine `park_features` cell is **comfortably in the low-risk
-   band** at EPV 33.5. This is part of the scientific justification for
+   band** at EPV 47.8. This is part of the scientific justification for
    the Park feature set's existence as a benchmark variant - it is the
    only feature set in this study where the migraine target has a
    sample size that the prediction-model methodology literature [6]
