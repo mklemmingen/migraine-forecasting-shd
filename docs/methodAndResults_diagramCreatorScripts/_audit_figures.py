@@ -6,7 +6,12 @@ violations a linter can see (inline hex, bypassing _style, non-column widths,
 multi-panel without panel labels, hand-rolled reference lines) so the multimodal
 review committee spends its judgement only on visual/semantic quality.
 
-Usage: python _audit_figures.py            (lints all fig_*.py here)
+It lints two layers: the fig_*.py scripts in this directory (full contract;
+delegating wrappers get only the colour/raw-save guards) and the shared
+experiment/_eval generators they delegate to (relaxed contract: role-palette
+hex allowed, but _style routing and no named colours still enforced).
+
+Usage: python _audit_figures.py            (lints fig_*.py here + _eval generators)
 Exit code is the number of FAILs (0 = clean). Not a figure; name underscored so
 the figure runner's fig_*.py glob ignores it.
 """
@@ -14,6 +19,17 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+# The shared figure generators the fig_f*/fig_g* wrappers delegate to. They are
+# linted with a relaxed ruleset (see _check_generator): they legitimately carry
+# role-palette hex (ordinal ramp, family hues), so hex is allowed there, but they
+# must still go through _style and never use named matplotlib colours or raw savefig.
+_EXPERIMENT = HERE.parents[1] / "experiment"
+GENERATOR_FILES = (
+    _EXPERIMENT / "_eval" / "_benchmark_visuals.py",
+    _EXPERIMENT / "_eval" / "_venn_diagrams.py",
+    _EXPERIMENT / "_eval" / "_tree_diagram.py",
+    _EXPERIMENT / "2" / "_figures.py",
+)
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b")   # 6- and 3-digit literals
 # named matplotlib colours used as a literal colour= argument (white allowed for
 # marker edges); these bypass the _style palette just like hex does.
@@ -24,11 +40,13 @@ NAMED = re.compile(r"""color\s*=\s*["'](black|grey|gray|red|green|blue|orange|""
 # but should still migrate to named _style constants.
 HEATMAP_LIKE = {"fig_a3_coverage", "fig_a5_splits"}
 
-# Generator modules under experiment/_eval that own their own _style contract
-# (apply/save/palette). A fig_*.py that imports one of these and does no inline
-# plotting is a delegating wrapper: the structural checks below are enforced one
-# layer down, so this lint only applies the colour-literal and raw-save guards.
-GENERATOR_MODULES = ("_benchmark_visuals", "_venn_diagrams", "_tree_diagram")
+# Markers that a fig_*.py delegates to a shared generator (which owns the
+# _style contract) rather than plotting inline: the _eval generators imported by
+# name (fig_f*) or the Addition-2 _figures module loaded by file path (fig_g*).
+# Such a wrapper, having no inline plotting, is checked one layer down, so this
+# lint applies only the colour-literal and raw-save guards to it.
+DELEGATION_MARKERS = ("from _benchmark_visuals import", "from _venn_diagrams import",
+                      "from _tree_diagram import", "_figures.py")
 
 
 def _check(path: Path) -> dict:
@@ -36,7 +54,7 @@ def _check(path: Path) -> dict:
     name = path.stem
     findings = []  # (severity, code, message)
 
-    delegated = (any(f"from {m} import" in src for m in GENERATOR_MODULES)
+    delegated = (any(m in src for m in DELEGATION_MARKERS)
                  and "plt.subplots(" not in src)
 
     if not delegated:
@@ -92,6 +110,35 @@ def _check(path: Path) -> dict:
     return {"name": name, "findings": findings, "delegated": False}
 
 
+def _check_generator(path: Path) -> dict:
+    """Relaxed lint for an experiment/_eval figure generator.
+
+    These modules own a palette ROLE (ordinal depth ramp, family-anchor hues,
+    sequential/diverging stops), so hex literals are legitimate here and only
+    reported as a count - not a FAIL. The contract they must still honour:
+    route styling through ``_style`` (``apply``/``save``), never hardcode a
+    named matplotlib colour, and never bypass ``save()`` with raw ``savefig``.
+    """
+    src = path.read_text()
+    name = path.stem
+    findings = []
+
+    if "from _style import" not in src:
+        findings.append(("FAIL", "import", "does not import from _style"))
+    if "apply(" not in src:
+        findings.append(("FAIL", "apply", "never calls apply()"))
+    if "save(" not in src:
+        findings.append(("FAIL", "save", "never calls save()"))
+    if re.search(r"\b(fig|plt)\.savefig\(", src):
+        findings.append(("FAIL", "raw-save", "calls savefig() directly, bypassing save()"))
+    named = sorted(set(NAMED.findall(src)))
+    if named:
+        findings.append(("FAIL", "named-colour",
+                         f"literal colour name(s) {named} - use S.* colours"))
+    n_hex = len(set(HEX.findall(src)))
+    return {"name": name, "findings": findings, "role_hex": n_hex}
+
+
 def main():
     figs = sorted(HERE.glob("fig_*.py"))
     fails = 0
@@ -107,8 +154,20 @@ def main():
         print(f"{status:<8}{extra:<10} {r['name']}{tag}")
         for sev, code, msg in r["findings"]:
             print(f"         {sev:<5} [{code}] {msg}")
+
+    print("-" * 64)
+    print("shared figure generators (role-palette exception: hex allowed)")
+    for gf in GENERATOR_FILES:
+        r = _check_generator(gf)
+        fa = [x for x in r["findings"] if x[0] == "FAIL"]
+        fails += len(fa)
+        status = "PASS" if not fa else f"FAIL({len(fa)})"
+        print(f"{status:<8}{'':<10} {r['name']}  ({r['role_hex']} role-palette hex)")
+        for sev, code, msg in r["findings"]:
+            print(f"         {sev:<5} [{code}] {msg}")
+
     print("=" * 64)
-    print(f"{fails} FAIL(s) across {len(figs)} figures")
+    print(f"{fails} FAIL(s) across {len(figs)} figures + {len(GENERATOR_FILES)} generators")
     return fails
 
 

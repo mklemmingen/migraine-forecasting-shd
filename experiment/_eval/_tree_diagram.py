@@ -35,7 +35,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from _style import apply, save, INK
+from _style import apply, save, INK, FAINT, TARGET, ARCH, SPLIT, FEATURE_SET
 
 
 # Path-segment levels in the order they appear under experiment/.
@@ -56,14 +56,38 @@ TREE_LEVELS = (
     ('hp_variant',     'HP operating point'),
 )
 
-# Ordinal single-hue (blue) depth ramp: shallow -> deep. Tree depth has an
-# inherent order with no divergence, so the guide's ordinal role (Sec 1.0/Sec 9)
-# requires one ordered hue family, NOT the former rainbow (which read as
-# categorical/diverging). Kept dark enough for white cell labels at alpha 0.85.
-TREE_LEVEL_COLORS = [
-    '#5a9bc9', '#4a8ec2', '#3b81bb', '#2d74b3', '#2167ab',
-    '#185aa0', '#114e92', '#0c4283', '#093872', '#08306b',
-]
+# Cell colour carries ENTITY IDENTITY, not depth. Depth is already encoded by row
+# position (top -> bottom), so a depth colour ramp would be redundant; spending the
+# colour channel on the canonical entity hues instead tells the reader which target /
+# feature set / model / split a cell is, consistent with every other figure. Levels
+# without a canonical entity (addition index, model version, split ratio, the three
+# HP rows) stay a neutral grey so the branded rows stand out.
+_LEVEL_PALETTE = {
+    1: TARGET,        # headache / migraine
+    2: FEATURE_SET,   # full / spano / no_rolling / park (dirs carry a _features suffix)
+    3: ARCH,          # model family hue
+    6: SPLIT,         # chrono / stratified / patient / site
+}
+_STRUCTURAL_FILL = FAINT
+
+
+def _node_fill(level, label):
+    """Canonical entity colour for a node's level, else the neutral fill."""
+    palette = _LEVEL_PALETTE.get(level)
+    if palette is None:
+        return _STRUCTURAL_FILL
+    key = label.replace('_features', '') if level == 2 else label
+    return palette.get(key, _STRUCTURAL_FILL)
+
+
+def _label_ink(hex_fill):
+    """White on a dark fill, INK on a light one, by relative luminance, so cell
+    labels stay legible across the dark-to-light span of the Okabe-Ito palette.
+    """
+    h = hex_fill.lstrip('#')
+    r, g, b = (int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return INK if luminance > 0.6 else 'white'
 
 
 class _Node:
@@ -187,23 +211,23 @@ def _draw_node_rects(ax, node, row_h, row_pad):
     separation.
     """
     if node.level >= 0:
-        color = TREE_LEVEL_COLORS[min(node.level, len(TREE_LEVEL_COLORS) - 1)]
+        color = _node_fill(node.level, node.label)
         y_top = node.level * row_h
         y_bot = y_top + row_h - row_pad
         width = node.x1 - node.x0
         # The rectangle itself.
         ax.add_patch(Rectangle(
             (node.x0, y_top), width, row_h - row_pad,
-            facecolor=color, edgecolor='white', linewidth=0.6, alpha=0.85,
+            facecolor=color, edgecolor='white', linewidth=0.6,
         ))
-        # Centred label (white on coloured background); compacted then
-        # truncated to fit the cell width.
+        # Centred label, ink chosen for legibility on this cell's fill;
+        # compacted then truncated to fit the cell width.
         label = _label_for_width(_short_node_label(node.label), width)
         if label:
             ax.text(
                 (node.x0 + node.x1) / 2.0, (y_top + y_bot) / 2.0,
                 label, ha='center', va='center',
-                color='white', fontsize=8.5, fontweight='bold',
+                color=_label_ink(color), fontsize=8.5, fontweight='bold',
                 fontfamily='monospace',
             )
     for child in node.children.values():
@@ -245,16 +269,6 @@ def generate_tree_png(all_entries, out_path):
 
     _draw_node_rects(ax, root, row_h=row_h, row_pad=row_pad)
 
-    # Column headers above the top stripe. Each header sits over its
-    # level's stripe and uses the matching hue so the colour legend is
-    # self-explanatory without a separate key.
-    for lvl, (_key, header) in enumerate(TREE_LEVELS):
-        ax.text(
-            0.0, -header_h + lvl * 0,
-            header, ha='left', va='bottom',
-            fontsize=10, fontweight='bold', fontfamily='monospace',
-            color=TREE_LEVEL_COLORS[lvl],
-        ) if False else None
     # Stripe labels on the left margin (one per row).
     for lvl, (_key, header) in enumerate(TREE_LEVELS):
         y_mid = lvl * row_h + (row_h - row_pad) / 2.0

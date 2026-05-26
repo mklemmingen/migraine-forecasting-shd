@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
-from _style import apply, save, OI, GREY
+from _style import apply, save, OI, GREY, INK, SOFT, MUTED
 
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
@@ -428,7 +428,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     ax.set_ylim(bottom_y + 0.4, axis_top)
     ax.axis("off")
 
-    text_dark = "#111111"
+    text_dark = INK
     # The rank axis is drawn by hand so the scale numbers sit directly on
     # the axis line. matplotlib's top-spine ticks would render at the axes
     # top, far above a data-positioned spine, leaving the scale stranded
@@ -453,7 +453,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     x_elbow_left  = float(k)        # left edge (near worst rank)
     text_gap = 0.55
     conn_alpha = 1.0 if omnibus_sig else 0.45        # fade the ladder if non-sig
-    lbl_color = text_dark if omnibus_sig else "#9a9a9a"
+    lbl_color = text_dark if omnibus_sig else MUTED
 
     def _draw_side(row_indices, side):
         for row, r in enumerate(row_indices):
@@ -511,7 +511,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         ax.text((1 + k) / 2.0, banner_y,
                 "no pair significantly different (Nemenyi, alpha=0.05)",
                 ha="center", va="top", fontsize=9.5, style="italic",
-                color="#444444", zorder=4)
+                color=SOFT, zorder=4)
 
     # CD scale bar just above the rank numbers, anchored at rank 1, so the
     # critical-difference span reads against the same scale without a gap.
@@ -543,13 +543,13 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         f"Each method is ranked 1 (best) to {k} within every cell, then "
         f"averaged over the {n_txt} cells to give its mean rank (dot). "
         "Methods joined by a bar differ by less than the",
-        ha="center", va="bottom", fontsize=8.5, color="#444444",
+        ha="center", va="bottom", fontsize=8.5, color=SOFT,
     )
     fig.text(
         0.5, 0.018,
         "critical difference CD (Nemenyi post-hoc, alpha=0.05) and are "
         "therefore not significantly different.",
-        ha="center", va="bottom", fontsize=8.5, color="#444444",
+        ha="center", va="bottom", fontsize=8.5, color=SOFT,
     )
 
     if dropped_archs:
@@ -562,7 +562,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             "Excluded from Friedman (incomplete cell coverage): "
             + ", ".join(dropped_archs),
             ha="center", va="bottom", fontsize=8.0,
-            style="italic", color="#777777",
+            style="italic", color=GREY,
         )
 
     fig.subplots_adjust(left=0.04, right=0.96, top=0.90, bottom=0.14)
@@ -640,13 +640,12 @@ def render_performance_profile(matrix, arch_labels, out_path,
         phase = (j * phase_step) % base_every
         ax.plot(taus, rho, lw=linewidth, ls=linestyle, color=color,
                 marker=marker, markevery=(phase, base_every), markersize=5.5,
-                markeredgecolor="black", markeredgewidth=0.4,
+                markeredgecolor=INK, markeredgewidth=0.4,
                 label=str(arch_labels[j]))
     ax.set_xlabel("tau (tolerance factor)")
     ax.set_ylabel("Fraction of cells with metric within tau x best")
     ax.set_ylim(0, 1.05)
     ax.set_xlim(1.0, x_max)
-    ax.grid(alpha=0.3)
     if title:
         ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
     if dropped_archs:
@@ -654,7 +653,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
             0.5, -0.13,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
             transform=ax.transAxes, ha="center", fontsize=8.0,
-            style="italic", color="#777",
+            style="italic", color=GREY,
         )
     # Legend outside the axes so it does not overlap the staircase
     # curves; family-grouped order makes baselines visually adjacent. The
@@ -745,7 +744,6 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     one_fs = len({c[0] for c in cells_used}) == 1
     tick_labels = ["/".join(c[1:] if one_fs else c) for c in cells_used]
     ax.set_xticklabels(tick_labels, rotation=35, ha="right", fontsize=8)
-    ax.grid(alpha=0.3, axis="y")
     ax.set_xlim(-0.35, x_right)
 
     # De-collide the end labels. Targets are each line's final-cell rank;
@@ -778,24 +776,34 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
         y_lab = placed[j]
         # Leader: endpoint -> horizontal stub -> diagonal to the swatch row.
         ax.plot([x_last, x_stub, x_swatch], [y_end, y_end, y_lab],
-                ls="-", lw=0.7, color="#888888", clip_on=False, zorder=1)
+                ls="-", lw=0.7, color=GREY, clip_on=False, zorder=1)
         # Family-colour swatch carrying the per-line marker.
         ax.plot([x_swatch], [y_lab], marker=marker, ms=marker_size,
-                color=color, mec="#333333", mew=0.5,
+                color=color, mec=INK, mew=0.5,
                 clip_on=False, zorder=3)
-        # Dark, near-black label text for legibility regardless of hue.
+        # Dark label text for legibility regardless of how pale the hue is.
         ax.text(x_text, y_lab, label_text[j], va="center", ha="left",
-                fontsize=7.8, color="#111111", clip_on=False, zorder=4)
+                fontsize=7.8, color=INK, clip_on=False, zorder=4)
 
     if title:
         ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
+    # False-precision caveat: a rank is an ordering of point estimates, so a
+    # crossing between two lines need not be a real difference. Spell this out
+    # so the trajectories are read as descriptive, not inferential.
+    ax.text(
+        0.0, -0.42,
+        "Ranks order per-cell point estimates; a crossing smaller than the "
+        "critical difference (see CD diagram) is not a significant difference.",
+        transform=ax.transAxes, ha="left", fontsize=8.0,
+        style="italic", color=GREY,
+    )
     if dropped_archs:
-        # Below the rotated x-tick labels so it never overlaps them.
+        # Below the caveat so the two notes never overlap each other.
         ax.text(
-            0.0, -0.42,
+            0.0, -0.52,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
             transform=ax.transAxes, ha="left", fontsize=8.0,
-            style="italic", color="#777",
+            style="italic", color=GREY,
         )
     fig.tight_layout(pad=0.6)
     save(fig, out_path)
