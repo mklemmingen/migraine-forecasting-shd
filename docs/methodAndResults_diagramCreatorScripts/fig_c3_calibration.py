@@ -1,12 +1,24 @@
 """Figure C3 - calibration reliability diagrams.
 
-Observed vs predicted next-day probability by quantile bin for the headline
-architectures (Additions 0/1/4, full_features, chronological 70/15/15), one panel
-per target, with the calibration slope annotated per model. Reuses the Addition 5
-prediction worker (per-addition subprocess; GPU only for TabPFN), so no model code
-is re-implemented here. Points sagging below the diagonal at high predicted risk
-are the over-confidence fingerprint (slope < 1) flagged in results_findings.md
-Section 6.
+Observed vs predicted next-day probability by quantile bin, overlaying the
+composite-best XGBoost (Add-0), TabPFN (Add-1), and a window-MLP sequence
+representative (Add-4) per target, on full_features/chrono. The Add-0 and Add-1
+leaves are resolved from the latest experiment/2/figdata_*.json so they track
+the composite_sorted selection that drives the headline table and g/h figures.
+Add-4 is not part of composite selection (which covers Add-0 and Add-1
+only); it is pinned to the ``version_window-mlp / 70_15_15 / chrono``
+leaf as a deliberate cross-addition contrast. Reuses the Addition 5
+prediction worker (per-addition subprocess; GPU only for TabPFN), so no
+model code is re-implemented here. Points sagging below the diagonal at
+high predicted risk are the over-confidence fingerprint (slope < 1).
+
+Caveat for the §6 cohort-median-0.64 framing: the headline-leaf curves
+plotted here are NOT representative of the 488-cell cohort summary.
+At the headline leaves the XGB stack actually shows slope >1
+(under-confident at the top) and TabPFN shows slope near 1; the
+over-confidence sag the §6 grid-median captures lives in the small/
+sparse non-headline cells (98 of 488 have negative slope). This figure
+visualises the headline leaves; §6 visualises the cohort.
 
 Usage: python fig_c3_calibration.py
 """
@@ -30,8 +42,27 @@ EXP = REPO / "experiment"
 sys.path.insert(0, str(EXP))
 from _eval.metrics_lib import calibration_slope  # noqa: E402
 
+# Figdata loader from experiment/2 (same one g/h scripts use).
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+_F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
+
 WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
 N_BINS = 8
+
+
+def _resolve_leaf(headlines, target, family):
+    """Return the composite-tracked leaf for (target, family) in the
+    full_features/chrono headline cell. Prefer headline-role, fall back to
+    runner-up if the headline is the other family. Returns None when no
+    matching entry has a leaf_dir (figdata predates the field)."""
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
 
 
 def _env(addition: str) -> dict:
@@ -69,16 +100,18 @@ def _reliability(y, p, nbins=N_BINS):
     return np.array(xs), np.array(ys), np.array(ns)
 
 
-def _discover():
+def _discover(headlines):
     leaves = {}
     for tgt in ("headache", "migraine"):
         ls = []
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            if "stacked_2xgb" in str(m) and "/70_15_15/chrono/" in str(m):
-                ls.append(("XGBoost stack", m.parent)); break
-        d1 = EXP / "1" / tgt / "full_features/tabpfn/version_3-default/70_15_15/chrono"
-        if (d1 / "model.joblib").exists():
+        d0 = _resolve_leaf(headlines, tgt, "xgboost")
+        if d0 is not None and (d0 / "model.joblib").exists():
+            ls.append(("XGBoost stack", d0))
+        d1 = _resolve_leaf(headlines, tgt, "tabpfn")
+        if d1 is not None and (d1 / "model.joblib").exists():
             ls.append(("TabPFN", d1))
+        # Add-4 is not part of composite selection; pin a documented sequence
+        # representative for the cross-architecture contrast.
         d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
         if (d4 / "model.joblib").exists():
             ls.append(("window-MLP", d4))
@@ -88,7 +121,12 @@ def _discover():
 
 def main():
     S.apply()
-    leaves = _discover()
+    figdata_path = _F.latest_figdata(EXP / "2")
+    if figdata_path is None:
+        raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
+    headlines = _F.load_figdata(figdata_path).get("headlines", [])
+    print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
+    leaves = _discover(headlines)
     fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.2))
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
@@ -107,8 +145,9 @@ def main():
             col = S.arch_color(label)
             mk = mark.get(label, "o")
             ax.plot(xs, ys, "-", color=col, lw=1.2, marker=mk, markersize=4)
+            slug = S.leaf_slug(leaf)
             ax.scatter(xs, ys, s=sizes, color=col, marker=mk,
-                       label=f"{label} (slope {slope:.2f})")
+                       label=f"{slug}  slope {slope:.2f}")
             hi = max(hi, xs.max(), ys.max())
             print(f"  {tgt:<9} {label:<13} slope {slope:+.2f}  bins {len(xs)}")
         lim = min(1.0, hi * 1.1 + 0.02)
