@@ -1,11 +1,16 @@
 """Figure D4 - Brier skill versus per-patient climatology.
 
-Brier skill score (1 - BS_model / BS_reference) of the headline architectures
-against each patient's own TRAIN-set base rate, per target. Positive means the
-model's probabilities beat the trivial per-patient prior; the migraine bars are
+Brier skill score (1 - BS_model / BS_reference) of the composite-best
+architectures (Add-0 XGBoost and Add-1 TabPFN from the latest
+experiment/2/figdata_*.json, plus a documented window-MLP sequence
+representative from Add-4) against each patient's own TRAIN-set base rate, per
+target. The per-patient climatology is computed from the same train parquet
+that backs the resolved headline cell (so e.g. migraine uses 70_30/chrono
+when the composite migraine headline lives there). Positive means the model's
+probabilities beat the trivial per-patient prior; the migraine bars are
 negative despite AUROC ~0.76 - high discrimination that does not translate into
-probabilistic value (Murphy quality-vs-value; Addition 6 Section 9a). Reuses the
-Addition 5 prediction worker and the Addition 6 skill primitive.
+probabilistic value (Murphy quality-vs-value; Addition 6 Section 9a). Reuses
+the Addition 5 prediction worker and the Addition 6 skill primitive.
 
 Usage: python fig_d4_brier_skill.py
 """
@@ -31,7 +36,21 @@ sys.path.insert(0, str(EXP / "6" / "_value"))
 import skill as SK  # noqa: E402
 from _dataRead.read import load_raw, TARGET_COL  # noqa: E402
 
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+_F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
+
 WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
+
+
+def _resolve_leaf(headlines, target, family):
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return e
+    return None
 
 
 def _env(addition):
@@ -55,38 +74,53 @@ def _predict(leaf):
         out.unlink(missing_ok=True)
 
 
-def _climatology(target):
-    tr = load_raw(str(REPO / "data" / "processed" / target / "70_15_15" / "chrono" / "diary_train.parquet"))
+def _climatology(target, datasplit, splittype):
+    tr = load_raw(str(REPO / "data" / "processed" / target / datasplit / splittype / "diary_train.parquet"))
     rates = tr.groupby("patient_id")[TARGET_COL].mean()
     rates.index = rates.index.astype(str)
     return rates.to_dict(), float(tr[TARGET_COL].mean())
 
 
-def _discover():
+def _discover(headlines):
     leaves = {}
+    cells = {}
     for tgt in ("headache", "migraine"):
         ls = []
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            if "stacked_2xgb" in str(m) and "/70_15_15/chrono/" in str(m):
-                ls.append(("XGBoost stack", m.parent)); break
-        d1 = EXP / "1" / tgt / "full_features/tabpfn/version_3-default/70_15_15/chrono"
-        if (d1 / "model.joblib").exists():
-            ls.append(("TabPFN", d1))
+        e0 = _resolve_leaf(headlines, tgt, "xgboost")
+        if e0 is not None and (Path(e0["leaf_dir"]) / "model.joblib").exists():
+            ls.append(("XGBoost stack", Path(e0["leaf_dir"])))
+        e1 = _resolve_leaf(headlines, tgt, "tabpfn")
+        if e1 is not None and (Path(e1["leaf_dir"]) / "model.joblib").exists():
+            ls.append(("TabPFN", Path(e1["leaf_dir"])))
         d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
         if (d4 / "model.joblib").exists():
             ls.append(("window-MLP", d4))
         leaves[tgt] = ls
-    return leaves
+        # Climatology must come from the headline cell's train parquet. Prefer
+        # the xgboost entry's split; fall back to tabpfn if no xgboost row.
+        e = e0 or e1
+        cells[tgt] = (e["datasplit"], e["splittype"]) if e else ("70_30", "chrono")
+    return leaves, cells
 
 
 def main():
     S.apply()
-    leaves = _discover()
+    figdata_path = _F.latest_figdata(EXP / "2")
+    if figdata_path is None:
+        raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
+    headlines = _F.load_figdata(figdata_path).get("headlines", [])
+    print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
+    leaves, cells = _discover(headlines)
     targets = ("headache", "migraine")
     labels = ["XGBoost stack", "TabPFN", "window-MLP"]
     skills = {t: {} for t in targets}
+    # Capture the resolved leaf per (target, family-label) so the x-axis
+    # tick labels carry the slug rather than the generic family name.
+    slugs: dict = {t: {} for t in targets}
     for tgt in targets:
-        rates, cohort = _climatology(tgt)
+        ds, sp = cells[tgt]
+        print(f"  {tgt} climatology: {ds}/{sp}")
+        rates, cohort = _climatology(tgt, ds, sp)
         for label, leaf in leaves[tgt]:
             r = _predict(leaf)
             if r is None:
@@ -94,7 +128,8 @@ def main():
             y, p, pid = r
             ref = SK.per_patient_climatology(pid, rates, cohort)
             skills[tgt][label] = SK.brier_skill_score(y, p, ref)
-            print(f"  {tgt:<9} {label:<13} Brier skill {skills[tgt][label]:+.3f}")
+            slugs[tgt][label] = S.leaf_slug(leaf)
+            print(f"  {tgt:<9} {label:<13} Brier skill {skills[tgt][label]:+.3f}  ({S.leaf_slug(leaf)})")
     fig, ax = plt.subplots(figsize=S.figsize("double", 4.2))
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):

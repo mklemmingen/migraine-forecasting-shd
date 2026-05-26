@@ -1,12 +1,17 @@
 # Park Feature Set
 
+> Position in the paper: **Data and features (2.2)**. Reads after
+> `dataset.md`; precedes the architecture docs (`xgboost.md`,
+> `tabPfn.MD`). The six Park-trigger features defined here anchor the
+> SHAP-attribution recovery check in `addition2_results.md`.
+
 A `migraine`-target-only feature set whose columns are exactly the trigger factors Park et al. (2016) selected by their stepwise multiple logistic regression analysis.
 
 This document covers what the set contains, why those particular features, why this set is migraine-only, and which design choices were taken at the column-mapping layer.
 
 ## Source
 
-The set is defined by Table 4 of Park et al. [1, Tab. 4, p. 8]. Park et al. ran a stepwise multiple logistic regression over 153 possible combinations of the 18 candidate triggers recorded in their Smartphone Headache Diary baseline survey [1, Methods, p. 3-4]. The model selected six individual triggers as significantly associated with migraine (as opposed to non-migraine) headache:
+The set is defined by Table 4 of Park et al. [1, Tab. 4, p. 8]. Park et al. ran a stepwise multiple logistic regression with the 18 candidate triggers recorded in their Smartphone Headache Diary baseline survey [1, Methods, p. 3-4], including 153 pairwise (two-trigger) interaction terms (= C(18, 2)) as candidate predictors [1, p. 6 and p. 14]. The model selected six individual triggers as significantly associated with migraine (as opposed to non-migraine) headache:
 
 | Trigger          | Odds ratio | 95% CI       | p-value  |
 |------------------|------------|--------------|----------|
