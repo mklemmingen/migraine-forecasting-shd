@@ -245,16 +245,6 @@ def generate_tree_png(all_entries, out_path):
 
     _draw_node_rects(ax, root, row_h=row_h, row_pad=row_pad)
 
-    # Column headers above the top stripe. Each header sits over its
-    # level's stripe and uses the matching hue so the colour legend is
-    # self-explanatory without a separate key.
-    for lvl, (_key, header) in enumerate(TREE_LEVELS):
-        ax.text(
-            0.0, -header_h + lvl * 0,
-            header, ha='left', va='bottom',
-            fontsize=10, fontweight='bold', fontfamily='monospace',
-            color=TREE_LEVEL_COLORS[lvl],
-        ) if False else None
     # Stripe labels on the left margin (one per row).
     for lvl, (_key, header) in enumerate(TREE_LEVELS):
         y_mid = lvl * row_h + (row_h - row_pad) / 2.0

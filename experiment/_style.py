@@ -124,6 +124,7 @@ GREY = "#555555"
 INK = "#222222"      # text
 SOFT = "#444444"     # axes / ticks
 FAINT = "#cccccc"    # faint grey: error-bar whiskers, subtle dividers
+MUTED = "#9a9a9a"    # de-emphasised / descriptive-only text (e.g. a non-significant rank ladder)
 PALE_FILL = "#eef3f8"               # default schematic box fill
 REF_COLOR = OI["black"]             # reference lines: chance, perfect, treat-none
 REF_LW = 0.9                        # reference-line width (guide Section 1.3: 0.8-1.2)
