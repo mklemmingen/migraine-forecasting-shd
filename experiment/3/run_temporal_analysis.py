@@ -7,6 +7,7 @@ the Addition-4 verdict (does the serial dependence justify a sequence
 model). Reads the unsplit diary parquets only; fits no forecasting models.
 """
 import datetime as _dt
+import json
 import sys
 from pathlib import Path
 
@@ -78,6 +79,44 @@ def fdr_table(res):
     return primary, exploratory
 
 
+def headline_scalars(target, res):
+    """Flat dict of the numbers cited in docs/addition3_results.md.
+
+    Persisting these alongside the HTML report closes the verifiability
+    gap: every number the Results doc claims (pooled lag-1 ACF r, Markov
+    chi2, self-excitation LR chi2 and per-lag ORs, burstiness B and M,
+    Andersen-Gill and PWP-gap-time HRs) is recoverable from this JSON.
+    """
+    acf, mk, se, bu, rc = res["acf"], res["markov"], res["se"], res["burst"], res["recurrent"]
+    out = {
+        "target": target,
+        "pooled_acf_lag1_r": acf[1]["r"],
+        "pooled_acf_lag1_n_pairs": acf[1]["n_pairs"],
+        "markov_chi2": mk.get("chi2", float("nan")),
+        "markov_p_value": mk.get("p_value", float("nan")),
+        "markov_p_attack_given_attack": mk.get("p_attack_tomorrow_given_attack_today", float("nan")),
+        "markov_p_attack_given_none": mk.get("p_attack_tomorrow_given_no_attack_today", float("nan")),
+        "markov_risk_ratio": mk.get("risk_ratio", float("nan")),
+        "selfexc_lr_chi2": se.get("lr_stat", float("nan")),
+        "selfexc_lr_df": se.get("lr_df", float("nan")),
+        "selfexc_lr_p_value": se.get("lr_p_value", float("nan")),
+        "selfexc_lag1_OR": se.get("lag_coefs", {}).get("lag1", {}).get("odds_ratio", float("nan")),
+        "selfexc_lag2_OR": se.get("lag_coefs", {}).get("lag2", {}).get("odds_ratio", float("nan")),
+        "selfexc_lag3_OR": se.get("lag_coefs", {}).get("lag3", {}).get("odds_ratio", float("nan")),
+        "burstiness_B_median": bu.get("B_median", float("nan")),
+        "burstiness_M_median": bu.get("M_median", float("nan")),
+        "burstiness_frac_bursty": bu.get("frac_bursty_B_positive", float("nan")),
+        "burstiness_n_patients": bu.get("n_patients", 0),
+        "AG_HR_prior_rate": rc.get("ag", {}).get("hr_prior_rate", float("nan")),
+        "AG_p_value": rc.get("ag", {}).get("p_value", float("nan")),
+        "PWP_HR_prior_rate": rc.get("pwp", {}).get("hr_prior_rate", float("nan")),
+        "PWP_p_value": rc.get("pwp", {}).get("p_value", float("nan")),
+        "n_recurrent_intervals": rc.get("n_intervals", 0),
+        "n_recurrent_events": rc.get("n_events", 0),
+    }
+    return out
+
+
 def write_figures(target, res, out_dir):
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = _dt.datetime.now().strftime("%Y%m%dT%H%M%S")
@@ -90,7 +129,7 @@ def write_figures(target, res, out_dir):
     return names, ts
 
 
-def report_html(target, res, fig_names, primary, exploratory):
+def report_html(target, res, fig_names, primary, exploratory, headline):
     mk, se, pr = res["markov"], res["se"], res["period"]
     rows = "".join(
         f"<tr><td>{k}</td><td>{p:.2e}</td></tr>" for k, p in primary.items())
@@ -99,6 +138,9 @@ def report_html(target, res, fig_names, primary, exploratory):
         for k, (p, a) in exploratory.items())
     imgs = "".join(f'<img src="{n}" style="max-width:680px;display:block;margin:8px 0">'
                    for n in fig_names.values())
+    headline_rows = "".join(
+        f"<tr><td>{k}</td><td>{v if isinstance(v, int) else f'{v:.4g}' if isinstance(v, float) else v}</td></tr>"
+        for k, v in headline.items() if k != "target")
     return f"""<!doctype html><meta charset=utf-8>
 <title>Temporal dependence - {target}</title>
 <body style="font-family:sans-serif;max-width:760px;margin:24px auto">
@@ -110,6 +152,8 @@ missing-day fraction {res['gap']['missing_day_fraction']}.</p>
 vs {mk['p_attack_tomorrow_given_no_attack_today']:.3f} without (risk ratio
 {mk['risk_ratio']:.1f}). Self-excitation lag-1 OR
 {se['lag_coefs']['lag1']['odds_ratio']:.2f} (trigger-controlled).</p>
+<h3>Headline scalars (machine-readable: headline_*.json)</h3>
+<table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>field</th><th>value</th></tr>{headline_rows}</table>
 <h3>Pre-registered primary tests (raw p)</h3>
 <table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>test</th><th>p</th></tr>{rows}</table>
 <h3>Exploratory ACF lags (BH-FDR adjusted)</h3>
@@ -145,11 +189,14 @@ def main():
         all_res[t] = res
         primary, exploratory = fdr_table(res)
         names, ts = write_figures(t, res, HERE / t)
+        headline = headline_scalars(t, res)
+        headline_path = HERE / t / f"headline_{ts}.json"
+        headline_path.write_text(json.dumps(headline, indent=2, sort_keys=True))
         report_path = HERE / t / f"temporal_report_{ts}.html"
-        report_path.write_text(report_html(t, res, names, primary, exploratory))
+        report_path.write_text(report_html(t, res, names, primary, exploratory, headline))
         html_to_pdf(report_path)
         fig_idx[t] = ts
-        print(f"{t}: report written ({len(names)} figures)")
+        print(f"{t}: report written ({len(names)} figures); headline JSON {headline_path.name}")
     head, lines = verdict(all_res)
     ts = _dt.datetime.now().strftime("%Y%m%dT%H%M%S")
     summary = ("<!doctype html><meta charset=utf-8><title>Temporal summary</title>"
