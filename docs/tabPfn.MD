@@ -1,8 +1,43 @@
 # TabPFN - Configuration & Calibration Policy
 
+> Position in the paper: **Architectures (3.2)**. Reads after
+> `xgboost.md`; precedes the Methods docs of Additions 2-6. The
+> v2.6 / v3-default / v3-binary within-family tie at the headache
+> headline cell is the family-level claim load-bearing for
+> `results_findings.md` Headline takeaway 1.
+
+## Why TabPFN, why now
+
+The in-context tabular prior that TabPFN extends to ~50,000-row inputs is
+recent - `tabpfn` 8.x ships TabPFN-v3 as the first release whose
+small-sample table classification is competitive with hyperparameter-tuned
+tree ensembles on heterogeneous tabular benchmarks
+[hollmann2025tabpfn; grinsztajn2025tabpfn25]. The Park 2016 SHD cohort
+(62 patients, 4,516 patient-days, 7.2% positive rate) is exactly the
+small-N, low-prevalence regime where (a) a foundation-model prior has the
+most to add over per-leaf re-tuning, and (b) the hyperparameter-search
+budget for a stack would otherwise dominate the variance. Applying TabPFN
+to clinical-diary migraine forecasting on this cohort is, to our knowledge,
+the first such evaluation: the prior single published ML reuse of the SHD
+dataset [zhu2020mygraine] used logistic regression and random forest on a
+random patient-overlapping split well before TabPFN existed.
+
+On this paper's headline headache full_features/chrono cell the three
+TabPFN variants *v2.6*, *v3-default*, and *v3-binary* cluster around
+AUROC 0.65 (0.652 / 0.653 / 0.653, within the composite_sorted rule's
+0.02 noise-level tier).
+The composite picks *TabPFN-v2.6* by the calibration-distance tiebreak.
+The within-family variant choice is therefore a calibration-noise call,
+not a discrimination-driven one; the defensible cross-architecture
+claim is at the family level (TabPFN beats XGBoost on the headache
+headline cell), and the paper's figures use the four-token slug
+`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>` (per
+`docs/figure_design_requirements.md` §8) to keep that distinction
+explicit on every appearance.
+
 ## Package
 
-`tabpfn==8.0.1` (PriorLabs distribution). Model checkpoints are auto-downloaded by the library on first call. The package default since `tabpfn` 8.0.0 is **TabPFN-v3**; prior model versions are still available via `TabPFNClassifier.create_default_for_version(ModelVersion.V<N>)`. Folder labels in the experiment tree refer to *model checkpoint* versions, not the Python package version.
+`tabpfn>=8.0.1` (PriorLabs distribution; tested at 8.0.1). Model checkpoints are auto-downloaded by the library on first call. The package default since `tabpfn` 8.0.0 is **TabPFN-v3**; prior model versions are still available via `TabPFNClassifier.create_default_for_version(ModelVersion.V<N>)`. Folder labels in the experiment tree refer to *model checkpoint* versions, not the Python package version.
 
 ## Configuration in use
 
@@ -33,7 +68,7 @@ The fitted base estimator is **returned directly** - no external calibrator wrap
 
 ## §1 - Why we do *not* set `eval_metric` or `balance_probabilities`
 
-The target has a positive rate of ~5.1% (see [`docs/dataset.md`](dataset.md) for split-level counts). PriorLabs' [Model Parameters page](https://docs.priorlabs.ai/improving-performance/model-parameters) lists two paths for imbalanced binary problems:
+The target has a positive rate of ~7.2% (see [`docs/dataset.md`](dataset.md) for split-level counts). PriorLabs' [Model Parameters page](https://docs.priorlabs.ai/improving-performance/model-parameters) lists two paths for imbalanced binary problems:
 
 1. `balance_probabilities=True` - applies class-prior reweighting that **directly rewrites the output probability vector** so probabilities reflect a balanced prior rather than the natural prior. This is a probability-shape transform.
 2. `eval_metric='f1'` (or `'roc_auc'`, `'balanced_accuracy'`, etc.) - triggers TabPFN's internal **decision-threshold tuning**. The underlying `predict_proba` is unaffected as a function of the input, but the tuning consumes part of the train context as an internal validation split, so probability values shift marginally vs `eval_metric=None`.
@@ -64,7 +99,7 @@ Methodological context: this paper extends the benchmarking work of Spano [5], w
 - **XGBoost-family models** (stacked variants - both the Spano replication and the cleaner `stacked_2xgb_meta_lr` re-implementation) produce raw margin scores that are not calibrated as posteriors. A sigmoid (Platt) calibrator is fit on a held-out calibration set after training the base model. The sigmoid scaling method itself is due to Platt [2], originally for SVMs; the empirical justification for applying it to tree ensembles via a held-out calibration set is established by Niculescu-Mizil & Caruana [3], with the broader supervised-learning context covered in their companion ICML survey [4].
 - **TabPFN** is meta-trained against a Bayesian prior that includes class-prior modelling. PriorLabs' overview documents the model as returning calibrated probabilities directly; the TabPFN-2.5 model report [6] states that the models are *"meta-trained to yield strong calibration, without the need for time-consuming and labor-intensive hyperparameter tuning."* The architecture default `softmax_temperature=0.9` is the only temperature transformation applied at inference time; with `tuning_config=None` (the default), no runtime temperature recalibration step runs (see §1). For external probability-shape control, PriorLabs recommends adjusting `softmax_temperature` rather than wrapping the model in a post-hoc calibrator.
 
-Wrapping TabPFN in `CalibratedClassifierCV(..., method='sigmoid')` would constitute *double calibration*: a monotone sigmoid applied to already-calibrated probabilities. On the present study's calibration-set size (~439 rows × ~5.1% positives ≈ 22 positives), the Platt fit is also statistically thin and risks introducing variance rather than reducing it.
+Wrapping TabPFN in `CalibratedClassifierCV(..., method='sigmoid')` would constitute *double calibration*: a monotone sigmoid applied to already-calibrated probabilities. On the present study's calibration-set size (~439 rows × ~7.2% positives ≈ 32 positives), the Platt fit is also statistically thin and risks introducing variance rather than reducing it.
 
 The asymmetry should be noted in the methodology section of the paper. Because AUROC and AUPRC are calibration-invariant (rank-based), the comparison on those metrics is unaffected by the asymmetry. The Brier Score and ECE10 columns are the ones where this design decision is load-bearing - for those, each architecture is reporting calibration of its own native, recommended output, which is the methodologically clean comparison.
 
@@ -101,7 +136,7 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
 
   - **`max_time=7200`**. The post-hoc ensemble runs ~20 configs × 8 bag folds = 160 sub-fits, and a single TabPFN fit on this GPU costs ~13 s. A 7200 s budget gives those 160 sub-fits room to fit before the AutoGluon time limit cuts off remaining configs (which would shrink the ensemble down to whichever subset finished). Under `presets='best'` the budget can be used more fully (full HPO + larger ensemble), but AutoGluon respects the ceiling via early termination; the full 4-leaf AutoTabPFN sweep at this budget lands around 8-15 GPU-hours total.
   - **`presets='best'`**. AutoGluon's library default when `presets` is unset is `'medium'`, which AutoGluon's own documentation describes as "ideal for initial prototyping" - minimal HPO, smaller bagging, no meta-learner stacking. For a benchmark paper this is the wrong default. `'best'` is the standard AutoGluon benchmark configuration (full HPO, large ensembles, meta-learner stacking). The `'extreme'` preset is intentionally avoided: it requires the `autogluon.tabular[tabarena]` extra and injects TabICL / Mitra / TabDPT / TabM as competing base models, which breaks the explicit TabPFN-2.5 scoping that the `version_2-5-auto` folder label commits us to.
-  - **`eval_metric='roc_auc'`**. AutoGluon's library default is `'accuracy'`, which is degenerate on imbalanced binary: on the migraine target (positive rate ~5%) a constant-negative predictor reaches ~95% accuracy and would "win" the meta-learner's selection. `'roc_auc'` aligns the meta-learner's selection criterion with this benchmark's headline metric (AUROC) and is the AutoGluon convention for imbalanced binary classification. `'average_precision'` (AUPRC) would weight the minority class more aggressively but penalises calibration-only models with compressed score ranges; `'roc_auc'` is the conservative published-benchmark choice and what TabPFN's own published comparisons report.
+  - **`eval_metric='roc_auc'`**. AutoGluon's library default is `'accuracy'`, which is degenerate on imbalanced binary: on the migraine target (positive rate ~7.2%) a constant-negative predictor reaches ~93% accuracy and would "win" the meta-learner's selection. `'roc_auc'` aligns the meta-learner's selection criterion with this benchmark's headline metric (AUROC) and is the AutoGluon convention for imbalanced binary classification. `'average_precision'` (AUPRC) would weight the minority class more aggressively but penalises calibration-only models with compressed score ranges; `'roc_auc'` is the conservative published-benchmark choice and what TabPFN's own published comparisons report.
   - **`phe_init_args={'path': <leaf>/autogluon_predictor}`** pins AutoGluon's `TabularPredictor` save directory to a per-leaf subfolder. Without this, AutoGluon defaults to a project-root `TabPFNModels/m-<timestamp>_<rand>/` directory. With the leaf-local path, the model.joblib and the AutoGluon predictor stay co-located and the train→evaluate contract is preserved across re-runs. The builder additionally `shutil.rmtree`s the predictor directory before each fit so AutoGluon's "path already exists" warning does not fire and so artifacts from a prior fit cannot leak into the new one.
   - **Persistence via `AutoTabPFNHandle`, not direct `joblib.dump` of `AutoTabPFNClassifier`.** Pickling the fitted `AutoTabPFNClassifier` directly causes a `SIGSEGV` under PyTorch 2.11.0+rocm7.2: joblib walks the wrapper's torch tensor references at `getstate`, and the AMD HIP runtime crashes inside the destructor cascade after AutoGluon's `TabularPredictor.save()` has already completed. The builder works around this by returning an `AutoTabPFNHandle` (`autotabpfn_v2_5/_persistence.py`) that pickles only the predictor's on-disk path and lazily reloads via `TabularPredictor.load(path)` at inference time. The handle implements the sklearn `predict_proba` contract, so `evaluate.py`'s generic `joblib.load(MODEL_PATH).predict_proba(X)[:, 1]` pattern works unchanged. The builder also explicitly `del base; gc.collect(); torch.cuda.empty_cache()`s before returning so the wrapper does not survive into interpreter shutdown, where the same segfault would fire.
 
@@ -133,7 +168,7 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
 
   The asymmetry in compute budget vs `version_2-5-auto` (early-stop ≈ 30s per leaf vs AutoTabPFN's 7200s) is methodologically defensible because each variant uses *its own* published best practice: fine-tuning is convergence-bound (Rubachev et al. [8] recommend early stopping for stability), AutoTabPFN is coverage-bound (PriorLabs documents `max_time` as a wall-clock cap on independent fits). The PASS 1 convergence files in `<leaf>/diagnostics/` are there to stop the concern about whether fine-tuning was budget-starved - the curves show the validation optimum was reached, then exceeded.
 
-**Calibration framing - empirical, not pre-asserted:** the §4 calibration argument relies on TabPFN's meta-trained-for-calibration property, which is established for the in-context-learning regime by Hollmann et al. [1]. Rubachev et al. [8] study fine-tuning regimes for TabPFN-v2 but do not characterise post-fine-tuning calibration drift. Whether full fine-tuning preserves, improves, or degrades calibration relative to the zero-shot baseline is therefore an **empirical question this study's ECE10 / Brier columns answer**. If the reliability diagram for `version_2-5-finetuned` shows visible off-diagonal drift, we report that finding alongside the rank-based metrics (AUROC and AUPRC remain calibration-invariant either way).
+**Calibration framing - empirical, not pre-asserted:** the §4 calibration argument relies on TabPFN's meta-trained-for-calibration property, which is established for the in-context-learning regime by Hollmann et al. [1]. Rubachev et al. [8] study fine-tuning regimes for TabPFN-v2 but do not characterise post-fine-tuning calibration drift. Whether full fine-tuning preserves, improves, or degrades calibration relative to the zero-shot baseline is therefore an **empirical question this study's ECE10 / Brier columns answer**. If the reliability diagram for `version_2-5-finetuned` shows visible off-diagonal drift, that finding is reported alongside the rank-based metrics (AUROC and AUPRC remain calibration-invariant either way).
 
 ### §5.4 TabPFN-v3
 
@@ -145,7 +180,7 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
   - **Native missing-value handling.** For each NaN cell, a binary indicator is concatenated with the cell value before embedding, so the model receives an explicit signal about missingness rather than relying on upstream imputation.
   - **GPU preprocessing pipeline.** Feature transformations such as quantile normalisation and the SVD-based feature augmentation are executed on GPU as part of the forward pass when `InferenceConfig.ENABLE_GPU_PREPROCESSING=True`. This flag is `True` by default in the v3 checkpoint's baked-in `InferenceConfig` (and `False` for v2.6).
   - **Feature-subsampling strategies** (`random`, `balanced`, `gini_feature_importance`, `auto`) for datasets exceeding the per-estimator feature budget; v3 defaults to `auto`, which uses Gini importance for >100k-sample datasets and falls back to balanced subsampling otherwise.
-  - **Stratified row subsampling** that preserves class proportions across ensemble members (relevant for imbalanced binary tasks like this study's ~5.1% positive rate).
+  - **Stratified row subsampling** that preserves class proportions across ensemble members (relevant for imbalanced binary tasks like this study's ~7.2% positive rate).
   - **Auto-scaling of `n_estimators`** at fit time so every feature is covered by at least one ensemble member; the effective count is exposed as `n_estimators_` after fitting.
   - **Opt-in performance features.** `torch.compile` and FlashAttention-3 are described as opt-in performance features (model report §2.4.4); the `PerformanceOptions.attention_backend` default is `AUTO`, which routes to FA3 on **Hopper-class NVIDIA GPUs only (e.g. H100)** and falls back to PyTorch SDPA on other hardware. On this project's AMD Radeon RX 7900 XT (ROCm), FA3 does not activate; SDPA is used.
   - **Larger pre-training corpus and synthetic prior.** v3 is *"pretrained exclusively on synthetic data"* from an updated Structural Causal Model prior (added many-class, temporal, spatial, and out-of-distribution components), with the final v3 model trained on more than 8 trillion tokens.
