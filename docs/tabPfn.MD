@@ -144,10 +144,10 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
 
   | Leaf | Baseline AUROC | Baseline MCC |
   |---|---|---|
-  | migraine / full_features / 70_30 / chrono       | 0.764 | 0.239 |
-  | migraine / full_features / 70_15_15 / stratified | 0.733 | 0.205 |
-  | headache / full_features / 80_20 / stratified   | 0.702 | 0.162 |
-  | headache / full_features / 70_30 / stratified   | 0.688 | 0.229 |
+  | migraine / full_features / 70_30 / chrono       | 0.769 | 0.300 |
+  | migraine / full_features / 70_15_15 / stratified | 0.738 | 0.196 |
+  | headache / full_features / 80_20 / stratified   | 0.704 | 0.240 |
+  | headache / full_features / 70_30 / stratified   | 0.690 | 0.248 |
 
   Selection mechanism: a `leaf_filter` callable on the `Version` namedtuple in `experiment/1/_scaffold_leaves.py`. Other variants (bare TabPFN-v2.6, Real-TabPFN-2.5, Fine-tuned TabPFN-v2.6) cover the full 24-leaf grid; AutoTabPFN's 4-leaf coverage is asymmetric and should be noted in the methodology section as a deliberate compute-vs-coverage trade-off.
 
