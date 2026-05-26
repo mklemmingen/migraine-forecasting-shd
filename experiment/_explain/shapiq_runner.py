@@ -22,6 +22,49 @@ import numpy as np
 import pandas as pd
 
 
+def _patch_shapiq_tabpfn_imputer_for_numpy_2x() -> None:
+    """Restore single-element predict handling in shapiq's TabPFNImputer.
+
+    Upstream `shapiq` (as of v1.x against NumPy 2.x) calls
+    `float(self.predict(x_explain_coal))` at
+    `shapiq/imputer/tabpfn_imputer.py::TabPFNImputer.value_function`.
+    The wrapped predict returns a 1-element 1-D ndarray (sklearn convention);
+    NumPy 1.x silently unwrapped this to a Python scalar, but NumPy 2.x raises
+    `TypeError: only 0-dimensional arrays can be converted to Python scalars`.
+    The fix unwraps the result via `np.asarray(...).flat[0]`, which works on
+    both 0-d and 1-d arrays without changing semantics on multi-element
+    returns (the imputer's coalition loop already evaluates one coalition at
+    a time). The patch is idempotent and only applies if the symbol exists.
+    """
+    try:
+        from shapiq.imputer import tabpfn_imputer as _tipm
+    except Exception:
+        return
+    if getattr(_tipm.TabPFNImputer, "_migraine_shd_numpy2_patched", False):
+        return
+
+    def _patched_value_function(self, coalitions):
+        output = np.zeros(len(coalitions), dtype=float)
+        for i, coalition in enumerate(coalitions):
+            if sum(coalition) == 0:
+                output[i] = self.empty_prediction
+                continue
+            x_train_coal = self.x_train[:, coalition]
+            x_explain_coal = self.x[:, coalition]
+            self.model.fit(x_train_coal, self.y_train)
+            raw = np.asarray(self.predict(x_explain_coal))
+            pred = float(raw.flat[0]) if raw.size == 1 else float(raw.mean())
+            output[i] = pred
+        self.model.fit(self.x_train, self.y_train)
+        return output
+
+    _tipm.TabPFNImputer.value_function = _patched_value_function
+    _tipm.TabPFNImputer._migraine_shd_numpy2_patched = True
+
+
+_patch_shapiq_tabpfn_imputer_for_numpy_2x()
+
+
 # Model classes whose ``.fit`` is a cheap in-context fit (no training loop),
 # so the ShapIQ imputer's per-coalition refit is tractable. The fine-tuned
 # variant ("FinetunedTabPFNClassifier") runs a multi-epoch training loop per
