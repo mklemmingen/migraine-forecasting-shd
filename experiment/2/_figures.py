@@ -22,7 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _style import apply, save, OI, SPLIT, GREY, SOFT, FAINT, MUTED
+from _style import apply, save, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED
 
 # Split-type hue from the canonical SPLIT palette (chrono blue / stratified
 # vermillion / patient green), plus the one-line honest/leaky/generalisation tag.
@@ -246,10 +246,15 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     y = np.arange(len(feats))[::-1]
     bw = 0.4
     fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
+    # Colour each bar by its architecture family (xgboost green / tabpfn purple),
+    # not the headline/runner-up role, so the hue matches the model's canonical
+    # colour everywhere else in the paper rather than a generic blue/orange.
     ax.barh(y + bw / 2, [h_share.get(f, 0.0) for f in feats], height=bw,
-            color=OI["blue"], label=f"headline ({h['arch_family']})")
+            color=ARCH.get(h["arch_family"], OI["blue"]),
+            label=f"headline ({h['arch_family']})")
     ax.barh(y - bw / 2, [r_share.get(f, 0.0) for f in feats], height=bw,
-            color=OI["orange"], label=f"runner-up ({r['arch_family']})")
+            color=ARCH.get(r["arch_family"], OI["orange"]),
+            label=f"runner-up ({r['arch_family']})")
     ax.set_yticks(y)
     ax.set_yticklabels(feats, fontsize=8)
     ax.set_xlabel("relative attribution: share of each model's total mean |SHAP| (%)")
@@ -274,7 +279,10 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     fig, ax = plt.subplots(figsize=(5.2, 5.0))
     ax.plot([1, n], [1, n], color=MUTED, lw=1.0, ls="--", zorder=1,
             label="perfect agreement")
-    ax.scatter(xs, ys, s=70, color=OI["blue"], zorder=3, edgecolor="white")
+    # Points in this model's canonical family colour (the title names the family),
+    # so the scatter is colour-consistent with the rest of the paper.
+    ax.scatter(xs, ys, s=70, color=ARCH.get(sel.get("family"), OI["blue"]),
+               zorder=3, edgecolor="white")
     for f, x, y in zip(shared, xs, ys):
         ax.annotate(f.replace("_today", ""), (x, y), fontsize=7.5,
                     xytext=(5, 4), textcoords="offset points")
