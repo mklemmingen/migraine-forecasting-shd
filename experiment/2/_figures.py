@@ -22,7 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _style import apply, save, OI, SPLIT, GREY, SOFT, FAINT, MUTED
+from _style import apply, save, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED
 
 # Split-type hue from the canonical SPLIT palette (chrono blue / stratified
 # vermillion / patient green), plus the one-line honest/leaky/generalisation tag.
@@ -109,8 +109,7 @@ def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
                                     for s in c.values()) + 0.03))
-    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5); "
-                  "hatched = CI reaches chance", fontsize=9)
+    ax.set_xlabel("best hold-out AUROC (95% CI)", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
     save(fig, out_png)
@@ -147,31 +146,45 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     base = np.arange(n)[::-1]
     fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
     xmax = 1.0
+    any_noskill = False
     for gi, st in enumerate(SPLIT_ORDER):
-        ys, vals, los, his = [], [], [], []
+        ys, vals, los, his, noskill = [], [], [], [], []
         for ci, key in enumerate(cells):
             sp = by_cell[key].get(st)
             if sp is None:
                 continue
             s, prev = sp
             lift = s["auprc_mean"] / prev
+            lo = (s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0
+            hi = (s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0
             ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
-            vals.append(lift)
-            los.append((s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0)
-            his.append((s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0)
-            xmax = max(xmax, lift + his[-1])
-        ax.barh(ys, vals, height=bh, color=SPLIT[st],
-                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
-                label=SPLIT_FIG_LABELS[st])
+            vals.append(lift); los.append(lo); his.append(hi)
+            noskill.append(lift - lo <= 1.0)   # 95% CI reaches the no-skill line
+            xmax = max(xmax, lift + hi)
+        bars = ax.barh(ys, vals, height=bh, color=SPLIT[st],
+                       xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
+                       label=SPLIT_FIG_LABELS[st])
+        # Hatch bars whose CI reaches no-skill: not significantly above the base
+        # rate (same honesty convention as the split-AUROC chance hatching).
+        for patch, ns in zip(bars.patches, noskill):
+            if ns:
+                patch.set_hatch("////")
+                patch.set_edgecolor("white")
+                any_noskill = True
     ax.axvline(1.0, color=SOFT, lw=0.9, ls=":", zorder=0)
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(0, xmax * 1.05)
-    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence; "
-                  "dotted line = 1.0 = no skill)", fontsize=9)
+    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence)",
+                  fontsize=9)
     ax.set_title("Precision-recall skill by split type, per cell (headline)",
                  fontsize=10)
-    ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    handles, _labels = ax.get_legend_handles_labels()
+    if any_noskill:
+        from matplotlib.patches import Patch
+        handles.append(Patch(facecolor=FAINT, hatch="////", edgecolor="white",
+                             label="CI reaches no-skill (ns)"))
+    ax.legend(handles=handles, fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -212,10 +225,10 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(xmax * -0.02, xmax)
-    ax.set_xlabel("calibration slope (1.0 = perfect; shaded zones excluded "
-                  "from selection)", fontsize=9)
+    ax.set_xlabel("calibration slope (shaded zones = excluded from selection)",
+                  fontsize=9)
     ax.set_title("Calibration of the headline model, by split type", fontsize=10)
-    ax.legend(fontsize=7.5, loc="upper right", ncol=1, framealpha=0.95)
+    ax.legend(fontsize=7.5, loc="upper right", ncol=1, frameon=False)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -246,16 +259,25 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     y = np.arange(len(feats))[::-1]
     bw = 0.4
     fig, ax = plt.subplots(figsize=(7.0, 0.42 * len(feats) + 1.3))
+    # Colour each bar by its architecture family (xgboost green / tabpfn purple),
+    # not the headline/runner-up role, so the hue matches the model's canonical
+    # colour everywhere else in the paper rather than a generic blue/orange.
     ax.barh(y + bw / 2, [h_share.get(f, 0.0) for f in feats], height=bw,
-            color=OI["blue"], label=f"headline ({h['arch_family']})")
+            color=ARCH.get(h["arch_family"], OI["blue"]),
+            label=f"headline ({h['arch_family']})")
     ax.barh(y - bw / 2, [r_share.get(f, 0.0) for f in feats], height=bw,
-            color=OI["orange"], label=f"runner-up ({r['arch_family']})")
+            color=ARCH.get(r["arch_family"], OI["orange"]),
+            label=f"runner-up ({r['arch_family']})")
     ax.set_yticks(y)
     ax.set_yticklabels(feats, fontsize=8)
     ax.set_xlabel("relative attribution: share of each model's total mean |SHAP| (%)")
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
+    # Integrity caveat: these are single-fit shares on a small, imbalanced dataset.
+    ax.text(0.0, -0.16,
+            "Single-fit attribution shares; small bar-length differences are not significant.",
+            transform=ax.transAxes, ha="left", fontsize=7.5, style="italic", color=GREY)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -274,7 +296,10 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     fig, ax = plt.subplots(figsize=(5.2, 5.0))
     ax.plot([1, n], [1, n], color=MUTED, lw=1.0, ls="--", zorder=1,
             label="perfect agreement")
-    ax.scatter(xs, ys, s=70, color=OI["blue"], zorder=3, edgecolor="white")
+    # Points in this model's canonical family colour (the title names the family),
+    # so the scatter is colour-consistent with the rest of the paper.
+    ax.scatter(xs, ys, s=70, color=ARCH.get(sel.get("family"), OI["blue"]),
+               zorder=3, edgecolor="white")
     for f, x, y in zip(shared, xs, ys):
         ax.annotate(f.replace("_today", ""), (x, y), fontsize=7.5,
                     xytext=(5, 4), textcoords="offset points")
@@ -284,8 +309,11 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     ax.set_yticks(range(1, n + 1))
     ax.set_xlabel("Park 2016 odds-ratio rank (1 = strongest trigger)")
     ax.set_ylabel("model mean |SHAP| rank (1 = most weighted)")
-    ax.set_title(f"{sel['role']} {sel['family']} - Spearman rho = {rho:+.2f}",
-                 fontsize=10)
+    # Report p and n with rho: on ~6 shared triggers any coefficient is highly
+    # uncertain, so a bare rho would read as far more conclusive than it is.
+    p = sel.get("p")
+    stat = f"rho = {rho:+.2f}" + (f", p = {p:.2f}, n = {n}" if p is not None else f", n = {n}")
+    ax.set_title(f"{sel['role']} {sel['family']} - Spearman {stat}", fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
     save(fig, out_png)
     plt.close(fig)

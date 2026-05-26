@@ -46,7 +46,7 @@ HEATMAP_LIKE = {"fig_a3_coverage", "fig_a5_splits"}
 # Such a wrapper, having no inline plotting, is checked one layer down, so this
 # lint applies only the colour-literal and raw-save guards to it.
 DELEGATION_MARKERS = ("from _benchmark_visuals import", "from _venn_diagrams import",
-                      "from _tree_diagram import", "_figures.py")
+                      "from _tree_diagram import", "from _explain import", "_figures.py")
 
 
 def _check(path: Path) -> dict:

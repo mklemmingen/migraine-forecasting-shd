@@ -10,6 +10,14 @@ experiment/2/compare.py, so the figure pins to one selection run.
 
 Usage: python fig_g1_split_auroc.py
 """
+# Paper caption (for LaTeX; the reference-line and hatch keys were moved off the
+# axis label, which duplicated the legend):
+#   Best hold-out AUROC of the headline model per (target, feature-set) cell, one bar
+#   per split strategy with 95% CIs. The dotted line is chance (0.5); a hatched bar's
+#   95% CI reaches chance (not significantly forecastable). Chronological is the
+#   deployable forecast; stratified is leakage-inflated (a shuffled split places
+#   adjacent days, which share history/rolling feature values, on both sides of the
+#   train/test boundary); patient is generalisation to unseen patients.
 import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path

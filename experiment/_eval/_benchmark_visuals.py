@@ -311,8 +311,11 @@ def _adjust_brightness(hex_color, position):
     for within-family HP-budget tier shading.
     """
     r, g, b = _hex_to_rgb(hex_color)
-    # Blend with white by amount (0.0 to 0.55) - lower budget = darker.
-    blend = 0.15 + 0.40 * position
+    # Blend with white by amount (0.10 to 0.40) - lower budget = darker. The
+    # ceiling is floored at 0.40 (not 0.55) so the lightest within-family tier
+    # never washes out below a ~3:1 contrast against white (e.g. tabpfn v3-binary
+    # stayed near-white and vanished in grayscale at 0.55).
+    blend = 0.10 + 0.30 * position
     r = round(r + (255 - r) * blend)
     g = round(g + (255 - g) * blend)
     b = round(b + (255 - b) * blend)
@@ -334,6 +337,13 @@ def _family_style_for(arch_tuple):
 # tabpfn versions, etc. each get their own dot type). Indexed by the
 # gradient position bucket.
 _WITHIN_FAMILY_MARKERS = ("o", "s", "^", "D", "v", "P")
+
+# Okabe-Ito cycle for the no-arch_tuples fallback path (when a caller does not
+# supply architecture tuples). Replaces matplotlib's tab10/tab20, which are the
+# rainbow-ish cycles the design guide rejects. The fig_* wrappers always pass
+# arch_tuples, so this is a defensive default, not the paper path.
+_FALLBACK_CYCLE = (OI["blue"], OI["green"], OI["orange"], OI["vermillion"],
+                   OI["purple"], OI["skyblue"])
 
 
 def _family_marker(arch_tuple):
@@ -463,7 +473,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             if sorted_tuples[r] is not None:
                 color, _, _ = _family_style_for(sorted_tuples[r])
             else:
-                color = (0.4, 0.4, 0.4)
+                color = GREY
             x_elbow = x_elbow_right if side == "right" else x_elbow_left
             # Connector: a solid, full-weight polyline that starts on the
             # rank axis, drops to the label row, then runs out to the
@@ -534,24 +544,9 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         suffix = (" (" + ", ".join(sub) + ")") if sub else ""
         ax.set_title(title + suffix, fontsize=11, pad=14)
 
-    # How to read the diagram (Demsar 2006): make the ranking method
-    # explicit so the figure is self-contained for a reader unfamiliar
-    # with CD diagrams.
-    n_txt = str(n_cells) if n_cells is not None else "n"
-    fig.text(
-        0.5, 0.045,
-        f"Each method is ranked 1 (best) to {k} within every cell, then "
-        f"averaged over the {n_txt} cells to give its mean rank (dot). "
-        "Methods joined by a bar differ by less than the",
-        ha="center", va="bottom", fontsize=8.5, color=SOFT,
-    )
-    fig.text(
-        0.5, 0.018,
-        "critical difference CD (Nemenyi post-hoc, alpha=0.05) and are "
-        "therefore not significantly different.",
-        ha="center", va="bottom", fontsize=8.5, color=SOFT,
-    )
-
+    # The how-to-read explanation (ranking method, what a connecting bar means)
+    # belongs in the LaTeX caption, not burned into the image; the integrity
+    # annotations (non-significance banner above, exclusion note below) stay.
     if dropped_archs:
         # Honest disclosure: which architectures were excluded from the
         # statistical test because their per-cell coverage was below
@@ -634,8 +629,8 @@ def render_performance_profile(matrix, arch_labels, out_path,
             color, linestyle, linewidth = _family_style_for(arch_tuples[j])
             marker = _family_marker(arch_tuples[j])
         else:
-            cmap = plt.get_cmap("tab20" if n_arch > 10 else "tab10")
-            color, linestyle, linewidth = cmap(j % cmap.N), "-", 1.5
+            color = _FALLBACK_CYCLE[j % len(_FALLBACK_CYCLE)]
+            linestyle, linewidth = "-", 1.5
             marker = "o"
         phase = (j * phase_step) % base_every
         ax.plot(taus, rho, lw=linewidth, ls=linestyle, color=color,
@@ -669,7 +664,8 @@ def render_performance_profile(matrix, arch_labels, out_path,
 
 def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
                            title="", higher_is_better=True,
-                           arch_tuples=None, dropped_archs=None):
+                           arch_tuples=None, dropped_archs=None,
+                           omnibus_sig=True, p_value=None):
     """Rank-bumps slopegraph across cells.
 
     Each polyline is one architecture's rank trajectory across cells.
@@ -708,31 +704,37 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     # the endpoint rank -> the de-collided label anchor. The text column
     # width tracks the longest label so the reserved margin stays tight.
     longest = max((len(t) for t in label_text), default=1)
-    cell_step = 1.55                              # inches between cells
-    text_w = (longest * 0.052 + 0.30) / cell_step  # label width in x-units
+    cell_step = 0.62                              # inches per cell (bounded width)
+    label_in = min(2.6, longest * 0.052 + 0.35)  # bounded label-margin width (in)
+    text_w = label_in / cell_step                # label width in x-units
     x_last = float(n_cells - 1)
-    x_stub = x_last + 0.22                        # short stub off each endpoint
-    x_swatch = x_last + 0.55                      # family-colour swatch column
-    x_text = x_last + 0.62                        # label text begins here
+    x_stub = x_last + 0.35                        # short stub off each endpoint
+    x_swatch = x_last + 0.85                      # family-colour swatch column
+    x_text = x_last + 0.95                        # label text begins here
     x_right = x_text + text_w                     # outer x-limit, hugs text
 
-    fig_w = 2.4 + cell_step * (n_cells + text_w)
+    # Width is bounded: 9-cell ladders used to balloon to ~18in (cell_step 1.55)
+    # and squash illegibly; cap to a wide-but-usable canvas.
+    fig_w = 1.8 + cell_step * n_cells + label_in
     apply()
     fig, ax = plt.subplots(figsize=(fig_w, 1.4 + 0.29 * n_arch))
 
+    # When the Friedman omnibus is not significant the whole ladder is
+    # descriptive only, so fade the trajectories (matching the CD diagram's
+    # de-emphasis) and add the banner below.
+    line_alpha = 1.0 if omnibus_sig else 0.4
     line_style = []
     for j in range(n_arch):
         if arch_tuples is not None:
             color, linestyle, linewidth = _family_style_for(arch_tuples[j])
             marker_size = 5 + 2 * (linewidth - 1.3)   # baselines get bigger markers
         else:
-            cmap = plt.get_cmap("tab20" if n_arch > 10 else "tab10")
-            color, linestyle, linewidth = cmap(j % cmap.N), "-", 1.4
+            color, linestyle, linewidth = _FALLBACK_CYCLE[j % len(_FALLBACK_CYCLE)], "-", 1.4
             marker_size = 5
         marker = marker_cycle[j % len(marker_cycle)]
         line_style.append((color, linestyle, linewidth, marker, marker_size))
         ax.plot(xs, ranks[:, j], marker=marker, lw=linewidth, ls=linestyle,
-                ms=marker_size, color=color)
+                ms=marker_size, color=color, alpha=line_alpha)
 
     ax.invert_yaxis()
     ax.set_yticks(range(1, n_arch + 1))
@@ -785,8 +787,20 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
         ax.text(x_text, y_lab, label_text[j], va="center", ha="left",
                 fontsize=7.8, color=INK, clip_on=False, zorder=4)
 
+    # When the omnibus is not significant, say so prominently (matching the CD
+    # diagram) so the faded ladder is read as descriptive only, not a ranking.
+    # The banner sits above the title so the two never overlap.
+    title_pad = 20 if not omnibus_sig else 6
     if title:
-        ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
+        ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10, pad=title_pad)
+    if not omnibus_sig:
+        p_txt = f" (p = {p_value:.3f})" if p_value is not None else ""
+        ax.text(
+            0.5, 1.13,
+            f"Friedman omnibus NOT significant{p_txt} - rank order is descriptive only",
+            transform=ax.transAxes, ha="center", va="bottom",
+            fontsize=9.5, fontweight="bold", color=OI["vermillion"],
+        )
     # False-precision caveat: a rank is an ordering of point estimates, so a
     # crossing between two lines need not be a real difference. Spell this out
     # so the trajectories are read as descriptive, not inferential.

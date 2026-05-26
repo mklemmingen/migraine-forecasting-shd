@@ -282,12 +282,11 @@ def generate_tree_png(all_entries, out_path):
     ax.set_xlim(-0.12, 1.005)
     ax.set_ylim(n_levels * row_h, -header_h)   # y inverted (top -> bottom)
     ax.axis('off')
-    ax.set_title(
-        f"Discovered experiment leaves ({n_leaves} total) - icicle plot "
-        "[Shneiderman 1992, Andrews 2019]: row = path level, cell width "
-        "is proportional to descendant-leaf count, children align under parent",
-        fontsize=10, pad=10,
-    )
+    # Concise one-line title; the layout description (row = path level, cell
+    # width proportional to descendant-leaf count) and the [Shneiderman 1992;
+    # Andrews 2019] citation belong in the LaTeX caption, not burned into the image.
+    ax.set_title(f"Discovered experiment leaves ({n_leaves} total) - icicle plot",
+                 fontsize=10, pad=10)
 
     plt.tight_layout()
     save(fig, out_path)

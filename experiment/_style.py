@@ -138,9 +138,9 @@ _ARCH_BASE = {"xgboost": OI["green"], "tabpfn": OI["purple"], "window-mlp": OI["
               "gru": OI["skyblue"], "tcn": OI["blue"], "pooled": GREY}
 ARCH = {
     "XGBoost stack": _ARCH_BASE["xgboost"], "stacked_2xgb_meta_lr": _ARCH_BASE["xgboost"],
-    "add0_stacked": _ARCH_BASE["xgboost"],
+    "add0_stacked": _ARCH_BASE["xgboost"], "xgboost": _ARCH_BASE["xgboost"],
     "TabPFN": _ARCH_BASE["tabpfn"], "tabpfn": _ARCH_BASE["tabpfn"],
-    "add1_tabpfn": _ARCH_BASE["tabpfn"],
+    "add1_tabpfn": _ARCH_BASE["tabpfn"], "autotabpfn": _ARCH_BASE["tabpfn"],
     "window-MLP": _ARCH_BASE["window-mlp"], "window-MLP (seq)": _ARCH_BASE["window-mlp"],
     "sequence": _ARCH_BASE["window-mlp"], "add4_window_mlp": _ARCH_BASE["window-mlp"],
     "GRU": _ARCH_BASE["gru"], "TCN": _ARCH_BASE["tcn"],

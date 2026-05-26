@@ -1,0 +1,4508 @@
+{
+  "headlines": [
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.652,
+      "auroc_lo": 0.589,
+      "auroc_hi": 0.712,
+      "auprc_mean": 0.411,
+      "auprc_lo": 0.321,
+      "auprc_hi": 0.497,
+      "calib_slope": 1.095,
+      "prevalence": 0.19478260869565217
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.657,
+      "auroc_lo": 0.596,
+      "auroc_hi": 0.719,
+      "auprc_mean": 0.404,
+      "auprc_lo": 0.313,
+      "auprc_hi": 0.493,
+      "calib_slope": 1.405
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "stratified",
+      "datasplit": "80_20",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.7,
+      "auroc_lo": 0.662,
+      "auroc_hi": 0.739,
+      "auprc_mean": 0.435,
+      "auprc_lo": 0.373,
+      "auprc_hi": 0.503,
+      "calib_slope": 1.045,
+      "prevalence": 0.2345132743362832
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.679,
+      "auroc_lo": 0.629,
+      "auroc_hi": 0.729,
+      "auprc_mean": 0.446,
+      "auprc_lo": 0.375,
+      "auprc_hi": 0.519,
+      "calib_slope": 1.284
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "datasplit": "70_15_15",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.646,
+      "auroc_lo": 0.594,
+      "auroc_hi": 0.7,
+      "auprc_mean": 0.391,
+      "auprc_lo": 0.309,
+      "auprc_hi": 0.474,
+      "calib_slope": 0.901,
+      "prevalence": 0.20684523809523808
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "datasplit": "80_20",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.638,
+      "auroc_lo": 0.591,
+      "auroc_hi": 0.679,
+      "auprc_mean": 0.381,
+      "auprc_lo": 0.318,
+      "auprc_hi": 0.448,
+      "calib_slope": 1.173
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "spano_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.638,
+      "auroc_lo": 0.573,
+      "auroc_hi": 0.704,
+      "auprc_mean": 0.389,
+      "auprc_lo": 0.297,
+      "auprc_hi": 0.48,
+      "calib_slope": 1.49,
+      "prevalence": 0.19478260869565217
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "spano_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.664,
+      "auroc_lo": 0.615,
+      "auroc_hi": 0.714,
+      "auprc_mean": 0.413,
+      "auprc_lo": 0.339,
+      "auprc_hi": 0.487,
+      "calib_slope": 1.379,
+      "prevalence": 0.2345132743362832
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "spano_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.631,
+      "auroc_lo": 0.593,
+      "auroc_hi": 0.667,
+      "auprc_mean": 0.354,
+      "auprc_lo": 0.306,
+      "auprc_hi": 0.404,
+      "calib_slope": 1.29,
+      "prevalence": 0.2338772338772339
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.582,
+      "auroc_lo": 0.521,
+      "auroc_hi": 0.641,
+      "auprc_mean": 0.258,
+      "auprc_lo": 0.199,
+      "auprc_hi": 0.321,
+      "calib_slope": 0.653,
+      "prevalence": 0.19478260869565217
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.553,
+      "auroc_lo": 0.495,
+      "auroc_hi": 0.617,
+      "auprc_mean": 0.246,
+      "auprc_lo": 0.192,
+      "auprc_hi": 0.307,
+      "calib_slope": 0.799
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.573,
+      "auroc_lo": 0.523,
+      "auroc_hi": 0.625,
+      "auprc_mean": 0.311,
+      "auprc_lo": 0.25,
+      "auprc_hi": 0.378,
+      "calib_slope": 0.805,
+      "prevalence": 0.2345132743362832
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.577,
+      "auroc_lo": 0.528,
+      "auroc_hi": 0.632,
+      "auprc_mean": 0.296,
+      "auprc_lo": 0.238,
+      "auprc_hi": 0.352,
+      "calib_slope": 1.948
+    },
+    {
+      "role": "headline",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "datasplit": "80_20",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.522,
+      "auroc_lo": 0.479,
+      "auroc_hi": 0.567,
+      "auprc_mean": 0.264,
+      "auprc_lo": 0.225,
+      "auprc_hi": 0.309,
+      "calib_slope": 0.999,
+      "prevalence": 0.2383073496659243
+    },
+    {
+      "role": "runner_up",
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.486,
+      "auroc_lo": 0.447,
+      "auroc_hi": 0.527,
+      "auprc_mean": 0.237,
+      "auprc_lo": 0.206,
+      "auprc_hi": 0.272,
+      "calib_slope": -0.022
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.793,
+      "auroc_lo": 0.701,
+      "auroc_hi": 0.873,
+      "auprc_mean": 0.314,
+      "auprc_lo": 0.187,
+      "auprc_hi": 0.457,
+      "calib_slope": 1.417,
+      "prevalence": 0.06608695652173913
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.761,
+      "auroc_lo": 0.668,
+      "auroc_hi": 0.838,
+      "auprc_mean": 0.32,
+      "auprc_lo": 0.186,
+      "auprc_hi": 0.475,
+      "calib_slope": 0.964
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.736,
+      "auroc_lo": 0.655,
+      "auroc_hi": 0.805,
+      "auprc_mean": 0.266,
+      "auprc_lo": 0.153,
+      "auprc_hi": 0.393,
+      "calib_slope": 1.01,
+      "prevalence": 0.07227138643067847
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "autotabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.733,
+      "auroc_lo": 0.653,
+      "auroc_hi": 0.803,
+      "auprc_mean": 0.24,
+      "auprc_lo": 0.14,
+      "auprc_hi": 0.362,
+      "calib_slope": 0.77
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "datasplit": "70_15_15",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.716,
+      "auroc_lo": 0.634,
+      "auroc_hi": 0.807,
+      "auprc_mean": 0.174,
+      "auprc_lo": 0.097,
+      "auprc_hi": 0.286,
+      "calib_slope": 0.707,
+      "prevalence": 0.05505952380952381
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.691,
+      "auroc_lo": 0.605,
+      "auroc_hi": 0.779,
+      "auprc_mean": 0.186,
+      "auprc_lo": 0.097,
+      "auprc_hi": 0.313,
+      "calib_slope": 1.181
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "spano_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.77,
+      "auroc_lo": 0.669,
+      "auroc_hi": 0.855,
+      "auprc_mean": 0.307,
+      "auprc_lo": 0.176,
+      "auprc_hi": 0.448,
+      "calib_slope": 1.901,
+      "prevalence": 0.06608695652173913
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "spano_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.716,
+      "auroc_lo": 0.634,
+      "auroc_hi": 0.796,
+      "auprc_mean": 0.23,
+      "auprc_lo": 0.138,
+      "auprc_hi": 0.353,
+      "calib_slope": 0.939,
+      "prevalence": 0.07227138643067847
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "spano_features",
+      "splittype": "patient",
+      "datasplit": "80_20",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.651,
+      "auroc_lo": 0.575,
+      "auroc_hi": 0.726,
+      "auprc_mean": 0.176,
+      "auprc_lo": 0.11,
+      "auprc_hi": 0.253,
+      "calib_slope": 4.959,
+      "prevalence": 0.07461024498886415
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "datasplit": "70_15_15",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.749,
+      "auroc_lo": 0.517,
+      "auroc_hi": 0.926,
+      "auprc_mean": 0.132,
+      "auprc_lo": 0.026,
+      "auprc_hi": 0.291,
+      "calib_slope": 0.712,
+      "prevalence": 0.03676470588235294
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.619,
+      "auroc_lo": 0.52,
+      "auroc_hi": 0.716,
+      "auprc_mean": 0.155,
+      "auprc_lo": 0.075,
+      "auprc_hi": 0.249,
+      "calib_slope": 1.628
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.614,
+      "auroc_lo": 0.553,
+      "auroc_hi": 0.677,
+      "auprc_mean": 0.128,
+      "auprc_lo": 0.09,
+      "auprc_hi": 0.178,
+      "calib_slope": 0.573,
+      "prevalence": 0.07232472324723248
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "datasplit": "70_15_15",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.549,
+      "auroc_lo": 0.472,
+      "auroc_hi": 0.627,
+      "auprc_mean": 0.109,
+      "auprc_lo": 0.063,
+      "auprc_hi": 0.182,
+      "calib_slope": 0.568
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.599,
+      "auroc_lo": 0.543,
+      "auroc_hi": 0.655,
+      "auprc_mean": 0.103,
+      "auprc_lo": 0.078,
+      "auprc_hi": 0.133,
+      "calib_slope": 0.425,
+      "prevalence": 0.07692307692307693
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.496,
+      "auroc_lo": 0.436,
+      "auroc_hi": 0.56,
+      "auprc_mean": 0.082,
+      "auprc_lo": 0.061,
+      "auprc_hi": 0.105,
+      "calib_slope": -0.077
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.646,
+      "auroc_lo": 0.559,
+      "auroc_hi": 0.735,
+      "auprc_mean": 0.126,
+      "auprc_lo": 0.07,
+      "auprc_hi": 0.202,
+      "calib_slope": 1.048,
+      "prevalence": 0.06608695652173913
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "chrono",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.625,
+      "auroc_lo": 0.546,
+      "auroc_hi": 0.705,
+      "auprc_mean": 0.115,
+      "auprc_lo": 0.065,
+      "auprc_hi": 0.183,
+      "calib_slope": 0.824
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "stratified",
+      "datasplit": "80_20",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.618,
+      "auroc_lo": 0.554,
+      "auroc_hi": 0.68,
+      "auprc_mean": 0.119,
+      "auprc_lo": 0.079,
+      "auprc_hi": 0.17,
+      "calib_slope": 0.587,
+      "prevalence": 0.07190265486725664
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "stratified",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.576,
+      "auroc_lo": 0.526,
+      "auroc_hi": 0.627,
+      "auprc_mean": 0.117,
+      "auprc_lo": 0.081,
+      "auprc_hi": 0.165,
+      "calib_slope": 0.555
+    },
+    {
+      "role": "headline",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "xgboost",
+      "architecture": "stacked_2xgb_meta_lr",
+      "auroc_mean": 0.541,
+      "auroc_lo": 0.496,
+      "auroc_hi": 0.586,
+      "auprc_mean": 0.086,
+      "auprc_lo": 0.067,
+      "auprc_hi": 0.107,
+      "calib_slope": 0.671,
+      "prevalence": 0.07692307692307693
+    },
+    {
+      "role": "runner_up",
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "patient",
+      "datasplit": "70_30",
+      "family": "tabpfn",
+      "architecture": "tabpfn",
+      "auroc_mean": 0.536,
+      "auroc_lo": 0.495,
+      "auroc_hi": 0.583,
+      "auprc_mean": 0.082,
+      "auprc_lo": 0.065,
+      "auprc_hi": 0.1,
+      "calib_slope": 0.181
+    }
+  ],
+  "cross_arch": [
+    {
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "headline": {
+        "ranking": [
+          [
+            "migraine_rate_last3",
+            0.03005822
+          ],
+          [
+            "migraine_rate_last7",
+            0.02773142
+          ],
+          [
+            "headache_free_streak",
+            0.01876965
+          ],
+          [
+            "days_since_last_migraine",
+            0.01400083
+          ],
+          [
+            "migraine_yesterday",
+            0.00575547
+          ],
+          [
+            "inappropriate_lighting",
+            0.00564834
+          ],
+          [
+            "days_since_last_record",
+            0.00387478
+          ],
+          [
+            "menstruation_today",
+            0.00385429
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00337416
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.00328113
+          ],
+          [
+            "sleep_variability_7day",
+            0.0032786
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00262957
+          ],
+          [
+            "dow",
+            0.00261624
+          ],
+          [
+            "sleep_debt_3day",
+            0.00249976
+          ],
+          [
+            "sleep_disruption_today",
+            0.00236166
+          ],
+          [
+            "weather_instability_3day",
+            0.0021493
+          ],
+          [
+            "moderate_exercise_min",
+            0.00209384
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00196553
+          ],
+          [
+            "exercise_days_7day",
+            0.00193126
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00190279
+          ],
+          [
+            "consecutive_stress_days",
+            0.00174884
+          ],
+          [
+            "excessive_smoking_today",
+            0.00170446
+          ],
+          [
+            "physical_fatigue_today",
+            0.00168092
+          ],
+          [
+            "weather_change_yesterday",
+            0.00165446
+          ],
+          [
+            "weather_headache_interaction",
+            0.00161843
+          ],
+          [
+            "no_exercise_today",
+            0.00159991
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00159327
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00159235
+          ],
+          [
+            "stress_drop_today",
+            0.00156102
+          ],
+          [
+            "sunlight",
+            0.00153581
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00146826
+          ],
+          [
+            "oversleeping_today",
+            0.00144508
+          ],
+          [
+            "weather_change_today",
+            0.00137304
+          ],
+          [
+            "ovulation_today",
+            0.00134651
+          ],
+          [
+            "exercise_today",
+            0.00130901
+          ],
+          [
+            "specific_smells_today",
+            0.00128005
+          ],
+          [
+            "sunlight_today",
+            0.00124458
+          ],
+          [
+            "exercise_as_trigger",
+            0.00121536
+          ],
+          [
+            "overeating_today",
+            0.00120319
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.0011814
+          ],
+          [
+            "alcohol_today",
+            0.00117165
+          ],
+          [
+            "travel_today",
+            0.00117142
+          ],
+          [
+            "stress_today",
+            0.00113865
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00113182
+          ],
+          [
+            "excessive_caffeine_today",
+            0.0011189
+          ],
+          [
+            "emotional_changes_today",
+            0.00111667
+          ],
+          [
+            "irregular_meals_today",
+            0.00110844
+          ],
+          [
+            "recording_gap_flag",
+            0.00109832
+          ],
+          [
+            "noise_today",
+            0.00105216
+          ],
+          [
+            "excessive_smoking",
+            0.00102768
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00085108
+          ],
+          [
+            "cheese_chocolate",
+            0.00076439
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "headache_free_streak",
+            0.02186557
+          ],
+          [
+            "migraine_rate_last7",
+            0.01820532
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.01736902
+          ],
+          [
+            "days_since_last_migraine",
+            0.00637249
+          ],
+          [
+            "exercise_days_7day",
+            0.00410455
+          ],
+          [
+            "migraine_rate_last3",
+            0.00306057
+          ],
+          [
+            "dow",
+            0.00251767
+          ],
+          [
+            "sleep_variability_7day",
+            0.00228287
+          ],
+          [
+            "menstruation_today",
+            0.00198401
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00189384
+          ],
+          [
+            "migraine_yesterday",
+            0.00177243
+          ],
+          [
+            "weather_change_yesterday",
+            0.00109823
+          ],
+          [
+            "weather_instability_3day",
+            0.00097578
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00087557
+          ],
+          [
+            "physical_fatigue_today",
+            0.00056125
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00053623
+          ],
+          [
+            "days_since_last_record",
+            0.00044994
+          ],
+          [
+            "consecutive_stress_days",
+            0.00042417
+          ],
+          [
+            "moderate_exercise_min",
+            0.0003829
+          ],
+          [
+            "sleep_debt_3day",
+            0.00029311
+          ],
+          [
+            "weather_change_today",
+            0.0002857
+          ],
+          [
+            "irregular_meals_today",
+            0.000285
+          ],
+          [
+            "sleep_disruption_today",
+            0.00027865
+          ],
+          [
+            "specific_smells_today",
+            0.00016176
+          ],
+          [
+            "stress_today",
+            0.00015913
+          ],
+          [
+            "exercise_as_trigger",
+            0.00014871
+          ],
+          [
+            "alcohol_today",
+            0.00013274
+          ],
+          [
+            "exercise_today",
+            0.0001284
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.0001224
+          ],
+          [
+            "consecutive_trigger_days",
+            0.0001037
+          ],
+          [
+            "recording_gap_flag",
+            9.442e-05
+          ],
+          [
+            "sunlight",
+            8.173e-05
+          ],
+          [
+            "consecutive_weather_changes",
+            7.929e-05
+          ],
+          [
+            "any_sleep_issue_today",
+            6.819e-05
+          ],
+          [
+            "emotional_changes_today",
+            5.237e-05
+          ],
+          [
+            "stress_drop_today",
+            3.858e-05
+          ],
+          [
+            "excessive_caffeine_today",
+            3.777e-05
+          ],
+          [
+            "oversleeping_today",
+            2.719e-05
+          ],
+          [
+            "exercise_as_trigger_today",
+            2.405e-05
+          ],
+          [
+            "noise_today",
+            1.643e-05
+          ],
+          [
+            "no_exercise_today",
+            1.375e-05
+          ],
+          [
+            "travel_today",
+            9.97e-06
+          ],
+          [
+            "sunlight_today",
+            8.31e-06
+          ],
+          [
+            "weather_headache_interaction",
+            6.91e-06
+          ],
+          [
+            "overeating_today",
+            0.0
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "cheese_chocolate_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting",
+            0.0
+          ],
+          [
+            "cheese_chocolate",
+            0.0
+          ],
+          [
+            "excessive_smoking",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "headline": {
+        "ranking": [
+          [
+            "inappropriate_lighting_today",
+            0.03349039
+          ],
+          [
+            "any_sleep_issue_today",
+            0.01528383
+          ],
+          [
+            "stress_today",
+            0.01144784
+          ],
+          [
+            "lack_of_sleep_today",
+            0.01075228
+          ],
+          [
+            "physical_fatigue_today",
+            0.00975905
+          ],
+          [
+            "menstruation_today",
+            0.00864257
+          ],
+          [
+            "ovulation_today",
+            0.00568546
+          ],
+          [
+            "emotional_changes_today",
+            0.00424729
+          ],
+          [
+            "no_exercise_today",
+            0.00416163
+          ],
+          [
+            "alcohol_today",
+            0.00403812
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00402515
+          ],
+          [
+            "specific_smells_today",
+            0.00383067
+          ],
+          [
+            "oversleeping_today",
+            0.00343063
+          ],
+          [
+            "exercise_today",
+            0.00335583
+          ],
+          [
+            "moderate_exercise_min",
+            0.0029588
+          ],
+          [
+            "excessive_smoking_today",
+            0.00283661
+          ],
+          [
+            "overeating_today",
+            0.00266515
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00249803
+          ],
+          [
+            "travel_today",
+            0.00233926
+          ],
+          [
+            "noise_today",
+            0.00210994
+          ],
+          [
+            "sunlight_today",
+            0.00198611
+          ],
+          [
+            "weather_change_today",
+            0.00184808
+          ],
+          [
+            "irregular_meals_today",
+            0.00168789
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00128024
+          ],
+          [
+            "dow",
+            0.00086822
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00036024
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "dow",
+            0.00618075
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00401194
+          ],
+          [
+            "exercise_today",
+            0.00383838
+          ],
+          [
+            "menstruation_today",
+            0.00357938
+          ],
+          [
+            "physical_fatigue_today",
+            0.00339501
+          ],
+          [
+            "moderate_exercise_min",
+            0.00338199
+          ],
+          [
+            "stress_today",
+            0.00337171
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00176598
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00113022
+          ],
+          [
+            "no_exercise_today",
+            0.00103164
+          ],
+          [
+            "specific_smells_today",
+            0.00076102
+          ],
+          [
+            "irregular_meals_today",
+            0.00070728
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00034787
+          ],
+          [
+            "overeating_today",
+            0.00031457
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00030218
+          ],
+          [
+            "emotional_changes_today",
+            0.00029824
+          ],
+          [
+            "weather_change_today",
+            0.00029788
+          ],
+          [
+            "oversleeping_today",
+            0.00027034
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00013545
+          ],
+          [
+            "noise_today",
+            8.443e-05
+          ],
+          [
+            "alcohol_today",
+            5.68e-05
+          ],
+          [
+            "sunlight_today",
+            4.542e-05
+          ],
+          [
+            "travel_today",
+            2.725e-05
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "chrono",
+      "headline": {
+        "ranking": [
+          [
+            "headache_free_streak",
+            0.01727467
+          ],
+          [
+            "days_since_last_migraine",
+            0.01318415
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.0103664
+          ],
+          [
+            "sleep_variability_7day",
+            0.00390811
+          ],
+          [
+            "migraine_rate_last7",
+            0.00336382
+          ],
+          [
+            "migraine_rate_last3",
+            0.00297866
+          ],
+          [
+            "menstruation_today",
+            0.00236661
+          ],
+          [
+            "weather_instability_3day",
+            0.00212273
+          ],
+          [
+            "dow",
+            0.00193769
+          ],
+          [
+            "exercise_days_7day",
+            0.0017087
+          ],
+          [
+            "moderate_exercise_min",
+            0.00066696
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00061868
+          ],
+          [
+            "sleep_debt_3day",
+            0.00060716
+          ],
+          [
+            "consecutive_stress_days",
+            0.00053466
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00038052
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00031697
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00029716
+          ],
+          [
+            "irregular_meals_today",
+            0.00026058
+          ],
+          [
+            "weather_change_yesterday",
+            0.00024091
+          ],
+          [
+            "specific_smells_today",
+            0.00020675
+          ],
+          [
+            "exercise_today",
+            0.00018349
+          ],
+          [
+            "physical_fatigue_today",
+            0.00017066
+          ],
+          [
+            "stress_drop_today",
+            0.00010751
+          ],
+          [
+            "emotional_changes_today",
+            0.00010054
+          ],
+          [
+            "lack_of_sleep_today",
+            9.967e-05
+          ],
+          [
+            "days_since_last_record",
+            7.901e-05
+          ],
+          [
+            "vigorous_exercise_min",
+            6.728e-05
+          ],
+          [
+            "stress_today",
+            5.391e-05
+          ],
+          [
+            "exercise_as_trigger",
+            4.512e-05
+          ],
+          [
+            "no_exercise_today",
+            4.321e-05
+          ],
+          [
+            "overeating_today",
+            3.091e-05
+          ],
+          [
+            "weather_change_today",
+            2.853e-05
+          ],
+          [
+            "migraine_yesterday",
+            1.599e-05
+          ],
+          [
+            "noise_today",
+            1.5e-05
+          ],
+          [
+            "consecutive_weather_changes",
+            7.93e-06
+          ],
+          [
+            "excessive_caffeine_today",
+            4.24e-06
+          ],
+          [
+            "exercise_as_trigger_today",
+            3.2e-07
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "recording_gap_flag",
+            0.0
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "alcohol_today",
+            0.0
+          ],
+          [
+            "weather_headache_interaction",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "cheese_chocolate_today",
+            0.0
+          ],
+          [
+            "oversleeping_today",
+            0.0
+          ],
+          [
+            "sleep_disruption_today",
+            0.0
+          ],
+          [
+            "sunlight_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting",
+            0.0
+          ],
+          [
+            "excessive_smoking",
+            0.0
+          ],
+          [
+            "cheese_chocolate",
+            0.0
+          ],
+          [
+            "sunlight",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "menstruation_today",
+            0.0193503
+          ],
+          [
+            "headache_free_streak",
+            0.01795368
+          ],
+          [
+            "days_since_last_migraine",
+            0.01675327
+          ],
+          [
+            "migraine_rate_last7",
+            0.01607934
+          ],
+          [
+            "inappropriate_lighting",
+            0.00944173
+          ],
+          [
+            "migraine_rate_last3",
+            0.00829953
+          ],
+          [
+            "sleep_variability_7day",
+            0.00331907
+          ],
+          [
+            "excessive_smoking_today",
+            0.00282753
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.00223881
+          ],
+          [
+            "exercise_days_7day",
+            0.00221467
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00201853
+          ],
+          [
+            "sleep_disruption_today",
+            0.00196123
+          ],
+          [
+            "stress_drop_today",
+            0.00194254
+          ],
+          [
+            "consecutive_stress_days",
+            0.00194071
+          ],
+          [
+            "overeating_today",
+            0.00182928
+          ],
+          [
+            "migraine_yesterday",
+            0.00181466
+          ],
+          [
+            "cheese_chocolate",
+            0.0017789
+          ],
+          [
+            "ovulation_today",
+            0.00158773
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00150814
+          ],
+          [
+            "stress_today",
+            0.00137926
+          ],
+          [
+            "cheese_chocolate_today",
+            0.0013389
+          ],
+          [
+            "weather_change_today",
+            0.00130322
+          ],
+          [
+            "recording_gap_flag",
+            0.00124798
+          ],
+          [
+            "excessive_smoking",
+            0.00114824
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00114739
+          ],
+          [
+            "sunlight",
+            0.00109823
+          ],
+          [
+            "sleep_debt_3day",
+            0.00104259
+          ],
+          [
+            "irregular_meals_today",
+            0.00100633
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00094479
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00094126
+          ],
+          [
+            "oversleeping_today",
+            0.00093683
+          ],
+          [
+            "specific_smells_today",
+            0.00080803
+          ],
+          [
+            "travel_today",
+            0.0007725
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00075591
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00074864
+          ],
+          [
+            "dow",
+            0.00069577
+          ],
+          [
+            "no_exercise_today",
+            0.00069436
+          ],
+          [
+            "exercise_as_trigger",
+            0.00069346
+          ],
+          [
+            "weather_change_yesterday",
+            0.00053949
+          ],
+          [
+            "exercise_today",
+            0.00047118
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00045341
+          ],
+          [
+            "physical_fatigue_today",
+            0.00043672
+          ],
+          [
+            "weather_headache_interaction",
+            0.00042892
+          ],
+          [
+            "moderate_exercise_min",
+            0.00040338
+          ],
+          [
+            "weather_instability_3day",
+            0.00039177
+          ],
+          [
+            "consecutive_exercise_days",
+            0.0003518
+          ],
+          [
+            "sunlight_today",
+            0.00031002
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.0002939
+          ],
+          [
+            "emotional_changes_today",
+            0.00027434
+          ],
+          [
+            "noise_today",
+            0.0002726
+          ],
+          [
+            "days_since_last_record",
+            0.00025396
+          ],
+          [
+            "alcohol_today",
+            0.00020264
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "chrono",
+      "headline": {
+        "ranking": [
+          [
+            "inappropriate_lighting_today",
+            0.02265631
+          ],
+          [
+            "menstruation_today",
+            0.02145239
+          ],
+          [
+            "exercise_today",
+            0.01261914
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00814773
+          ],
+          [
+            "specific_smells_today",
+            0.0081274
+          ],
+          [
+            "stress_today",
+            0.00743863
+          ],
+          [
+            "sunlight_today",
+            0.0057289
+          ],
+          [
+            "no_exercise_today",
+            0.00543334
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00542699
+          ],
+          [
+            "noise_today",
+            0.00535051
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00516047
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00497982
+          ],
+          [
+            "dow",
+            0.00459417
+          ],
+          [
+            "excessive_smoking_today",
+            0.0043573
+          ],
+          [
+            "irregular_meals_today",
+            0.00378482
+          ],
+          [
+            "weather_change_today",
+            0.00336264
+          ],
+          [
+            "moderate_exercise_min",
+            0.00310978
+          ],
+          [
+            "emotional_changes_today",
+            0.00264069
+          ],
+          [
+            "ovulation_today",
+            0.00245456
+          ],
+          [
+            "physical_fatigue_today",
+            0.0023927
+          ],
+          [
+            "overeating_today",
+            0.00224413
+          ],
+          [
+            "oversleeping_today",
+            0.00205359
+          ],
+          [
+            "alcohol_today",
+            0.00205215
+          ],
+          [
+            "travel_today",
+            0.00180925
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00153113
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00148506
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "menstruation_today",
+            0.00288147
+          ],
+          [
+            "moderate_exercise_min",
+            0.00238209
+          ],
+          [
+            "dow",
+            0.00214087
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00182105
+          ],
+          [
+            "stress_today",
+            0.00132835
+          ],
+          [
+            "exercise_today",
+            0.00104682
+          ],
+          [
+            "physical_fatigue_today",
+            0.00097655
+          ],
+          [
+            "irregular_meals_today",
+            0.00082801
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00070087
+          ],
+          [
+            "specific_smells_today",
+            0.00068377
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00052816
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00039765
+          ],
+          [
+            "emotional_changes_today",
+            0.00039607
+          ],
+          [
+            "weather_change_today",
+            0.00032228
+          ],
+          [
+            "overeating_today",
+            0.00017088
+          ],
+          [
+            "no_exercise_today",
+            0.0001522
+          ],
+          [
+            "noise_today",
+            0.00012292
+          ],
+          [
+            "excessive_caffeine_today",
+            7.575e-05
+          ],
+          [
+            "oversleeping_today",
+            4.756e-05
+          ],
+          [
+            "cheese_chocolate_today",
+            3.499e-05
+          ],
+          [
+            "alcohol_today",
+            3.242e-05
+          ],
+          [
+            "travel_today",
+            1.929e-05
+          ],
+          [
+            "sunlight_today",
+            1.255e-05
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "chrono",
+      "headline": {
+        "ranking": [
+          [
+            "hormonal_changes_today",
+            0.05318815
+          ],
+          [
+            "alcohol_today",
+            0.02278446
+          ],
+          [
+            "overeating_today",
+            0.02188348
+          ],
+          [
+            "noise_today",
+            0.01938518
+          ],
+          [
+            "travel_today",
+            0.01529754
+          ],
+          [
+            "stress_today",
+            0.0151148
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "overeating_today",
+            0.0292031
+          ],
+          [
+            "hormonal_changes_today",
+            0.02788949
+          ],
+          [
+            "stress_today",
+            0.02050267
+          ],
+          [
+            "alcohol_today",
+            0.01571247
+          ],
+          [
+            "travel_today",
+            0.00879696
+          ],
+          [
+            "noise_today",
+            0.00535908
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "stratified",
+      "headline": {
+        "ranking": [
+          [
+            "migraine_rate_last7",
+            0.02591351
+          ],
+          [
+            "headache_free_streak",
+            0.01803225
+          ],
+          [
+            "migraine_rate_last3",
+            0.01616239
+          ],
+          [
+            "days_since_last_migraine",
+            0.01372308
+          ],
+          [
+            "migraine_yesterday",
+            0.01098228
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00726217
+          ],
+          [
+            "days_since_last_record",
+            0.00335867
+          ],
+          [
+            "recording_gap_flag",
+            0.00290579
+          ],
+          [
+            "physical_fatigue_today",
+            0.00282247
+          ],
+          [
+            "inappropriate_lighting",
+            0.00271581
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00232775
+          ],
+          [
+            "sleep_disruption_today",
+            0.00219508
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.00214445
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00212189
+          ],
+          [
+            "exercise_days_7day",
+            0.00188842
+          ],
+          [
+            "menstruation_today",
+            0.00183609
+          ],
+          [
+            "consecutive_exercise_days",
+            0.0016627
+          ],
+          [
+            "sleep_variability_7day",
+            0.00153947
+          ],
+          [
+            "sleep_debt_3day",
+            0.00151575
+          ],
+          [
+            "consecutive_stress_days",
+            0.00122125
+          ],
+          [
+            "stress_today",
+            0.00118261
+          ],
+          [
+            "weather_instability_3day",
+            0.00109159
+          ],
+          [
+            "specific_smells_today",
+            0.00097153
+          ],
+          [
+            "irregular_meals_today",
+            0.00068652
+          ],
+          [
+            "stress_drop_today",
+            0.00065246
+          ],
+          [
+            "moderate_exercise_min",
+            0.00063668
+          ],
+          [
+            "exercise_today",
+            0.00060622
+          ],
+          [
+            "noise_today",
+            0.0006007
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00059375
+          ],
+          [
+            "oversleeping_today",
+            0.00055177
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00052367
+          ],
+          [
+            "dow",
+            0.00048786
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00047502
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00044814
+          ],
+          [
+            "sunlight_today",
+            0.00044246
+          ],
+          [
+            "emotional_changes_today",
+            0.00043993
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00043493
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00042903
+          ],
+          [
+            "sunlight",
+            0.00041923
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00041708
+          ],
+          [
+            "no_exercise_today",
+            0.00033721
+          ],
+          [
+            "excessive_smoking_today",
+            0.00032756
+          ],
+          [
+            "overeating_today",
+            0.00032215
+          ],
+          [
+            "weather_headache_interaction",
+            0.00030522
+          ],
+          [
+            "alcohol_today",
+            0.00029994
+          ],
+          [
+            "exercise_as_trigger",
+            0.00028877
+          ],
+          [
+            "weather_change_yesterday",
+            0.00025955
+          ],
+          [
+            "travel_today",
+            0.00024045
+          ],
+          [
+            "weather_change_today",
+            0.00020654
+          ],
+          [
+            "ovulation_today",
+            0.00018735
+          ],
+          [
+            "cheese_chocolate",
+            0.00014842
+          ],
+          [
+            "excessive_smoking",
+            0.00013599
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "migraine_rate_last7",
+            0.04489948
+          ],
+          [
+            "headache_free_streak",
+            0.02209144
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00688079
+          ],
+          [
+            "exercise_days_7day",
+            0.00505866
+          ],
+          [
+            "migraine_rate_last3",
+            0.0039878
+          ],
+          [
+            "days_since_last_migraine",
+            0.00315292
+          ],
+          [
+            "dow",
+            0.00294759
+          ],
+          [
+            "days_since_last_record",
+            0.00154014
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00148328
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00145457
+          ],
+          [
+            "menstruation_today",
+            0.00094714
+          ],
+          [
+            "physical_fatigue_today",
+            0.0008901
+          ],
+          [
+            "sleep_disruption_today",
+            0.00080338
+          ],
+          [
+            "migraine_yesterday",
+            0.00068372
+          ],
+          [
+            "moderate_exercise_min",
+            0.00061143
+          ],
+          [
+            "any_sleep_issue_today",
+            0.0006001
+          ],
+          [
+            "weather_change_yesterday",
+            0.00057198
+          ],
+          [
+            "sleep_variability_7day",
+            0.0003167
+          ],
+          [
+            "consecutive_stress_days",
+            0.00031218
+          ],
+          [
+            "weather_instability_3day",
+            0.00021129
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00020598
+          ],
+          [
+            "stress_today",
+            0.00014783
+          ],
+          [
+            "specific_smells_today",
+            5.396e-05
+          ],
+          [
+            "weather_headache_interaction",
+            4.019e-05
+          ],
+          [
+            "alcohol_today",
+            3.995e-05
+          ],
+          [
+            "exercise_as_trigger",
+            3.366e-05
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            2.955e-05
+          ],
+          [
+            "noise_today",
+            1.939e-05
+          ],
+          [
+            "consecutive_trigger_days",
+            1.912e-05
+          ],
+          [
+            "sleep_debt_3day",
+            1.8e-05
+          ],
+          [
+            "stress_drop_today",
+            8.21e-06
+          ],
+          [
+            "sunlight",
+            7.71e-06
+          ],
+          [
+            "recording_gap_flag",
+            4.47e-06
+          ],
+          [
+            "weather_change_today",
+            4.35e-06
+          ],
+          [
+            "excessive_caffeine_today",
+            3.79e-06
+          ],
+          [
+            "consecutive_weather_changes",
+            3.38e-06
+          ],
+          [
+            "exercise_as_trigger_today",
+            2.54e-06
+          ],
+          [
+            "exercise_today",
+            2.32e-06
+          ],
+          [
+            "sunlight_today",
+            1.59e-06
+          ],
+          [
+            "no_exercise_today",
+            1.33e-06
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "overeating_today",
+            0.0
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "emotional_changes_today",
+            0.0
+          ],
+          [
+            "irregular_meals_today",
+            0.0
+          ],
+          [
+            "cheese_chocolate_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "oversleeping_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting",
+            0.0
+          ],
+          [
+            "cheese_chocolate",
+            0.0
+          ],
+          [
+            "excessive_smoking",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "headline": {
+        "ranking": [
+          [
+            "menstruation_today",
+            0.01425392
+          ],
+          [
+            "lack_of_sleep_today",
+            0.01121155
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00821156
+          ],
+          [
+            "exercise_today",
+            0.0068556
+          ],
+          [
+            "dow",
+            0.00673074
+          ],
+          [
+            "specific_smells_today",
+            0.00660729
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.00583739
+          ],
+          [
+            "sunlight_today",
+            0.00567629
+          ],
+          [
+            "ovulation_today",
+            0.00475996
+          ],
+          [
+            "travel_today",
+            0.00435505
+          ],
+          [
+            "stress_today",
+            0.00398285
+          ],
+          [
+            "weather_change_today",
+            0.0038456
+          ],
+          [
+            "noise_today",
+            0.00377786
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00338402
+          ],
+          [
+            "moderate_exercise_min",
+            0.00313925
+          ],
+          [
+            "physical_fatigue_today",
+            0.00250721
+          ],
+          [
+            "excessive_smoking_today",
+            0.00247177
+          ],
+          [
+            "oversleeping_today",
+            0.0023446
+          ],
+          [
+            "no_exercise_today",
+            0.00224007
+          ],
+          [
+            "emotional_changes_today",
+            0.00191916
+          ],
+          [
+            "irregular_meals_today",
+            0.00183725
+          ],
+          [
+            "alcohol_today",
+            0.00179643
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00176782
+          ],
+          [
+            "excessive_caffeine_today",
+            0.001471
+          ],
+          [
+            "overeating_today",
+            0.00101415
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00036866
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "dow",
+            0.00659258
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00385863
+          ],
+          [
+            "exercise_today",
+            0.00287684
+          ],
+          [
+            "physical_fatigue_today",
+            0.00232239
+          ],
+          [
+            "menstruation_today",
+            0.00226792
+          ],
+          [
+            "moderate_exercise_min",
+            0.00182408
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00144215
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00118663
+          ],
+          [
+            "ovulation_today",
+            0.00073547
+          ],
+          [
+            "stress_today",
+            0.00064637
+          ],
+          [
+            "excessive_caffeine_today",
+            0.0004444
+          ],
+          [
+            "irregular_meals_today",
+            0.00042494
+          ],
+          [
+            "noise_today",
+            0.00034052
+          ],
+          [
+            "specific_smells_today",
+            0.00032953
+          ],
+          [
+            "no_exercise_today",
+            0.00032518
+          ],
+          [
+            "emotional_changes_today",
+            0.00027144
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00026094
+          ],
+          [
+            "sunlight_today",
+            0.00023829
+          ],
+          [
+            "weather_change_today",
+            0.00017412
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00015666
+          ],
+          [
+            "alcohol_today",
+            0.00013246
+          ],
+          [
+            "overeating_today",
+            0.00011535
+          ],
+          [
+            "oversleeping_today",
+            0.00011525
+          ],
+          [
+            "travel_today",
+            6.153e-05
+          ],
+          [
+            "excessive_smoking_today",
+            6.11e-06
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "stratified",
+      "headline": {
+        "ranking": [
+          [
+            "inappropriate_lighting_today",
+            0.02875603
+          ],
+          [
+            "menstruation_today",
+            0.01824985
+          ],
+          [
+            "stress_today",
+            0.0131967
+          ],
+          [
+            "specific_smells_today",
+            0.01044323
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00970588
+          ],
+          [
+            "exercise_today",
+            0.0088195
+          ],
+          [
+            "no_exercise_today",
+            0.00775573
+          ],
+          [
+            "weather_change_today",
+            0.00678416
+          ],
+          [
+            "lack_of_sleep_today",
+            0.0065637
+          ],
+          [
+            "physical_fatigue_today",
+            0.00632053
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00591774
+          ],
+          [
+            "ovulation_today",
+            0.00579885
+          ],
+          [
+            "travel_today",
+            0.00566154
+          ],
+          [
+            "irregular_meals_today",
+            0.00502577
+          ],
+          [
+            "excessive_smoking_today",
+            0.00459357
+          ],
+          [
+            "emotional_changes_today",
+            0.00455312
+          ],
+          [
+            "noise_today",
+            0.00451136
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00421575
+          ],
+          [
+            "dow",
+            0.00407861
+          ],
+          [
+            "alcohol_today",
+            0.00399901
+          ],
+          [
+            "sunlight_today",
+            0.00361181
+          ],
+          [
+            "moderate_exercise_min",
+            0.00355748
+          ],
+          [
+            "oversleeping_today",
+            0.00345882
+          ],
+          [
+            "overeating_today",
+            0.00322511
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00226232
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00135584
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "moderate_exercise_min",
+            0.00388516
+          ],
+          [
+            "dow",
+            0.00301796
+          ],
+          [
+            "stress_today",
+            0.00294511
+          ],
+          [
+            "exercise_today",
+            0.00266527
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00221225
+          ],
+          [
+            "menstruation_today",
+            0.00154204
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00108915
+          ],
+          [
+            "physical_fatigue_today",
+            0.00100549
+          ],
+          [
+            "emotional_changes_today",
+            0.00086121
+          ],
+          [
+            "specific_smells_today",
+            0.00083049
+          ],
+          [
+            "weather_change_today",
+            0.00074164
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00070708
+          ],
+          [
+            "excessive_smoking_today",
+            0.0005068
+          ],
+          [
+            "irregular_meals_today",
+            0.00040422
+          ],
+          [
+            "oversleeping_today",
+            0.00032003
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00027763
+          ],
+          [
+            "noise_today",
+            0.00025385
+          ],
+          [
+            "ovulation_today",
+            0.00024492
+          ],
+          [
+            "no_exercise_today",
+            0.00023184
+          ],
+          [
+            "sunlight_today",
+            0.00018366
+          ],
+          [
+            "alcohol_today",
+            0.00014344
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00012776
+          ],
+          [
+            "overeating_today",
+            2.507e-05
+          ],
+          [
+            "any_sleep_issue_today",
+            1.771e-05
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "stratified",
+      "headline": {
+        "ranking": [
+          [
+            "hormonal_changes_today",
+            0.0135888
+          ],
+          [
+            "noise_today",
+            0.00987653
+          ],
+          [
+            "stress_today",
+            0.00754292
+          ],
+          [
+            "overeating_today",
+            0.00566588
+          ],
+          [
+            "travel_today",
+            0.00454985
+          ],
+          [
+            "alcohol_today",
+            0.00336494
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "hormonal_changes_today",
+            0.03375406
+          ],
+          [
+            "alcohol_today",
+            0.01148087
+          ],
+          [
+            "stress_today",
+            0.00954829
+          ],
+          [
+            "overeating_today",
+            0.00431349
+          ],
+          [
+            "noise_today",
+            0.00234898
+          ],
+          [
+            "travel_today",
+            0.00122442
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "headache",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "headline": {
+        "ranking": [
+          [
+            "headache_free_streak",
+            0.03115557
+          ],
+          [
+            "days_since_last_migraine",
+            0.02902433
+          ],
+          [
+            "migraine_rate_last7",
+            0.02690936
+          ],
+          [
+            "migraine_rate_last3",
+            0.01463452
+          ],
+          [
+            "migraine_yesterday",
+            0.01025473
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0060429
+          ],
+          [
+            "inappropriate_lighting",
+            0.00464277
+          ],
+          [
+            "menstruation_today",
+            0.00460969
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00307819
+          ],
+          [
+            "stress_today",
+            0.00244737
+          ],
+          [
+            "sleep_variability_7day",
+            0.00171149
+          ],
+          [
+            "sleep_disruption_today",
+            0.00168462
+          ],
+          [
+            "consecutive_stress_days",
+            0.00162117
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00138135
+          ],
+          [
+            "recording_gap_flag",
+            0.00137192
+          ],
+          [
+            "days_since_last_record",
+            0.00129868
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00127778
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00120622
+          ],
+          [
+            "physical_fatigue_today",
+            0.00114645
+          ],
+          [
+            "sleep_debt_3day",
+            0.00102038
+          ],
+          [
+            "exercise_days_7day",
+            0.00086662
+          ],
+          [
+            "weather_instability_3day",
+            0.00076547
+          ],
+          [
+            "exercise_today",
+            0.00070131
+          ],
+          [
+            "specific_smells_today",
+            0.00069222
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00067366
+          ],
+          [
+            "noise_today",
+            0.00062171
+          ],
+          [
+            "emotional_changes_today",
+            0.00060169
+          ],
+          [
+            "moderate_exercise_min",
+            0.00055125
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00051261
+          ],
+          [
+            "dow",
+            0.00048635
+          ],
+          [
+            "stress_drop_today",
+            0.00043044
+          ],
+          [
+            "no_exercise_today",
+            0.00041168
+          ],
+          [
+            "sunlight_today",
+            0.00030678
+          ],
+          [
+            "vigorous_exercise_min",
+            0.0002973
+          ],
+          [
+            "irregular_meals_today",
+            0.00026169
+          ],
+          [
+            "sunlight",
+            0.00025872
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00025042
+          ],
+          [
+            "ovulation_today",
+            0.00024355
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00024046
+          ],
+          [
+            "weather_change_today",
+            0.00023332
+          ],
+          [
+            "weather_headache_interaction",
+            0.00022424
+          ],
+          [
+            "excessive_smoking",
+            0.00021485
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00019282
+          ],
+          [
+            "travel_today",
+            0.00018992
+          ],
+          [
+            "exercise_as_trigger",
+            0.00017709
+          ],
+          [
+            "alcohol_today",
+            0.00017684
+          ],
+          [
+            "cheese_chocolate",
+            0.00016326
+          ],
+          [
+            "excessive_smoking_today",
+            0.00014927
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00014303
+          ],
+          [
+            "weather_change_yesterday",
+            0.00014159
+          ],
+          [
+            "oversleeping_today",
+            0.00013538
+          ],
+          [
+            "overeating_today",
+            0.00011247
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "headache_free_streak",
+            0.016053
+          ],
+          [
+            "migraine_rate_last7",
+            0.01284566
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00871109
+          ],
+          [
+            "days_since_last_migraine",
+            0.00541647
+          ],
+          [
+            "sleep_variability_7day",
+            0.00325593
+          ],
+          [
+            "dow",
+            0.00274661
+          ],
+          [
+            "migraine_yesterday",
+            0.00159229
+          ],
+          [
+            "days_since_last_record",
+            0.001472
+          ],
+          [
+            "migraine_rate_last3",
+            0.00117698
+          ],
+          [
+            "exercise_today",
+            0.00112189
+          ],
+          [
+            "menstruation_today",
+            0.00109163
+          ],
+          [
+            "no_exercise_today",
+            0.00102328
+          ],
+          [
+            "consecutive_stress_days",
+            0.00100884
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00095211
+          ],
+          [
+            "physical_fatigue_today",
+            0.00095052
+          ],
+          [
+            "exercise_days_7day",
+            0.00087158
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00062775
+          ],
+          [
+            "stress_today",
+            0.00061304
+          ],
+          [
+            "moderate_exercise_min",
+            0.00047658
+          ],
+          [
+            "recording_gap_flag",
+            0.00045685
+          ],
+          [
+            "weather_instability_3day",
+            0.00039287
+          ],
+          [
+            "weather_change_yesterday",
+            0.00038738
+          ],
+          [
+            "any_sleep_issue_today",
+            0.0003847
+          ],
+          [
+            "alcohol_today",
+            0.0003621
+          ],
+          [
+            "sleep_debt_3day",
+            0.00035396
+          ],
+          [
+            "stress_drop_today",
+            0.00029901
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00027515
+          ],
+          [
+            "irregular_meals_today",
+            0.00017913
+          ],
+          [
+            "exercise_as_trigger",
+            0.00017556
+          ],
+          [
+            "oversleeping_today",
+            0.00014746
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00014666
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00013659
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00010779
+          ],
+          [
+            "ovulation_today",
+            0.00010063
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            8.702e-05
+          ],
+          [
+            "sunlight",
+            8.464e-05
+          ],
+          [
+            "specific_smells_today",
+            8.357e-05
+          ],
+          [
+            "excessive_caffeine_today",
+            7.386e-05
+          ],
+          [
+            "overeating_today",
+            7.153e-05
+          ],
+          [
+            "sleep_disruption_today",
+            3.911e-05
+          ],
+          [
+            "sunlight_today",
+            2.791e-05
+          ],
+          [
+            "noise_today",
+            1.488e-05
+          ],
+          [
+            "weather_change_today",
+            6.52e-06
+          ],
+          [
+            "emotional_changes_today",
+            0.0
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "cheese_chocolate_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "weather_headache_interaction",
+            0.0
+          ],
+          [
+            "inappropriate_lighting",
+            0.0
+          ],
+          [
+            "cheese_chocolate",
+            0.0
+          ],
+          [
+            "excessive_smoking",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "headache",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "headline": {
+        "ranking": [
+          [
+            "exercise_today",
+            0.00194024
+          ],
+          [
+            "stress_today",
+            0.00176424
+          ],
+          [
+            "dow",
+            0.00150413
+          ],
+          [
+            "physical_fatigue_today",
+            0.00141271
+          ],
+          [
+            "no_exercise_today",
+            0.00128525
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00107736
+          ],
+          [
+            "menstruation_today",
+            0.00077698
+          ],
+          [
+            "moderate_exercise_min",
+            0.00063235
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00041931
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00025642
+          ],
+          [
+            "irregular_meals_today",
+            0.00021686
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00021485
+          ],
+          [
+            "specific_smells_today",
+            0.00021329
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00016844
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00010268
+          ],
+          [
+            "weather_change_today",
+            7.915e-05
+          ],
+          [
+            "ovulation_today",
+            7.252e-05
+          ],
+          [
+            "sunlight_today",
+            5.509e-05
+          ],
+          [
+            "alcohol_today",
+            3.939e-05
+          ],
+          [
+            "noise_today",
+            3.16e-05
+          ],
+          [
+            "emotional_changes_today",
+            2.948e-05
+          ],
+          [
+            "oversleeping_today",
+            2.374e-05
+          ],
+          [
+            "overeating_today",
+            5.38e-06
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "inappropriate_lighting_today",
+            0.04103724
+          ],
+          [
+            "menstruation_today",
+            0.01733694
+          ],
+          [
+            "any_sleep_issue_today",
+            0.0147195
+          ],
+          [
+            "stress_today",
+            0.01313715
+          ],
+          [
+            "lack_of_sleep_today",
+            0.0121886
+          ],
+          [
+            "physical_fatigue_today",
+            0.01168664
+          ],
+          [
+            "exercise_today",
+            0.00512504
+          ],
+          [
+            "moderate_exercise_min",
+            0.00508971
+          ],
+          [
+            "emotional_changes_today",
+            0.00490248
+          ],
+          [
+            "ovulation_today",
+            0.00488793
+          ],
+          [
+            "specific_smells_today",
+            0.0046275
+          ],
+          [
+            "alcohol_today",
+            0.00415345
+          ],
+          [
+            "no_exercise_today",
+            0.00414915
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00341095
+          ],
+          [
+            "noise_today",
+            0.00303105
+          ],
+          [
+            "oversleeping_today",
+            0.00295138
+          ],
+          [
+            "excessive_smoking_today",
+            0.00293508
+          ],
+          [
+            "irregular_meals_today",
+            0.00259897
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.0022553
+          ],
+          [
+            "sunlight_today",
+            0.00198646
+          ],
+          [
+            "dow",
+            0.0019066
+          ],
+          [
+            "travel_today",
+            0.00187915
+          ],
+          [
+            "overeating_today",
+            0.00184669
+          ],
+          [
+            "weather_change_today",
+            0.00174217
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00100078
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00037028
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "full_features",
+      "splittype": "patient",
+      "headline": {
+        "ranking": [
+          [
+            "headache_free_streak",
+            0.03684777
+          ],
+          [
+            "days_since_last_migraine",
+            0.01982437
+          ],
+          [
+            "migraine_rate_last7",
+            0.0161785
+          ],
+          [
+            "menstruation_today",
+            0.01612395
+          ],
+          [
+            "inappropriate_lighting",
+            0.01577785
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.01350448
+          ],
+          [
+            "migraine_rate_last3",
+            0.01132202
+          ],
+          [
+            "migraine_yesterday",
+            0.0086503
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00434504
+          ],
+          [
+            "sleep_variability_7day",
+            0.00406208
+          ],
+          [
+            "emotional_changes_today",
+            0.0034542
+          ],
+          [
+            "weather_headache_interaction",
+            0.00291907
+          ],
+          [
+            "specific_smells_today",
+            0.00241582
+          ],
+          [
+            "travel_today",
+            0.0020828
+          ],
+          [
+            "recording_gap_flag",
+            0.00198179
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00196893
+          ],
+          [
+            "cheese_chocolate",
+            0.00194829
+          ],
+          [
+            "sleep_disruption_today",
+            0.00194351
+          ],
+          [
+            "overeating_today",
+            0.00178614
+          ],
+          [
+            "exercise_days_7day",
+            0.00175688
+          ],
+          [
+            "stress_today",
+            0.00171357
+          ],
+          [
+            "no_exercise_today",
+            0.00171106
+          ],
+          [
+            "alcohol_today",
+            0.00162697
+          ],
+          [
+            "sunlight",
+            0.00158784
+          ],
+          [
+            "ovulation_today",
+            0.00145363
+          ],
+          [
+            "irregular_meals_today",
+            0.00133779
+          ],
+          [
+            "noise_today",
+            0.00129197
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00122097
+          ],
+          [
+            "sunlight_today",
+            0.0012035
+          ],
+          [
+            "exercise_today",
+            0.00119904
+          ],
+          [
+            "excessive_smoking_today",
+            0.00119024
+          ],
+          [
+            "oversleeping_today",
+            0.00116275
+          ],
+          [
+            "sleep_debt_3day",
+            0.00107492
+          ],
+          [
+            "consecutive_exercise_days",
+            0.00092943
+          ],
+          [
+            "days_since_last_record",
+            0.00080348
+          ],
+          [
+            "excessive_smoking",
+            0.00080045
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00075046
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            0.00074823
+          ],
+          [
+            "consecutive_trigger_days",
+            0.00070657
+          ],
+          [
+            "dow",
+            0.0006933
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00062758
+          ],
+          [
+            "moderate_exercise_min",
+            0.00059009
+          ],
+          [
+            "exercise_as_trigger",
+            0.0005377
+          ],
+          [
+            "physical_fatigue_today",
+            0.00044768
+          ],
+          [
+            "vigorous_exercise_min",
+            0.00042879
+          ],
+          [
+            "stress_drop_today",
+            0.00038878
+          ],
+          [
+            "weather_instability_3day",
+            0.00035915
+          ],
+          [
+            "consecutive_stress_days",
+            0.00034268
+          ],
+          [
+            "excessive_caffeine_today",
+            0.0003251
+          ],
+          [
+            "weather_change_today",
+            0.00031285
+          ],
+          [
+            "weather_change_yesterday",
+            0.00028639
+          ],
+          [
+            "consecutive_weather_changes",
+            0.00022018
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "days_since_last_migraine",
+            0.01766974
+          ],
+          [
+            "headache_free_streak",
+            0.01377273
+          ],
+          [
+            "migraine_rate_last7",
+            0.01278476
+          ],
+          [
+            "consecutive_sedentary_days",
+            0.00605247
+          ],
+          [
+            "moderate_exercise_min",
+            0.00189307
+          ],
+          [
+            "dow",
+            0.00143581
+          ],
+          [
+            "sleep_variability_7day",
+            0.00127352
+          ],
+          [
+            "days_since_last_record",
+            0.00077655
+          ],
+          [
+            "exercise_days_7day",
+            0.00061082
+          ],
+          [
+            "migraine_rate_last3",
+            0.00056227
+          ],
+          [
+            "menstruation_today",
+            0.00047768
+          ],
+          [
+            "physical_fatigue_today",
+            0.00010264
+          ],
+          [
+            "consecutive_exercise_days",
+            9.499e-05
+          ],
+          [
+            "consecutive_stress_days",
+            9.01e-05
+          ],
+          [
+            "no_exercise_today",
+            8.258e-05
+          ],
+          [
+            "sleep_debt_3day",
+            6.172e-05
+          ],
+          [
+            "vigorous_exercise_min",
+            5.978e-05
+          ],
+          [
+            "weather_instability_3day",
+            5.839e-05
+          ],
+          [
+            "migraine_yesterday",
+            4.247e-05
+          ],
+          [
+            "stress_drop_today",
+            3.853e-05
+          ],
+          [
+            "weather_change_yesterday",
+            2.997e-05
+          ],
+          [
+            "recording_gap_flag",
+            2.208e-05
+          ],
+          [
+            "irregular_meals_today",
+            1.633e-05
+          ],
+          [
+            "consecutive_trigger_days",
+            1.152e-05
+          ],
+          [
+            "exercise_today",
+            1.126e-05
+          ],
+          [
+            "weather_change_today",
+            1.086e-05
+          ],
+          [
+            "stress_today",
+            7.57e-06
+          ],
+          [
+            "lack_of_sleep_today",
+            7.08e-06
+          ],
+          [
+            "recent_weekend_sleep_issues",
+            6.27e-06
+          ],
+          [
+            "sleep_disruption_today",
+            5.18e-06
+          ],
+          [
+            "excessive_caffeine_today",
+            3.67e-06
+          ],
+          [
+            "exercise_as_trigger_today",
+            3e-06
+          ],
+          [
+            "alcohol_today",
+            2.94e-06
+          ],
+          [
+            "exercise_as_trigger",
+            2.32e-06
+          ],
+          [
+            "any_sleep_issue_today",
+            1.99e-06
+          ],
+          [
+            "emotional_changes_today",
+            1.9e-06
+          ],
+          [
+            "cheese_chocolate_today",
+            3.3e-07
+          ],
+          [
+            "oversleeping_today",
+            2.7e-07
+          ],
+          [
+            "overeating_today",
+            0.0
+          ],
+          [
+            "specific_smells_today",
+            0.0
+          ],
+          [
+            "ovulation_today",
+            0.0
+          ],
+          [
+            "travel_today",
+            0.0
+          ],
+          [
+            "noise_today",
+            0.0
+          ],
+          [
+            "consecutive_weather_changes",
+            0.0
+          ],
+          [
+            "sunlight_today",
+            0.0
+          ],
+          [
+            "weather_headache_interaction",
+            0.0
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting",
+            0.0
+          ],
+          [
+            "excessive_smoking",
+            0.0
+          ],
+          [
+            "cheese_chocolate",
+            0.0
+          ],
+          [
+            "sunlight",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "no_rolling_features",
+      "splittype": "patient",
+      "headline": {
+        "ranking": [
+          [
+            "menstruation_today",
+            0.03683932
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.02692126
+          ],
+          [
+            "specific_smells_today",
+            0.00921137
+          ],
+          [
+            "emotional_changes_today",
+            0.0083437
+          ],
+          [
+            "excessive_smoking_today",
+            0.00705742
+          ],
+          [
+            "overeating_today",
+            0.00688135
+          ],
+          [
+            "ovulation_today",
+            0.00632084
+          ],
+          [
+            "stress_today",
+            0.00581575
+          ],
+          [
+            "noise_today",
+            0.00503802
+          ],
+          [
+            "sunlight_today",
+            0.0049697
+          ],
+          [
+            "oversleeping_today",
+            0.00487747
+          ],
+          [
+            "alcohol_today",
+            0.00484425
+          ],
+          [
+            "no_exercise_today",
+            0.00473174
+          ],
+          [
+            "cheese_chocolate_today",
+            0.00464356
+          ],
+          [
+            "irregular_meals_today",
+            0.00456376
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00454582
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00408065
+          ],
+          [
+            "exercise_as_trigger_today",
+            0.00365797
+          ],
+          [
+            "travel_today",
+            0.00337142
+          ],
+          [
+            "physical_fatigue_today",
+            0.00243998
+          ],
+          [
+            "weather_change_today",
+            0.00223552
+          ],
+          [
+            "excessive_caffeine_today",
+            0.00186191
+          ],
+          [
+            "moderate_exercise_min",
+            0.00184858
+          ],
+          [
+            "dow",
+            0.00101767
+          ],
+          [
+            "exercise_today",
+            0.00093222
+          ],
+          [
+            "vigorous_exercise_min",
+            0.0007038
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "menstruation_today",
+            0.00365626
+          ],
+          [
+            "moderate_exercise_min",
+            0.00299987
+          ],
+          [
+            "dow",
+            0.00237703
+          ],
+          [
+            "stress_today",
+            0.00226755
+          ],
+          [
+            "physical_fatigue_today",
+            0.00181084
+          ],
+          [
+            "weather_change_today",
+            0.0009752
+          ],
+          [
+            "any_sleep_issue_today",
+            0.00087471
+          ],
+          [
+            "irregular_meals_today",
+            0.00037769
+          ],
+          [
+            "no_exercise_today",
+            0.00036179
+          ],
+          [
+            "exercise_today",
+            0.00030057
+          ],
+          [
+            "specific_smells_today",
+            0.00023351
+          ],
+          [
+            "lack_of_sleep_today",
+            0.00016844
+          ],
+          [
+            "alcohol_today",
+            0.00015897
+          ],
+          [
+            "overeating_today",
+            0.00012706
+          ],
+          [
+            "emotional_changes_today",
+            8.675e-05
+          ],
+          [
+            "oversleeping_today",
+            7.903e-05
+          ],
+          [
+            "exercise_as_trigger_today",
+            6.264e-05
+          ],
+          [
+            "noise_today",
+            3.643e-05
+          ],
+          [
+            "cheese_chocolate_today",
+            2.979e-05
+          ],
+          [
+            "ovulation_today",
+            2.318e-05
+          ],
+          [
+            "excessive_caffeine_today",
+            1.809e-05
+          ],
+          [
+            "vigorous_exercise_min",
+            1.528e-05
+          ],
+          [
+            "travel_today",
+            9.21e-06
+          ],
+          [
+            "excessive_smoking_today",
+            0.0
+          ],
+          [
+            "inappropriate_lighting_today",
+            0.0
+          ],
+          [
+            "sunlight_today",
+            0.0
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      }
+    },
+    {
+      "target": "migraine",
+      "feature_set": "park_features",
+      "splittype": "patient",
+      "headline": {
+        "ranking": [
+          [
+            "hormonal_changes_today",
+            6.005e-05
+          ],
+          [
+            "alcohol_today",
+            5.052e-05
+          ],
+          [
+            "stress_today",
+            4.27e-05
+          ],
+          [
+            "overeating_today",
+            1.694e-05
+          ],
+          [
+            "noise_today",
+            6e-07
+          ],
+          [
+            "travel_today",
+            5e-07
+          ]
+        ],
+        "arch_family": "xgboost",
+        "metric": "mean |SHAP|"
+      },
+      "runner": {
+        "ranking": [
+          [
+            "hormonal_changes_today",
+            0.02196211
+          ],
+          [
+            "alcohol_today",
+            0.00874556
+          ],
+          [
+            "overeating_today",
+            0.00846258
+          ],
+          [
+            "noise_today",
+            0.00812408
+          ],
+          [
+            "stress_today",
+            0.00601869
+          ],
+          [
+            "travel_today",
+            0.00551068
+          ]
+        ],
+        "arch_family": "tabpfn",
+        "metric": "mean |SHAP|"
+      }
+    }
+  ],
+  "park": [
+    {
+      "role": "headline",
+      "family": "tabpfn",
+      "splittype": "chrono",
+      "architecture": "tabpfn",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "hormonal_changes_today": 1,
+        "alcohol_today": 2,
+        "overeating_today": 3,
+        "noise_today": 4,
+        "travel_today": 5,
+        "stress_today": 6
+      },
+      "rho": 0.2571428571428572,
+      "p": 0.6227871720116618
+    },
+    {
+      "role": "runner_up",
+      "family": "xgboost",
+      "splittype": "chrono",
+      "architecture": "stacked_2xgb_meta_lr",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "overeating_today": 1,
+        "hormonal_changes_today": 2,
+        "stress_today": 3,
+        "alcohol_today": 4,
+        "travel_today": 5,
+        "noise_today": 6
+      },
+      "rho": -0.4285714285714286,
+      "p": 0.3965014577259474
+    },
+    {
+      "role": "headline",
+      "family": "tabpfn",
+      "splittype": "stratified",
+      "architecture": "tabpfn",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "hormonal_changes_today": 1,
+        "noise_today": 2,
+        "stress_today": 3,
+        "overeating_today": 4,
+        "travel_today": 5,
+        "alcohol_today": 6
+      },
+      "rho": 0.08571428571428573,
+      "p": 0.8717434402332361
+    },
+    {
+      "role": "runner_up",
+      "family": "xgboost",
+      "splittype": "stratified",
+      "architecture": "stacked_2xgb_meta_lr",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "hormonal_changes_today": 1,
+        "alcohol_today": 2,
+        "stress_today": 3,
+        "overeating_today": 4,
+        "noise_today": 5,
+        "travel_today": 6
+      },
+      "rho": -0.2571428571428572,
+      "p": 0.6227871720116618
+    },
+    {
+      "role": "headline",
+      "family": "xgboost",
+      "splittype": "patient",
+      "architecture": "stacked_2xgb_meta_lr",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "hormonal_changes_today": 1,
+        "alcohol_today": 2,
+        "stress_today": 3,
+        "overeating_today": 4,
+        "noise_today": 5,
+        "travel_today": 6
+      },
+      "rho": -0.2571428571428572,
+      "p": 0.6227871720116618
+    },
+    {
+      "role": "runner_up",
+      "family": "tabpfn",
+      "splittype": "patient",
+      "architecture": "tabpfn",
+      "shared": [
+        "stress_today",
+        "hormonal_changes_today",
+        "noise_today",
+        "alcohol_today",
+        "overeating_today",
+        "travel_today"
+      ],
+      "or_rank": {
+        "travel_today": 1,
+        "hormonal_changes_today": 2,
+        "noise_today": 3,
+        "alcohol_today": 4,
+        "overeating_today": 5,
+        "stress_today": 6
+      },
+      "shap_rank": {
+        "hormonal_changes_today": 1,
+        "alcohol_today": 2,
+        "overeating_today": 3,
+        "noise_today": 4,
+        "stress_today": 5,
+        "travel_today": 6
+      },
+      "rho": -0.028571428571428574,
+      "p": 0.9571545189504373
+    }
+  ],
+  "generated": "20260526T015712"
+}

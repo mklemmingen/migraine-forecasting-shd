@@ -13,6 +13,16 @@ the membership is the ground truth rather than a transcription.
 
 Usage: python fig_f4_feature_venn.py
 """
+# Paper caption (for LaTeX):
+#   Feature-set inclusion as a nested Euler diagram. spano and no_rolling are strict
+#   subsets of full (no feature lies outside full), so each is drawn wholly inside the
+#   full circle, overlapping each other; a three-circle Venn would falsely show them
+#   bulging outside full. The layout is schematic - circle areas are not to scale; the
+#   exact sizes are the region-count labels (counts variant), and the names variant
+#   lists every feature per region coloured by origin (original SHD column vs
+#   engineered: rolling / lag / interaction / state-derived). Park is a near-subset
+#   (5 of 6 features in full, plus one derived hormonal-changes flag), shown as a
+#   sidebar rather than a fourth circle.
 import sys as _sys
 from pathlib import Path as _Path
 _EXP = _Path(__file__).resolve().parents[2] / "experiment"

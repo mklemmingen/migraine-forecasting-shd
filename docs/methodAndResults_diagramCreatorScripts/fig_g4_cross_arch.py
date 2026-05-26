@@ -10,6 +10,14 @@ experiment/2/compare.py.
 
 Usage: python fig_g4_cross_arch.py
 """
+# Paper caption (for LaTeX):
+#   Cross-architecture feature attribution for one cell: the headline model vs a
+#   near-tied runner-up of a different family (XGBoost stack green, TabPFN purple).
+#   Each bar is a feature's share of that model's total mean |SHAP| (%), normalised
+#   because the two explainers' absolute magnitudes are not comparable. These are
+#   single-fit attribution shares on a small, heavily imbalanced dataset, so small
+#   bar-length differences are not meaningful; rank agreement is reported separately
+#   in the comparison report's overlap table.
 import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path

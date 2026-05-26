@@ -10,6 +10,13 @@ experiment/2/compare.py.
 
 Usage: python fig_g3_calib_slope.py
 """
+# Paper caption (for LaTeX):
+#   Calibration slope of the headline model per (target, feature-set) cell, one marker
+#   per split, against the perfect-calibration line at 1.0. The shaded zones (<= 0
+#   inverted, > 5 mis-scaled) are excluded from model selection. Calibration is the
+#   second axis of forecast quality: discrimination ranks days, calibration scales the
+#   probabilities, so a cell far from 1.0 discriminates without trustworthy
+#   probabilities.
 import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path
