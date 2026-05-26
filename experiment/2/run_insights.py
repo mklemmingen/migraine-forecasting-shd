@@ -31,6 +31,7 @@ from pathlib import Path
 _THIS_DIR = str(Path(__file__).resolve().parent)
 sys.path[:] = [p for p in sys.path if p not in ("", _THIS_DIR)]
 
+import argparse  # noqa: E402
 import time  # noqa: E402
 
 EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
@@ -60,10 +61,42 @@ def _has_insights(leaf_dir: Path) -> bool:
 
 
 def main() -> int:
-    # Per-leaf idempotent: run only the selected leaves that do not yet have
-    # insight artefacts, so a re-run fills coverage gaps without recomputing
-    # the expensive SHAP leaves already on disk.
-    selections = select_insight_leaves()
+    # Per-leaf idempotent by default: leaves that already carry insight
+    # artefacts (insights/explain_*.txt) are skipped, so a re-run fills coverage
+    # gaps without recomputing the expensive SHAP leaves already on disk.
+    # ``--force`` overrides the skip (e.g., to re-run after emit_insights has
+    # been extended with new artefacts like the SHAP-matrix .npz stash);
+    # optional positional leaf paths narrow the run to just those leaves, which
+    # must still be members of the report's selected-leaves set.
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("leaves", nargs="*", type=Path, metavar="LEAF",
+                        help="Specific leaf directories to (re-)run. Default: all "
+                             "leaves picked by select_insight_leaves(). Any path "
+                             "not in that selection is rejected.")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-run leaves that already carry insight artefacts. "
+                             "Without this, leaves whose insights/ already has an "
+                             "explain_*.txt are skipped (the default idempotency).")
+    args = parser.parse_args()
+
+    full_selections = select_insight_leaves()
+    if args.leaves:
+        by_leaf = {Path(s["leaf_dir"]).resolve(): s for s in full_selections}
+        selections = []
+        for p in args.leaves:
+            sel = by_leaf.get(Path(p).resolve())
+            if sel is None:
+                print(f"  ! {p} is not in the selected-leaves set; ignoring.",
+                      flush=True)
+                continue
+            selections.append(sel)
+        if not selections:
+            print("No matching leaves; nothing to do.", flush=True)
+            return 0
+    else:
+        selections = full_selections
+
     scripts: list[Path] = []
     seen: set = set()
     skipped = 0
@@ -72,7 +105,7 @@ def main() -> int:
         if leaf in seen:
             continue
         seen.add(leaf)
-        if _has_insights(leaf):
+        if not args.force and _has_insights(leaf):
             skipped += 1
             continue
         evaluate = leaf / "evaluate.py"
@@ -82,10 +115,11 @@ def main() -> int:
         else:
             print(f"  ! missing evaluate.py for {leaf}", flush=True)
 
+    force_note = " (--force: re-running insighted leaves)" if args.force else ""
     print(f"\nInsight pass: {len(scripts)} leaves to run, {skipped} already "
-          f"insighted (skipped), EMIT_INSIGHTS=1", flush=True)
+          f"insighted (skipped){force_note}, EMIT_INSIGHTS=1", flush=True)
     if not scripts:
-        print("nothing to do; all selected leaves already insighted.", flush=True)
+        print("nothing to do.", flush=True)
         return 0
     t0 = time.perf_counter()
     ok, fail, fails, attempts = run_subset(scripts, extra_env={"EMIT_INSIGHTS": "1"})
