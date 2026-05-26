@@ -34,12 +34,18 @@ def main():
         if prep is None:
             print(f"  skip {tgt}: fewer than two matched-coverage architectures")
             continue
+        # Carry the Friedman omnibus significance so the slopegraph fades and
+        # banners a non-significant ordering, exactly as the CD diagram does.
+        nem = prep["nem"]
+        p_value = nem[2] if nem else None
+        omnibus_sig = (p_value is None) or (p_value < 0.05)
         out = HERE / "figures" / f"fig_f3_rank_slopegraph_{tgt}"
         render_rank_slopegraph(
             prep["matrix_kept"], prep["cell_labels"], prep["text_kept"], out,
             title=f"Rank slopegraph - {tgt} AUROC",
             higher_is_better=prep["higher_is_better"],
             arch_tuples=prep["arch_kept"], dropped_archs=prep["dropped_text"],
+            omnibus_sig=omnibus_sig, p_value=p_value,
         )
         print("saved", out)
 

@@ -147,22 +147,31 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     base = np.arange(n)[::-1]
     fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
     xmax = 1.0
+    any_noskill = False
     for gi, st in enumerate(SPLIT_ORDER):
-        ys, vals, los, his = [], [], [], []
+        ys, vals, los, his, noskill = [], [], [], [], []
         for ci, key in enumerate(cells):
             sp = by_cell[key].get(st)
             if sp is None:
                 continue
             s, prev = sp
             lift = s["auprc_mean"] / prev
+            lo = (s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0
+            hi = (s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0
             ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
-            vals.append(lift)
-            los.append((s["auprc_mean"] - s["auprc_lo"]) / prev if s.get("auprc_lo") else 0.0)
-            his.append((s["auprc_hi"] - s["auprc_mean"]) / prev if s.get("auprc_hi") else 0.0)
-            xmax = max(xmax, lift + his[-1])
-        ax.barh(ys, vals, height=bh, color=SPLIT[st],
-                xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
-                label=SPLIT_FIG_LABELS[st])
+            vals.append(lift); los.append(lo); his.append(hi)
+            noskill.append(lift - lo <= 1.0)   # 95% CI reaches the no-skill line
+            xmax = max(xmax, lift + hi)
+        bars = ax.barh(ys, vals, height=bh, color=SPLIT[st],
+                       xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
+                       label=SPLIT_FIG_LABELS[st])
+        # Hatch bars whose CI reaches no-skill: not significantly above the base
+        # rate (same honesty convention as the split-AUROC chance hatching).
+        for patch, ns in zip(bars.patches, noskill):
+            if ns:
+                patch.set_hatch("////")
+                patch.set_edgecolor("white")
+                any_noskill = True
     ax.axvline(1.0, color=SOFT, lw=0.9, ls=":", zorder=0)
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
@@ -171,7 +180,12 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
                   "dotted line = 1.0 = no skill)", fontsize=9)
     ax.set_title("Precision-recall skill by split type, per cell (headline)",
                  fontsize=10)
-    ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    handles, _labels = ax.get_legend_handles_labels()
+    if any_noskill:
+        from matplotlib.patches import Patch
+        handles.append(Patch(facecolor=FAINT, hatch="////", edgecolor="white",
+                             label="CI reaches no-skill (ns)"))
+    ax.legend(handles=handles, fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -215,7 +229,7 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_xlabel("calibration slope (1.0 = perfect; shaded zones excluded "
                   "from selection)", fontsize=9)
     ax.set_title("Calibration of the headline model, by split type", fontsize=10)
-    ax.legend(fontsize=7.5, loc="upper right", ncol=1, framealpha=0.95)
+    ax.legend(fontsize=7.5, loc="upper right", ncol=1, frameon=False)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -292,8 +306,11 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     ax.set_yticks(range(1, n + 1))
     ax.set_xlabel("Park 2016 odds-ratio rank (1 = strongest trigger)")
     ax.set_ylabel("model mean |SHAP| rank (1 = most weighted)")
-    ax.set_title(f"{sel['role']} {sel['family']} - Spearman rho = {rho:+.2f}",
-                 fontsize=10)
+    # Report p and n with rho: on ~6 shared triggers any coefficient is highly
+    # uncertain, so a bare rho would read as far more conclusive than it is.
+    p = sel.get("p")
+    stat = f"rho = {rho:+.2f}" + (f", p = {p:.2f}, n = {n}" if p is not None else f", n = {n}")
+    ax.set_title(f"{sel['role']} {sel['family']} - Spearman {stat}", fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
     save(fig, out_png)
     plt.close(fig)

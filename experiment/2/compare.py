@@ -326,20 +326,22 @@ def _is_cross_arch(h, r, h_sel, r_sel) -> bool:
 
 
 def _park_ranks(ex):
-    """(shared, or_rank, shap_rank, rho) for the Park check from a parsed
-    explain dict; rho is None when fewer than three Park triggers are shared
-    (the scatter is then suppressed, but the report still tables the triggers).
+    """(shared, or_rank, shap_rank, rho, p) for the Park check from a parsed
+    explain dict; rho and p are None when fewer than three Park triggers are
+    shared (the scatter is then suppressed, but the report still tables the
+    triggers). The p-value matters: with only ~6 shared triggers any rho is
+    highly uncertain, so it must be reported alongside the coefficient.
     Shared by the report's Park block and the frozen figure data."""
     shap_rank = {f: i + 1 for i, (f, _) in enumerate(ex["ranking"])}
     or_rank = {f: i + 1 for i, f in enumerate(
         sorted(PARK_TABLE4_OR, key=PARK_TABLE4_OR.get, reverse=True))}
     shared = [f for f in PARK_TABLE4_OR if f in shap_rank]
-    rho = None
+    rho = p = None
     if len(shared) >= 3:
-        rho, _ = spearmanr([shap_rank[f] for f in shared],
+        rho, p = spearmanr([shap_rank[f] for f in shared],
                            [or_rank[f] for f in shared])
-        rho = float(rho)
-    return shared, or_rank, shap_rank, rho
+        rho, p = float(rho), float(p)
+    return shared, or_rank, shap_rank, rho, p
 
 
 # Fields each headline carries into the frozen figure data; prevalence is baked
@@ -392,13 +394,14 @@ def _gather_figdata(raw_selections, selections) -> dict:
         ex = parse_explain(latest_explain(sel["leaf_dir"]))
         if ex is None:
             continue
-        shared, or_rank, shap_rank, rho = _park_ranks(ex)
+        shared, or_rank, shap_rank, rho, p = _park_ranks(ex)
         if rho is None:        # the scatter needs >= 3 shared triggers
             continue
         park.append({
             "role": sel["role"], "family": sel["family"],
             "splittype": sel["splittype"], "architecture": sel["architecture"],
-            "shared": shared, "or_rank": or_rank, "shap_rank": shap_rank, "rho": rho,
+            "shared": shared, "or_rank": or_rank, "shap_rank": shap_rank,
+            "rho": rho, "p": p,
         })
 
     return {"headlines": headlines, "cross_arch": cross_arch, "park": park}
@@ -711,7 +714,7 @@ def build_park_check(selections: list[dict]) -> str:
         ex = parse_explain(latest_explain(sel["leaf_dir"]))
         if ex is None:
             continue
-        shared, or_rank, shap_rank, rho = _park_ranks(ex)
+        shared, or_rank, shap_rank, rho, p = _park_ranks(ex)
         rows = []
         for f in sorted(PARK_TABLE4_OR, key=PARK_TABLE4_OR.get, reverse=True):
             sval = next((v for n, v in ex["ranking"] if n == f), None)
@@ -720,7 +723,8 @@ def build_park_check(selections: list[dict]) -> str:
                 f"<td>{or_rank[f]}</td>"
                 f"<td>{shap_rank.get(f, '-')}</td>"
                 f"<td>{f'{sval:.4f}' if sval is not None else '-'}</td></tr>")
-        rho_str = f"{rho:+.3f}" if rho is not None else "n/a"
+        rho_str = (f"{rho:+.3f} (p = {p:.3f}, n = {len(shared)})"
+                   if rho is not None else "n/a")
         scatter = ""
         if rho is not None:
             _FIG_DIR.mkdir(exist_ok=True)
