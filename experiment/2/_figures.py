@@ -109,8 +109,7 @@ def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
                                     for s in c.values()) + 0.03))
-    ax.set_xlabel("best hold-out AUROC (95% CI); dotted line = chance (0.5); "
-                  "hatched = CI reaches chance", fontsize=9)
+    ax.set_xlabel("best hold-out AUROC (95% CI)", fontsize=9)
     ax.set_title("Discrimination by split type, per cell (headline model)",
                  fontsize=10)
     save(fig, out_png)
@@ -176,8 +175,8 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(0, xmax * 1.05)
-    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence; "
-                  "dotted line = 1.0 = no skill)", fontsize=9)
+    ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence)",
+                  fontsize=9)
     ax.set_title("Precision-recall skill by split type, per cell (headline)",
                  fontsize=10)
     handles, _labels = ax.get_legend_handles_labels()
@@ -226,8 +225,8 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(xmax * -0.02, xmax)
-    ax.set_xlabel("calibration slope (1.0 = perfect; shaded zones excluded "
-                  "from selection)", fontsize=9)
+    ax.set_xlabel("calibration slope (shaded zones = excluded from selection)",
+                  fontsize=9)
     ax.set_title("Calibration of the headline model, by split type", fontsize=10)
     ax.legend(fontsize=7.5, loc="upper right", ncol=1, frameon=False)
     save(fig, out_png)
@@ -275,6 +274,10 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
                  fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
+    # Integrity caveat: these are single-fit shares on a small, imbalanced dataset.
+    ax.text(0.0, -0.16,
+            "Single-fit attribution shares; small bar-length differences are not significant.",
+            transform=ax.transAxes, ha="left", fontsize=7.5, style="italic", color=GREY)
     save(fig, out_png)
     plt.close(fig)
     return out_png

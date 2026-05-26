@@ -10,6 +10,12 @@ experiment/2/compare.py.
 
 Usage: python fig_g2_auprc_lift.py
 """
+# Paper caption (for LaTeX):
+#   AUPRC lift = AUPRC / test-set positive prevalence of the headline model per cell,
+#   one bar per split with 95% CIs. The dotted line at 1.0 is no skill (no better than
+#   predicting the base rate); lift puts headache and migraine on a common scale
+#   despite very different positive rates. A hatched bar's 95% CI reaches the no-skill
+#   line (not significantly above the base rate).
 import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path

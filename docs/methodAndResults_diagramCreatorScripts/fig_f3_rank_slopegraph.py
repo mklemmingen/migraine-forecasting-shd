@@ -11,6 +11,13 @@ run_aggregate_results.py.
 
 Usage: python fig_f3_rank_slopegraph.py
 """
+# Paper caption (for LaTeX):
+#   Rank slopegraph (Tufte 2001). Each polyline is one architecture's mean-rank
+#   trajectory across the full_features cells (1 = best). Flat lines are stable
+#   architectures; crossing lines swap rank between cells. A rank orders per-cell
+#   point estimates, so a crossing smaller than the critical difference (see the CD
+#   diagram) is not a significant difference; when the Friedman omnibus is not
+#   significant the whole ladder is faded and banner-flagged as descriptive only.
 import sys as _sys
 from pathlib import Path as _Path
 _EXP = _Path(__file__).resolve().parents[2] / "experiment"

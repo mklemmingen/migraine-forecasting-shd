@@ -544,24 +544,9 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         suffix = (" (" + ", ".join(sub) + ")") if sub else ""
         ax.set_title(title + suffix, fontsize=11, pad=14)
 
-    # How to read the diagram (Demsar 2006): make the ranking method
-    # explicit so the figure is self-contained for a reader unfamiliar
-    # with CD diagrams.
-    n_txt = str(n_cells) if n_cells is not None else "n"
-    fig.text(
-        0.5, 0.045,
-        f"Each method is ranked 1 (best) to {k} within every cell, then "
-        f"averaged over the {n_txt} cells to give its mean rank (dot). "
-        "Methods joined by a bar differ by less than the",
-        ha="center", va="bottom", fontsize=8.5, color=SOFT,
-    )
-    fig.text(
-        0.5, 0.018,
-        "critical difference CD (Nemenyi post-hoc, alpha=0.05) and are "
-        "therefore not significantly different.",
-        ha="center", va="bottom", fontsize=8.5, color=SOFT,
-    )
-
+    # The how-to-read explanation (ranking method, what a connecting bar means)
+    # belongs in the LaTeX caption, not burned into the image; the integrity
+    # annotations (non-significance banner above, exclusion note below) stay.
     if dropped_archs:
         # Honest disclosure: which architectures were excluded from the
         # statistical test because their per-cell coverage was below

@@ -33,7 +33,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
-from _style import apply, save, FEATURE_SET, OI, GREY, INK, SOFT, FAINT
+from _style import apply, save, panel_label, FEATURE_SET, OI, GREY, INK, SOFT, FAINT
 
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
@@ -388,11 +388,13 @@ def generate_names_venn_png(feature_sets, out_path):
                        lambda _rid, feats: str(len(feats)) if feats else '')
     ax_venn.set_title("Feature-set structure - nested Euler (schematic)",
                       fontsize=12, pad=10)
+    panel_label(ax_venn, "a")
 
     # --- right: colour-coded name lists per region ---
     _render_name_panel(ax_list, regions, park=feature_sets.get("park"))
     ax_list.set_title("All feature names by region (colour = origin)",
                       fontsize=12, pad=10)
+    panel_label(ax_list, "b")
 
     # Origin colour key for the name panel, placed underneath it (not in
     # the top margin where it crowded the title). Centred under the right

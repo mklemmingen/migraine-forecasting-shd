@@ -11,6 +11,14 @@ experiment/2/compare.py.
 
 Usage: python fig_g5_park_rank.py
 """
+# Paper caption (for LaTeX):
+#   Park et al. 2016 Table-4 odds-ratio rank (x) vs the model's mean |SHAP| rank (y)
+#   for the shared migraine triggers, with the perfect-agreement diagonal and the
+#   Spearman rho (reported with its p-value and n in the title). This is a convergence
+#   check, not a validation: Park's same-day population odds ratios and the model's
+#   next-day individual attribution answer different questions, and with only ~6 shared
+#   triggers any correlation is highly uncertain (p is large), so the coefficient is
+#   descriptive.
 import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path

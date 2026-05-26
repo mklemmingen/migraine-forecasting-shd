@@ -12,6 +12,16 @@ configurations summarised in that snapshot's comparison table.
 
 Usage: python fig_f5_leaf_tree.py
 """
+# Paper caption (for LaTeX; the layout description and citation were moved off the
+# image to keep the title to one line):
+#   Icicle plot of the discovered experiment leaves (Shneiderman 1992; Andrews &
+#   Sanguinetti 2019). Each row is a path level (addition / target / feature set /
+#   architecture / model version / split ratio / split strategy / HP-tuned? / HP
+#   search strategy / HP operating point); a cell's width is proportional to its
+#   descendant-leaf count and children sit directly under their parent, so any leaf's
+#   full configuration reads top-to-bottom. Cells are coloured by entity (target,
+#   feature set, architecture, split strategy) where a canonical colour exists;
+#   purely structural levels are a neutral grey.
 import sys as _sys
 from pathlib import Path as _Path
 _EXP = _Path(__file__).resolve().parents[2] / "experiment"

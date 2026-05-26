@@ -12,6 +12,14 @@ run_aggregate_results.py.
 
 Usage: python fig_f2_performance_profile.py
 """
+# Paper caption (for LaTeX):
+#   Dolan-More performance profile (Dolan & More 2002, Math. Prog.). For each
+#   architecture, the curve at tolerance tau is the fraction of full_features cells
+#   where its AUROC is within a factor tau of the best architecture in that cell.
+#   Curves rising fastest toward 1.0 (top-left) dominate; flatter curves solve fewer
+#   cells near-optimally. Restricted to full_features so every cell carries the same
+#   competitors (matched design); architectures with incomplete cell coverage are
+#   excluded (noted on the figure).
 import sys as _sys
 from pathlib import Path as _Path
 _EXP = _Path(__file__).resolve().parents[2] / "experiment"
