@@ -19,13 +19,17 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-# The shared figure generators under experiment/_eval that the fig_f* wrappers
-# delegate to. They are linted with a relaxed ruleset (see _check_generator):
-# they legitimately carry role-palette hex (ordinal ramp, family hues), so hex
-# is allowed there, but they must still go through _style and never use named
-# matplotlib colours or raw savefig.
-EVAL = HERE.parents[1] / "experiment" / "_eval"
-GENERATOR_FILES = ("_benchmark_visuals.py", "_venn_diagrams.py", "_tree_diagram.py")
+# The shared figure generators the fig_f*/fig_g* wrappers delegate to. They are
+# linted with a relaxed ruleset (see _check_generator): they legitimately carry
+# role-palette hex (ordinal ramp, family hues), so hex is allowed there, but they
+# must still go through _style and never use named matplotlib colours or raw savefig.
+_EXPERIMENT = HERE.parents[1] / "experiment"
+GENERATOR_FILES = (
+    _EXPERIMENT / "_eval" / "_benchmark_visuals.py",
+    _EXPERIMENT / "_eval" / "_venn_diagrams.py",
+    _EXPERIMENT / "_eval" / "_tree_diagram.py",
+    _EXPERIMENT / "2" / "_figures.py",
+)
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b")   # 6- and 3-digit literals
 # named matplotlib colours used as a literal colour= argument (white allowed for
 # marker edges); these bypass the _style palette just like hex does.
@@ -36,11 +40,13 @@ NAMED = re.compile(r"""color\s*=\s*["'](black|grey|gray|red|green|blue|orange|""
 # but should still migrate to named _style constants.
 HEATMAP_LIKE = {"fig_a3_coverage", "fig_a5_splits"}
 
-# Generator modules under experiment/_eval that own their own _style contract
-# (apply/save/palette). A fig_*.py that imports one of these and does no inline
-# plotting is a delegating wrapper: the structural checks below are enforced one
-# layer down, so this lint only applies the colour-literal and raw-save guards.
-GENERATOR_MODULES = ("_benchmark_visuals", "_venn_diagrams", "_tree_diagram")
+# Markers that a fig_*.py delegates to a shared generator (which owns the
+# _style contract) rather than plotting inline: the _eval generators imported by
+# name (fig_f*) or the Addition-2 _figures module loaded by file path (fig_g*).
+# Such a wrapper, having no inline plotting, is checked one layer down, so this
+# lint applies only the colour-literal and raw-save guards to it.
+DELEGATION_MARKERS = ("from _benchmark_visuals import", "from _venn_diagrams import",
+                      "from _tree_diagram import", "_figures.py")
 
 
 def _check(path: Path) -> dict:
@@ -48,7 +54,7 @@ def _check(path: Path) -> dict:
     name = path.stem
     findings = []  # (severity, code, message)
 
-    delegated = (any(f"from {m} import" in src for m in GENERATOR_MODULES)
+    delegated = (any(m in src for m in DELEGATION_MARKERS)
                  and "plt.subplots(" not in src)
 
     if not delegated:
@@ -150,9 +156,9 @@ def main():
             print(f"         {sev:<5} [{code}] {msg}")
 
     print("-" * 64)
-    print("experiment/_eval generators (role-palette exception: hex allowed)")
+    print("shared figure generators (role-palette exception: hex allowed)")
     for gf in GENERATOR_FILES:
-        r = _check_generator(EVAL / gf)
+        r = _check_generator(gf)
         fa = [x for x in r["findings"] if x[0] == "FAIL"]
         fails += len(fa)
         status = "PASS" if not fa else f"FAIL({len(fa)})"
