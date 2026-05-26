@@ -15,6 +15,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
+
+
+def _figure_style():
+    """Lazy-import the repo's single figure-style module (experiment/_style.py)
+    for the paper-grade attribution/beeswarm figures, so they share the brand
+    palette, fonts, and the vector-PDF + 300 dpi PNG save() contract. Imported
+    by file path so the insight pass need not have experiment/ on sys.path."""
+    exp = Path(__file__).resolve().parents[1]   # experiment/
+    if str(exp) not in sys.path:
+        sys.path.insert(0, str(exp))
+    import _style
+    return _style
 
 _REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "data").is_dir())
 sys.path.insert(0, str(_REPO_ROOT / "data" / "pipeline" / "analytics"))
@@ -29,45 +42,66 @@ except Exception:  # pragma: no cover - style import is best-effort
 
 
 def plot_attribution_bar(ranking, metric_label, title, out_path, top_n=15):
-    """Horizontal bar of mean absolute attribution for the top features."""
-    apply_theme()
+    """Horizontal bar of mean absolute attribution for the top features.
+
+    Brand-styled (figure _style): blue bars, double-column width, vector PDF +
+    300 dpi PNG via save(). ``out_path`` may be a .png stem; both siblings write.
+    """
+    S = _figure_style()
+    S.apply()
     items = ranking[:top_n][::-1]
     names = [n for n, _ in items]
     vals = [v for _, v in items]
-    fig, ax = plt.subplots(figsize=(9, max(4, 0.4 * len(names) + 1)))
-    ax.barh(range(len(names)), vals, color=PALETTE[1])
+    fig, ax = plt.subplots(figsize=S.figsize("double", max(4.0, 0.4 * len(names) + 1)))
+    ax.barh(range(len(names)), vals, color=S.OI["blue"])
     ax.set_yticks(range(len(names)))
     ax.set_yticklabels(names, fontsize=8)
     ax.set_xlabel(metric_label)
     ax.set_title(title, fontsize=10)
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=140)
+    S.save(fig, out_path)
     plt.close(fig)
 
 
-def plot_beeswarm(feature_names, matrix, title, out_path, top_n=12):
-    """Per-row signed-attribution strip plot for the top features.
+def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=12):
+    """Per-row SHAP beeswarm for the top features, points coloured by the
+    feature's own value (low = blue, high = vermillion), the standard SHAP
+    encoding that shows the direction of each feature's effect.
 
-    Omitted by the caller when n > 1500 rows to stay readable. Points are
-    coloured by feature value (high = positive colour, low = negative).
+    Omitted by the caller when n > 1500 rows to stay readable. ``feature_values``
+    is the row x feature value matrix aligned with ``matrix``'s columns; pass an
+    all-NaN array of the same shape if values are unavailable (points then render
+    in the mid colour). Brand-styled (figure _style); vector PDF + 300 dpi PNG.
     """
-    apply_theme()
+    S = _figure_style()
+    S.apply()
     mean_abs = np.abs(matrix).mean(axis=0)
     order = np.argsort(mean_abs)[::-1][:top_n][::-1]
-    fig, ax = plt.subplots(figsize=(9, max(4, 0.45 * len(order) + 1)))
+    fig, ax = plt.subplots(figsize=S.figsize("double", max(4.0, 0.45 * len(order) + 1)))
+    # Low -> high feature value: blue -> grey -> vermillion (the brand diverging
+    # pair; CVD-safe, unlike SHAP's default red/blue against a red background).
+    cmap = LinearSegmentedColormap.from_list(
+        "shd_lowhigh", [S.OI["blue"], S.FAINT, S.OI["vermillion"]])
     rng = np.random.default_rng(0)
+    sc = None
     for row, j in enumerate(order):
-        vals = matrix[:, j]
-        jitter = rng.uniform(-0.18, 0.18, size=len(vals))
-        ax.scatter(vals, np.full(len(vals), row) + jitter, s=8, alpha=0.5,
-                   color=PALETTE[0], edgecolors="none")
-    ax.axvline(0.0, color="grey", lw=0.8)
+        sv = matrix[:, j]
+        fv = feature_values[:, j].astype(float)
+        lo, hi = np.nanpercentile(fv, [2, 98]) if np.isfinite(fv).any() else (0.0, 1.0)
+        norm = np.clip((fv - lo) / (hi - lo + 1e-12), 0.0, 1.0)
+        jitter = rng.uniform(-0.18, 0.18, size=len(sv))
+        sc = ax.scatter(sv, np.full(len(sv), row) + jitter, c=norm, cmap=cmap,
+                        vmin=0.0, vmax=1.0, s=8, alpha=0.6, edgecolors="none")
+    ax.axvline(0.0, color=S.REF_COLOR, lw=S.REF_LW)
     ax.set_yticks(range(len(order)))
     ax.set_yticklabels([feature_names[j] for j in order], fontsize=8)
     ax.set_xlabel("SHAP value (impact on positive-class probability)")
     ax.set_title(title, fontsize=10)
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=140)
+    if sc is not None:
+        cbar = fig.colorbar(sc, ax=ax, fraction=0.025, pad=0.02)
+        cbar.set_ticks([0.0, 1.0])
+        cbar.set_ticklabels(["low", "high"])
+        cbar.set_label("feature value", fontsize=8)
+    S.save(fig, out_path)
     plt.close(fig)
 
 

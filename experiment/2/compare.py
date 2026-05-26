@@ -404,7 +404,28 @@ def _gather_figdata(raw_selections, selections) -> dict:
             "rho": rho, "p": p,
         })
 
-    return {"headlines": headlines, "cross_arch": cross_arch, "park": park}
+    # Headline model per target on the deployable cell (full_features / chrono),
+    # with its parsed ranking, leaf_dir, and AUROC CI - the data the paper's
+    # feature-attribution and SHAP-beeswarm figures (fig_h*) read. The beeswarm
+    # additionally needs the leaf's frozen shap_matrix_*.npz, found via leaf_dir.
+    headline_explain = []
+    for sel in selections:
+        if (sel["role"] != "headline" or sel["feature_set"] != "full_features"
+                or sel["splittype"] != "chrono"):
+            continue
+        ex = parse_explain(latest_explain(sel["leaf_dir"]))
+        if ex is None:
+            continue
+        headline_explain.append({
+            "target": sel["target"], "family": sel["family"],
+            "architecture": sel["architecture"], "leaf_dir": str(sel["leaf_dir"]),
+            "metric": ex["metric"],
+            "ranking": [list(t) for t in ex["ranking"]],
+            "auroc_lo": sel.get("auroc_lo"), "auroc_hi": sel.get("auroc_hi"),
+        })
+
+    return {"headlines": headlines, "cross_arch": cross_arch, "park": park,
+            "headline_explain": headline_explain}
 
 
 def _single_ranking_table(ex: dict, top_n: int = 10) -> str:

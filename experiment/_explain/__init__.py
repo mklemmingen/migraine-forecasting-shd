@@ -105,7 +105,15 @@ def emit_insights(
     # Beeswarm only for true per-row SHAP matrices (not the permutation row)
     # and only when the row count stays readable.
     if not is_perm and matrix.shape[0] > 1 and matrix.shape[0] <= _BEESWARM_MAX_ROWS:
-        _safe(_plots.plot_beeswarm, feature_names, matrix,
+        # Feature values aligned with the SHAP-matrix columns, for value-coloured
+        # beeswarm points (missing feature -> NaN -> mid colour).
+        feat_vals = X_explain.reindex(columns=feature_names).to_numpy(dtype=float)
+        # Freeze the matrix + values so the paper beeswarm (fig_h docs script) can
+        # re-render without recomputing SHAP; the PNG alone is not reusable data.
+        _safe(np.savez_compressed, str(insights_dir / f"shap_matrix_{ts}.npz"),
+              feature_names=np.array(feature_names, dtype=object),
+              shap=matrix, values=feat_vals)
+        _safe(_plots.plot_beeswarm, feature_names, matrix, feat_vals,
               f"{title} - per-row SHAP", insights_dir / f"shap_beeswarm_{ts}.png")
 
     # --- ALE on the top-K attributed features -------------------------------
