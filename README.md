@@ -4,9 +4,44 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ---
 
+## Reading order
+
+The paper text lives across several docs by section. Read in this order for
+the intended scientific narrative; each doc carries a short breadcrumb at
+the top that confirms its place in the chain.
+
+1. **Background** — this README (you are here).
+2. **Data and features**
+   - `docs/dataset.md` — Park 2016 SHD cohort, engineered-feature build, EPV bands.
+   - `docs/park_features.md` — the six Park-trigger features used in the cross-cohort recovery check.
+3. **Architectures**
+   - `docs/xgboost.md` — stacked XGBoost configuration and hyperparameter-tuning protocol.
+   - `docs/tabPfn.MD` — TabPFN configuration, calibration policy, and the v2.6 / v3-default / v3-binary within-family tie at the headline cell.
+4. **Methods, per Addition**
+   - `docs/addition2_explainability.md` — SHAP + ALE + ShapIQ pipeline.
+   - `docs/addition3_temporal.md` — autocorrelation / burstiness / recurrent-event regression.
+   - `docs/addition4_sequence.md` — window-MLP / GRU / TCN sequence baselines.
+   - `docs/addition5_personalization.md` — per-patient / partial-pool regimes + within-person C-statistic.
+   - `docs/external_validation_site.md` — leave-one-site-out external validation.
+   - `docs/addition6_clinical_value.md` — decision curve + Brier skill.
+5. **Results**
+   - `docs/results_findings.md` — **start here for results**: the cross-Addition synthesis, the seven cross-cell findings, the Headline takeaways, and the Limitations section.
+   - `docs/addition2_results.md` — explainability findings (SHAP rankings, ALE shapes, ShapIQ failure-mode disclosure).
+   - `docs/addition3_results.md` — temporal-dependence findings (AG hazard, Goh-Barabasi B/M, weekly periodicity).
+6. **Supplementary**
+   - `docs/insights_leaf_selection.md` — `composite_sorted` selection rule and its within-family fragility.
+   - `docs/paper_rigor_checklist.md` — TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
+
+The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
+referenced from the Methods and Results docs by name; every figure carries a
+four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`) per the
+convention in §8 of the project's figure design guide.
+
+---
+
 ## Dataset
 
-62 adult patients · 2 Korean neurology clinics · Aug 2014 – Apr 2015  
+62 adult patients · 2 Korean neurology clinics · September 2014 – January 2015  
 Source: Park et al. [1] supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`.
 Current row counts, positive rate, and split statistics are reported in `data/processed/dataset_characterization.pdf`.
 
@@ -44,13 +79,7 @@ Bootstrap confidence intervals reported throughout.
 | 5 | Personalisation and within-person evaluation: per-patient AUROC and the precision-weighted within-person C-statistic (Hanley-McNeil + DerSimonian-Laird), pooled / per-patient / partial-pooling LR regimes, a cold-start curve, and leave-one-site-out external validation. Reuses the Addition 0/1/4 leaves via per-addition subprocess workers. Under `experiment/5/`. | [`scikit-learn`](https://scikit-learn.org/stable/) | Done |
 | 6 | Clinical-forecast value: decision-curve net benefit, Brier skill versus per-patient climatology, and operating-point selection, overlaid across Additions 0/1/4. Under `experiment/6/`. | [`scikit-learn`](https://scikit-learn.org/stable/) | Done |
 
-(small) Sparse Data - Research if this dataset counts as "sparse" | or the possibly highly imbalance 
-
-(small) Does it make sense to split time-based against random based if we have / dont have dates or patient id inside one row
-
-----
-
-Each Rough topical Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>/<*HyperparameterTuned>` with code, model, and results.
+Each Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>/<*HyperparameterTuned>` with code, model, and results.
 
 ## Baseline Model
 
@@ -60,7 +89,40 @@ See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and 
 
 ## Reproducibility
 
-Aggregated metrics in each sub-additions `results/` are regenerated from per-experiment outputs (through model evaluate and evaluate_cv files) - not manually edited.
+Aggregated metrics in each sub-addition's `results/` directory are
+regenerated from per-experiment outputs (`evaluate.py` / `evaluate_cv.py`),
+not manually edited. The dependency lock for the Python stack is
+[`requirements.txt`](requirements.txt) (torch pinned to the 2.x major;
+tabpfn-extensions pinned to a specific git commit because PyPI 0.3.0 ships
+a broken AutoGluon constraint); the GPU-wheel install procedure for ROCm
+and CUDA is documented inline in that file. Bootstrap and Optuna seeds are
+pinned at `42` throughout the evaluation pipeline (see
+[`experiment/_eval/metrics_lib.py`](experiment/_eval/metrics_lib.py) and
+the `train_hp_3way.py.tpl` template); the per-component seed table is in
+[`docs/paper_readiness.md`](docs/paper_readiness.md) §14.
+
+Content-hash provenance for the engineered split parquets lives in
+[`data/processed/_content_hashes.log`](data/processed/_content_hashes.log)
+(92 parquets, SHA-256 prefix + byte size). A regenerated dataset that
+differs in even one row will produce a different hash and a diff against
+that log catches the drift before any model fit reads the changed file.
+
+## Code and data availability
+
+**Code.** The benchmark code, evaluation harness, and per-figure scripts
+are tracked in this repository. Sources.bib and the per-source PDFs are in
+[`Sources.bib`](Sources.bib) and the local `PaperSources/` and
+`PaperSourcesDesign/` folders respectively. The Python environment is
+pinned by [`requirements.txt`](requirements.txt); the reference run uses
+Python 3.13.12 on the workstation described in the Hardware section.
+
+**Data.** The SHD dataset is the publicly released supplementary file S1
+of Park et al. 2016 [1] (CC BY 4.0; raw `.xls` at the publisher record).
+This repository ships the engineered-feature parquets under
+[`data/processed/`](data/processed/); raw patient-day rows are not
+redistributed beyond what Park et al. already made publicly available.
+The build pipeline that produces the engineered features from the raw
+supplementary file is in [`data/pipeline/`](data/pipeline/).
 
 ## References
 
