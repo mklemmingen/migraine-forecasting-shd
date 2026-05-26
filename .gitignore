@@ -1,3 +1,7 @@
+# Local working notes — not part of the scientific record
+FINDINGSCHECK.md
+docs/paper_readiness.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
