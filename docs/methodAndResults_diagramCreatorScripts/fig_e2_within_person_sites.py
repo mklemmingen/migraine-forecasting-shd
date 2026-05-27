@@ -26,7 +26,7 @@ MLAB = {"pooled_lr": "pooled LR", "add0_stacked": "XGBoost stack",
         "add1_tabpfn": "TabPFN", "add4_window_mlp": "window-MLP"}
 SITES = ["uijeongbu", "dongtan"]
 # internal CV-OOF within-person (TabPFN, Figure C2 / Addition 5 Section 9b)
-INTERNAL = {"headache": 0.538, "migraine": 0.573}
+INTERNAL = {"headache": 0.542, "migraine": 0.563}
 
 
 def _latest():
@@ -48,7 +48,7 @@ def main():
                 if not r or r["within_cstat"] in ("", "nan"):
                     continue
                 v = float(r["within_cstat"])
-                ax.scatter(si + (rng.random() - 0.5) * 0.4, v, s=55, color=S.ARCH[m],
+                ax.scatter(si + (rng.random() - 0.5) * 0.55, v, s=55, color=S.ARCH[m],
                            alpha=0.85, edgecolor="white", lw=0.5,
                            label=MLAB[m] if si == 0 else None)
                 print(f"  {tgt:<9} {site:<10} {m:<16} within {v:.3f}")

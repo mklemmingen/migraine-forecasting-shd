@@ -67,15 +67,15 @@ the signal that tells a model whether to personalise.
 ## 3. Methods (with rationale and literature anchor)
 
 The personalisation analyses use the NonHP base architectures on the
-canonical 70/15/15 chronological cells (XGBoost migraine pooled AUROC
-0.763, TabPFN headache pooled AUROC 0.654). These are a different cell
-from the paper's headline (HP020 70/30: XGBoost migraine 0.793, TabPFN
-headache 0.652) because the within-person evaluation needs more
-calibration-set positives than the 70/30 split affords, and a non-HP
-backbone keeps the personalisation contrast clean of hyperparameter
-search variance. The within-person C-statistic clustering near 0.55 is
-not specific to this cell and reproduces across architectures and split
-ratios (Section 9d below).
+canonical full_features chronological 70/30 cells, sharing the paper-
+headline 70/30 partition (NonHP XGBoost migraine hold-out AUROC 0.777,
+TabPFN headache v2.6 hold-out AUROC 0.652; the HP020 / TabPFN-v2.6
+headlines reach 0.793 / 0.652 on the same partition). A non-HP backbone
+keeps the personalisation contrast clean of hyperparameter-search
+variance. The within-person C-statistic is computed from the 5-fold
+expanding-window CV file `diary_cv5_timeseries.parquet`, which is
+ratio-agnostic; the C-statistic clustering near 0.55 therefore
+reproduces across architectures and split ratios (Section 9d below).
 
 ### 3.1 Three modelling regimes
 
@@ -287,17 +287,17 @@ date range. Estimability rises from 13->57 patients (headache) and 3->19
 | target   | architecture     | pooled AUROC | within-person C-stat | est. | gap    |
 |----------|------------------|--------------|----------------------|------|--------|
 | headache | XGBoost (add 0)  | 0.606        | 0.543 [0.511-0.575]  | 57/63| +0.062 |
-| headache | TabPFN (add 1)   | 0.653        | 0.538 [0.505-0.571]  | 57/63| +0.115 |
+| headache | TabPFN (add 1)   | 0.654        | 0.542 [0.508-0.576]  | 57/63| +0.112 |
 | headache | sequence (add 4) | 0.631        | 0.538 [0.505-0.572]  | 57/63| +0.092 |
 | migraine | XGBoost (add 0)  | 0.624        | 0.554 [0.505-0.604]  | 19/63| +0.070 |
-| migraine | TabPFN (add 1)   | 0.753        | 0.573 [0.502-0.643]  | 19/63| +0.181 |
+| migraine | TabPFN (add 1)   | 0.738        | 0.563 [0.500-0.626]  | 19/63| +0.175 |
 | migraine | sequence (add 4) | 0.685        | 0.530 [0.476-0.585]  | 19/63| +0.155 |
 
 The headline is now clean and well-estimated: **within-person discrimination
 clusters at ~0.53-0.57 for every architecture and both targets** - near chance,
 architecture-independent, and beside Holsteen's independent-cohort 0.56
 [holsteen2020triggers, p. 2364]. The pooled "leads" largely evaporate
-within-person (migraine TabPFN's pooled 0.753 falls to 0.573, the largest gap),
+within-person (migraine TabPFN's pooled 0.738 falls to 0.563, the largest gap),
 and the within-person architecture differences sit inside overlapping CIs - i.e.
 statistically indistinguishable per patient. Reproduce with
 `run_personalization.py --cv`. This is the trustworthy RQ2 estimate; 9a is the
