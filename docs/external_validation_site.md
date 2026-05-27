@@ -170,6 +170,19 @@ Three findings, all architecture-independent:
    external-validity layer to the benchmark's calibration-first theme
    [huang2020calibration, p. 621].
 
+**No in-study model updating or recalibration was performed.** The O:E
+drift between sites is reported as an honest external-validity finding,
+not as the trigger for an in-study refit. The deliberate decision is to
+present the as-trained models against the held-out site so the reader
+sees the unaltered transport behaviour; recalibration at the new site
+would mask the drift rather than document it. The leave-one-site-out
+result therefore functions as a deployment-time requirement statement
+("any deployment at a new site requires intercept recalibration as a
+precondition") rather than a within-study correction. The
+corresponding TRIPOD+AI items 12f (recalibration arising from
+evaluation) and 24 (model-updating results) are answered in the
+negative.
+
 ## 8. What this establishes - and what it does not
 
 - **Establishes**: geographic internal-external validation

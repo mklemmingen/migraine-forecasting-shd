@@ -116,7 +116,9 @@ already known to be fragile on the small/sparse cells (median 0.64,
 `docs/results_findings.md`, Section 6). Discrimination and calibration are
 reported together throughout, per TRIPOD+AI [collins2024tripodAI, p. 6].
 
-### 3.3 Operating-point analysis
+### 3.3 Operating-point analysis (TRIPOD+AI Item 15 risk groups)
+
+The three threshold bands defined below — t = 0.10-0.20, t = 0.20-0.35, t > 0.35 — function as risk groups in the TRIPOD+AI Item 15 sense: each band carries a documented clinical action and the bands are pre-specified before evaluation rather than being post-hoc tertiles. The risk-group definitions are literature- and clinical-judgement-anchored (per the medication-burden and behavioural-tolerability arguments named below); the underlying model output is the calibrated probability, with the bands operationalising that probability into recommended actions.
 
 Map the validation-derived MCC threshold (the benchmark's existing
 threshold-metric choice) onto the net-benefit-optimal threshold from

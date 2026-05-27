@@ -52,6 +52,10 @@ The `blended_xgb_lr_spano2026` cells are the canonical Spano anchor
 (one XGBoost + one logistic regression, blended on `cal_sub` rather
 than stacked) and are not part of the HP-tuned branch.
 
+### Final-model parameters (TRIPOD+AI Item 22)
+
+The full prediction-model specification per leaf is stored at three locations: (i) `<leaf>/model.joblib` — the serialised calibrated stack (shallow-depth-3 XGBoost + deep-depth-6 XGBoost + logistic-regression meta-learner + Platt-calibration sigmoid) ready to call via `calibrated_proba(bundle, X)` from `experiment/0/_model_architecture/stacked_2xgb_meta_lr_hp/model.py`; (ii) for the HP-tuned branch, the best-trial hyperparameters land in `<leaf>/HyperparameterTuned/<strategy>/<variant>/results/best_params.json`, naming the exact learning-rate, max-depth, subsample, colsample, gamma, min-child-weight, and `n_estimators` values; (iii) the underlying full Optuna search history (every trial) is in `<leaf>/HyperparameterTuned/<strategy>/trajectory.jsonl` for any third-party replicator who wants to inspect the search trajectory rather than only the final point. Together these three artefacts permit re-instantiation of any cell's model and inspection of how its hyperparameters were chosen.
+
 ## 2. Search infrastructure
 
 Two Optuna [1] search families per HP cell, sharing one hyperparameter

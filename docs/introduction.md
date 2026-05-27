@@ -81,6 +81,26 @@ distinguishes forecast *quality* from forecast *value*
 follows TRIPOD+AI reporting [collins2024tripodAI, p. 6] and PROBAST+AI
 risk-of-bias assessment [moons2025probastAI].
 
+The intended use of the benchmark is to characterise the achievable
+performance of next-day diary-based migraine and headache forecasting
+on the Park 2016 SHD cohort, so that an end-user evaluating whether
+diary-only forecasting can support a pre-emptive medication decision
+has an honest reference point. Within this study, the intended users
+of the prediction models being benchmarked are the patient cohort
+itself (for self-directed timing decisions) and any clinician
+supervising preventive treatment; deployment-stage user-interaction
+considerations are out of scope for a benchmark study and fall under
+the DECIDE-AI guideline [vasey2022decideAI]. The applicability domain
+is correspondingly narrow: the Park 2016 cohort enrolled from two
+Korean university clinics under ICHD-3 episodic-migraine inclusion
+criteria, resulting in approximately 82% female enrolment, ages 19-55,
+and effectively no within-cohort sociodemographic variation. Sex-based,
+ethnicity-based, age-based, or country-of-residence-based health
+inequalities cannot be evaluated from this single cohort; the benchmark
+therefore makes no fairness claims across underrepresented groups, and
+results should be applied only to populations resembling the Park 2016
+inclusion criteria.
+
 The paper's load-bearing finding, which the per-Addition layering makes
 defensible, is that the pooled AUROC commonly reported in the
 diary-forecasting literature overstates within-person forecasting skill

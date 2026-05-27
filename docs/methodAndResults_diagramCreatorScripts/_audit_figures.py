@@ -1,5 +1,4 @@
-"""Tier-0 figure lint: deterministic checks of every fig_*.py against the
-mechanical contracts in experiment/_style.py and docs/figure_design_requirements.md.
+"""Tier-0 figure lint: deterministic checks of every fig_*.py
 
 This is the free pre-filter of the figure-review pipeline: it catches the rule
 violations a linter can see (inline hex, bypassing _style, non-column widths,

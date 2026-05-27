@@ -240,16 +240,78 @@ Status codes:
 
 ### Compliance summary
 
-The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered items (some items have a-g sub-divisions). Of these:
+The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered items. The per-row status flags in the table above record the *pre-closure diagnostic state* of each item; the closures executed on 2026-05-28 are summarised here.
 
-- **Fully covered (✓): 33 sub-items** — Title 1; Intro 3a, 4; Methods 5a, 5b, 6a, 6b, 7, 8a, 9a, 9b, 10, 12a, 12b, 12c, 12d, 12e, 12g, 13, 16, 17; Open Science 18a, 18b, 18e, 18f; Results 20a, 20c, 21, 23a, 23b; Discussion 25, 26, 27c.
-- **N/A by design (10 sub-items, each requiring an explicit one-sentence declaration to score the item)** — Intro 3c (sociodemographic inequalities not evaluable within a monodemographic cohort); Methods 8b, 8c, 9c (self-report eliminates third-party assessor qualifications and blinding); Methods 14 (within-cohort fairness not evaluable; applicability-domain limit instead); Open Science 18c, 18d (no pre-registered protocol; not a registered trial); Patient & Public Involvement 19 (no involvement); Discussion 27a, 27b (deployment-stage usability out of scope for a benchmark study; DECIDE-AI is the relevant stage-specific guideline).
-- **Partial (⚠️): 9 sub-items** — Abstract 2 (5-heading JHP restructure); Intro 3b (intended users explicit); Methods 6c (treatments-not-modelled declaration), Methods 11 (per-predictor missing-count sub-bullet), Methods 12f (recalibration negative declaration), Methods 15 (risk-group framing rename); Results 20b (baseline-characteristics-by-split table), Results 22 (final-model parameter-JSON path pointer), Results 24 (model-updating negative declaration).
-- **Missing (✗): 0 sub-items** — every sub-item now has either substantive coverage, an N/A-with-statement requirement, or a partial-coverage closure task.
+**Pre-closure state (the table above):**
 
-Closing the remaining 19 sub-items (10 N/A declarations + 9 partial closures) lifts the compliance dimension from 63.5% covered to 100% addressed with an estimated ~3-4 hours of focused editing. The 10 N/A items contribute ~30 minutes (each is a one-sentence declaration), the 9 partial items contribute the bulk of the time.
+- Fully covered (✓): 33 sub-items.
+- N/A by design (10 sub-items): Intro 3c, 14; Methods 8b, 8c, 9c; Open Science 18c, 18d; Patient & Public Involvement 19; Discussion 27a, 27b.
+- Partial (⚠️): 9 sub-items: Abstract 2; Intro 3b; Methods 6c, 11, 12f, 15; Results 20b, 22, 24.
+- Missing (✗): 0 sub-items.
+
+**Post-closure state (after the 2026-05-28 closure pass):**
+
+| Item(s) | Closure landed in | Result |
+|---|---|---|
+| 3b, 3c, 14 (applicability + intended users + fairness) | `introduction.md` §1 (new applicability paragraph) | ✓ |
+| 6c, 8b, 8c, 9c, 11 (treatments-not-modelled, self-report N/A, per-predictor missing count) | `dataset.md` (new subsections after Study Design and Gap Awareness) | ✓ |
+| 12f, 24 (no recalibration, no model updating) | `external_validation_site.md` §7 (new paragraph) | ✓ |
+| 15 (risk-group framing rename) | `addition6_clinical_value.md` §3.3 (header rename + spec pointer) | ✓ |
+| 18c, 18d, 19 + Open Science end-matter | `paper_rigor_checklist.md` §10 (new section) | ✓ |
+| 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
+| 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
+| 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
+| **2** (Abstract 5-heading JHP restructure) | (deferred — belongs to the manuscript abstract draft, not the supplementary docs) | ⚠️ |
+
+**Post-closure totals**: 51 sub-items addressed (33 pre-existing ✓ + 18 closed this pass — 8 substantive closures and 10 N/A-with-declaration), 1 sub-item ⚠️ (Item 2, deferred to the abstract restructure). Compliance is at **98.1% addressed**, up from 63.5% pre-closure. The remaining Item 2 is execution-deferred rather than scope-out, and is the headline pending task for the next pre-submission pass.
 
 A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification* — full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
+
+---
+
+## 10. Open Science end-matter declarations
+
+The following declarations close the Open Science items of the TRIPOD+AI checklist (items 18a-f and 19). Each declaration is the one-sentence-or-paragraph statement the checklist requires; when the item is N/A by design (no protocol, no registration, no patient-and-public involvement), the declaration states that fact explicitly with its reason.
+
+### Funding (Item 18a)
+
+This work received no external funding. The hardware used for the experiments (AMD Radeon RX 7900 XT workstation; full specification in the manuscript's Hardware section) was provided by the author's institution. No funder had a role in study design, data analysis, interpretation, or the decision to submit for publication.
+
+### Conflicts of interest (Item 18b)
+
+The authors declare no competing financial or non-financial interests relevant to this work. No financial relationships with any organisation that might have an interest in the submitted work in the past three years; no other relationships or activities that could appear to have influenced the submitted work.
+
+### Study protocol (Item 18c)
+
+No pre-registered study protocol was developed. This study is a secondary analysis of the publicly released Park 2016 Smartphone Headache Diary dataset (Park et al. 2016 [park2016shd]); analysis plans were developed against the published data without registration.
+
+### Study registration (Item 18d)
+
+The study is not a clinical trial and is not registered on clinicaltrials.gov, the EU Clinical Trials Register, the Open Science Framework, or any equivalent registry.
+
+### Data availability (Item 18e)
+
+The Park 2016 SHD raw diary data are publicly available as Supplementary File S1 of [park2016shd], distributed under CC BY 4.0 by PLOS ONE. The engineered split parquet files used in this benchmark are regenerable end-to-end from the published code (`repro.py --what hashes` verifies the 92-parquet content hash log; `repro.py --what aggregate` regenerates the comparison artefacts). The leaf-level model artefacts (`model.joblib`) are regenerable from each leaf's `train.py` script under the deterministic seed `seed=42`. No restrictions apply to retrieval or use of the SHD dataset beyond the CC BY 4.0 attribution requirement.
+
+### Code availability (Item 18f)
+
+The full analytical code, including data engineering, model training, evaluation, and figure rendering, is publicly available at the project repository ([GitHub URL — to be substituted at submission]). A Zenodo snapshot DOI ([Zenodo DOI — to be substituted at submission]) anchors the exact commit corresponding to the submitted manuscript. The Python environment is pinned in `requirements.txt`; the reference build uses Python 3.13.12 on the hardware described above. All packages required to reproduce the reported results in principle are listed in `requirements.txt` with version pins.
+
+### Patient and public involvement (Item 19)
+
+No patients or members of the public were involved in the design, conduct, reporting, interpretation, or dissemination of this study. The original Park 2016 cohort collection (a smartphone diary trial) involved patient participation but the present work is a secondary analysis of the already-published dataset and added no new participant-facing activity. GRIPP2 is therefore not applicable to this study.
+
+### Ethics statement (paired with Item 17)
+
+This study is a secondary analysis of a publicly released dataset; no new participant-facing activity, no new ethics approval, and no contact with the original investigators were required for the present work. The legal basis for re-analysis is the open licence under which the dataset was published, not personal permission from the original authors.
+
+The chain of authorisation is as follows.
+
+1. **Original-study ethics and consent.** The Park 2016 study (PLOS ONE [park2016shd]) obtained IRB approval from Dongtan Sacred Heart Hospital (approval number 2014-132) and Uijeongbu St. Mary's Hospital, Catholic University of Korea College of Medicine (approval number UC14OIM10085), and reports that "the participants received an explanation of the study's aims and procedures and provided written informed consent" [park2016shd, p. 3]. These statements describe the *original* data-collection conditions and are properties of Park et al.'s study, not of the present work.
+
+2. **Public release under CC BY 4.0.** PLOS ONE publishes all articles and their supplementary materials under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence. Park et al. released the diary dataset as Supplementary File S1 of [park2016shd]; the file is therefore distributed under CC BY 4.0, which permits redistribution, reuse, and adaptation provided attribution is given.
+
+3. **The present re-analysis.** This work uses the publicly released Supplementary File S1 under the CC BY 4.0 licence and cites Park et al. 2016 as the source. No written permission from Park et al. was requested or required for this re-analysis, because the licence already covers the use. No re-identification attempts are made; the dataset contains no direct identifiers (it is de-identified by Park et al. at source).
 
 ### How this table is to be used
 
