@@ -22,6 +22,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
 
 _THIS = Path(__file__).resolve()
 _REPO = _THIS.parents[2]
@@ -104,6 +105,23 @@ def main():
     ax.set_xlim(x_lo, x_hi)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+
+    # Frameless legend, positioned below the x-axis label so it never
+    # occludes the row-wise CI lines or q-value annotations (§6 rule 2).
+    legend_elements = [
+        Line2D([0], [0], marker="o", color="white",
+               markerfacecolor=sig_color, markeredgecolor=sig_color,
+               markeredgewidth=1.4, markersize=6,
+               label="q ≤ 0.05 (BH-FDR sig)"),
+        Line2D([0], [0], marker="o", color="white",
+               markerfacecolor="white", markeredgecolor=nonsig_color,
+               markeredgewidth=1.4, markersize=6, label="q > 0.05"),
+        Line2D([0], [0], color=nonsig_color, lw=1.4,
+               label="95% DeLong CI"),
+    ]
+    ax.legend(handles=legend_elements, loc="upper center",
+              bbox_to_anchor=(0.5, -0.10), ncol=3,
+              frameon=False, fontsize=8)
 
     fig.tight_layout()
 

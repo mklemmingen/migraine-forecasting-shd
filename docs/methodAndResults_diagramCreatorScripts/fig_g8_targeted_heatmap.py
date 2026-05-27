@@ -30,6 +30,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 
 _THIS = Path(__file__).resolve()
 _REPO = _THIS.parents[2]
@@ -212,6 +214,25 @@ def main():
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+
+    # Framed legend (heatmap-over-fill exception, §6).
+    legend_elements = [
+        Line2D([0], [0], marker="o", color="white", markerfacecolor=S.INK,
+               markeredgecolor=S.INK, markersize=5, linestyle="none",
+               label="cell headline"),
+        Line2D([0], [0], marker="o", color="white", markerfacecolor="white",
+               markeredgecolor=S.INK, markeredgewidth=1.0, markersize=5,
+               linestyle="none", label="tested in fig_g6 (18-test)"),
+        Patch(facecolor="white", edgecolor=S.INK, linewidth=1.8,
+              label="BH-FDR-significant pair"),
+        Patch(facecolor=S.FAINT, edgecolor=S.SOFT, linewidth=0.3,
+              label="not in sweep (no model)"),
+    ]
+    # Positioned below the rotated x-axis tick labels so it never
+    # occludes data cells (§6 rule 2).
+    ax.legend(handles=legend_elements, loc="upper center",
+              bbox_to_anchor=(0.5, -0.13), ncol=2,
+              frameon=True, framealpha=0.92, edgecolor=S.SOFT, fontsize=8)
 
     fig.tight_layout()
     out_stem = _FIG_DIR / "fig_g8_targeted_heatmap"
