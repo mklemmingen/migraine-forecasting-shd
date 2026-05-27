@@ -138,7 +138,7 @@ The comparison table at `experiment/comparison_*.html` already implements the st
 
 ## 9. TRIPOD+AI 27-item compliance table
 
-Per-item compliance map against the canonical TRIPOD+AI expanded checklist [collins2024tripodAI, Web Table 1, version 7-February-2024]. Item specs are paraphrased from the BMJ checklist; the page anchor cites the canonical PDF (`bmj-2023-078378.full.pdf` for the main paper; `colg078378.wt1.pdf` for Web Table 1 with the expanded item list). D = development item; E = evaluation item; D;E = both apply.
+Per-item compliance map against the canonical TRIPOD+AI expanded checklist [collins2024tripodAI, Web Table 1, version 7-February-2024]. Item specs are paraphrased from the BMJ checklist (Collins et al. 2024, BMJ vol. 385 p. e078378, DOI 10.1136/bmj-2023-078378); the page anchors use the form "wt1 p. N" where wt1 refers to Web Table 1 (the article's expanded-checklist supplement) and N is the page number within that supplement. D = development item; E = evaluation item; D;E = both apply.
 
 Status codes:
 - **✓ covered** — the item is substantively addressed in the cited paper section, with the specific content the BMJ spec requires.
@@ -316,7 +316,6 @@ The chain of authorisation is as follows.
 ### How this table is to be used
 
 A reviewer walking the TRIPOD+AI checklist with the manuscript open should find:
-- Each numbered item's spec text (paraphrased here, verbatim in `colg078378.wt1.pdf`).
 - The doc:section pointer where the substance lives.
 - A status flag indicating whether the manuscript currently meets the spec.
 - An evidence note quoting or pointing to the specific claim.
