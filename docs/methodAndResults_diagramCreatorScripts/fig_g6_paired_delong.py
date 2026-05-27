@@ -104,7 +104,6 @@ def main():
     ax.set_xlim(x_lo, x_hi)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.grid(axis="x", linestyle=":", alpha=0.35)
 
     fig.tight_layout()
 

@@ -160,7 +160,10 @@ def main():
 
     fig, ax = plt.subplots(figsize=S.figsize(cols="double", h=9.5))
 
-    cmap = plt.get_cmap("RdBu_r")
+    # Diverging colormap aligned with the project-wide _metric_palette
+    # convention: warm = bad, cool = good. For AUROC (higher is better),
+    # low values render warm/red and high values render cool/blue.
+    cmap = plt.get_cmap("RdBu")
     vmin, vmax = 0.35, 0.85
     masked = np.ma.masked_invalid(M)
     im = ax.imshow(masked, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto",
@@ -198,10 +201,7 @@ def main():
     ax.set_yticklabels([f"{t}/{fs.replace('_features','')}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
-    ax.set_title(
-        "AUROC heatmap with main-text BH-FDR overlay (18-test targeted family)\n"
-        "cell-headline • • • ;  tested-in-G6 ○ ○ ○ ;  thick edge = BH-FDR-significant pair"
-    )
+    ax.set_title("AUROC heatmap with main-text BH-FDR overlay (18-test targeted family)")
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
     cbar.set_label("hold-out AUROC (point estimate)", fontsize=9)

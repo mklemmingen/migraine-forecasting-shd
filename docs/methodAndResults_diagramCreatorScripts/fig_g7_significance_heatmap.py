@@ -191,9 +191,12 @@ def main():
 
     fig, ax = plt.subplots(figsize=S.figsize(cols="double", h=9.5))
 
-    # Diverging colormap centred at chance (0.5): warm = high AUROC, cool = low.
-    # _metric_palette uses RdBu warm=bad; for AUROC we want warm=good, so RdBu_r.
-    cmap = plt.get_cmap("RdBu_r")
+    # Diverging colormap aligned with the project-wide _metric_palette
+    # convention: warm = bad, cool = good (Crameri 2020 + _metric_palette.py).
+    # For AUROC (higher is better), low values render warm/red and high
+    # values render cool/blue — so the supplementary heatmap reads the same
+    # way as the comparison-table HTML heatmap.
+    cmap = plt.get_cmap("RdBu")
     vmin, vmax = 0.35, 0.85
     masked = np.ma.masked_invalid(M)
     im = ax.imshow(masked, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto",
@@ -226,12 +229,7 @@ def main():
     ax.set_yticklabels([f"{t}/{fs.replace('_features','')}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
-    overlay_label = ("exhaustive Bonferroni" if delong_kind == "exhaustive"
-                     else "BH-FDR main-text §3a")
-    ax.set_title(
-        "Supplementary AUROC heatmap at ratio 70_30 across the sweep\n"
-        f"headline per cell • • • ;   thick edges = {overlay_label}-significant pair"
-    )
+    ax.set_title("Supplementary AUROC heatmap at ratio 70_30 across the sweep")
 
     # Side-row colourbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
