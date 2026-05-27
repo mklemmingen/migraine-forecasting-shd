@@ -158,9 +158,9 @@ diary-only target sets up an unrealistic expectation; the diary-only
 benchmark needs its own published reference points, and this work
 provides them.
 
-Third, the Park 2016 SHD dataset is the largest open trigger-diary
-cohort in the public record but is almost entirely unexploited for
-machine learning. Of the 122 papers that cite Park 2016, only one
+Third, the Park 2016 SHD dataset [park2016shd, p. 1] is the largest
+open trigger-diary cohort in the public record but is almost entirely
+unexploited for machine learning. Of the 122 papers that cite Park 2016, only one
 published ML reuse exists (in a high-school research journal, on a
 same-day random-split task that is not next-day forecasting); the
 canonical 2025 Cephalalgia review of the ML-migraine-prediction field
