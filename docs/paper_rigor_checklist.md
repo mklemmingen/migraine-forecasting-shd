@@ -150,13 +150,13 @@ Status codes:
 
 | # | Spec (Collins 2024 wt1) | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | `paper_readiness.md §1` (Title) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort" — names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
+| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort" — names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
 
 ### ABSTRACT
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `paper_readiness.md §2` (Abstract) | ⚠️ partial | Five-heading structured abstract drafted to ~297 words (under 450-word JHP cap); 3 of 13 TRIPOD+AI Abstract sub-items added (missing-data, leave-one-site-out external validation, funding). Restructure to 5-heading JHP format is a Phase-5 follow-up. |
+| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | manuscript abstract (carried forward into the submission template) | ⚠️ partial | Structured abstract drafted (~297 words, under 450-word JHP cap); 3 of 13 TRIPOD+AI Abstract sub-items added (missing-data, leave-one-site-out external validation, funding). Restructure to the JHP 5-heading format (Objective / Background / Methods / Results / Conclusion) is the remaining edit. |
 
 ### INTRODUCTION
 
@@ -196,24 +196,24 @@ Status codes:
 | 14 (D;E) | Approaches to address model fairness (wt1 p. 8) | `introduction.md` §1 (applicability) ; `discussion.md` §7.4 (Limitations) | N/A | Within-cohort fairness analysis is not evaluable: the Park 2016 cohort is monodemographic by design (single country, single ethnicity, ~82% female enrolment). The applicability-domain limitation — fairness across underrepresented groups is not claimed and not testable within this cohort — is named in the Introduction and the Limitations. |
 | 15 (D) | Model output: probabilities, classification; threshold rationale (wt1 p. 8) | `addition6_clinical_value.md §3.3`; `xgboost.md §3`; `tabPfn.MD §5` | ⚠️ partial | Models emit calibrated probabilities; operating-point thresholds (t = 0.10-0.20 / 0.20-0.35 / >0.35) defined in `addition6_clinical_value.md §3.3`. The risk-group framing per TRIPOD+AI Item 11 / Item 15 nomenclature is the Phase-3 item 6 follow-up. |
 | 16 (D;E) | Differences between development and evaluation data (wt1 p. 9) | `external_validation_site.md §2-3` | ✓ | Uijeongbu (8.6% migraine base rate) vs Dongtan (5.7%) site differences documented; same diary instrument across sites so eligibility/outcome/predictor definitions are identical. |
-| 17 (D;E) | Ethical approval and informed consent (wt1 p. 9) | `paper_readiness.md §31 (Ethics statement)`; `paper_rigor_checklist.md §1b` | ✓ | Secondary analysis of Park 2016 publicly released dataset under PLOS ONE open-access terms; original IRB approval from Dongtan Sacred Heart Hospital (2014-132) and Uijeongbu St. Mary's (UC14OIM10085); no new data collection. |
+| 17 (D;E) | Ethical approval and informed consent (wt1 p. 9) | `paper_rigor_checklist.md §10 (Ethics statement)`; §1b | ✓ | Secondary analysis of Park 2016 publicly released dataset under PLOS ONE CC BY 4.0 licence; original IRB approval from Dongtan Sacred Heart Hospital (2014-132) and Uijeongbu St. Mary's (UC14OIM10085); no new data collection and no personal communication with the original authors required. |
 
 ### OPEN SCIENCE
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 18a (D;E) | Source of funding and role of funders (wt1 p. 9) | `paper_readiness.md §31 (Funding)` | ✓ | "This work received no external funding." Workstation hardware provided by [institution]. |
-| 18b (D;E) | Conflicts of interest for all authors (wt1 p. 9) | `paper_readiness.md §31 (CoI)` | ✓ | Author CoI disclosure paragraph drafted. |
-| 18c (D;E) | Study protocol availability (wt1 p. 9) | `paper_readiness.md §31` (Open Science) | N/A | The study is a secondary analysis of a publicly released dataset; no pre-registered study protocol was developed. An explicit one-sentence N/A declaration sits in the Open Science statement. |
-| 18d (D;E) | Registration information for the study (wt1 p. 9) | `paper_readiness.md §31` (Open Science) | N/A | The study is not a clinical trial and is not registered on clinicaltrials.gov or any equivalent registry; an explicit one-sentence N/A declaration sits in the Open Science statement. |
-| 18e (D;E) | Availability of study data (wt1 p. 10) | `paper_readiness.md §31 (Data availability)` | ✓ | Park 2016 SHD raw dataset available as Supplementary File S1 of [park2016shd]; engineered parquets reproducible via `repro.py`. |
-| 18f (D;E) | Availability of analytical code (wt1 p. 10) | `paper_readiness.md §31 (Code availability)`; `README.md` | ✓ | Public GitHub repository (`[GitHub URL]`); Zenodo DOI (`[Zenodo DOI]`) to be assigned at submission; `requirements.txt` pinned. |
+| 18a (D;E) | Source of funding and role of funders (wt1 p. 9) | `paper_rigor_checklist.md §10 (Funding)` | ✓ | "This work received no external funding." Workstation hardware provided by the author's institution. |
+| 18b (D;E) | Conflicts of interest for all authors (wt1 p. 9) | `paper_rigor_checklist.md §10 (Conflicts of interest)` | ✓ | Author conflict-of-interest disclosure paragraph in §10. |
+| 18c (D;E) | Study protocol availability (wt1 p. 9) | `paper_rigor_checklist.md §10 (Study protocol)` | N/A | The study is a secondary analysis of a publicly released dataset; no pre-registered study protocol was developed. An explicit one-sentence N/A declaration sits in §10. |
+| 18d (D;E) | Registration information for the study (wt1 p. 9) | `paper_rigor_checklist.md §10 (Study registration)` | N/A | The study is not a clinical trial and is not registered on clinicaltrials.gov or any equivalent registry; an explicit one-sentence N/A declaration sits in §10. |
+| 18e (D;E) | Availability of study data (wt1 p. 10) | `paper_rigor_checklist.md §10 (Data availability)` | ✓ | Park 2016 SHD raw dataset available as Supplementary File S1 of [park2016shd] under CC BY 4.0; engineered parquets reproducible via `repro.py`. |
+| 18f (D;E) | Availability of analytical code (wt1 p. 10) | `paper_rigor_checklist.md §10 (Code availability)`; `README.md` | ✓ | Public GitHub repository (`[GitHub URL]`); Zenodo DOI (`[Zenodo DOI]`) to be assigned at submission; `requirements.txt` pinned. |
 
 ### PATIENT & PUBLIC INVOLVEMENT
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 19 (D;E) | Patient and public involvement; state no involvement if absent (wt1 p. 10) | `paper_readiness.md §31` (Open Science) | N/A | No patients or public were involved in study design, conduct, reporting, interpretation, or dissemination. An explicit one-sentence "No patient or public involvement" declaration (GRIPP2 inapplicable) sits in the Open Science statement. |
+| 19 (D;E) | Patient and public involvement; state no involvement if absent (wt1 p. 10) | `paper_rigor_checklist.md §10 (Patient and public involvement)` | N/A | No patients or public were involved in study design, conduct, reporting, interpretation, or dissemination. An explicit one-sentence "No patient or public involvement" declaration (GRIPP2 inapplicable) sits in §10. |
 
 ### RESULTS
 

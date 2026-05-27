@@ -97,8 +97,7 @@ a broken AutoGluon constraint); the GPU-wheel install procedure for ROCm
 and CUDA is documented inline in that file. Bootstrap and Optuna seeds are
 pinned at `42` throughout the evaluation pipeline (see
 [`experiment/_eval/metrics_lib.py`](experiment/_eval/metrics_lib.py) and
-the `train_hp_3way.py.tpl` template); the per-component seed table is in
-[`docs/paper_readiness.md`](docs/paper_readiness.md) §14.
+the `train_hp_3way.py.tpl` template).
 
 Content-hash provenance for the engineered split parquets lives in
 [`data/processed/_content_hashes.log`](data/processed/_content_hashes.log)
