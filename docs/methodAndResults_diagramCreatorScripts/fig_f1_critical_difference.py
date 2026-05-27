@@ -1,11 +1,21 @@
-"""Figure F1 - critical-difference diagrams (Friedman + Nemenyi) for AUROC.
+"""Figure F1 - critical-difference diagrams (Friedman + Nemenyi) for AUROC,
+within-family scope.
 
 One diagram per target over the full_features cells - the matched design the
-Friedman test requires (every architecture evaluated on every cell). Methods
-joined by a heavy bar are not separated at alpha=0.05 (Nemenyi post-hoc). When
-the Friedman omnibus is itself not significant the generator renders the ranked
+Friedman test requires (every architecture evaluated on every cell). The
+architecture set is filtered to leaves with complete coverage across the
+9 ratio*split cells, which in practice retains the stacked_2xgb HP variants
+together with the TabPFN single-fit versions; cross-family representatives
+(add0_stacked_NonHP, add1_tabpfn_NonHP, add4_window_mlp, pooled_lr) drop
+out because they are missing on at least one cell. The resulting ranking is
+therefore a WITHIN-FAMILY critical-difference (HP variants vs TabPFN versions),
+NOT a true cross-architecture test - cross-architecture comparisons live in
+fig_b7 and fig_c3/d3/d4 with explicit overlay legends. Methods joined by a
+heavy bar are not separated at alpha=0.05 (Nemenyi post-hoc). When the
+Friedman omnibus is itself not significant the generator renders the ranked
 ladder descriptively only (faded, with a banner), so the figure cannot be
-misread as a ranking - see experiment/_eval/_benchmark_visuals.render_cd_diagram.
+misread as a ranking - see
+experiment/_eval/_benchmark_visuals.render_cd_diagram.
 
 Data source: the latest experiment/comparison_*.csv written by
 run_aggregate_results.py, so the figure is pinned to one results snapshot

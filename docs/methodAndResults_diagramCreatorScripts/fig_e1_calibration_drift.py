@@ -47,7 +47,7 @@ def main():
             if any_r is None:
                 xticklab.append(site); continue
             obs, trn = float(any_r["observed_rate"]), float(any_r["train_rate"])
-            xticklab.append(f"{site}\ntest {obs:.0%} / train {trn:.0%}")
+            xticklab.append(f"{site}\ntest {obs:.1%} / train {trn:.1%}")
             for mi, m in enumerate(MODELS):
                 r = d.get((tgt, site, m))
                 if not r:

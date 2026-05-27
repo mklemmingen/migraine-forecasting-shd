@@ -1,10 +1,14 @@
-"""Figure F3 - rank slopegraphs for AUROC [Tufte 2001].
+"""Figure F3 - rank slopegraphs for AUROC [Tufte 2001], within-family scope.
 
 Per-architecture rank trajectory across the full_features cells, per target.
 A flat line is a stable architecture (same rank everywhere); crossing lines
 mark architectures whose standing swings with the (feature_set, ratio, split)
 cell. Same coverage-filtered architecture set as the critical-difference and
-performance-profile views.
+performance-profile views - that filter restricts the comparison to HP
+variants of stacked_2xgb against TabPFN single-fit versions; cross-family
+entries (add0_stacked_NonHP, add4_window_mlp, pooled_lr) drop out for
+incomplete coverage, which makes f3 a WITHIN-FAMILY rank trajectory rather
+than a cross-architecture rank test.
 
 Data source: the latest experiment/comparison_*.csv written by
 run_aggregate_results.py.

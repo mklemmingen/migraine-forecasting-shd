@@ -1,10 +1,13 @@
 """Figure D3 - decision-curve (net benefit) analysis.
 
-Net benefit vs threshold probability for the headline architectures (Additions
-0/1/4, full_features, chronological), one panel per target, against the treat-all
-and treat-none default strategies (Vickers 2006). A model is clinically useful
-over the threshold range where its curve sits above both defaults. Reuses the
-Addition 5 prediction worker and the Addition 6 net-benefit primitive.
+Net benefit vs threshold probability overlaying the composite-best XGBoost
+(Add-0) and TabPFN (Add-1) leaves resolved from the latest
+experiment/2/figdata_*.json, plus a documented window-MLP sequence
+representative (Add-4) on the same full_features/chrono cell. One panel per
+target, against the treat-all and treat-none default strategies (Vickers 2006).
+A model is clinically useful over the threshold range where its curve sits
+above both defaults. Reuses the Addition 5 prediction worker and the
+Addition 6 net-benefit primitive.
 
 Usage: python fig_d3_decision_curve.py
 """
@@ -28,7 +31,21 @@ EXP = REPO / "experiment"
 sys.path.insert(0, str(EXP / "6" / "_value"))
 import decision_curve as DC  # noqa: E402
 
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+_F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
+
 WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
+
+
+def _resolve_leaf(headlines, target, family):
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
 
 
 def _env(addition):
@@ -52,15 +69,15 @@ def _predict(leaf):
         out.unlink(missing_ok=True)
 
 
-def _discover():
+def _discover(headlines):
     leaves = {}
     for tgt in ("headache", "migraine"):
         ls = []
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            if "stacked_2xgb" in str(m) and "/70_15_15/chrono/" in str(m):
-                ls.append(("XGBoost stack", m.parent)); break
-        d1 = EXP / "1" / tgt / "full_features/tabpfn/version_3-default/70_15_15/chrono"
-        if (d1 / "model.joblib").exists():
+        d0 = _resolve_leaf(headlines, tgt, "xgboost")
+        if d0 is not None and (d0 / "model.joblib").exists():
+            ls.append(("XGBoost stack", d0))
+        d1 = _resolve_leaf(headlines, tgt, "tabpfn")
+        if d1 is not None and (d1 / "model.joblib").exists():
             ls.append(("TabPFN", d1))
         d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
         if (d4 / "model.joblib").exists():
@@ -71,7 +88,12 @@ def _discover():
 
 def main():
     S.apply()
-    leaves = _discover()
+    figdata_path = _F.latest_figdata(EXP / "2")
+    if figdata_path is None:
+        raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
+    headlines = _F.load_figdata(figdata_path).get("headlines", [])
+    print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
+    leaves = _discover(headlines)
     fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.3))
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
@@ -86,7 +108,8 @@ def main():
             dc = DC.decision_curve(*r)
             ref = dc
             ax.plot(dc["thresholds"], dc["model"], lw=1.6, color=S.arch_color(label),
-                    marker=mark.get(label, "o"), markevery=8, markersize=4, label=label)
+                    marker=mark.get(label, "o"), markevery=8, markersize=4,
+                    label=S.leaf_slug(leaf))
             ymin = min(ymin, float(dc["model"].min())); ymax = max(ymax, float(dc["model"].max()))
             print(f"  {tgt:<9} {label:<13} max net benefit {np.max(dc['model']):.3f}")
         if ref is not None:

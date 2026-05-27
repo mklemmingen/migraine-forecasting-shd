@@ -28,6 +28,7 @@ _EXP = _Path(__file__).resolve().parents[2] / "experiment"
 _sys.path.insert(0, str(_EXP))
 import numpy as np
 from _explain import _plots
+from _style import leaf_slug
 _spec = _ilu.spec_from_file_location("_exp2_figures", _EXP / "2" / "_figures.py")
 _F = _ilu.module_from_spec(_spec)
 _spec.loader.exec_module(_F)
@@ -55,7 +56,7 @@ def main():
         z = np.load(npzs[-1], allow_pickle=True)
         feature_names = [str(f) for f in z["feature_names"]]
         lo = h.get("auroc_lo")
-        title = f"{h['target']} headline ({h['family']}) - per-row SHAP"
+        title = f"{h['target']} headline ({leaf_slug(h['leaf_dir'])}) - per-row SHAP"
         if lo is not None and lo <= 0.5:
             title += "  [AUROC CI reaches chance: descriptive only]"
         out = HERE / "figures" / f"fig_h2_shap_beeswarm_{h['target']}"
