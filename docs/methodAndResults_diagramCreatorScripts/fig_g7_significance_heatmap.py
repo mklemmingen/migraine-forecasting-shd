@@ -108,8 +108,17 @@ def _csv_lookup(rows, target, feature_set, split, arch):
 
 
 def _latest_delong_json():
-    candidates = sorted((_REPO / "experiment" / "_eval").glob("paired_delong_*.json"))
-    return candidates[-1] if candidates else None
+    """Prefer the exhaustive-grid JSON (Bonferroni FWER over the all-pairs
+    family at ratio=70_30) when present; fall back to the 18-test
+    paired_delong family if not. The exhaustive run carries
+    architecture-vs-headline significance per cell, which is the natural
+    overlay for the AUROC heatmap."""
+    eval_dir = _REPO / "experiment" / "_eval"
+    exhaustive = sorted(eval_dir.glob("exhaustive_delong_*.json"))
+    if exhaustive:
+        return exhaustive[-1], "exhaustive"
+    paired = sorted(eval_dir.glob("paired_delong_*.json"))
+    return (paired[-1], "paired") if paired else (None, None)
 
 
 def main():
@@ -134,28 +143,49 @@ def main():
         if np.isfinite(row).any():
             headlines[i] = int(np.nanargmax(row))
 
-    # Overlay BH-FDR-significant architectures from the 18-test family.
+    # Overlay significant pairs from either the exhaustive Bonferroni
+    # family (preferred) or the targeted BH-FDR 18-test family (fallback).
     sig_cells = set()
-    delong_src = _latest_delong_json()
+    delong_src, delong_kind = _latest_delong_json()
     if delong_src is not None:
         delong = json.loads(delong_src.read_text())
-        for t in delong["tests"]:
-            if not t.get("sig_at_q05"):
-                continue
-            parts = t["cell"].split("/")
-            if len(parts) != 3:
-                continue
-            tgt, feat, sp = parts
-            feat_full = f"{feat}_features"
-            try:
-                row_idx = CELLS.index((tgt, feat_full, sp))
-            except ValueError:
-                continue
-            for arch_lbl in (t["arch_a"], t["arch_b"]):
-                norm = (arch_lbl.replace("stacked_2xgb_", "xgb_")
-                                .replace("autotabpfn_v2-5-auto", "autotabpfn"))
-                if norm in ARCHS:
-                    sig_cells.add((row_idx, ARCHS.index(norm)))
+        if delong_kind == "exhaustive":
+            # Mark every architecture that participates in any Bonferroni-
+            # significant pair within its cell.
+            for cell_dict in delong["cells"]:
+                parts = cell_dict["cell"].split("/")
+                if len(parts) != 3:
+                    continue
+                tgt, feat, sp = parts
+                feat_full = f"{feat}_features"
+                try:
+                    row_idx = CELLS.index((tgt, feat_full, sp))
+                except ValueError:
+                    continue
+                for pair in cell_dict["pairs"]:
+                    if not pair.get("sig_bonferroni"):
+                        continue
+                    for arch_lbl in (pair["arch_a"], pair["arch_b"]):
+                        if arch_lbl in ARCHS:
+                            sig_cells.add((row_idx, ARCHS.index(arch_lbl)))
+        else:  # paired (18-test family)
+            for t in delong["tests"]:
+                if not t.get("sig_at_q05"):
+                    continue
+                parts = t["cell"].split("/")
+                if len(parts) != 3:
+                    continue
+                tgt, feat, sp = parts
+                feat_full = f"{feat}_features"
+                try:
+                    row_idx = CELLS.index((tgt, feat_full, sp))
+                except ValueError:
+                    continue
+                for arch_lbl in (t["arch_a"], t["arch_b"]):
+                    norm = (arch_lbl.replace("stacked_2xgb_", "xgb_")
+                                    .replace("autotabpfn_v2-5-auto", "autotabpfn"))
+                    if norm in ARCHS:
+                        sig_cells.add((row_idx, ARCHS.index(norm)))
 
     fig, ax = plt.subplots(figsize=S.figsize(cols="double", h=9.5))
 
@@ -194,9 +224,11 @@ def main():
     ax.set_yticklabels([f"{t}/{fs.replace('_features','')}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
+    overlay_label = ("exhaustive Bonferroni" if delong_kind == "exhaustive"
+                     else "BH-FDR main-text §3a")
     ax.set_title(
         "Supplementary AUROC heatmap at ratio 70_30 across the sweep\n"
-        "headline per cell • • • ;   thick edges = BH-FDR-significant pair from main-text §3a"
+        f"headline per cell • • • ;   thick edges = {overlay_label}-significant pair"
     )
 
     # Side-row colourbar
