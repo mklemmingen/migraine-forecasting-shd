@@ -2,6 +2,7 @@
 FINDINGSCHECK.md
 docs/paper_readiness.md
 AUDIT_TRAIL.md
+/PaperSourcesDesign/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
