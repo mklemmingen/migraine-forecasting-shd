@@ -11,9 +11,9 @@ subsystem; docs scripts import it after putting experiment/ on sys.path, keeping
 the dependency one-way (docs -> experiment, never the reverse).
 
 ================================ FIGURE CONVENTIONS ===========================
-Everything a journal-quality diagram in this repo must follow. Full rationale and
-verified sources: docs/figure_design_requirements.md. References [bracketed] are
-listed at the bottom of this docstring.
+Everything a journal-quality diagram in this repo must follow. Full rationale
+and verified sources are embedded in this docstring. References [bracketed]
+are listed at the bottom of this docstring.
 
 1. COLOUR - four palette roles; pick by data type [harrowerbrewer2003].
    - Qualitative, <=8 categories  -> Okabe-Ito (TARGET / ARCH / SPLIT / FEATURE_SET
@@ -284,9 +284,8 @@ def save(fig, out, dpi=300) -> str:
 
 # ---------------------------------------------------------------------------
 # Leaf-path -> compact figure-legend slug.
-# Convention: ``<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>``. Documented in
-# docs/figure_design_requirements.md under "Model and cell identification on
-# figures". A reader can always reconstruct the full leaf path from the slug.
+# Convention: ``<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>``. A reader can
+# always reconstruct the full leaf path from the slug.
 # ---------------------------------------------------------------------------
 
 _FEATURE_SHORT = {
@@ -370,11 +369,10 @@ def leaf_slug(leaf) -> str:
 
 def caption_block(*, leaf=None, target=None, metric=None, n=None, n_pos=None,
                   extra: str | None = None) -> str:
-    """Build the standard figure-caption block per
-    docs/figure_design_requirements.md "Model and cell identification on
-    figures". Returns a single line, ready to prefix the figure-specific
-    description. Tokens are dropped when the corresponding argument is
-    ``None`` so a caller that only knows the target and metric can still
+    """Build the standard figure-caption block. Returns a single line,
+    ready to prefix the figure-specific description. Tokens are dropped
+    when the corresponding argument is ``None`` so a caller that only
+    knows the target and metric can still
     emit a partial block."""
     bits = []
     if metric is not None:

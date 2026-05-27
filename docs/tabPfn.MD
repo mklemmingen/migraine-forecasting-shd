@@ -31,8 +31,7 @@ The within-family variant choice is therefore a calibration-noise call,
 not a discrimination-driven one; the defensible cross-architecture
 claim is at the family level (TabPFN beats XGBoost on the headache
 headline cell), and the paper's figures use the four-token slug
-`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>` (per
-`docs/figure_design_requirements.md` §8) to keep that distinction
+`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>` to keep that distinction
 explicit on every appearance.
 
 ## Package

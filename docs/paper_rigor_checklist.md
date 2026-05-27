@@ -246,7 +246,7 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 - **Partial (⚠️): 14 sub-items** — Abstract 2 (5-heading JHP restructure); Intro 3b (intended users explicit); Methods 6c (treatments-not-modelled), 8b, 8c, 9c (subjective-assessment N/A), 11 (missing-data consolidation), 12f (recalibration negative declaration), 15 (risk-group framing per Item 11/15), 22 (final-model JSON pointer); Open Science 18c, 18d (protocol/registration N/A); Results 20b (baseline-by-split table), 24 (model-updating negative declaration).
 - **Missing (✗): 5 sub-items** — Intro 3c (health-inequalities/applicability-domain); Methods 14 (fairness applicability-domain statement); Patient & Public Involvement 19 (N/A declaration); Discussion 27a, 27b (poor-input + user-interaction scope-disclaimers).
 
-The 14 partial + 5 missing sub-items are addressable through Phase-3 follow-up edits in `PaperSourcesDesign/paper_workplan.md` (items 2-7), plus three new follow-ups for the missing sub-items not previously workplan-named (3c, 14, 19, 27a, 27b). The 33 fully covered sub-items represent the substantive backbone of TRIPOD+AI compliance for this study; closing the remaining 19 sub-items lifts the compliance dimension from 63.5% to 100% with an estimated ~3-4 hours of focused editing.
+The 14 partial + 5 missing sub-items are addressable through targeted follow-up edits. The 33 fully covered sub-items represent the substantive backbone of TRIPOD+AI compliance for this study; closing the remaining 19 sub-items lifts the compliance dimension from 63.5% to 100% with an estimated ~3-4 hours of focused editing.
 
 ### How this table is to be used
 

@@ -5,7 +5,7 @@
 External validity is the benchmark's binding impact ceiling: it is developed
 on a single 62-patient cohort, and a truly independent external dataset is
 data-blocked because no comparable public next-day-diary migraine-forecasting
-cohort exists (`docs/prior_research_park_ml.md`, finding 5). This addition
+cohort exists. This addition
 runs the strongest external validation achievable with the data in hand -
 geographic internal-external validation across the two SHD recruitment
 sites - and records the weaker/parallel routes.
@@ -196,9 +196,8 @@ Three findings, all architecture-independent:
   was never deposited, so it requires a data-sharing request to the authors
   (Cho Soo-Jin / Park Jeong-Wook). Pursue in parallel; do not gate the paper on
   it. This is the single highest-impact move if granted.
-- **Route D - other public datasets**: none comparable exist
-  (`docs/prior_research_park_ml.md`, finding 5); cross-sectional symptom-
-  classification sets are the wrong task. Unavailable.
+- **Route D - other public datasets**: none comparable exist; cross-sectional
+  symptom-classification sets are the wrong task. Unavailable.
 
 ## References
 

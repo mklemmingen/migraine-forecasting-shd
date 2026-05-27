@@ -1,6 +1,6 @@
 # Introduction
 
-> Position in the paper: **Introduction (1)**. Reads first; precedes `prior_research_park_ml.md`. Synthesises the clinical motivation, the gap in the next-day-diary migraine-forecasting literature, and the contribution.
+> Position in the paper: **Introduction (1)**. Synthesises the clinical motivation, the gap in the next-day-diary migraine-forecasting literature, and the contribution.
 
 Migraine is the second-most disabling neurological condition globally, and
 its attacks are largely predictable from same-day or recent-day exposures
