@@ -243,3 +243,18 @@ a sequence backbone; a multi-cohort pooled deep-personalisation
 approach using transfer from auxiliary diary datasets would be the
 methodologically appropriate extension if a comparable open cohort
 becomes available.
+
+Deployment-stage usability is out of scope for the present benchmark.
+The handling of poor-quality or unavailable predictor values at
+inference time (Item 27a in the TRIPOD+AI checklist) requires a
+deployed instrument with explicit input-validation logic and
+fallback strategies; the present work evaluates models against the
+locked Park 2016 cohort with predictors that are fully observed by
+construction, and does not specify deployment-stage instrumentation.
+The level of expertise required of users (Item 27b) similarly belongs
+to a deployment-stage evaluation: the benchmark presents a research
+artefact, not a deployed decision-support system. Both questions fall
+under the DECIDE-AI guideline [vasey2022decideAI] for early-stage
+clinical evaluation of AI-based decision-support systems, which is the
+appropriate reporting framework once any of the benchmarked models is
+considered for in-clinic deployment.

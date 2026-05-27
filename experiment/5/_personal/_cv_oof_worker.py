@@ -56,12 +56,27 @@ def main(model_dir: str, out: str) -> None:
             return calibrated_proba(bundle, xv)
     elif add == "1":
         sys.path.insert(0, str(EXP / "1"))
-        from _model_architecture.tabpfn_v3.model import build_tabpfn_v3  # noqa: E402
+        parts = md.relative_to(EXP).parts
+        version = parts[4] if len(parts) > 4 else ""
+        if version == "version_3-default":
+            from _model_architecture.tabpfn_v3.model import build_tabpfn_v3 as _builder  # noqa: E402
+        elif version == "version_3-binary":
+            from _model_architecture.tabpfn_v3_binary.model import build_tabpfn_v3_binary as _builder  # noqa: E402
+        elif version == "version_2-6":
+            from _model_architecture.tabpfn.model import build_tabpfn as _builder  # noqa: E402
+        elif version == "version_2-5-finetuned":
+            from _model_architecture.finetunedtabpfn_v2_5.model import build_finetunedtabpfn as _builder  # noqa: E402
+        elif version == "version_2-5-auto":
+            from _model_architecture.autotabpfn_v2_5.model import build_autotabpfn as _builder  # noqa: E402
+        elif version == "version_2-5-real":
+            from _model_architecture.realtabpfn.model import build_realtabpfn as _builder  # noqa: E402
+        else:
+            raise SystemExit(f"unknown tabpfn version {version!r} for leaf {md}")
 
         def fit_predict(train_fold, val_fold):
             xtr, ytr = prep_split(train_fold)
             xv, _ = prep_split(val_fold)
-            return build_tabpfn_v3(xtr, ytr).predict_proba(xv)[:, 1]
+            return _builder(xtr, ytr).predict_proba(xv)[:, 1]
     else:  # sequence (Addition 4)
         sys.path[0:0] = [str(EXP / "4"), str(EXP / "4" / "_seq")]
         from _model_architecture.window_mlp.model import build_window_mlp  # noqa: E402

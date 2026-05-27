@@ -59,6 +59,26 @@ Eighteen trigger factors were assessed: stress, excessive sleep, sleep deprivati
 
 Headache classification followed ICHD-3 beta criteria B–D for migraine without aura. Of 1,099 recorded headache days, 336 (30.6%) met migraine criteria and 763 were non-migraine headaches [1, pp. 4–5].
 
+### Per-site characteristics
+
+The two recruitment clinics contribute distinct base rates. The data used by the leave-one-site-out external validation (`external_validation_site.md` §3) is summarised below.
+
+| Site | Patients | Patient-days | Migraine rate | Headache rate |
+|---|---:|---:|---:|---:|
+| Uijeongbu St. Mary's | 32 | ~2,650 | 8.6% | 25.4% |
+| Dongtan Sacred Heart | 30 | ~1,930 | 5.7% | 21.6% |
+| Pooled (cohort) | 62 | 4,516 | 7.2% | ~23.5% |
+
+The 50% relative gap in migraine base rate between sites (8.6% vs 5.7%) is the dominant driver of the calibration drift observed under leave-one-site-out external validation [external_validation_site.md §7].
+
+### Treatments observed but not modelled
+
+Park et al.'s data records preventive and acute medication use across Sheets 1-2 [1, pp. 3-4]: preventive prophylaxis status and acute analgesic intake on each headache day. This benchmark does not use medication variables as predictors; the feature dictionary in `## Benchmark Translation and Engineering Plan` includes only diary triggers and engineered history features. Potential residual confounding from preventive-medication effects on outcome rates is acknowledged in the Limitations (`discussion.md` §7.4).
+
+### Subjective assessment, blinding, and self-report design
+
+Both the outcome (next-day headache occurrence; ICHD-3 migraine classification) and the predictors (the 18 trigger flags, sleep, exercise) are recorded by the patient on the SHD diary on the day they occur [1, p. 4]. No third-party adjudication step exists for either outcome assessment or predictor measurement, so the assessor-qualification reporting items do not apply. Blinding is structurally inapplicable for the same reason: the patient records outcome and triggers in a single instrument, with no separable assessor whose access to predictor information could be restricted. ICHD-3 migraine classification on each headache day uses the published diagnostic-criteria checklist applied to the diary record; the criteria themselves are objective once the patient has recorded the underlying symptoms, so subjective-interpretation reporting items do not apply.
+
 ---
 
 # Patient Count Reconciliation
@@ -327,6 +347,21 @@ a single day after a long gap. Two gap-awareness features are provided:
 Models should learn to discount rolling features when gap indicators are
 high. For LSTM (Addition 4), consider masking or segmenting sequences at
 gaps > N days.
+
+**Per-predictor missing-values count.** Each predictor's null count after
+the engineering pipeline is logged in
+`data/processed/dataset_characterization.pdf` and is zero for the
+diary-trigger predictors and the engineered rolling/lag features used
+in this benchmark, by construction: gap days are absent rows rather
+than null cells, and rolling features fall back to `min_periods=1`
+when their window is partially covered. Two derived predictors carry
+documented null-fill defaults: `days_since_last_migraine` (filled
+with 61, the cohort's largest observed inter-attack gap) and the
+exercise-minute columns (filled with 0 for non-recorded days,
+i.e. no-exercise rather than missing-data). No predictor was omitted
+due to missingness; no imputation step is applied beyond these two
+documented null-fill defaults, so training- vs test-set leakage via
+imputation is structurally not possible.
 
 **Train/Val/Test Split (Chronological 70/15/15):**
 

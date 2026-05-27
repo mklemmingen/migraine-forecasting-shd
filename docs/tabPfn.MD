@@ -31,8 +31,7 @@ The within-family variant choice is therefore a calibration-noise call,
 not a discrimination-driven one; the defensible cross-architecture
 claim is at the family level (TabPFN beats XGBoost on the headache
 headline cell), and the paper's figures use the four-token slug
-`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>` (per
-`docs/figure_design_requirements.md` §8) to keep that distinction
+`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>` to keep that distinction
 explicit on every appearance.
 
 ## Package
@@ -212,6 +211,10 @@ The [Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3) HuggingFac
 **Calibration framing - empirical, not pre-asserted:** the TabPFN-3 model report [10] does not characterise calibration for the binary-specialised checkpoint (it does not even single it out in the experimental results). Whether the binary specialist preserves v3's claimed calibration property is an **empirical question this study's ECE10 / Brier columns answer**. The §4 no-external-Platt argument applies in the same form.
 
 **Cite:** TabPFN-3 model report [10]; same v3 architecture lineage from Hollmann et al. [1].
+
+### §5.6 Final-model parameters per variant (TRIPOD+AI Item 22)
+
+Each TabPFN variant's final fitted model is serialised to `<leaf>/model.joblib` under `experiment/1/<target>/<feature_set>/tabpfn/version_<label>/<ratio>/<split>/`. Prediction at evaluation time is `model.predict_proba(X)[:, 1]` per the §5.4 calibration policy. Because TabPFN performs no per-leaf hyperparameter tuning (the §1 no-`eval_metric` policy and the §3 deterministic `random_state` thread-through eliminate the search dimensions Optuna manages on the XGBoost side), each variant's configuration is captured fully by (i) the `model.joblib` checkpoint, (ii) the per-variant `build_*` factory in `experiment/1/_model_architecture/` (which records the `ModelVersion` enum value, the calibration flag, and any pre-training-envelope overrides), and (iii) the package version pin in `requirements.txt` (`tabpfn>=8.0.1` constrains the upstream checkpoint resolution). The AutoTabPFN variant additionally carries the AutoGluon post-hoc ensemble state under `<leaf>/autogluon_predictor/` (gitignored, regenerable from `train.py`). Together these artefacts permit re-instantiation of any TabPFN cell's prediction pipeline.
 
 ---
 
