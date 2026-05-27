@@ -87,7 +87,10 @@ def emit_insights(
           f"bg={len(X_background)} explain={len(X_explain)}", flush=True)
 
     # --- Attribution (SHAP or permutation importance) -----------------------
-    feature_names, matrix, attr_meta = shap_runners.compute_attributions(
+    # X_explain_used is the row subset actually passed to the estimator after
+    # subsampling; matrix[i] corresponds to X_explain_used.iloc[i]. X_explain
+    # (the full test set) is kept in scope for ALE, which benefits from more rows.
+    feature_names, matrix, attr_meta, X_explain_used = shap_runners.compute_attributions(
         predict_fn, X_background, X_explain, y_explain, arch_family, raw_model=raw_model,
     )
     ranking = shap_runners.mean_abs_ranking(feature_names, matrix)
@@ -105,9 +108,11 @@ def emit_insights(
     # Beeswarm only for true per-row SHAP matrices (not the permutation row)
     # and only when the row count stays readable.
     if not is_perm and matrix.shape[0] > 1 and matrix.shape[0] <= _BEESWARM_MAX_ROWS:
-        # Feature values aligned with the SHAP-matrix columns, for value-coloured
-        # beeswarm points (missing feature -> NaN -> mid colour).
-        feat_vals = X_explain.reindex(columns=feature_names).to_numpy(dtype=float)
+        # Feature values for the rows that were explained, aligned with the
+        # SHAP-matrix columns. X_explain_used carries exactly the subsampled
+        # rows the estimator saw, so feat_vals[i] is the feature vector for
+        # the same patient-day as matrix[i].
+        feat_vals = X_explain_used.reindex(columns=feature_names).to_numpy(dtype=float)
         # Freeze the matrix + values so the paper beeswarm (fig_h docs script) can
         # re-render without recomputing SHAP; the PNG alone is not reusable data.
         _safe(np.savez_compressed, str(insights_dir / f"shap_matrix_{ts}.npz"),
@@ -126,6 +131,16 @@ def emit_insights(
                                np.linspace(0.05, 0.95, 10))
             grid = np.unique(grid)
             pdp_vals = ale_mod.partial_dependence(predict_fn, X_explain, feat, grid)
+            # Stash the raw ALE + PDP arrays so the per-feature effect plot can
+            # be re-rendered (or re-analysed) without re-running the explainer.
+            _safe(np.savez_compressed, str(insights_dir / f"ale_{feat}_{ts}.npz"),
+                  feature=np.array(feat, dtype=object),
+                  ale_edges=np.asarray(curve["x"], dtype=float),
+                  ale_curve=np.asarray(curve["ale"], dtype=float),
+                  bin_local_diff=np.asarray(curve["bin_local_diff"], dtype=float),
+                  bin_counts=np.asarray(curve["bin_counts"], dtype=float),
+                  pdp_grid=np.asarray(grid, dtype=float),
+                  pdp_values=np.asarray(pdp_vals, dtype=float))
             _safe(_plots.plot_ale, curve, grid, pdp_vals, feat,
                   f"{title} - ALE: {feat}", insights_dir / f"ale_{feat}_{ts}.png")
             ale_slopes.append((feat, ale_mod.ale_slope(curve)))
@@ -159,6 +174,16 @@ def emit_insights(
             )
             interaction_pairs = shapiq_runner.top_pair_labels(result, n=10)
             interaction_meta = result["meta"]
+            # Stash the full feature-by-feature k-SII interaction matrix so the
+            # heatmap can be re-rendered without re-running ShapIQ's coalition
+            # refits (the expensive part of this stage).
+            top_idx = np.array([list(p) for p, _ in result["top_pairs"]], dtype=int)
+            top_val = np.array([v for _, v in result["top_pairs"]], dtype=float)
+            _safe(np.savez_compressed,
+                  str(insights_dir / f"shapiq_interactions_{ts}.npz"),
+                  feature_names=np.array(result["feature_names"], dtype=object),
+                  pair_matrix=np.asarray(result["pair_matrix"], dtype=float),
+                  top_pairs_idx=top_idx, top_pairs_value=top_val)
             _safe(_plots.plot_interactions, result,
                   f"{title} - pairwise interactions", insights_dir / f"shapiq_interactions_{ts}.png")
         except Exception as exc:
@@ -174,6 +199,18 @@ def emit_insights(
             projection = emb_mod.compute_embedding_projection(raw_model, X_explain, proba)
             if projection is not None:
                 embedding_meta = projection["meta"]
+                # Stash the 2-D coords + per-row probability so the embedding
+                # figure can be re-rendered without re-running UMAP / t-SNE.
+                coords = np.asarray(projection["coords"], dtype=float)
+                proba_arr = np.asarray(projection["proba"], dtype=float)
+                emb_df = pd.DataFrame({
+                    "x": coords[:, 0],
+                    "y": coords[:, 1],
+                    "proba": proba_arr,
+                    "method": projection["method"],
+                })
+                _safe(emb_df.to_csv,
+                      str(insights_dir / f"embedding_{ts}.csv"), index=False)
                 _safe(_plots.plot_embedding, projection,
                       f"{title} - attention embedding", insights_dir / f"embedding_{ts}.png")
         except Exception as exc:

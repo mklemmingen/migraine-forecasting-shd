@@ -212,13 +212,20 @@ def compute_attributions(
     y_explain,
     arch_family: str,
     raw_model=None,
-) -> tuple[list[str], np.ndarray, dict]:
+) -> tuple[list[str], np.ndarray, dict, pd.DataFrame]:
     """Dispatch to the architecture-matched attribution estimator.
 
-    Returns ``(feature_names, matrix, meta)``. ``matrix`` is
-    ``(n_explain, n_features)`` of signed SHAP values for the SHAP paths,
-    or a single-row non-negative permutation-importance vector for the
-    AutoTabPFN path (``meta['is_permutation']`` flags this).
+    Returns ``(feature_names, matrix, meta, X_explain_used)``.
+
+    ``matrix`` is ``(n_explained, n_features)`` of signed SHAP values for the
+    SHAP paths, or a single-row non-negative permutation-importance vector for
+    the AutoTabPFN path (``meta['is_permutation']`` flags this).
+
+    ``X_explain_used`` is the row subset of the input ``X_explain`` that was
+    actually passed to the attribution estimator after subsampling. Its i-th
+    row corresponds to ``matrix[i]``, so callers that need per-row feature
+    values (e.g. beeswarm colour encoding) must index from ``X_explain_used``,
+    not from the original ``X_explain``.
     """
     X_background = _as_frame(X_background)
     # The TabPFN path pays a forward pass per perturbation, so it uses a
@@ -227,12 +234,17 @@ def compute_attributions(
     X_explain = _subsample(_as_frame(X_explain), cap, SHAP_SEED)
 
     if arch_family == "xgboost":
-        return _kernel_shap_calibrated(predict_fn, X_background, X_explain)
+        feature_names, matrix, meta = _kernel_shap_calibrated(
+            predict_fn, X_background, X_explain)
+        return feature_names, matrix, meta, X_explain
     if arch_family == "tabpfn":
-        return _tabpfn_native_shap(raw_model, X_background, X_explain)
+        feature_names, matrix, meta = _tabpfn_native_shap(
+            raw_model, X_background, X_explain)
+        return feature_names, matrix, meta, X_explain
     if arch_family == "autotabpfn":
         y = y_explain.loc[X_explain.index] if hasattr(y_explain, "loc") else y_explain
-        return _permutation_importance(predict_fn, X_explain, y)
+        feature_names, matrix, meta = _permutation_importance(predict_fn, X_explain, y)
+        return feature_names, matrix, meta, X_explain
     raise ValueError(f"unknown arch_family for attribution: {arch_family!r}")
 
 
