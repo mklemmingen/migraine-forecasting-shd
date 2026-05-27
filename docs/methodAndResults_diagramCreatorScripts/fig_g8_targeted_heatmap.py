@@ -1,23 +1,26 @@
-"""Figure G7 — supplementary AUROC landscape heatmap across the 70_30
-sweep, with BH-FDR-significant paired-DeLong comparisons overlaid.
+"""Figure G8 — targeted-hypothesis-test AUROC heatmap, with the
+main-text BH-FDR-significant pair from §3a overlaid.
 
-Rows: (target, feature_set, split) cells at ratio=70_30 (the headline
-ratio). Columns: every architecture variant present in the sweep.
-Cell colour: AUROC point estimate from the canonical sweep CSV
-(`experiment/comparison_*.csv`). Cells with overlaid annotation
-(thick black edge) carry the architectures involved in
-BH-FDR-significant paired-DeLong tests from `fig_g6`'s 18-test
-family. The headline architecture per cell is marked with a small
-filled circle.
+Companion to ``fig_g7_significance_heatmap.py`` (which carries the
+exhaustive Bonferroni overlay over the 487-test all-pairs family at
+ratio 70_30). G8 carries the *targeted* main-text overlay: the
+18-test BH-FDR family curated to address load-bearing paper claims
+(cross-family headline-vs-runner-up, within-family-tie at the
+headache full chrono cell, HP-ladder, AutoTabPFN-vs-XGB). Same
+AUROC-landscape backdrop as G7 for visual continuity.
 
-The figure consumes:
-  - `experiment/comparison_*.csv` for the AUROC landscape
-  - `experiment/_eval/paired_delong_*.json` for significance overlay
+Why two figures rather than one with both overlays:
+  - Pre-registered separate test families have separate multiplicity
+    bounds (BH-FDR over m=18 here; Bonferroni FWER over m=487 in G7).
+  - One overlay per figure makes the reader's job easier and
+    forecloses the misread that the two families have the same
+    correction.
 
-so the figure pins to the same canonical sweep and the same 18-test
-family the main-text §3a table is built from.
+The figure consumes the most recent
+``experiment/_eval/paired_delong_*.json`` (written by
+``experiment/_eval/run_paired_delong.py``).
 
-Usage: python fig_g7_significance_heatmap.py
+Usage: python fig_g8_targeted_heatmap.py
 """
 import csv
 import json
@@ -36,7 +39,6 @@ sys.path.insert(0, str(_REPO / "experiment"))
 import _style as S  # noqa: E402
 
 
-# Cells covered (excluding headache/park).
 CELLS = [
     ("headache", "full_features",       "chrono"),
     ("headache", "full_features",       "stratified"),
@@ -61,9 +63,6 @@ CELLS = [
     ("migraine", "park_features",       "patient"),
 ]
 
-# Architecture column order; missing cells render grey. Labels match the
-# exhaustive_delong JSON's `arch_a` / `arch_b` naming so the significance
-# overlay lookups don't silently drop TabPFN entries.
 ARCHS = [
     "xgb_NonHP",
     "xgb_HP020", "xgb_HP050", "xgb_HP100", "xgb_HP200", "xgb_HP500",
@@ -73,8 +72,7 @@ ARCHS = [
 ]
 
 
-def _parse_mean(s: str):
-    """Parse '0.793 [0.701 - 0.873]' → 0.793."""
+def _parse_mean(s):
     if not s:
         return None
     m = re.match(r"\s*([0-9.\-]+)", s)
@@ -82,7 +80,6 @@ def _parse_mean(s: str):
 
 
 def _csv_lookup(rows, target, feature_set, split, arch):
-    """Return AUROC for a (cell, arch) tuple, or None if not in the sweep."""
     for r in rows:
         if (r["target"] != target or r["feature_set"] != feature_set
                 or r["splittype"] != split or r["datasplit"] != "70_30"):
@@ -109,18 +106,9 @@ def _csv_lookup(rows, target, feature_set, split, arch):
     return None
 
 
-def _latest_delong_json():
-    """Prefer the exhaustive-grid JSON (Bonferroni FWER over the all-pairs
-    family at ratio=70_30) when present; fall back to the 18-test
-    paired_delong family if not. The exhaustive run carries
-    architecture-vs-headline significance per cell, which is the natural
-    overlay for the AUROC heatmap."""
-    eval_dir = _REPO / "experiment" / "_eval"
-    exhaustive = sorted(eval_dir.glob("exhaustive_delong_*.json"))
-    if exhaustive:
-        return exhaustive[-1], "exhaustive"
-    paired = sorted(eval_dir.glob("paired_delong_*.json"))
-    return (paired[-1], "paired") if paired else (None, None)
+def _latest_paired_json():
+    candidates = sorted((_REPO / "experiment" / "_eval").glob("paired_delong_*.json"))
+    return candidates[-1] if candidates else None
 
 
 def main():
@@ -130,7 +118,6 @@ def main():
     with open(csv_path) as f:
         rows = list(csv.DictReader(f))
 
-    # Build (rows × archs) AUROC matrix.
     M = np.full((len(CELLS), len(ARCHS)), np.nan, dtype=float)
     for i, (t, fs, sp) in enumerate(CELLS):
         for j, arch in enumerate(ARCHS):
@@ -138,61 +125,41 @@ def main():
             if v is not None:
                 M[i, j] = v
 
-    # Identify per-row headline (highest-AUROC architecture in the row).
     headlines = {}
     for i in range(len(CELLS)):
         row = M[i]
         if np.isfinite(row).any():
             headlines[i] = int(np.nanargmax(row))
 
-    # Overlay significant pairs from either the exhaustive Bonferroni
-    # family (preferred) or the targeted BH-FDR 18-test family (fallback).
+    # Tested-by-G6 markers (small open circle) and significant-pair markers
+    # (thick edge) from the 18-test BH-FDR family.
+    tested_cells = set()
     sig_cells = set()
-    delong_src, delong_kind = _latest_delong_json()
-    if delong_src is not None:
-        delong = json.loads(delong_src.read_text())
-        if delong_kind == "exhaustive":
-            # Mark every architecture that participates in any Bonferroni-
-            # significant pair within its cell.
-            for cell_dict in delong["cells"]:
-                parts = cell_dict["cell"].split("/")
-                if len(parts) != 3:
-                    continue
-                tgt, feat, sp = parts
-                feat_full = f"{feat}_features"
-                try:
-                    row_idx = CELLS.index((tgt, feat_full, sp))
-                except ValueError:
-                    continue
-                for pair in cell_dict["pairs"]:
-                    if not pair.get("sig_bonferroni"):
-                        continue
-                    for arch_lbl in (pair["arch_a"], pair["arch_b"]):
-                        if arch_lbl in ARCHS:
-                            sig_cells.add((row_idx, ARCHS.index(arch_lbl)))
-        else:  # paired (18-test family)
-            for t in delong["tests"]:
-                if not t.get("sig_at_q05"):
-                    continue
-                parts = t["cell"].split("/")
-                if len(parts) != 3:
-                    continue
-                tgt, feat, sp = parts
-                feat_full = f"{feat}_features"
-                try:
-                    row_idx = CELLS.index((tgt, feat_full, sp))
-                except ValueError:
-                    continue
-                for arch_lbl in (t["arch_a"], t["arch_b"]):
-                    norm = (arch_lbl.replace("stacked_2xgb_", "xgb_")
-                                    .replace("autotabpfn_v2-5-auto", "autotabpfn"))
-                    if norm in ARCHS:
-                        sig_cells.add((row_idx, ARCHS.index(norm)))
+    paired_src = _latest_paired_json()
+    if paired_src is not None:
+        paired = json.loads(paired_src.read_text())
+        for t in paired["tests"]:
+            parts = t["cell"].split("/")
+            if len(parts) != 3:
+                continue
+            tgt, feat, sp = parts
+            feat_full = f"{feat}_features"
+            try:
+                row_idx = CELLS.index((tgt, feat_full, sp))
+            except ValueError:
+                continue
+            for arch_lbl in (t["arch_a"], t["arch_b"]):
+                norm = (arch_lbl.replace("stacked_2xgb_", "xgb_")
+                                .replace("autotabpfn_v2-5-auto", "autotabpfn")
+                                .replace("tabpfn_v", "tabpfn_"))
+                if norm in ARCHS:
+                    col = ARCHS.index(norm)
+                    tested_cells.add((row_idx, col))
+                    if t.get("sig_at_q05"):
+                        sig_cells.add((row_idx, col))
 
     fig, ax = plt.subplots(figsize=S.figsize(cols="double", h=9.5))
 
-    # Diverging colormap centred at chance (0.5): warm = high AUROC, cool = low.
-    # _metric_palette uses RdBu warm=bad; for AUROC we want warm=good, so RdBu_r.
     cmap = plt.get_cmap("RdBu_r")
     vmin, vmax = 0.35, 0.85
     masked = np.ma.masked_invalid(M)
@@ -200,7 +167,6 @@ def main():
                    interpolation="nearest")
     cmap.set_bad(S.FAINT)
 
-    # Cell-text: AUROC value, white-on-dark or black-on-light by intensity.
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             v = M[i, j]
@@ -210,12 +176,18 @@ def main():
             ax.text(j, i, f"{v:.2f}", ha="center", va="center",
                     fontsize=7.0, color=txt_color)
 
-    # Headline marker: small black filled circle in cell corner.
+    # Headline marker (small black filled circle).
     for i, j in headlines.items():
         ax.plot(j + 0.34, i - 0.34, marker="o", markersize=4,
                 markerfacecolor=S.INK, markeredgecolor=S.INK, linestyle="none")
 
-    # BH-FDR-significant overlay: thick black edge.
+    # Tested-by-G6 marker (small open circle bottom-left corner).
+    for (i, j) in tested_cells - sig_cells:
+        ax.plot(j - 0.34, i + 0.34, marker="o", markersize=4,
+                markerfacecolor="white", markeredgecolor=S.INK,
+                markeredgewidth=1.0, linestyle="none")
+
+    # Significant pair overlay (thick black edge).
     for (i, j) in sig_cells:
         ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1,
                                    facecolor="none", edgecolor=S.INK, lw=1.8))
@@ -226,19 +198,15 @@ def main():
     ax.set_yticklabels([f"{t}/{fs.replace('_features','')}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
-    overlay_label = ("exhaustive Bonferroni" if delong_kind == "exhaustive"
-                     else "BH-FDR main-text §3a")
     ax.set_title(
-        "Supplementary AUROC heatmap at ratio 70_30 across the sweep\n"
-        f"headline per cell • • • ;   thick edges = {overlay_label}-significant pair"
+        "AUROC heatmap with main-text BH-FDR overlay (18-test targeted family)\n"
+        "cell-headline • • • ;  tested-in-G6 ○ ○ ○ ;  thick edge = BH-FDR-significant pair"
     )
 
-    # Side-row colourbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
     cbar.set_label("hold-out AUROC (point estimate)", fontsize=9)
     cbar.ax.tick_params(labelsize=8)
 
-    # Lines between target groups for readability
     headache_max = sum(1 for c in CELLS if c[0] == "headache") - 0.5
     ax.axhline(headache_max, color=S.SOFT, lw=0.6)
 
@@ -246,14 +214,12 @@ def main():
     ax.spines["right"].set_visible(False)
 
     fig.tight_layout()
-    out_stem = _FIG_DIR / "fig_g7_significance_heatmap"
+    out_stem = _FIG_DIR / "fig_g8_targeted_heatmap"
     S.save(fig, out_stem)
     print(f"source CSV:    {csv_path.relative_to(_REPO)}")
-    if delong_src is not None:
-        print(f"source DeLong: {delong_src.relative_to(_REPO)}")
-    print(f"rows {len(CELLS)} × cols {len(ARCHS)} = {len(CELLS)*len(ARCHS)} potential cells")
-    n_present = int(np.isfinite(M).sum())
-    print(f"populated cells: {n_present}, BH-FDR-significant overlays: {len(sig_cells)}")
+    if paired_src is not None:
+        print(f"source paired: {paired_src.relative_to(_REPO)}")
+    print(f"tested cells: {len(tested_cells)} ;  sig cells: {len(sig_cells)}")
 
 
 if __name__ == "__main__":
