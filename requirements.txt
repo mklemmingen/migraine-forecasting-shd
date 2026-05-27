@@ -17,6 +17,11 @@ xgboost>=2.0            # XGBClassifier (tree_method='hist' is default in 2.x)
 joblib>=1.3             # model serialisation; also a scikit-learn dep
 
 # ---- Foundation model -----------------------------------------------------------------------------------
+torch>=2.5,<3.0         # Transitive dep of tabpfn; pinned to the 2.x major so a
+                        # future tabpfn release that loosens its torch constraint
+                        # cannot silently drag in torch 3.x. Reference build of
+                        # this project uses torch 2.11.0+rocm7.2; the GPU-wheel
+                        # install comment under `tabpfn` below covers AMD/NVIDIA.
 tabpfn>=8.0.1           # Prior Labs release. 8.0.1 is the floor: build_tabpfn_v3
                         # (experiment/1) uses ModelVersion.V3 exposed by
                         # tabpfn>=8.0.0, and the bare `version_2-6` builder pins
@@ -104,3 +109,9 @@ umap-learn>=0.5         # 2D projection of TabPFN attention embeddings. numba
 lifelines>=0.27         # Andersen-Gill / PWP-gap-time recurrent-event models on
                         # inter-attack gap times. Pure-python, additive; leaves the
                         # pinned numpy/scipy/torch/autogluon stack untouched.
+
+# ---- Development / testing (optional) -------------------------------------------------------------------
+# Required to run the smoke tests under tests/ (delong + metrics_lib).
+# Not used at evaluation time; safe to skip for a pure-inference install.
+pytest>=8.0             # Test runner. Used by tests/test_delong.py and
+                        # tests/test_metrics_lib.py.
