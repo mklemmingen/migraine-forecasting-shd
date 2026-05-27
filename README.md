@@ -34,8 +34,7 @@ the top that confirms its place in the chain.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
 referenced from the Methods and Results docs by name; every figure carries a
-four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`) per the
-convention in §8 of the project's figure design guide.
+four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`).
 
 ---
 
@@ -110,11 +109,9 @@ that log catches the drift before any model fit reads the changed file.
 ## Code and data availability
 
 **Code.** The benchmark code, evaluation harness, and per-figure scripts
-are tracked in this repository. Sources.bib and the per-source PDFs are in
-[`Sources.bib`](Sources.bib) and the local `PaperSources/` and
-`PaperSourcesDesign/` folders respectively. The Python environment is
-pinned by [`requirements.txt`](requirements.txt); the reference run uses
-Python 3.13.12 on the workstation described in the Hardware section.
+are tracked in this repository.
+The Python environment is pinned by [`requirements.txt`](requirements.txt); 
+the reference run uses Python 3.13.12 on the workstation described in the Hardware section.
 
 **Data.** The SHD dataset is the publicly released supplementary file S1
 of Park et al. 2016 [1] (CC BY 4.0; raw `.xls` at the publisher record).
