@@ -1,11 +1,15 @@
-"""Figure F2 - Dolan-More performance profiles for AUROC.
+"""Figure F2 - Dolan-More performance profiles for AUROC, within-family scope.
 
 One curve per architecture, per target, over the full_features cells. The curve
 at factor tau is the fraction of cells where that architecture is within tau of
 the best architecture in the cell [Dolan & More 2002, Math. Prog.]. Curves that
 rise fastest in the top-left dominate; flat curves are unstable across cells.
 Uses the same coverage-filtered architecture set as the critical-difference
-diagram so the two views describe one matched design.
+diagram so the two views describe one matched design - that filter removes
+non-HP and cross-family entries (add0_stacked_NonHP, add1_tabpfn_NonHP,
+add4_window_mlp, pooled_lr) because they are missing on at least one cell,
+which makes f2 (like f1) a WITHIN-FAMILY profile of HP variants vs TabPFN
+versions rather than a true cross-architecture test.
 
 Data source: the latest experiment/comparison_*.csv written by
 run_aggregate_results.py.

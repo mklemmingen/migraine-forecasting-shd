@@ -43,10 +43,11 @@ def main():
         print("  no headline_explain in figdata - run compare.py after this update")
         return
     print(f"  source {figdata_path.name} ({len(headlines)} headline cells)")
+    from _style import leaf_slug  # noqa: E402
     for h in headlines:
         ranking = [tuple(t) for t in h["ranking"]]
         lo = h.get("auroc_lo")
-        title = f"{h['target']} headline ({h['family']}) - feature attribution"
+        title = f"{h['target']} headline ({leaf_slug(h['leaf_dir'])}) - feature attribution"
         if lo is not None and lo <= 0.5:
             title += "  [AUROC CI reaches chance: descriptive only]"
         out = HERE / "figures" / f"fig_h1_feature_attribution_{h['target']}"

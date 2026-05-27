@@ -48,8 +48,10 @@ RATIO = "70_30"
 
 def _enumerate_leaves(target: str, feature_set: str, split: str):
     """Yield (arch_label, leaf_path) for every architecture variant present
-    at the given (target, feature_set, ratio=70_30, split)."""
-    # XGB family at experiment/0/...
+    at the given (target, feature_set, ratio=70_30, split). Mirrors the
+    canonical sweep CSV's coverage at this ratio, including the
+    blended_xgb_lr_spano2026 Spano baseline (Addition 0)."""
+    # XGB stacked-meta-LR at experiment/0/.../stacked_2xgb_meta_lr/...
     xgb_root = _EXP_ROOT / "0" / target / feature_set / "stacked_2xgb_meta_lr" / RATIO / split
     if (xgb_root / "NonHP").is_dir() and (xgb_root / "NonHP" / "model.joblib").is_file():
         yield ("xgb_NonHP", xgb_root / "NonHP")
@@ -58,6 +60,9 @@ def _enumerate_leaves(target: str, feature_set: str, split: str):
         for hp_variant in sorted(hp_root.iterdir()):
             if hp_variant.is_dir() and (hp_variant / "model.joblib").is_file():
                 yield (f"xgb_{hp_variant.name}", hp_variant)
+    # blended_xgb_lr_spano2026 baseline is intentionally skipped: it sits well
+    # below the other variants on every cell and would mostly add no-effect
+    # rows that crowd the supplementary heatmap without changing the story.
     # TabPFN + AutoTabPFN at experiment/1/...
     tabpfn_root = _EXP_ROOT / "1" / target / feature_set / "tabpfn"
     if tabpfn_root.is_dir():
@@ -77,9 +82,9 @@ def _bonferroni(pvalues: np.ndarray, alpha: float = 0.05) -> np.ndarray:
 
 
 def main():
+    from sklearn.metrics import roc_auc_score
     cells = []
-    all_pvalues = []
-    test_pointers = []  # (cell_idx, arch_label_within_cell) for each p-value
+    all_pairs = []  # flat list of every paired test for FWER
 
     for target in TARGETS:
         for feature_set in FEATURE_SETS_BY_TARGET[target]:
@@ -94,76 +99,78 @@ def main():
                 for arch_label, leaf_path in leaves:
                     try:
                         y_true, y_score = extract_predictions(leaf_path)
+                        auc = float(roc_auc_score(y_true, y_score))
                     except Exception as e:
                         print(f"     EXTRACT FAIL {arch_label}: {type(e).__name__}: {e}")
                         continue
-                    # AUROC via sklearn (cheaper than full DeLong components here)
-                    from sklearn.metrics import roc_auc_score
-                    try:
-                        auc = float(roc_auc_score(y_true, y_score))
-                    except Exception:
-                        continue
                     arch_results.append(dict(arch=arch_label, auc=auc,
-                                             y_true=y_true, y_score=y_score))
+                                             y_true=y_true, y_score=y_score,
+                                             leaf=str(leaf_path.relative_to(_EXP_ROOT))))
 
                 if len(arch_results) < 2:
                     print(f"     skip: only {len(arch_results)} arch with predictions")
                     continue
 
+                # Sort architectures by AUROC desc; headline is index 0.
                 arch_results.sort(key=lambda d: -d["auc"])
-                headline = arch_results[0]
-                cell_idx = len(cells)
-                cell_rows = []
+                headline_label = arch_results[0]["arch"]
 
-                for r in arch_results:
-                    if r is headline:
-                        cell_rows.append(dict(
-                            arch=r["arch"], auc=r["auc"], delta_vs_headline=0.0,
-                            p_vs_headline=None, is_headline=True,
-                        ))
-                        continue
-                    _, _, delta, p, _, _ = delong_paired_test(
-                        headline["y_true"], headline["y_score"], r["y_score"]
-                    )
-                    cell_rows.append(dict(
-                        arch=r["arch"], auc=r["auc"],
-                        delta_vs_headline=float(r["auc"] - headline["auc"]),
-                        p_vs_headline=float(p), is_headline=False,
-                    ))
-                    all_pvalues.append(float(p))
-                    test_pointers.append((cell_idx, r["arch"]))
+                # All-pairs within this cell. This is the EXHAUSTIVE family
+                # the supplementary's name promises; subsequent Bonferroni
+                # correction across all_pairs bounds the family-wise error.
+                cell_pairs = []
+                for i in range(len(arch_results)):
+                    for j in range(i + 1, len(arch_results)):
+                        a, b = arch_results[i], arch_results[j]
+                        _, _, delta, p, lo, hi = delong_paired_test(
+                            a["y_true"], a["y_score"], b["y_score"]
+                        )
+                        pair = dict(
+                            arch_a=a["arch"], arch_b=b["arch"],
+                            auc_a=float(a["auc"]), auc_b=float(b["auc"]),
+                            delta=float(delta), p=float(p),
+                            ci_lo=float(lo), ci_hi=float(hi),
+                        )
+                        cell_pairs.append(pair)
+                        all_pairs.append((cell_label, len(cells), len(cell_pairs) - 1, pair))
 
                 cells.append(dict(
                     cell=cell_label, target=target, feature_set=feature_set,
-                    split=split, ratio=RATIO,
-                    headline_arch=headline["arch"], rows=cell_rows,
+                    split=split, ratio=RATIO, headline_arch=headline_label,
+                    arch_aurocs={r["arch"]: r["auc"] for r in arch_results},
+                    leaf_paths={r["arch"]: r["leaf"] for r in arch_results},
+                    pairs=cell_pairs,
                 ))
 
-    qvalues = _bonferroni(np.array(all_pvalues), alpha=0.05) if all_pvalues else np.array([])
-    for (cell_idx, arch_label), q in zip(test_pointers, qvalues):
-        for row in cells[cell_idx]["rows"]:
-            if row["arch"] == arch_label and not row["is_headline"]:
-                row["q_bonferroni"] = float(q)
-                row["sig_bonferroni"] = bool(q <= 0.05)
-                break
+    n_tests = len(all_pairs)
+    pvals = np.array([p[3]["p"] for p in all_pairs])
+    qvals = _bonferroni(pvals, alpha=0.05) if n_tests else np.array([])
+    for (cell_label, ci, pi, _), q in zip(all_pairs, qvals):
+        cells[ci]["pairs"][pi]["q_bonferroni"] = float(q)
+        cells[ci]["pairs"][pi]["sig_bonferroni"] = bool(q <= 0.05)
 
-    n_tests = len(all_pvalues)
-    n_sig = int(sum(1 for q in qvalues if q <= 0.05))
-    print(f"\nTotal: {len(cells)} cells, {n_tests} paired tests, {n_sig} significant after Bonferroni (α={0.05/max(n_tests,1):.2e})")
+    n_sig = int((qvals <= 0.05).sum()) if n_tests else 0
+    alpha_star = 0.05 / max(n_tests, 1)
+    print(f"\nTotal: {len(cells)} cells, {n_tests} all-pairs paired tests, "
+          f"{n_sig} significant after Bonferroni (α* = {alpha_star:.2e})")
 
     ts = datetime.now().strftime("%Y%m%dT%H%M%S")
     out_path = _THIS.parent / f"exhaustive_delong_{ts}.json"
     payload = dict(
-        timestamp=ts,
-        ratio=RATIO,
-        n_cells=len(cells),
-        n_tests=n_tests,
-        n_significant_bonferroni=n_sig,
-        bonferroni_alpha_star=0.05 / max(n_tests, 1),
+        timestamp=ts, ratio=RATIO, n_cells=len(cells), n_tests=n_tests,
+        n_significant_bonferroni=n_sig, bonferroni_alpha_star=alpha_star,
         cells=cells,
     )
     out_path.write_text(json.dumps(payload, indent=2, default=float))
     print(f"Persisted to: {out_path.relative_to(_EXP_ROOT.parent)}")
+
+    # Per-cell JSON for individual parseability without loading the global blob.
+    per_cell_dir = _THIS.parent / "exhaustive_delong_per_cell"
+    per_cell_dir.mkdir(exist_ok=True)
+    for c in cells:
+        cell_file = per_cell_dir / f"{c['cell'].replace('/', '__')}.json"
+        cell_file.write_text(json.dumps(c, indent=2, default=float))
+    print(f"Per-cell files: {per_cell_dir.relative_to(_EXP_ROOT.parent)}/ ({len(cells)} files)")
 
 
 if __name__ == "__main__":

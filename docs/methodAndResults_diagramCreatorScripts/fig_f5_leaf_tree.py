@@ -1,4 +1,5 @@
-"""Figure F5 - icicle plot of the discovered experiment leaves.
+"""Figure F5 - icicle plot of the experiment leaves summarised in the
+aggregate comparison CSV (Additions 0 / 1 + Addition 5 site externals).
 
 One horizontal stripe per path level (addition / target / feature_set /
 architecture / version / split ratio / split strategy / HP state / HP strategy /
@@ -6,9 +7,20 @@ HP operating point); each node's width is proportional to its descendant-leaf
 count, and children sit under their parent so a reader can trace any leaf's full
 configuration top-to-bottom [Shneiderman 1992; Andrews & Sanguinetti 2019].
 
+Scope caveat: the comparison CSV (run_aggregate_results.py) is built from
+the Addition 0 + Addition 1 grids plus the Addition 5 site externals. The
+analytical-only Additions (Addition 2 explainability, Addition 3 temporal,
+Addition 4 sequence, Addition 6 clinical value) write their outputs at the
+addition root rather than as per-leaf scoring rows, so they do not appear
+in the icicle. A reader who wants the full project decomposition (0 through
+6) reads this figure together with the Addition-naming preamble of
+results_findings.md.
+
 Data source: the latest experiment/comparison_*.csv written by
 run_aggregate_results.py - one row per leaf, so the icicle reflects exactly the
-configurations summarised in that snapshot's comparison table.
+configurations summarised in that snapshot's comparison table. The CSV
+timestamp is printed at runtime and is the load-bearing provenance for
+the leaf count rendered in the figure.
 
 Usage: python fig_f5_leaf_tree.py
 """

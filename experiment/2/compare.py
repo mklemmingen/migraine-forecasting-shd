@@ -348,7 +348,7 @@ def _park_ranks(ex):
 # in for headline rows so the AUPRC-lift plotter reads no parquet.
 _HEADLINE_FIELDS = ("role", "target", "feature_set", "splittype", "datasplit",
                     "family", "architecture", "auroc_mean", "auroc_lo", "auroc_hi",
-                    "auprc_mean", "auprc_lo", "auprc_hi", "calib_slope")
+                    "auprc_mean", "auprc_lo", "auprc_hi", "calib_slope", "leaf_dir")
 
 
 def _gather_figdata(raw_selections, selections) -> dict:
@@ -359,6 +359,9 @@ def _gather_figdata(raw_selections, selections) -> dict:
     headlines = []
     for s in raw_selections:
         entry = {k: s.get(k) for k in _HEADLINE_FIELDS}
+        # leaf_dir comes from select.py as a Path; the figdata JSON needs str.
+        if entry.get("leaf_dir") is not None:
+            entry["leaf_dir"] = str(entry["leaf_dir"])
         if entry.get("role") == "headline":
             entry["prevalence"] = _test_prevalence(
                 s["target"], s["datasplit"], s["splittype"])

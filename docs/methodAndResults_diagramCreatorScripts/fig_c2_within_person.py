@@ -1,14 +1,19 @@
 """Figure C2 - within-person discrimination (the load-bearing finding).
 
-Per-patient hold-out AUROC for the headline discriminator (TabPFN v3,
-full_features, chronological), pooled across the 5 expanding-window CV folds so
+Per-patient hold-out AUROC for the TabPFN leaf in each target's headline cell
+(full_features, chronological), pooled across the 5 expanding-window CV folds so
 every patient with >=5 positive days is estimable (the late-enrolment hold-out is
-too sparse for per-patient estimates). Each marker is one patient with its
-Hanley-McNeil 95% CI; the reference lines are chance (0.5), the pooled AUROC, and
-the precision-weighted within-person C-statistic (DerSimonian-Laird random
-effects) with its CI band. The pooled AUROC sits far above a per-patient centre
-near chance: pooled discrimination is mostly between-patient base-rate separation,
-not within-person day-to-day ranking.
+too sparse for per-patient estimates). The TabPFN leaf is resolved from the
+latest experiment/2/figdata_*.json: for headache it is the composite headline
+(TabPFN wins the full_features/chrono cell); for migraine it is the
+runner-up (composite winner there is the XGBoost stack, so the TabPFN within-
+person curve uses the cell's family=tabpfn entry to keep the comparison
+architecture-fair). Each marker is one patient with its Hanley-McNeil 95% CI;
+the reference lines are chance (0.5), the pooled AUROC, and the precision-
+weighted within-person C-statistic (DerSimonian-Laird random effects) with its
+CI band. The pooled AUROC sits far above a per-patient centre near chance:
+pooled discrimination is mostly between-patient base-rate separation, not
+within-person day-to-day ranking.
 
 Usage: python fig_c2_within_person.py   (refits per CV fold; minutes, GPU for TabPFN)
 """
@@ -33,8 +38,28 @@ sys.path.insert(0, str(EXP / "5" / "_personal"))
 import within_person as WP  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
+# Reuse the figdata loader the g/h scripts use so leaf-path resolution stays
+# in lockstep with the composite_sorted selection in experiment/2/select.py.
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+_F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
+
 CV_WORKER = EXP / "5" / "_personal" / "_cv_oof_worker.py"
 MIN_POS = 5
+
+
+def _resolve_tabpfn_leaf(headlines, target):
+    """Return the figdata-tracked TabPFN leaf for the headline cell
+    (full_features/chrono) of ``target``: prefer the headline if family=tabpfn,
+    otherwise the runner-up. Returns None when neither row is tabpfn (e.g. if
+    figdata pre-dates the leaf_dir field)."""
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == "tabpfn" and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
 
 
 def _env(addition: str) -> dict:
@@ -87,14 +112,25 @@ def _panel(ax, tgt, y, p, pid):
 
 def main():
     S.apply()
+    figdata_path = _F.latest_figdata(EXP / "2")
+    if figdata_path is None:
+        raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
+    headlines = _F.load_figdata(figdata_path).get("headlines", [])
+    print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
     fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.6))
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
-        leaf = EXP / "1" / tgt / "full_features/tabpfn/version_3-default/70_15_15/chrono"
+        leaf = _resolve_tabpfn_leaf(headlines, tgt)
+        if leaf is None:
+            print(f"  no tabpfn entry for {tgt} in figdata; skipping panel "
+                  "(re-run experiment/2/compare.py to refresh leaf_dir)")
+            continue
+        print(f"  {tgt} TabPFN leaf: {leaf.relative_to(EXP)}")
         r = _cv_predict(leaf)
         if r is not None:
             _panel(ax, tgt, *r)
+            ax.set_title(f"{tgt} - {S.leaf_slug(leaf)}")
     fig.suptitle("Per-patient discrimination vs pooled AUROC (history features, chrono)",
                  y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_c2_within_person"))

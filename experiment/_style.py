@@ -280,3 +280,114 @@ def save(fig, out, dpi=300) -> str:
     fig.savefig(f"{stem}.pdf", bbox_inches="tight")
     plt.close(fig)
     return f"{stem}.png"
+
+
+# ---------------------------------------------------------------------------
+# Leaf-path -> compact figure-legend slug.
+# Convention: ``<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>``. Documented in
+# docs/figure_design_requirements.md under "Model and cell identification on
+# figures". A reader can always reconstruct the full leaf path from the slug.
+# ---------------------------------------------------------------------------
+
+_FEATURE_SHORT = {
+    "full_features": "full",
+    "spano_features": "spano",
+    "park_features": "park",
+    "no_rolling_features": "no-roll",
+}
+
+_TABPFN_VAR_SHORT = {
+    "version_2-6": "v2.6",
+    "version_2-5-real": "v2.5r",
+    "version_2-5-finetuned": "v2.5f",
+    "version_2-5-auto": "v2.5a",
+    "version_3-default": "v3d",
+    "version_3-binary": "v3b",
+}
+
+_SEQ_VAR_SHORT = {
+    "version_window-mlp": "windowMLP",
+    "version_gru": "GRU",
+    "version_tcn": "TCN",
+}
+
+
+def leaf_slug(leaf) -> str:
+    """Return the 4-token compact label for a leaf path.
+
+    Examples:
+        experiment/0/migraine/full_features/stacked_2xgb_meta_lr/
+            70_30/chrono/HyperparameterTuned/single_AUROC/HP020
+            -> 'XGB-HP020 / full / chrono / 70-30'
+
+        experiment/1/headache/full_features/tabpfn/version_2-6/70_30/chrono
+            -> 'TabPFN-v2.6 / full / chrono / 70-30'
+
+        experiment/4/headache/full_features/sequence/version_window-mlp/
+            70_15_15/chrono
+            -> 'Seq-windowMLP / full / chrono / 70-15-15'
+
+    Parameters
+    ----------
+    leaf : str or pathlib.Path
+        Any leaf directory under ``experiment/``. Need not exist on disk.
+
+    Returns
+    -------
+    str
+        Four space-separated tokens joined by ``' / '``. If a token cannot
+        be extracted (e.g. the leaf path is malformed), it is replaced with
+        ``'?'`` so the caller's legend still renders.
+    """
+    parts = str(leaf).split("/")
+    feature = next((_FEATURE_SHORT.get(p, p) for p in parts
+                    if p in _FEATURE_SHORT), "?")
+    split = next((p for p in parts if p in ("chrono", "stratified", "patient")), "?")
+    ratio_raw = next((p for p in parts if p in ("70_30", "70_15_15", "80_20")), "?")
+    ratio = ratio_raw.replace("_", "-")
+
+    # Architecture-variant token
+    arch = "?"
+    if "tabpfn" in parts:
+        ti = parts.index("tabpfn")
+        ver = next((p for p in parts[ti + 1:] if p.startswith("version_")), None)
+        arch = f"TabPFN-{_TABPFN_VAR_SHORT.get(ver, ver or '?')}"
+    elif "sequence" in parts:
+        si = parts.index("sequence")
+        ver = next((p for p in parts[si + 1:] if p.startswith("version_")), None)
+        arch = f"Seq-{_SEQ_VAR_SHORT.get(ver, (ver or '?').replace('version_', ''))}"
+    elif "stacked_2xgb_meta_lr" in parts:
+        if "HyperparameterTuned" in parts:
+            hp = next((p for p in parts if p.startswith("HP") and p[2:].isdigit()), None)
+            arch = f"XGB-{hp}" if hp else "XGB-HPtuned"
+        else:
+            arch = "XGB-NonHP"
+    elif "blended_xgb_lr_spano2026" in parts:
+        arch = "XGB-blended"
+
+    return f"{arch} / {feature} / {split} / {ratio}"
+
+
+def caption_block(*, leaf=None, target=None, metric=None, n=None, n_pos=None,
+                  extra: str | None = None) -> str:
+    """Build the standard figure-caption block per
+    docs/figure_design_requirements.md "Model and cell identification on
+    figures". Returns a single line, ready to prefix the figure-specific
+    description. Tokens are dropped when the corresponding argument is
+    ``None`` so a caller that only knows the target and metric can still
+    emit a partial block."""
+    bits = []
+    if metric is not None:
+        bits.append(metric)
+    if target is not None:
+        bits.append(f"target {target}")
+    if leaf is not None:
+        bits.append(f"cell {leaf_slug(leaf)}")
+    if n is not None:
+        n_str = f"n = {n} patient-days"
+        if n_pos is not None:
+            n_str += f", {n_pos} positives"
+        bits.append(n_str)
+    if extra:
+        bits.append(extra)
+    return ". ".join(bits) + "." if bits else ""

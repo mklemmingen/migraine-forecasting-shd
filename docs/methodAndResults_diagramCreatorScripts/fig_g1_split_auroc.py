@@ -1,9 +1,20 @@
 """Figure G1 - discrimination by split type, per cell (Addition 2).
 
-Best hold-out AUROC of the headline model per (target, feature-set) cell, one
-bar per split strategy with 95% CI whiskers; bars whose CI reaches chance are
-hatched. The chronological bar is the deployable forecast, stratified is the
-leakage contrast, patient is generalisation to unseen patients.
+Best hold-out AUROC of the COMPOSITE-SELECTED headline model per (target,
+feature-set) cell, one bar per split strategy with 95% CI whiskers; bars
+whose CI reaches chance are hatched. The chronological bar is the
+deployable forecast, stratified is the leakage contrast, patient is
+generalisation to unseen patients.
+
+Caveat for the results_findings.md §2 asymmetric-hierarchy claim
+(headache stratified > patient > chrono; migraine stratified > chrono
+> patient): §2 fixes the architecture (stacked_2xgb NonHP) and averages
+across ratios, while this figure plots the composite-selected headline
+per cell, which mixes architectures (XGB on some cells, TabPFN on
+others). The per-cell orderings in this figure therefore need NOT match
+the §2 hierarchy - a reader cross-referencing the two should know that
+§2 is a within-architecture cohort summary and g1 is a cross-architecture
+headline summary.
 
 Data source: the latest experiment/2/figdata_*.json frozen by
 experiment/2/compare.py, so the figure pins to one selection run.
