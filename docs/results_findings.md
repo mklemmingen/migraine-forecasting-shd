@@ -191,8 +191,9 @@ single-forward-pass in-context inference is robust where the XGBoost
 stack collapses on small leakage-prone splits.
 
 The full 18-row JSON output is persisted at
-`experiment/_eval/paired_delong_<timestamp>.json` for figure
-generation and re-analysis without re-running.
+`experiment/_eval/paired_delong_<timestamp>.json`; the family is
+rendered as a forest plot (Figure G6) and as a BH-FDR significance
+heatmap (Figure G8) for visual inspection.
 
 ## 3b. Exhaustive supplementary: Bonferroni FWER across the all-pairs cross-architecture grid
 
@@ -350,7 +351,7 @@ so the grid is complete and reproducible from the committed code.
    survives BH-FDR across nine cross-architecture comparisons is on
    migraine/no_rolling/patient/70_30: TabPFN v3-binary AUROC 0.600 beats
    stacked_2xgb NonHP AUROC 0.496 by ΔAUC = +0.103, p = 0.002,
-   q = 0.018 (Section 3a) - exactly the cell type where Section 4's
+   q = 0.036 (Section 3a) - exactly the cell type where Section 4's
    anti-predictive-XGBoost-cells pattern predicts the robustness gap.
 7. **Explicit sequence modelling does not dominate the tabular
    baselines** on the honest chronological cells (Addition 4). All
