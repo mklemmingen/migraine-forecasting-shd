@@ -19,11 +19,19 @@ The next-day-diary migraine-forecasting literature reports discrimination
 as a pooled AUROC computed across patient-days. Pooled AUROC mixes two
 distinct quantities into a single number: how well the model ranks days
 within a patient, and how well it separates high-base-rate patients from
-low-base-rate ones. Holsteen et al. 2020 made this point directly on an
-independent US cohort, reporting a within-person C-statistic of 0.56
-(95% CI 0.54-0.58) while the pooled metric on the same data sat higher,
-and argued that within-person discrimination is the fitting evaluation
-for an individualised forecast [holsteen2020triggers, p. 2364]. The
+low-base-rate ones. Within-patient time-series methodology in headache
+research was first put on an empirical footing by Houle et al. 2005
+[houle2005timeseries, pp. 445-446], whose four-week diary study of 49
+migraine and tension-type sufferers established that headache on one
+day positively autocorrelates with headache the next and argued that
+within-patient designs reveal day-to-day patterns that group-level
+cross-sectional analyses mask. Holsteen et al. 2020 carried that
+within-person framing into a modern forecasting evaluation, reporting
+a within-person C-statistic of 0.56 (95% CI 0.54-0.58) on an
+independent US cohort while the pooled metric on the same data sat
+higher, and argued that within-person discrimination is the fitting
+evaluation for an individualised forecast [holsteen2020triggers,
+p. 2364]. The
 distinction matters clinically: a model whose pooled AUROC reflects
 between-patient base-rate separation is useful for triaging
 patient-level risk strata, but it cannot tell a given patient which of
@@ -81,13 +89,3 @@ on the Park 2016 cohort. The within-person C-statistic clusters near
 Brier skill against per-patient climatology is negative for migraine.
 These findings reproduce the within-cohort Holsteen pattern and
 realign the published-AUROC framing for the cohort.
-
-The remainder of the paper is structured as follows: Section 2 (`dataset.md`)
-describes the cohort, splits, and feature sets; Section 3 (`xgboost.md`,
-`tabPfn.MD`) the two architecture families; Section 4 the six additional
-methods layers (`addition2_explainability.md` through
-`addition6_clinical_value.md` and `external_validation_site.md`);
-Section 5 (`results_findings.md` and per-Addition results docs) the
-cross-cell findings; the Discussion (`discussion.md`) the implications
-for the field; supplementary material in `insights_leaf_selection.md` and
-`paper_rigor_checklist.md`.
