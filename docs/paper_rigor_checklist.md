@@ -156,7 +156,7 @@ Status codes:
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | manuscript abstract (carried forward into the submission template) | ⚠️ partial | Structured abstract drafted (~297 words, under 450-word JHP cap); 3 of 13 TRIPOD+AI Abstract sub-items added (missing-data, leave-one-site-out external validation, funding). Restructure to the JHP 5-heading format (Objective / Background / Methods / Results / Conclusion) is the remaining edit. |
+| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 5-heading JHP-structured abstract (Objective / Background / Methods / Results / Conclusion), 409 words under the 450-word JHP cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
 
 ### INTRODUCTION
 
@@ -261,9 +261,9 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
 | 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
-| **2** (Abstract 5-heading JHP restructure) | (deferred — belongs to the manuscript abstract draft, not the supplementary docs) | ⚠️ |
+| **2** (Abstract 5-heading JHP restructure) | `abstract.md` (manuscript front-matter; Objective / Background / Methods / Results / Conclusion, 409 words) | ✓ |
 
-**Post-closure totals**: 51 sub-items addressed (33 pre-existing ✓ + 18 closed this pass — 8 substantive closures and 10 N/A-with-declaration), 1 sub-item ⚠️ (Item 2, deferred to the abstract restructure). Compliance is at **98.1% addressed**, up from 63.5% pre-closure. The remaining Item 2 is execution-deferred rather than scope-out, and is the headline pending task for the next pre-submission pass.
+**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass — 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 5-heading JHP layout and the missing TRIPOD+AI Abstract sub-items integrated.
 
 A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification* — full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
 

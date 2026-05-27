@@ -104,8 +104,10 @@ inclusion criteria.
 The paper's load-bearing finding, which the per-Addition layering makes
 defensible, is that the pooled AUROC commonly reported in the
 diary-forecasting literature overstates within-person forecasting skill
-on the Park 2016 cohort. The within-person C-statistic clusters near
-0.55, the per-patient AUROC distribution centres near chance, and the
-Brier skill against per-patient climatology is negative for migraine.
+on the Park 2016 cohort. The within-person C-statistic, estimated by
+out-of-fold cross-validation on the non-hyperparameter-tuned 70/30
+chronological cells (addition5 §9b), clusters near 0.55; the per-patient
+AUROC distribution centres near chance; and the Brier skill against
+per-patient climatology is negative for migraine.
 These findings reproduce the within-cohort Holsteen pattern and
 realign the published-AUROC framing for the cohort.

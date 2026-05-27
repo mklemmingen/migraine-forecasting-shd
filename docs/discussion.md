@@ -11,11 +11,12 @@ On the chronological headline cell the migraine AUROC reaches 0.793
 (*XGB-HP020 / full / chrono / 70-30*) and the headache AUROC 0.652
 (TabPFN family at *full / chrono / 70-30*: v2.6, v3-default, and
 v3-binary tied within the composite rule's 0.02 AUROC tier, v2.6 picked
-by calibration-distance tiebreak). The per-patient AUROC distribution
-on the same leaves centres near 0.55, the precision-weighted
-within-person C-statistic clusters near the same value, and the Brier
-skill against each patient's own TRAIN-set climatology is negative for
-migraine (-0.05 to -0.12) while positive for headache (+0.14 to +0.21).
+by calibration-distance tiebreak). The per-patient AUROC distribution on the out-of-fold cross-validation
+pass over the non-hyperparameter-tuned 70/30 chronological cells
+(addition5 §9b; Figure C2) centres near 0.55, the precision-weighted
+within-person C-statistic clusters in the same band, and the Brier skill
+against each patient's own TRAIN-set climatology is negative for migraine
+(-0.05 to -0.12) while positive for headache (+0.14 to +0.21) (Figure D4).
 Pooled discrimination on this cohort is therefore overwhelmingly
 between-patient base-rate separation, not within-person day-to-day
 ranking. The implication for clinical deployment is direct: a 24-hour
@@ -45,7 +46,8 @@ Addition 0 establishes that the depth-diverse XGBoost stack reaches its
 migraine headline AUROC of 0.793 only on the HP-tuned 70_30 chronological
 cell and that the same architecture's calibration slope is fragile across
 the 488-cell grid (median 0.64, 98 cells with negative slope, exhibiting
-the Platt-inversion fingerprint of small-calibration-set overfitting).
+the Platt-inversion fingerprint of small-calibration-set overfitting;
+Figure C3).
 Addition 1 shows that the TabPFN family matches or slightly exceeds
 XGBoost on the headache headline cell without per-leaf hyperparameter
 tuning, and is markedly more robust than HP-tuned XGBoost on small or
@@ -64,8 +66,9 @@ neighbour-averaging features specifically gain rank and magnitude under
 stratification: `migraine_rate_last7` rises from rank 3 (0.0156) to
 rank 1 (0.0379) on the headache stratified cell, a 2.4-fold magnitude
 shift. SHAP therefore corroborates the leakage channel by an
-independent method: the stratified-split optimism observed in §1 is a
-feature-channel leak through the history features, not a model artefact.
+independent method: the stratified-split optimism observed in §1
+(Figure C1) is a feature-channel leak through the history features,
+not a model artefact.
 The same Addition recovers the set of Park 2016 trigger factors on the
 migraine/park cell with the correct effect direction (all positive ALE
 slopes for stress, hormonal change, noise, alcohol, overeating, travel),
@@ -113,9 +116,9 @@ sparse park trigger set (+0.10 over pooled on hold-out), but the gain
 does not survive within-person re-evaluation: it is the between-patient
 *level* (base-rate) effect, not within-patient day-to-day discrimination.
 The leave-one-site-out external check across Uijeongbu and Dongtan
-reproduces the within-person near-chance result and reveals
-substantial calibration drift (O:E ratio 0.50-1.54 for migraine) driven
-by the 8.6% vs 5.7% base-rate gap between the two sites
+reproduces the within-person near-chance result (Figure E2) and reveals
+substantial calibration drift (O:E ratio 0.50-1.54 for migraine; Figure
+E1) driven by the 8.6% vs 5.7% base-rate gap between the two sites
 [huang2020calibration, p. 621].
 
 Addition 6 converts the discrimination layer into a clinical-value
@@ -124,7 +127,7 @@ negative for migraine across all three architectures (XGBoost -0.068,
 TabPFN -0.054, sequence -0.117) and positive for headache (+0.139,
 +0.210, +0.139); decision-curve net benefit for migraine sits near
 zero across the clinically plausible threshold band, while the
-headache curve is value-positive at +0.05 to +0.20
+headache curve is value-positive at +0.05 to +0.20 (Figure D3)
 [vickers2019dca, p. 1; murphy1993forecast, p. 281]. The
 quality-versus-value distinction is therefore target-specific on this
 cohort: the migraine forecast fails the Murphy test, the headache
