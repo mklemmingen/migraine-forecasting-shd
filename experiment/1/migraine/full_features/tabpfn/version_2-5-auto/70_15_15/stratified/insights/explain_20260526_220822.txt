@@ -1,0 +1,30 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / full_features / tabpfn (version_2-5-auto)
+======================================================================
+architecture family : autotabpfn
+attribution         : permutation importance (AUROC drop over public predict_proba)
+explained rows      : 400
+seed                : 42
+base AUROC          : 0.7664
+permutation repeats : 10
+----------------------------------------------------------------------
+Top features by mean |importance|:
+   1. migraine_rate_last7              0.053082
+   2. headache_free_streak             0.049328
+   3. days_since_last_migraine         0.029709
+   4. consecutive_sedentary_days       0.014171
+   5. exercise_today                   0.012721
+   6. migraine_rate_last3              0.010210
+   7. consecutive_exercise_days        0.007925
+   8. weather_instability_3day         0.006183
+   9. specific_smells_today            0.006101
+  10. exercise_days_7day               0.005223
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  migraine_rate_last7              +0.097446
+  headache_free_streak             -0.058367
+  days_since_last_migraine         -0.037459
+  consecutive_sedentary_days       -0.008656
+  exercise_today                   -0.000981
+----------------------------------------------------------------------

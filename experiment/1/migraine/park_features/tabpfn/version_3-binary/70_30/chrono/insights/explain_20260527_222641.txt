@@ -1,0 +1,41 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / park_features / tabpfn (version_3-binary)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 706 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. hormonal_changes_today           0.053188
+   2. alcohol_today                    0.022784
+   3. overeating_today                 0.021883
+   4. noise_today                      0.019385
+   5. travel_today                     0.015298
+   6. stress_today                     0.015115
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  hormonal_changes_today           +0.130131
+  alcohol_today                    +0.022618
+  overeating_today                 +0.039885
+  noise_today                      +0.025328
+  travel_today                     +0.035072
+----------------------------------------------------------------------
+Top pairwise interactions (ShapIQ k-SII order-2, mean |interaction|):
+  overeating_today         x travel_today             0.003028
+  stress_today             x noise_today              0.002474
+  stress_today             x travel_today             0.002407
+  stress_today             x hormonal_changes_today   0.002139
+  stress_today             x overeating_today         0.002122
+  overeating_today         x noise_today              0.001982
+  alcohol_today            x travel_today             0.001685
+  alcohol_today            x noise_today              0.001480
+  travel_today             x hormonal_changes_today   0.001451
+  alcohol_today            x hormonal_changes_today   0.001380
+  [background n=706, explained n=6, seed=42]
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------

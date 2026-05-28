@@ -1,0 +1,29 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / full_features / tabpfn (version_2-5-finetuned)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 678 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. menstruation_today               0.019824
+   2. migraine_rate_last7              0.015533
+   3. days_since_last_migraine         0.012302
+   4. headache_free_streak             0.007700
+   5. migraine_rate_last3              0.006969
+   6. inappropriate_lighting_today     0.005468
+   7. inappropriate_lighting           0.004791
+   8. consecutive_sedentary_days       0.002917
+   9. sleep_variability_7day           0.002829
+  10. exercise_days_7day               0.002478
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  menstruation_today               +0.079243
+  migraine_rate_last7              +0.116011
+  days_since_last_migraine         -0.053432
+  headache_free_streak             -0.059201
+  migraine_rate_last3              +0.049263
+----------------------------------------------------------------------

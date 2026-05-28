@@ -1,0 +1,32 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / no_rolling_features / tabpfn (version_3-binary)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 158 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. inappropriate_lighting_today     0.040947
+   2. menstruation_today               0.017332
+   3. any_sleep_issue_today            0.014811
+   4. stress_today                     0.012989
+   5. lack_of_sleep_today              0.012230
+   6. physical_fatigue_today           0.011599
+   7. moderate_exercise_min            0.005460
+   8. exercise_today                   0.005046
+   9. ovulation_today                  0.004852
+  10. emotional_changes_today          0.004804
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  inappropriate_lighting_today     +0.042188
+  menstruation_today               +0.238744
+  any_sleep_issue_today            +0.060797
+  stress_today                     +0.073075
+  lack_of_sleep_today              +0.081998
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------

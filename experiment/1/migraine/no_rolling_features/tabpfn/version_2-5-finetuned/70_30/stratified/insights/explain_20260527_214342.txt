@@ -1,0 +1,28 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / no_rolling_features / tabpfn (version_2-5-finetuned)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 195 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. inappropriate_lighting_today     0.028480
+   2. menstruation_today               0.017986
+   3. stress_today                     0.013661
+   4. specific_smells_today            0.010555
+   5. exercise_as_trigger_today        0.009938
+   6. exercise_today                   0.009022
+   7. no_exercise_today                0.007474
+   8. weather_change_today             0.006983
+   9. lack_of_sleep_today              0.006647
+  10. ovulation_today                  0.006167
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  menstruation_today               +0.194993
+  stress_today                     +0.052275
+  specific_smells_today            +0.087779
+  exercise_as_trigger_today        +0.070205
+----------------------------------------------------------------------
