@@ -5,8 +5,7 @@
 Migraine is the second-most disabling neurological condition globally, and
 its attacks are largely predictable from same-day or recent-day exposures
 (stress, sleep disruption, hormonal change, weather, dietary triggers).
-The clinical premise that motivates next-day forecasting is that a
-sufficiently accurate one-day-ahead probability would let a patient take
+A sufficiently accurate one-day-ahead probability would let a patient take
 an oral pre-emptive medication before symptom onset, converting a reactive
 treatment pathway into a forecastable one. The Korean Smartphone Headache
 Diary (SHD) cohort of Park et al. 2016 [park2016shd, p. 3] is the largest
@@ -15,7 +14,7 @@ needed to test that premise: 62 enrolled patients across two neurology
 clinics, 4,516 patient-days, daily attack indicator with eighteen
 candidate trigger factors recorded each evening.
 
-The next-day-diary migraine-forecasting literature reports discrimination
+The next-day-diary migraine-forecasting literature has reported discrimination
 as a pooled AUROC computed across patient-days. Pooled AUROC mixes two
 distinct quantities into a single number: how well the model ranks days
 within a patient, and how well it separates high-base-rate patients from
@@ -36,7 +35,7 @@ distinction matters clinically: a model whose pooled AUROC reflects
 between-patient base-rate separation is useful for triaging
 patient-level risk strata, but it cannot tell a given patient which of
 *their* days is the attack. The diary-only-forecasting literature
-converges in the AUC 0.56-0.73 range under within-person evaluation
+has converged in the AUC 0.56-0.73 range under within-person evaluation
 [houle2017stress, p. 1041; holsteen2020triggers, p. 2364], well below
 the wearable-augmented work that reaches higher numbers on different
 inputs (Faisal 2026 reports 0.84 with EMG, HRV, and skin-temperature
@@ -73,7 +72,7 @@ the precision-weighted within-person C-statistic, the metrics
 Holsteen et al. argued the field should use. The same addition runs a
 leave-one-site-out external check across the two SHD recruitment sites
 (Uijeongbu and Dongtan), the strongest external validation achievable
-given that no comparable public dataset exists for true out-of-cohort
+because no comparable public dataset exists for true out-of-cohort
 transport. Addition 6 layers decision-curve net benefit and a Brier
 skill score against per-patient climatology, the discipline that
 distinguishes forecast *quality* from forecast *value*

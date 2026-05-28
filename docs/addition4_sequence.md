@@ -34,7 +34,7 @@ plan's open question about whether explicit sequence modelling adds value
 
 The state-of-the-art context bounds the expectation. The current high-water mark,
 a time-series ML model on mobile-health data, reaches a next-day test AUC of 0.84
-(95% CI 0.82-0.85) -- but on 21,550 headache days with wearable signals
+(95% CI 0.82-0.85), but on 21,550 headache days with wearable signals
 (trapezius EMG, HRV, skin temperature), and its most predictive features were
 headache intensity, headache duration, and heart-rate scores
 [faisal2026forecasting, p. 1; p. 5], none of which the diary-only SHD cohort
@@ -80,7 +80,7 @@ development sets [martin2025samplesize, p. 2].
   look-back window. A 1D-convolutional alternative that is cheaper and often more
   stable than recurrence on short sequences.
 - **N-day-window MLP**: flatten the last N days of features and feed a small
-  dense network. This is the bridge model -- it is a sequence model only in that
+  dense network. This is the bridge model: it is a sequence model only in that
   it sees N days at once, and it is the cleanest test of RQ2 (does seeing the raw
   window beat seeing the engineered summary of the window?).
 
@@ -121,7 +121,7 @@ longer than a threshold N (default 7 days) so the model never recurs across a
 month-long gap as if it were continuous. The Addition 3 gap features
 (`days_since_last_record`,
 `recording_gap_flag`, `docs/dataset.md`, Gap Awareness) are passed through as
-inputs so the model can additionally learn to discount a stale window.
+inputs so the model can also learn to discount a stale window.
 
 ### 3.4 Evaluation: layered, same contract as Additions 0-1
 
@@ -251,7 +251,7 @@ The build chain:
    their forward passes (last-timestep readout; the right-aligned window makes
    the last step the observed current day).
 
-`_scaffold_leaves.py` generates the 30 leaves (chrono cells additionally get
+`_scaffold_leaves.py` generates the 30 leaves (chrono cells also get
 `evaluate_cv.py`); `run_all_avaliable_leaves.py` trains every leaf, then runs
 both `evaluate.py` (hold-out lock) and `evaluate_cv.py` (the primary CV
 estimate). Each module stays under the 300-line script budget. Remaining
@@ -291,7 +291,7 @@ the look-back sweep is the only multiplier. No contention with the tabular sweep
 - **Recurrent vs convolutional vs windowed-MLP**: all three are run, because the
   point is the architecture comparison itself, not picking one a priori.
 - **Continuous-time point process**: rejected for the same reason as Addition 3
-  (`docs/addition3_temporal.md`, Section 3.3) -- day-resolution data makes a
+  (`docs/addition3_temporal.md`, Section 3.3): day-resolution data makes a
   continuous model inappropriate; this addition stays discrete.
 
 The four implementation decisions, each source-grounded:
@@ -305,8 +305,8 @@ The four implementation decisions, each source-grounded:
   gaps Addition 3 found matter, without paying the masked-timestep cost of full
   reindexing. (`days_since_last_record` already carries the current-day gap for
   `full_features`; the channel generalises it per step and to all feature sets.)
-- **Decision 2 - gap-segment threshold = lookback (7 days).** A window must not
-  bridge a gap longer than the dependence horizon it exploits: Addition 3's ACF
+- **Decision 2 - gap-segment threshold = lookback (7 days).** A window was not
+  allowed to bridge a gap longer than the dependence horizon it exploited: Addition 3's ACF
   decays to ~0 by day 3-7 (`docs/addition3_results.md`), and day-1 is the strong
   predictor of day-2 [houle2005timeseries, p. 445]. Treated as a sensitivity
   parameter, not a silent constant, and the sweep confirms robustness: on the
@@ -350,7 +350,7 @@ If RQ1 is null (sequence model does not beat the tabular models on honest cells)
 the paper gains a clean, defensible statement: at the Park 2016 cohort scale,
 with diary-only inputs, the short-range serial dependence Addition 3 measured is
 already captured by the engineered lag features, and deep sequence modelling adds
-no discrimination -- consistent with the short-range, near-Poisson structure and
+no discrimination, consistent with the short-range, near-Poisson structure and
 with the high-water-mark result requiring wearable signals the diary lacks
 [faisal2026forecasting, p. 1]. If RQ1 is positive, it localises *which* window
 length and architecture buys the gain, and RQ2 says whether the gain is the raw

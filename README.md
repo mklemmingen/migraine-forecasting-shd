@@ -132,7 +132,7 @@ Citation keys resolve against [`Sources.bib`](Sources.bib) at the repository roo
 
 ## License
 
-Code: Full Rights Reserved to HSRT (Reutlingen University). SHD data redistributed under Park et al. [1] supplementary file terms; consult the original publication before reuse.
+Code: Apache-2.0. SHD data redistributed under Park et al. [1] supplementary file terms; consult the original publication before reuse.
 
 **TabPFN model weights (Addition 1) are non-commercial.** The TabPFN-v2.5 / v2.6 / v2.5_real / v3 checkpoints distributed by PriorLabs (`tabpfn`, `tabpfn-extensions`) and any derivative artefacts produced under `experiment/1/` are licensed for non-commercial use only. TabPFN-v3 weights are governed by `tabpfn-3-license-v1.0` (per the [Prior-Labs/tabpfn_3](https://huggingface.co/Prior-Labs/tabpfn_3) HuggingFace card), which explicitly permits "testing, evaluation, and internal benchmarking" but prohibits commercial or production use. AutoGluon emits this warning at every fit: *"TabPFN-2.5 is a NONCOMMERCIAL model. Usage of this artifact (including through AutoGluon) is not permitted for commercial tasks unless granted explicit permission by the model authors (PriorLabs)."* Results in this repository are scientific replications under those licences; commercial deployment of the trained models requires a separate agreement with PriorLabs (`sales@priorlabs.ai`).
 

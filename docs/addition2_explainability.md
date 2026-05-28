@@ -71,7 +71,7 @@ Five claims test the Addition-2 design; their verdicts are reported in
 1. SHAP triangulates the feature-channel leakage (corroborates the
    Findings §1 mechanism by an independent method).
 2. Recovery of Park's established triggers on the migraine/park cells
-   (EPV 47.8; six shared triggers — set + direction expected, rank not
+   (EPV 47.8; six shared triggers: set + direction expected, rank not
    statistically distinguishable at n=6).
 3. Architecture feature-reliance: does AutoTabPFN win on different
    features than the XGBoost stack, or by ensembling over the same ones?
@@ -90,7 +90,7 @@ Five claims test the Addition-2 design; their verdicts are reported in
    the rankings diverge, the win is informative beyond its scalar AUROC.
 2. **Do the data-driven attributions agree with Park et al.'s
    same-day odds ratios** [park2016shd, Tab. 4]? The park_features
-   migraine leaves let us compare each feature's mean absolute SHAP
+   migraine leaves permit comparison of each feature's mean absolute SHAP
    against Park's published OR. With six shared triggers the test has
    little power; the realistic claim is that the trigger set and the
    direction of attribution match Park's, while a strict
@@ -110,7 +110,7 @@ Five claims test the Addition-2 design; their verdicts are reported in
 
 SHAP [lundberg2017shap, p. 2] assigns each feature a Shapley value, the
 game-theoretic average marginal contribution to a single prediction. A
-critical correctness point drives the estimator choice: the quantity
+correctness point determined the estimator choice: the quantity
 the paper compares across architectures is the final calibrated
 probability, and neither Addition-0 architecture is a single tree.
 `stacked_2xgb_meta_lr` is a `StackingClassifier` (two XGBoost bases ->
@@ -261,7 +261,7 @@ of features. A standard SHAP bar chart shows main-effect attribution
 only; it cannot tell whether two triggers reinforce each other. The
 clinical literature suggests migraine triggers combine non-additively
 (for example weather change on a high-stress day), so the pairwise
-interaction question is substantively interesting, not decorative.
+interaction question is a substantive question for this paper.
 
 ShapIQ pairwise (order-2) interactions are run on the TabPFN headline
 leaves only, where the foundation model's flexible function class makes

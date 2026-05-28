@@ -38,9 +38,9 @@ forecasting papers reported simultaneously.
 
 ## 7.2 Each Addition supplies an independent line of evidence
 
-The pooled-overstates conclusion does not rest on any single
-measurement. Five Additions converge on it through different
-methodological lenses.
+Five Additions converge on the pooled-overstates conclusion through
+different methodological lenses, so the finding does not rest on any
+single measurement.
 
 Addition 0 establishes that the depth-diverse XGBoost stack reaches its
 migraine headline AUROC of 0.793 only on the HP-tuned 70_30 chronological
@@ -50,7 +50,7 @@ the Platt-inversion fingerprint of small-calibration-set overfitting;
 Figure C3).
 Addition 1 shows that the TabPFN family matches or slightly exceeds
 XGBoost on the headache headline cell without per-leaf hyperparameter
-tuning, and is markedly more robust than HP-tuned XGBoost on small or
+tuning, and is more robust than HP-tuned XGBoost on small or
 leakage-prone splits. Read together, Additions 0 and 1 demonstrate that
 the architecture choice is the smallest source of variation in this
 benchmark; the splits and the metric definition matter more.
@@ -97,7 +97,7 @@ variants (window-MLP, GRU, TCN) on the full_features chronological
 cells, no sequence variant beats the XGBoost stack headline AUROC; on
 migraine the window-MLP narrowly beats the vanilla TabPFN runner-up
 (0.771 vs 0.761) but does not unseat the XGB-HP020 0.793 headline. The
-verdict is "competitive but not dominant" rather than a uniform null —
+verdict is "competitive but not dominant" rather than a uniform null;
 the short-range temporal-signal prediction of Addition 3 is supported.
 Explicit sequence modelling adds nothing decisive on this cohort once
 rolling and lag history features are present, consistent with the
@@ -107,7 +107,7 @@ already occupies [faisal2026forecasting, p. 1].
 Addition 5 is the load-bearing measurement. The within-person
 C-statistic clusters near 0.55 across the canonical leaves, the
 per-patient AUROC distribution centres near chance, and the
-pooled-minus-within gap is large — the same gap the Holsteen 2020
+pooled-minus-within gap is large; the same gap the Holsteen 2020
 argument predicts [holsteen2020triggers, p. 2364]. Three personalisation
 regimes (pooled logistic regression, per-patient logistic regression,
 partial-pool logistic regression with a per-patient random intercept)
@@ -143,9 +143,9 @@ pooled discrimination on a small cohort cannot distinguish the
 between-patient base-rate-separation component from the within-person
 day-to-day component, and the clinically-useful component is the latter.
 The reporting standard the prediction-model literature has converged on
-— calibration alongside discrimination, decision-curve net benefit
+(calibration alongside discrimination, decision-curve net benefit
 where a deployment decision is implied, and within-person evaluation
-for individualised forecasts — should be the floor, not the ceiling,
+for individualised forecasts) should be the floor, not the ceiling,
 for this subfield [collins2024tripodAI, p. 6; vickers2019dca, p. 1;
 moons2025probastAI; holsteen2020triggers, p. 2364].
 

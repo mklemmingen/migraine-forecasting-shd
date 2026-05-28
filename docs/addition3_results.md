@@ -13,7 +13,7 @@ dependence in both targets, confirmed by four independent methods.
 
 ## Research questions (Section 2 of the plan)
 
-### RQ1 - Serial dependence: YES, strong, beyond same-day triggers
+### RQ1 serial dependence: YES, strong, beyond same-day triggers
 - Pooled ACF (calendar-correct, gap-aware): migraine lag-1 r = 0.267,
   decaying over a week (0.167, 0.137, 0.108, ...); headache lag-1 r = 0.218.
 - Discrete-time self-excitation (trigger-controlled logistic, lags 1-3 +
@@ -24,7 +24,7 @@ dependence in both targets, confirmed by four independent methods.
   controlling for today's triggers. Consistent with Houle et al. 2005's
   day-1 -> day-2 positive autocorrelation [houle2005timeseries, p. 445].
 
-### RQ2 - Clustering vs cycle vs Poisson: short-range clustering, not bursts
+### RQ2 clustering vs cycle vs Poisson: short-range clustering, not bursts
 - First-order Markov: migraine P(attack tomorrow | attack today) = 0.315 vs
   0.050 without (risk ratio 6.3, chi2 = 298, p = 8.8e-67); headache 0.397
   vs 0.179 (RR 2.2, p = 1.8e-45) [barra2020markov, p. 3].
@@ -37,7 +37,7 @@ dependence in both targets, confirmed by four independent methods.
   decomposition and it sharpens the claim: "clustered" here means
   short-memory autocorrelation, not a long-tailed bursty stream.
 
-### RQ3 - History-conditioned hazard: YES
+### RQ3 history-conditioned hazard: YES
 - Recurrent-event regression on inter-attack gap times with the trailing
   14-day attack rate as covariate, Andersen-Gill counting-process
   regression with the Prentice-Williams-Peterson gap-time variant
@@ -46,7 +46,7 @@ dependence in both targets, confirmed by four independent methods.
   headache AG 2.79, PWP 3.36 (p = 5e-21). A higher recent attack rate
   shortens the time to the next attack, beyond the marginal rate.
 
-### RQ4 - Periodicity: no significant weekly structure
+### RQ4 periodicity: no significant weekly structure
 - Day-of-week chi-square goodness-of-fit: migraine chi2 = 5.0, p = 0.54
   (numerical peak Saturday, trough Monday); headache chi2 = 5.2, p = 0.52
   (peak Friday). The migraine Saturday peak matches the direction reported

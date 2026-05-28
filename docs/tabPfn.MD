@@ -1,4 +1,4 @@
-# TabPFN - Configuration & Calibration Policy
+# TabPFN configuration and calibration policy
 
 > Position in the paper: **Architectures (3.2)**. Reads after
 > `xgboost.md`; precedes the Methods docs of Additions 2-6. The
@@ -9,16 +9,15 @@
 ## Why TabPFN, why now
 
 The in-context tabular prior that TabPFN extends to ~50,000-row inputs is
-recent - `tabpfn` 8.x ships TabPFN-v3 as the first release whose
+recent: `tabpfn` 8.x shipped TabPFN-v3 as the first release whose
 small-sample table classification is competitive with hyperparameter-tuned
 tree ensembles on heterogeneous tabular benchmarks
 [hollmann2025tabpfn; grinsztajn2025tabpfn25]. The Park 2016 SHD cohort
 (62 patients, 4,516 patient-days, 7.2% positive rate) is exactly the
 small-N, low-prevalence regime where (a) a foundation-model prior has the
 most to add over per-leaf re-tuning, and (b) the hyperparameter-search
-budget for a stack would otherwise dominate the variance. Applying TabPFN
-to clinical-diary migraine forecasting on this cohort is, to our knowledge,
-the first such evaluation: the prior single published ML reuse of the SHD
+budget for a stack would otherwise dominate the variance. No prior published evaluation of TabPFN on the SHD cohort
+was located: the only published ML reuse of the SHD
 dataset [zhu2020mygraine] used logistic regression and random forest on a
 random patient-overlapping split well before TabPFN existed.
 

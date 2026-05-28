@@ -5,7 +5,7 @@
 
 This document collects the methodological standards the paper needs to satisfy before submission, with the citations behind each item. Every reference here is also a verified entry in `Sources.bib`. The list reflects current 2024-2026 consensus for prediction-model reporting, imbalanced-binary evaluation, calibration measurement, temporal validation, and the migraine forecasting subfield.
 
-Sections below follow the same numbering as `Sources.bib` so a reviewer can cross-reference.
+Sections below follow the same numbering as `Sources.bib` to support cross-reference.
 
 ---
 
@@ -15,9 +15,9 @@ Sections below follow the same numbering as `Sources.bib` so a reviewer can cros
 
 Three closely related checklists worth scanning at submission time:
 
-- **CLAIM 2024 Update** - imaging-focused but transfers to digital-biomarker work via its reproducibility and pre-processing items.
-- **REFORMS** - a 32-item ML-for-science consensus checklist from a 19-author working group; useful for the benchmark-structure framing independent of the clinical framing.
-- **MI-CLAIM** - minimum-information checklist for clinical AI modeling; 6 parts covering setting, performance, population, reference standard, partitioning, reproducibility.
+- **CLAIM 2024 Update**: imaging-focused but transfers to digital-biomarker work via its reproducibility and pre-processing items.
+- **REFORMS**: a 32-item ML-for-science consensus checklist from a 19-author working group; useful for the benchmark-structure framing independent of the clinical framing.
+- **MI-CLAIM**: minimum-information checklist for clinical AI modeling; 6 parts covering setting, performance, population, reference standard, partitioning, reproducibility.
 
 ## 1a. Risk-of-bias self-assessment: PROBAST+AI
 
@@ -48,7 +48,7 @@ DECIDE-AI [8] is the stage-specific reporting guideline for the early live clini
 
 The events-per-variable (EPV) framing [2] is the first-pass discipline check. We adopt the conservative reading consistent with Peduzzi 1996 and the Riley 2020 sample-size literature: `<10` high overfitting risk, `10-19` marginal, `>=20` low. Modern Riley-school formulae [2] supersede the rule of thumb but the bands remain useful for headlining risk.
 
-Our migraine target sits at EPV-5.5 on the `full_features` set (52 features, 287 positive days) - the high-risk band - and at EPV 47.8 on the `park_features` set (6 features) - comfortably low-risk. The headache target sits at EPV 18.2 on `full_features` (marginal) and >=30 on the smaller-feature sets (low). See `docs/dataset.md` (Events-per-variable section) for the full table and implications.
+Our migraine target sits at EPV-5.5 on the `full_features` set (52 features, 287 positive days), the high-risk band, and at EPV 47.8 on the `park_features` set (6 features), comfortably low-risk. The headache target sits at EPV 18.2 on `full_features` (marginal) and >=30 on the smaller-feature sets (low). See `docs/dataset.md` (Events-per-variable section) for the full table and implications.
 
 The discussion section needs to:
 
@@ -91,24 +91,24 @@ TRIPOD+AI item 22 [1] requires public code and model availability. Our repositor
 - Pinned `requirements.txt` (done).
 - TabPFN checkpoint hashes (documented in the builder docstrings).
 - Exact split files on disk under `data/processed/`.
-- Hardware and software stack: the canonical environment table (CPU, discrete AMD Radeon RX 7900 XT via PyTorch ROCm, OS, library versions) lives in the Hardware section of the top-level `README.md`. Per-leaf wall-clock for train and eval phases is not currently persisted in the per-leaf result artifacts; the only on-disk timing is the AutoGluon-internal `total runtime = ...` line inside `experiment/1/.../_running_output/training_*.txt` for Addition 1 leaves. Adding a `Wall-clock` row to the result-text emitter in `_scaffold_leaves.py` is a pending instrumentation task; until that lands, the paper should report the sweep wall-clock derived from those AutoGluon logs only for Addition 1 (AutoTabPFN family), and disclose that Addition 0 and the evaluator phase are unrecorded.
+- Hardware and software stack: the canonical environment table (CPU, discrete AMD Radeon RX 7900 XT via PyTorch ROCm, OS, library versions) lives in the Hardware section of the top-level `README.md`. Per-leaf wall-clock for train and eval phases is not persisted in the per-leaf result artifacts; the only on-disk timing is the AutoGluon-internal `total runtime = ...` line inside `experiment/1/.../_running_output/training_*.txt` for Addition 1 leaves. Adding a `Wall-clock` row to the result-text emitter in `_scaffold_leaves.py` is a pending instrumentation task; until that lands, the paper should report the sweep wall-clock derived from those AutoGluon logs only for Addition 1 (AutoTabPFN family), and disclose that Addition 0 and the evaluator phase are unrecorded.
 - The seed used in `run_bootstrap_evaluation` (`seed=42` in `_scaffold_leaves.py`).
 
 ## 7. Migraine-domain context
 
 Two direct comparators in the recent migraine-forecasting literature:
 
-- **Stubberud et al. (2023)** [5] - 18 patients with episodic migraine, 388 headache diary entries (295 days analysed). Best random-forest model achieved hold-out AUC 0.62. This is the small-cohort scale roughly comparable to ours by patient count, although the modality (diary + wearable biofeedback) differs from our diary-only setup.
-- **Faisal et al. (2026)** [6] - 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model achieved hold-out next-day AUC 0.84 (95% CI 0.82-0.85). This is the current high-water mark. It uses diary + biofeedback wearables (trapezius EMG, HRV, peripheral skin temperature); the most predictive features were headache intensity, headache duration, and heart-rate scores.
+- **Stubberud et al. (2023)** [5]: 18 patients with episodic migraine, 388 headache diary entries (295 days analysed). Best random-forest model achieved hold-out AUC 0.62. This is the small-cohort scale roughly comparable to ours by patient count, although the modality (diary + wearable biofeedback) differs from our diary-only setup.
+- **Faisal et al. (2026)** [6]: 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model achieved hold-out next-day AUC 0.84 (95% CI 0.82-0.85). This is the current high-water mark. It uses diary + biofeedback wearables (trapezius EMG, HRV, peripheral skin temperature); the most predictive features were headache intensity, headache duration, and heart-rate scores.
 
-Implication: our work uses diary-only inputs and a smaller cohort, so a numerical AUC comparison against Faisal et al. would be apples-to-oranges. The honest framing is to position our results as "what is achievable with diary-only inputs at the Park 2016 cohort scale, using publicly available ML stack" - which is a complementary scientific question to the wearable-augmented work.
+Implication: our work uses diary-only inputs and a smaller cohort, so a numerical AUC comparison against Faisal et al. would be apples-to-oranges. The honest framing is to position our results as "what is achievable with diary-only inputs at the Park 2016 cohort scale, using publicly available ML stack", which is a complementary scientific question to the wearable-augmented work.
 
 ## 8. Honest comparison reporting
 
 The comparison table at `experiment/comparison_*.html` already implements the standards below; the paper's results section should re-state them:
 
 - Every metric is reported as `mean [95% CI]`, derived from 1000-iteration bootstrap of the test set.
-- "Best in row" markers fire only when one cell's 95% CI is strictly disjoint from every other cell's CI in the same row, for that metric. Most rows have no marker - this signals that most architecture × data-package combinations are statistically indistinguishable at our sample size, which is itself the headline finding.
+- "Best in row" markers fire only when one cell's 95% CI is strictly disjoint from every other cell's CI in the same row, for that metric. Most rows have no marker; this signals that most architecture × data-package combinations are statistically indistinguishable at our sample size, which is itself the headline finding.
 - Source provenance is on every cell (hold-out vs. 5-fold time-series CV).
 - Accuracy is base-rate-dominated and is labelled as such in the table (`Acc (base!)`) with a per-metric note.
 
@@ -141,16 +141,16 @@ The comparison table at `experiment/comparison_*.html` already implements the st
 Per-item compliance map against the canonical TRIPOD+AI expanded checklist [collins2024tripodAI, Web Table 1, version 7-February-2024]. Item specs are paraphrased from the BMJ checklist (Collins et al. 2024, BMJ vol. 385 p. e078378, DOI 10.1136/bmj-2023-078378); the page anchors use the form "wt1 p. N" where wt1 refers to Web Table 1 (the article's expanded-checklist supplement) and N is the page number within that supplement. D = development item; E = evaluation item; D;E = both apply.
 
 Status codes:
-- **✓ covered** — the item is substantively addressed in the cited paper section, with the specific content the BMJ spec requires.
-- **⚠️ partial** — the item is touched but does not yet meet the spec; a small addition closes the gap.
-- **✗ missing** — the item has no coverage; new content is required.
-- **N/A** — the item does not apply in this study's design (e.g., evaluation-only items for a development paper); an explicit N/A statement is still required.
+- **✓ covered**: the item is substantively addressed in the cited paper section, with the specific content the BMJ spec requires.
+- **⚠️ partial**: the item is touched but does not yet meet the spec; a small addition closes the gap.
+- **✗ missing**: the item has no coverage; new content is required.
+- **N/A**: the item does not apply in this study's design (e.g., evaluation-only items for a development paper); an explicit N/A statement is still required.
 
 ### TITLE
 
 | # | Spec (Collins 2024 wt1) | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort" — names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
+| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort": names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
 
 ### ABSTRACT
 
@@ -189,11 +189,11 @@ Status codes:
 | 12b (D) | Predictor handling: functional form, rescaling, transformation, standardisation (wt1 p. 6) | `dataset.md §5`; `xgboost.md §2` | ✓ | Numeric features used raw (XGBoost is scale-invariant); categorical features one-hot; no standardisation for TabPFN per its in-context-learning prescription. |
 | 12c (D) | Model type, rationale, building steps, hyperparameter tuning, internal validation (wt1 p. 6) | `xgboost.md`; `tabPfn.MD` | ✓ | Calibrated XGBoost stack (NSGA-II Pareto front + single-objective ladder HP020-HP500); TabPFN family across 5 released variants without per-leaf tuning; AutoTabPFN as post-hoc ensemble; window-MLP/GRU/TCN as sequence baselines. |
 | 12d (D;E) | Heterogeneity across clusters (e.g. centres, countries) (wt1 pp. 6-7) | `external_validation_site.md §7`; `addition5_personalization.md` | ✓ | Two-site leave-one-site-out external check addresses centre-level clustering; per-patient AUROC distribution + within-person C addresses individual-level clustering. |
-| 12e (D;E) | Performance measures and plots used; rationale (wt1 p. 7) | `paper_rigor_checklist.md §3-4`; `addition6_clinical_value.md` | ✓ | Discrimination (AUROC, AUPRC) + calibration (slope, ECE10, Brier) + clinical utility (decision-curve net benefit, Brier skill) + within-person C-statistic — all with bootstrap CIs. |
+| 12e (D;E) | Performance measures and plots used; rationale (wt1 p. 7) | `paper_rigor_checklist.md §3-4`; `addition6_clinical_value.md` | ✓ | Discrimination (AUROC, AUPRC) + calibration (slope, ECE10, Brier) + clinical utility (decision-curve net benefit, Brier skill) + within-person C-statistic, all with bootstrap CIs. |
 | 12f (E) | Model updating (recalibration) from evaluation (wt1 p. 7) | `external_validation_site.md §7` | ⚠️ partial | No model updating performed on the external check; calibration drift documented (O:E 0.50-1.54 for migraine) and flagged as deployment-time recalibration requirement. An explicit "no recalibration was performed in this study" sentence is the Phase-3 item 4 follow-up. |
 | 12g (E) | How predictions were calculated for evaluation (wt1 p. 7) | `xgboost.md §3`; `tabPfn.MD §5` | ✓ | XGB: `calibrated_proba(bundle, X)` from the stacked-meta-LR bundle; TabPFN: `model.predict_proba(X)[:, 1]`. |
 | 13 (D;E) | Class imbalance methods, recalibration if used (wt1 p. 8) | `paper_rigor_checklist.md §4`; `xgboost.md §2`; `dataset.md §7` | ✓ | XGBoost uses `scale_pos_weight ≈ 13` (≈ 1/positive-rate) for class weighting; van den Goorbergh 2022 [vandengoorbergh2022imbalance] cited for the calibration-side caveat; Platt calibration follows as the recalibration step. |
-| 14 (D;E) | Approaches to address model fairness (wt1 p. 8) | `introduction.md` §1 (applicability) ; `discussion.md` §7.4 (Limitations) | N/A | Within-cohort fairness analysis is not evaluable: the Park 2016 cohort is monodemographic by design (single country, single ethnicity, ~82% female enrolment). The applicability-domain limitation — fairness across underrepresented groups is not claimed and not testable within this cohort — is named in the Introduction and the Limitations. |
+| 14 (D;E) | Approaches to address model fairness (wt1 p. 8) | `introduction.md` §1 (applicability) ; `discussion.md` §7.4 (Limitations) | N/A | Within-cohort fairness analysis is not evaluable: the Park 2016 cohort is monodemographic by design (single country, single ethnicity, ~82% female enrolment). The applicability-domain limitation (fairness across underrepresented groups is not claimed and not testable within this cohort) is named in the Introduction and the Limitations. |
 | 15 (D) | Model output: probabilities, classification; threshold rationale (wt1 p. 8) | `addition6_clinical_value.md §3.3`; `xgboost.md §3`; `tabPfn.MD §5` | ⚠️ partial | Models emit calibrated probabilities; operating-point thresholds (t = 0.10-0.20 / 0.20-0.35 / >0.35) defined in `addition6_clinical_value.md §3.3`. The risk-group framing per TRIPOD+AI Item 11 / Item 15 nomenclature is the Phase-3 item 6 follow-up. |
 | 16 (D;E) | Differences between development and evaluation data (wt1 p. 9) | `external_validation_site.md §2-3` | ✓ | Uijeongbu (8.6% migraine base rate) vs Dongtan (5.7%) site differences documented; same diary instrument across sites so eligibility/outcome/predictor definitions are identical. |
 | 17 (D;E) | Ethical approval and informed consent (wt1 p. 9) | `paper_rigor_checklist.md §10 (Ethics statement)`; §1b | ✓ | Secondary analysis of Park 2016 publicly released dataset under PLOS ONE CC BY 4.0 licence; original IRB approval from Dongtan Sacred Heart Hospital (2014-132) and Uijeongbu St. Mary's (UC14OIM10085); no new data collection and no personal communication with the original authors required. |
@@ -263,9 +263,9 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
 | **2** (Abstract 5-heading JHP restructure) | `abstract.md` (manuscript front-matter; Objective / Background / Methods / Results / Conclusion, 409 words) | ✓ |
 
-**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass — 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 5-heading JHP layout and the missing TRIPOD+AI Abstract sub-items integrated.
+**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 5-heading JHP layout and the missing TRIPOD+AI Abstract sub-items integrated.
 
-A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification* — full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
+A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification*: full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
 
 ---
 
@@ -295,7 +295,7 @@ The Park 2016 SHD raw diary data are publicly available as Supplementary File S1
 
 ### Code availability (Item 18f)
 
-The full analytical code, including data engineering, model training, evaluation, and figure rendering, is publicly available at the project repository ([GitHub URL — to be substituted at submission]). A Zenodo snapshot DOI ([Zenodo DOI — to be substituted at submission]) anchors the exact commit corresponding to the submitted manuscript. The Python environment is pinned in `requirements.txt`; the reference build uses Python 3.13.12 on the hardware described above. All packages required to reproduce the reported results in principle are listed in `requirements.txt` with version pins.
+The full analytical code, including data engineering, model training, evaluation, and figure rendering, is publicly available at the project repository ([GitHub URL, to be substituted at submission]). A Zenodo snapshot DOI ([Zenodo DOI, to be substituted at submission]) anchors the exact commit corresponding to the submitted manuscript. The Python environment is pinned in `requirements.txt`; the reference build uses Python 3.13.12 on the hardware described above. All packages required to reproduce the reported results in principle are listed in `requirements.txt` with version pins.
 
 ### Patient and public involvement (Item 19)
 
@@ -315,7 +315,7 @@ The chain of authorisation is as follows.
 
 ### How this table is to be used
 
-A reviewer walking the TRIPOD+AI checklist with the manuscript open should find:
+Anyone walking the TRIPOD+AI checklist with the manuscript open should find:
 - The doc:section pointer where the substance lives.
 - A status flag indicating whether the manuscript currently meets the spec.
 - An evidence note quoting or pointing to the specific claim.

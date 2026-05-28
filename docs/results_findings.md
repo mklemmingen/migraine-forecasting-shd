@@ -76,7 +76,7 @@ ratios):
   stratified and temporally-hard chronological.
 - **Migraine** (~7% positive): stratified 0.698 > chrono 0.660 >
   **patient 0.550**. Whole-patient hold-out is the *hardest* split for
-  the sparse target - generalising to an unseen patient with few
+  the sparse target; generalising to an unseen patient with few
   positive days is harder than temporal extrapolation.
 
 The paper should report the hierarchy per target rather than as a
@@ -225,7 +225,7 @@ under exhaustive scrutiny.
 The headline §3a finding (migraine/no_rolling/patient TabPFN-v3-binary
 vs XGB-NonHP, BH-FDR q = 0.036) appears in the exhaustive family as
 ΔAUC = +0.103 with raw p = 0.002; under Bonferroni α* = 1.03e-4 with
-m = 487 it does not survive — the expected power loss when m grows by
+m = 487 it does not survive, the expected power loss when m grows by
 27×. The effect is real at the BH-FDR scope where the test family is
 hypothesis-targeted; the supplementary Bonferroni is intentionally
 strict to bound the fishing-defense interpretation.
@@ -240,9 +240,9 @@ individual parseability. The supplementary heatmap is
 Of 42 anti-predictive cells (hold-out AUROC < 0.45) across the 488-cell
 grid, 38 are `stacked_2xgb_meta_lr`; the remaining four are TabPFN and
 all are marginal (0.417, 0.446, 0.448, 0.449). The XGBoost anti-predictive cells
-concentrate in (a) HP variants on **stratified** splits - the
+concentrate in (a) HP variants on **stratified** splits (the
 documented Platt-inversion where hyperparameter search overfits a leaky
-split and the calibrator fits a negative slope - and (b) sparse
+split and the calibrator fits a negative slope), and (b) sparse
 **migraine patient hold-out**. TabPFN's single-forward-pass in-context
 inference does not exhibit this collapse. This is a robustness argument
 for foundation-model tabular inference on small, leakage-prone clinical
@@ -272,9 +272,9 @@ negative slope (Platt inversion on a tiny calibration sub-split). At
 the chronological headline cells the bootstrap CIs are wide: the
 migraine *XGB-HP020 / full / chrono / 70-30* leaf has calibration
 slope 1.417 [0.952-1.942] and the headache *TabPFN v2.6 / full / chrono
-/ 70-30* leaf 1.095 [0.744-1.427] — both CIs include 1.0, so
+/ 70-30* leaf 1.095 [0.744-1.427]; both CIs include 1.0, so
 calibration is not distinguishable from unity at the headline cells,
-but the wide CIs underscore the small-sample calibration uncertainty.
+though the wide CIs reflect the small-sample calibration uncertainty.
 The paper must report calibration slope with its bootstrap CI alongside
 discrimination and flag that threshold-derived metrics on the
 negative-slope cells are unreliable; AUROC/AUPRC remain interpretable
@@ -298,8 +298,8 @@ so the grid is complete and reproducible from the committed code.
    v3-default / v3-binary tied within the composite rule's 0.02 AUROC
    tier). At the **held-out-patient** counterparts (same architecture and
    ratio, split type `patient`), the migraine cell collapses to AUROC
-   **0.283** [0.233-0.333] — anti-predictive, with calibration slope
-   -0.748 (Platt-inverted) — while the headache TabPFN family stays
+   **0.283** [0.233-0.333] (anti-predictive, with calibration slope
+   -0.748, Platt-inverted), while the headache TabPFN family stays
    within band at 0.631-0.637 (v2.6 0.631 [0.593-0.664]; v3-default
    0.635 [0.599-0.669]; v3-binary 0.637 [0.601-0.672]). The
    chronological 0.793 is a within-cohort deployable number, not a
@@ -318,7 +318,7 @@ so the grid is complete and reproducible from the committed code.
    headline numbers should be read as cohort-level discrimination,
    not personalised forecasting skill.
 3. Stratified-split inflation is a **feature-channel leak via history
-   features**, not a model artefact - proven by the zero inflation on
+   features**, not a model artefact; proven by the zero inflation on
    no-history feature sets (Section 1). The leakage mechanism is
    corroborated by an independent method: SHAP attribution
    (Addition 2 Claim 1) shows the history features
@@ -344,14 +344,14 @@ so the grid is complete and reproducible from the committed code.
    architectures (Section 3) and the headline is best read as a
    family-level claim: paired DeLong on v2.6 / v3-default / v3-binary
    at this cell gives q ≥ 0.95 for every pair (Section 3a), so the
-   within-family rank is not statistically resolvable - the variant
+   within-family rank is not statistically resolvable; the variant
    choice is calibration-driven, not discrimination-driven.
-6. **TabPFN is markedly more robust** than HP-tuned XGBoost stacking on
+6. **TabPFN is more robust** than HP-tuned XGBoost stacking on
    small/leaky splits (Section 4). The only paired difference that
    survives BH-FDR across nine cross-architecture comparisons is on
    migraine/no_rolling/patient/70_30: TabPFN v3-binary AUROC 0.600 beats
    stacked_2xgb NonHP AUROC 0.496 by ΔAUC = +0.103, p = 0.002,
-   q = 0.036 (Section 3a) - exactly the cell type where Section 4's
+   q = 0.036 (Section 3a), exactly the cell type where Section 4's
    anti-predictive-XGBoost-cells pattern predicts the robustness gap.
 7. **Explicit sequence modelling does not dominate the tabular
    baselines** on the honest chronological cells (Addition 4). All
@@ -444,7 +444,7 @@ Specifically:
   uses a 0.02-AUROC tier bucket and a calibration-slope window of
   (0.0, 5.0). A perturbation sweep
   (`experiment/2/sensitivity_composite.py`) shows the cross-architecture
-  conclusion is stable - TabPFN wins the headache full_features/chrono
+  conclusion is stable: TabPFN wins the headache full_features/chrono
   cell and the XGBoost stack wins the migraine cell under every
   perturbation in {AUROC_TOL = 0.01 / 0.02 / 0.03; CALIB_MIN = -0.5 /
   0.0; CALIB_MAX = 3.0 / 5.0 / 7.0}. The within-family variant choice

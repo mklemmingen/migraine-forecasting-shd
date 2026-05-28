@@ -4,7 +4,7 @@
 
 The forecast-value layer (`experiment/6/`) addresses what Additions 0, 1, 4,
 and 5 do not: whether a forecast at a given operating point would actually
-help a patient act -- the question the migraine-prediction field has flagged
+help a patient act, the question the migraine-prediction field has flagged
 as unmet. Addition 6 adds a decision-analytic and forecast-skill layer on
 top of the existing predictions, and (optionally) tests whether real
 meteorological covariates add value, without fitting any new core model.
@@ -15,9 +15,9 @@ The recent narrative review concludes that patient needs should be assessed to
 discover what a valuable prediction looks like, and that the field should develop
 common standards for evaluating migraine prediction algorithms
 [dumkrieger2025review, p. 1]. The classical decomposition of forecast goodness
-separates *quality* -- the correspondence between forecasts and observations --
-from *value* -- the incremental economic or other benefit a decision maker
-realises by acting on the forecasts [murphy1993forecast, p. 281]. Discrimination
+separates *quality* (the correspondence between forecasts and observations)
+from *value* (the incremental economic or other benefit a decision maker
+realises by acting on the forecasts) [murphy1993forecast, p. 281]. Discrimination
 and calibration, which the benchmark already reports, measure quality, not value:
 a model can beat the base rate on AUPRC yet provide no net clinical benefit, and
 AUPRC's baseline itself moves with prevalence so it cannot be read as value across
@@ -32,7 +32,7 @@ for the specific action under consideration [vickers2019dca, p. 1; p. 3; p. 4].
 Reporting net benefit against a range of thresholds shows over which
 preference range, if any, acting on the model beats the default policies of
 "treat all" or "treat none". For next-day migraine the
-action is concrete -- take acute medication pre-emptively the evening before --
+action is concrete (take acute medication pre-emptively the evening before),
 and its harm trade-off (an unnecessary dose versus a missed early treatment
 window) is exactly what the threshold probability parameterises.
 
@@ -77,12 +77,12 @@ of cell is not load-bearing for that result.
 
 ### 3.1 Decision curve analysis (net benefit)
 
-For each leaf's calibrated test predictions, compute net benefit across threshold
-probabilities and plot it against the treat-all and treat-none reference lines.
-This is the decision-curve construction introduced by Vickers and Elkin -- net
+For each leaf's calibrated test predictions, net benefit was computed across threshold
+probabilities and plotted against the treat-all and treat-none reference lines.
+This is the decision-curve construction introduced by Vickers and Elkin (net
 benefit plotted against threshold probability, with the net-benefit formula
 weighting true and false positives by the threshold odds [vickers2006dca, p. 565;
-p. 567] -- and operationalised in the step-by-step interpretation guide
+p. 567]) and operationalised in the step-by-step interpretation guide
 [vickers2019dca, p. 1; p. 3; p. 4]. The
 threshold range is restricted to the clinically plausible band for the
 pre-emptive-medication action (a low threshold, since a missed attack is costlier
@@ -101,16 +101,16 @@ the probabilities the benchmark actually scores.
 
 ### 3.2 Brier skill score against a per-patient climatology
 
-Report the Brier score (already in the benchmark's calibration panel
-[huang2020calibration, p. 624]) and convert it to a skill score relative to a
+The Brier score (already in the benchmark's calibration panel
+[huang2020calibration, p. 624]) was reported and converted to a skill score relative to a
 reference forecast that always predicts the patient's own base rate. A positive
 skill score means the model adds information beyond the marginal rate; a
 near-zero skill score with a high AUROC would expose discrimination that does not
-translate into a better-than-climatology probability forecast -- a quality
+translate into a better-than-climatology probability forecast, a quality
 shortfall in Murphy's sense, separate from the value question the decision curve
-answers [murphy1993forecast, p. 281]. Calibration-in-the-
-large -- whether the mean predicted risk matches the observed event rate -- is
-reported alongside, since it is the gross-calibration check that a skill claim
+answers [murphy1993forecast, p. 281]. Calibration-in-the-large (whether the
+mean predicted risk matches the observed event rate) is reported alongside,
+since it is the gross-calibration check that a skill claim
 rests on [huang2020calibration, p. 621], and the benchmark's calibration slope is
 already known to be fragile on the small/sparse cells (median 0.64,
 `docs/results_findings.md`, Section 6). Discrimination and calibration are
@@ -118,11 +118,11 @@ reported together throughout, per TRIPOD+AI [collins2024tripodAI, p. 6].
 
 ### 3.3 Operating-point analysis (TRIPOD+AI Item 15 risk groups)
 
-The three threshold bands defined below — t = 0.10-0.20, t = 0.20-0.35, t > 0.35 — function as risk groups in the TRIPOD+AI Item 15 sense: each band carries a documented clinical action and the bands are pre-specified before evaluation rather than being post-hoc tertiles. The risk-group definitions are literature- and clinical-judgement-anchored (per the medication-burden and behavioural-tolerability arguments named below); the underlying model output is the calibrated probability, with the bands operationalising that probability into recommended actions.
+The three threshold bands defined below (t = 0.10-0.20, t = 0.20-0.35, t > 0.35) function as risk groups in the TRIPOD+AI Item 15 sense: each band carries a documented clinical action and the bands are pre-specified before evaluation rather than being post-hoc tertiles. The risk-group definitions are literature- and clinical-judgement-anchored (per the medication-burden and behavioural-tolerability arguments named below); the underlying model output is the calibrated probability, with the bands operationalising that probability into recommended actions.
 
-Map the validation-derived MCC threshold (the benchmark's existing
-threshold-metric choice) onto the net-benefit-optimal threshold from
-3.1, and report sensitivity at a fixed, clinically tolerable
+The validation-derived MCC threshold (the benchmark's existing
+threshold-metric choice) was mapped onto the net-benefit-optimal threshold from
+3.1, and sensitivity was reported at a fixed, clinically tolerable
 false-positive rate. The fixed FPR is **0.10** (one false alarm per ten
 non-attack days), set in `experiment/6/run_value.py`; this is the rate
 at which a daily pre-emptive-medication recommendation remains
@@ -210,7 +210,7 @@ pass over saved bundles (`docs/insights_leaf_selection.md`).
 Instead the driver loads the leaf models from Additions 0/1/4/5 and overlays
 their decision curves and skill on shared axes per `(target, feature_set)` cell
 (`comparison_value_*.html`), so the value comparison spans additions by
-construction - the cross-addition comparison is a curve overlay rather than a
+construction; the cross-addition comparison is a curve overlay rather than a
 metric-table row.
 
 ## 6. Build status
@@ -238,7 +238,7 @@ under the 300-line budget.
 
 The value layer is CPU-seconds over the saved test predictions. The optional
 weather join adds a one-off data download and a re-fit of the headache model with
-the extra columns -- minutes, reusing the Addition 0/1 training path.
+the extra columns (minutes, reusing the Addition 0/1 training path).
 
 ## 9. Resolved decisions and the open one
 
@@ -270,7 +270,7 @@ Brier skill against each patient's TRAIN-set base-rate climatology:
 | migraine | sequence     | 0.771 | -0.117      | 0.03-0.50         | 0.47 |
 
 **The decisive value finding: the migraine models have NEGATIVE Brier skill
-(-0.05 to -0.12) despite AUROC ~0.76** - they produce worse probability forecasts
+(-0.05 to -0.12) despite AUROC ~0.76**; they produce worse probability forecasts
 than simply predicting each patient's own historical attack rate. High
 discrimination does not translate into value: the migraine AUROC is ranking skill
 that does not beat the trivial per-patient base rate on a proper scoring rule,
@@ -294,7 +294,7 @@ state over what preference range, if any, the diary-only forecasts are worth
 acting on, and the Brier skill score states whether the models beat each
 patient's base rate at all. A plausible and publishable outcome on this small,
 diary-only cohort is that net benefit is positive only in a narrow low-threshold
-band and that skill over climatology is small -- which, reported honestly,
+band and that skill over climatology is small, which, reported honestly,
 calibrates expectations for diary-only forecasting and motivates the
 wearable-augmented and personalised directions (Additions 4-5) rather than
 overclaiming. It also pre-positions the work for a DECIDE-AI-compliant clinical
@@ -321,7 +321,7 @@ treat-none reference lines, p. 4.)
 [murphy1993forecast] A. H. Murphy, "What is a good forecast? An essay on the
 nature of goodness in weather forecasting," *Weather and Forecasting*, vol. 8, no.
 2, pp. 281-293, 1993. doi: 10.1175/1520-0434(1993)008<0281:WIAGFA>2.0.CO;2. (Three
-types of forecast goodness -- consistency, quality, value, p. 281.)
+types of forecast goodness: consistency, quality, value, p. 281.)
 
 [vasey2022decideAI] B. Vasey *et al.*, "Reporting guideline for the early stage
 clinical evaluation of decision support systems driven by artificial

@@ -24,7 +24,7 @@ cohort [holsteen2020triggers, p. 2364] and clarifies why the
 diary-only forecasting regime sits in the AUC 0.56-0.73 band that the
 field reports under within-person evaluation, well below the
 wearable-augmented high-water mark. The
-discipline going forward — for this subfield specifically — is to
+discipline going forward, for this subfield specifically, is to
 report calibration slope, decision-curve net benefit, and a
 within-person C-statistic alongside pooled discrimination, so that
 papers can be compared on the metric that matches the clinical use
