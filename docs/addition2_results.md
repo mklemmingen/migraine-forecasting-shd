@@ -103,11 +103,11 @@ share of total mean absolute SHAP carried by the history features
 | headache no_rolling chronological | 0.0% |
 | migraine no_rolling chronological | 0.0% |
 
-Two findings stand out. First, the no_rolling models put 0% of their
+Two findings stood out. First, the no_rolling models placed 0% of their
 attribution on history features for the simple reason that they contain
 none, so there is no channel to carry the leak: this directly confirms the
 mechanism's necessary condition (Findings Section 1, the zero inflation on
-no-history sets). Second, history features dominate the full_features models
+no-history sets). Second, history features dominated the full_features models
 on **both** splits, not only the stratified one - because on the
 chronological split a patient's recent migraine rate genuinely predicts
 tomorrow, so those features carry honest signal there. Mean absolute SHAP
@@ -368,7 +368,7 @@ checkpoint.
 Headline: the attribution layer corroborates the methods finding (leakage
 is a history-feature channel) and the literature (Park triggers, the
 stress x hormonal_changes interaction) by an independent method, while
-honestly bounding what magnitude-based SHAP can and cannot prove.
+with explicit limits on what magnitude-based SHAP resolved.
 
 ## References
 
