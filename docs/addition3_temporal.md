@@ -31,16 +31,16 @@ a day-of-week periodicity test. The data pipeline's
 `dataset_analysis.py::_page_temporal_dependence` carries a related but
 calendar-naive ACF (computed on the compacted record index, so a lag of
 k means k records, not k calendar days); the calendar-regular reindexer
-in `experiment/3/_temporal/series.py` is the new rigour. The output is a
+in `experiment/3/_temporal/series.py` operates on calendar days rather than record indices. The output is a
 standalone report that ends in an explicit Addition-4 verdict.
 
 The migraine literature already reports the expected direction.
 Headache days cluster, with day 1 a good predictor of day 2
 [houle2005timeseries, p. 445]; attack onset shows weekly (Saturday-peak) and
 circadian periodicity [poulsen2021chronobiology, p. 1]; and Markov-chain
-models of attack counts have been published [barra2020markov, p. 3]. So
-this is hypothesis testing on a new cohort, not exploratory fishing,
-which is the standard that keeps it defensible.
+models of attack counts have been published [barra2020markov, p. 3].
+Addition 3 therefore tests pre-specified hypotheses on the SHD cohort
+rather than scanning for significance.
 
 ## 2. Research questions
 
@@ -170,7 +170,7 @@ read as a controlled-FDR set rather than a scan for significance. The
 "hypothesis testing, not fishing" framing of Section 1 is the design
 intent; this subsection is the statistical mechanism that enforces it.
 
-## 4. Two targets, honest separation
+## 4. Two targets reported separately
 
 The analysis runs on both the any-headache series (~23.5% of days) and
 the ICHD-3 migraine series (~7.2% of days). The migraine series is
@@ -206,8 +206,8 @@ experiment/3/
 ```
 
 The `temporal_summary` page states the Addition-4 implication
-explicitly: "self-excitation/autocorrelation present -> sequence model
-justified" or "series memoryless given same-day triggers -> tabular
+explicitly: "self-excitation or autocorrelation present, sequence model
+justified" or "series memoryless given same-day triggers, tabular
 framing defensible". That single verdict is the deliverable Addition 4
 depends on.
 
@@ -248,7 +248,7 @@ depends on.
 ## 8. Compute budget
 
 All analyses are CPU-only over ~4.5k diary rows across ~63 patients.
-Total run is seconds to low minutes. No GPU, no contention with the
+Total run was under five minutes on a single CPU core. No GPU, no contention with the
 sweep.
 
 ## 9. Estimation strategy: partial pooling
@@ -286,7 +286,7 @@ neither pooling extreme alone supports:
    shared dynamic (small heterogeneity).
 3. **Methods-integrity claim** (cross-addition consequence): a
    significantly positive within-patient autocorrelation explains why
-   random/stratified splits are optimistic - but the mechanism is the
+   random/stratified splits were optimistic; the mechanism was the
    FEATURE CHANNEL, not the model. patient_id is not a feature (dropped
    before fitting) and the tabular models are row-order-invariant, so
    nothing leaks through learned order; what leaks is the history
