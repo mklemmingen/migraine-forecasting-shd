@@ -15,8 +15,10 @@ by calibration-distance tiebreak). The per-patient AUROC distribution on the out
 pass over the non-hyperparameter-tuned 70/30 chronological cells
 (addition5 §9b; Figure C2) centres near 0.55, the precision-weighted
 within-person C-statistic clusters in the same band, and the Brier skill
-against each patient's own TRAIN-set climatology is negative for migraine
-(-0.05 to -0.12) while positive for headache (+0.14 to +0.21) (Figure D4).
+against each patient's own TRAIN-set climatology is significantly positive
+for headache across architectures (CIs +0.07 to +0.29) and significantly
+negative for migraine only on the sequence baseline (-0.117 [-0.227, -0.037]);
+the migraine XGBoost and TabPFN Brier-skill CIs include zero (Figure D4).
 Pooled discrimination on this cohort is therefore overwhelmingly
 between-patient base-rate separation, not within-person day-to-day
 ranking. The implication for clinical deployment is direct: a 24-hour
@@ -31,8 +33,8 @@ variation into the discrimination estimate, so within-person metrics are
 the fitting evaluation for an individualised forecast
 [holsteen2020triggers, p. 2364]. Our within-person C-statistic on the
 Park cohort sits in the same near-chance band; the benchmark therefore
-adds a second cohort's evidence to the Holsteen argument and extends it
-with a per-patient AUROC distribution, a Brier skill, and a
+added a second cohort's evidence to the Holsteen argument and extended
+it with a per-patient AUROC distribution, a Brier skill, and a
 decision-curve net benefit that none of the previous diary-only
 forecasting papers reported simultaneously.
 
@@ -104,34 +106,42 @@ rolling and lag history features are present, consistent with the
 diary-only-without-wearable regime the next-day-diary literature
 already occupies [faisal2026forecasting, p. 1].
 
-Addition 5 is the load-bearing measurement. The within-person
-C-statistic clusters near 0.55 across the canonical leaves, the
-per-patient AUROC distribution centres near chance, and the
-pooled-minus-within gap is large; the same gap the Holsteen 2020
+Addition 5 supplies the load-bearing within-person measurement: the
+within-person C-statistic clusters near 0.55 across the canonical
+leaves, the per-patient AUROC distribution centres near chance, and the
+pooled-minus-within gap is large, matching the gap the Holsteen 2020
 argument predicts [holsteen2020triggers, p. 2364]. Three personalisation
 regimes (pooled logistic regression, per-patient logistic regression,
 partial-pool logistic regression with a per-patient random intercept)
-are tested. The partial-pool regime improves the *pooled* AUROC on the
+were tested. The partial-pool regime improves the *pooled* AUROC on the
 sparse park trigger set (+0.10 over pooled on hold-out), but the gain
 does not survive within-person re-evaluation: it is the between-patient
 *level* (base-rate) effect, not within-patient day-to-day discrimination.
 The leave-one-site-out external check across Uijeongbu and Dongtan
-reproduces the within-person near-chance result (Figure E2) and reveals
-substantial calibration drift (O:E ratio 0.50-1.54 for migraine; Figure
+reproduces the within-person near-chance result (Figure E2) and shows
+calibration drift tracking the inter-site base-rate gap (O:E ratio fell
+to 0.50 in one direction and rose to 1.54 in the other for migraine; Figure
 E1) driven by the 8.6% vs 5.7% base-rate gap between the two sites
 [huang2020calibration, p. 621].
 
 Addition 6 converts the discrimination layer into a clinical-value
-layer. Brier skill against per-patient TRAIN-set climatology is
-negative for migraine across all three architectures (XGBoost -0.068,
-TabPFN -0.054, sequence -0.117) and positive for headache (+0.139,
-+0.210, +0.139); decision-curve net benefit for migraine sits near
-zero across the clinically plausible threshold band, while the
-headache curve is value-positive at +0.05 to +0.20 (Figure D3)
-[vickers2019dca, p. 1; murphy1993forecast, p. 281]. The
-quality-versus-value distinction is therefore target-specific on this
-cohort: the migraine forecast fails the Murphy test, the headache
-forecast does not.
+layer. Patient-day bootstrap CIs on Brier skill against per-patient
+TRAIN-set climatology reveal a target-specific verdict that the
+original point-estimate framing obscured: headache forecasts add
+significant probabilistic value (CIs +0.07 to +0.29 across
+architectures); migraine forecasts only significantly fail the Murphy
+quality-versus-value test on the sequence baseline
+(-0.117 [-0.227, -0.037]). The migraine XGBoost (-0.068 [-0.160, +0.005])
+and TabPFN (-0.057 [-0.146, +0.020]) Brier-skill CIs both include zero,
+so the tabular models are statistically indistinguishable from the
+per-patient climatology baseline rather than significantly worse. Decision-curve
+net benefit for migraine sits near zero across the clinically plausible threshold
+band, while the headache curve is value-positive at +0.05 to +0.20 (Figure D3)
+[vickers2019dca, p. 1; murphy1993forecast, p. 281]. The quality-versus-value
+distinction on this cohort is therefore target-specific and finite-sample
+limited: even on tabular architectures the migraine forecast does not add
+probabilistic value beyond the per-patient base rate, but at this cohort scale
+the absence of value rather than negative value is the load-bearing claim.
 
 ## 7.3 Implications for the next-day-diary migraine-forecasting field
 
@@ -247,7 +257,7 @@ approach using transfer from auxiliary diary datasets would be the
 methodologically appropriate extension if a comparable open cohort
 becomes available.
 
-Deployment-stage usability is out of scope for the present benchmark.
+The present benchmark does not evaluate deployment-stage usability.
 The handling of poor-quality or unavailable predictor values at
 inference time (Item 27a in the TRIPOD+AI checklist) requires a
 deployed instrument with explicit input-validation logic and

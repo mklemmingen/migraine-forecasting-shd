@@ -114,7 +114,7 @@ tomorrow, so those features carry honest signal there. Mean absolute SHAP
 measures total attribution and cannot, by magnitude alone, separate the
 honest-signal component from the leaked-neighbour-outcome component.
 
-The leak's fingerprint is in the *specific* neighbour-averaging features
+The leak's fingerprint sat in the *specific* neighbour-averaging features
 that gain attribution under the random split that straddles the train/test
 boundary:
 
@@ -161,7 +161,7 @@ reads the 70_15_15 / chrono v3-default leaf with comparable EPV:
 | 5 | travel_today (0.0088)            | alcohol_today (0.0064)         | overeating (2.4) |
 | 6 | noise_today (0.0054)             | travel_today (0.0043)          | stress (1.8) |
 
-The two architectures disagree on the single top driver: XGBoost ranks
+The two architectures disagreed on the single top driver: XGBoost ranked
 overeating_today first and hormonal_changes_today second; TabPFN
 reverses that pair (hormonal_changes_today first, with overeating
 demoted to fourth). The ALE net-slopes from `experiment/2/park_or_check_*.html`
@@ -173,11 +173,12 @@ adjustment discussed below). Both rankings disagree with Park: both
 weight stress within the top three despite Park's smallest OR (1.8),
 and both demote travel to rank 5-6 despite Park's largest OR (6.4).
 Quantitatively, the Spearman rank correlation against the Park OR rank
-is **ρ = +0.257 (p = 0.62, n = 6) for the TabPFN headline** and
-**ρ = -0.429 (p = 0.40, n = 6) for the XGBoost 70_30 leaf** - the two
-coefficients have opposite signs and neither is statistically
-distinguishable from zero at this sample size, which is why the verdict
-rests on set + direction, not rank.
+is **ρ = +0.257 (p = 0.62, n = 6, Fisher-z 95% CI [-0.70, +0.88]) for
+the TabPFN headline** and **ρ = -0.429 (p = 0.40, n = 6, Fisher-z 95%
+CI [-0.92, +0.59]) for the XGBoost 70_30 leaf**; the two coefficients
+have opposite signs and both CIs span almost the full feasible range
+[-1, +1], so neither is statistically distinguishable from zero at this
+sample size. This is why the verdict rests on set + direction, not rank.
 
 **Verdict:** **partially supported.** Both models recover the
 established trigger set and assign the four canonical drivers the same
@@ -204,7 +205,7 @@ and no AutoTabPFN insight leaf completed in this pass, so the
 AutoTabPFN-specific question cannot be answered here. The available
 cross-architecture pair is headache/full_features: XGBoost
 (stacked_2xgb_meta_lr, KernelSHAP) vs TabPFN (version_2-5-finetuned,
-native SHAP). Both rank the history features at the top - XGBoost leads
+native SHAP). Both ranked the history features at the top: XGBoost led
 with `migraine_rate_last7` / `headache_free_streak`, TabPFN leads with
 `migraine_rate_last7` (0.036) / `migraine_rate_last3` (0.026) /
 `headache_free_streak` (0.010). The two architectures rely on the same
@@ -241,7 +242,7 @@ half of the ranking with near-zero attribution:
 | `specific_smells_today`   | rank 32/52 (1e-4) | rank 43/52 (~0)  | rank 15/52 (6e-4) | rank 27/52 (1e-4) |
 | `emotional_changes_today` | rank 28/52 (2e-4) | rank 31/52 (1e-4) | rank 40/52 (~0)  | rank 44/52 (~0) |
 
-Every premonitory feature sits far below the history features and the
+Every premonitory feature sat far below the history features and the
 same-day triggers; their mean absolute SHAP is at or near 1e-4, two to
 three orders of magnitude below the leading features. The one mild
 exception is `specific_smells_today` on migraine/full chronological
@@ -335,7 +336,7 @@ for SHAP and n=6 for ShapIQ, seed=42) yields:
 | Top ShapIQ pair | vigorous_exercise_min x consecutive_stress_days | same | same |
 | Top ShapIQ magnitude (96-coalition sampling) | 5.26 | 3.57 | 4.01 |
 
-All three checkpoints converge on the same five history features at the
+All three checkpoints converged on the same five history features at the
 SHAP layer and on the same top-tier exercise x stress interaction at
 the ShapIQ layer; the within-set ranks shift modestly across variants
 and the ShapIQ magnitudes span a ~1.5x range (3.57-5.26). We therefore
