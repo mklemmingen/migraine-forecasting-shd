@@ -72,6 +72,41 @@ def binned_curve(curve: pd.DataFrame, edges=(0, 1, 4, 8, 15, 30, 10_000)) -> pd.
     return res
 
 
+def binned_curve_ci(diary: pd.DataFrame, target_col: str = "migraine_target",
+                    alpha: float = 5.0, edges=(0, 1, 4, 8, 15, 30, 10_000),
+                    n_boot: int = 500, seed: int = 42) -> pd.DataFrame:
+    """Patient-cluster bootstrap 95% CI on the binned cold-start curves.
+
+    Patients (not patient-days) are resampled with replacement to respect the
+    within-patient clustering structure of cold-start curves; matches the
+    "patient-cluster" recommendation in writing_guide §10.9 (in contrast to
+    other figures' patient-day bootstrap)."""
+    base = binned_curve(cold_start_curve(diary, target_col, alpha), edges)
+    rng = np.random.default_rng(seed)
+    pids = diary[PATIENT_COL].unique()
+    n_p = len(pids)
+    pop_curves, pers_curves = [], []
+    for _ in range(n_boot):
+        sampled = rng.choice(pids, size=n_p, replace=True)
+        rows = []
+        for pid in sampled:
+            rows.append(diary[diary[PATIENT_COL] == pid])
+        boot_d = pd.concat(rows, ignore_index=True)
+        c = cold_start_curve(boot_d, target_col, alpha)
+        b = binned_curve(c, edges)
+        b = b.set_index("own_days")
+        pop_curves.append(b["brier_population"])
+        pers_curves.append(b["brier_personalised"])
+    pop_df = pd.DataFrame(pop_curves)
+    pers_df = pd.DataFrame(pers_curves)
+    base = base.set_index("own_days")
+    base["pop_ci_low"] = pop_df.quantile(0.025).reindex(base.index)
+    base["pop_ci_high"] = pop_df.quantile(0.975).reindex(base.index)
+    base["pers_ci_low"] = pers_df.quantile(0.025).reindex(base.index)
+    base["pers_ci_high"] = pers_df.quantile(0.975).reindex(base.index)
+    return base.reset_index()
+
+
 def cold_start_point(curve: pd.DataFrame, min_n: int = 30, window: int = 3) -> int:
     """Smallest n_prior with >= min_n rows where the personalised Brier is below
     the population Brier and stays below over the next ``window`` depths. Returns

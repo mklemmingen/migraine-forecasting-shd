@@ -71,6 +71,43 @@ def calibration_transport(y, p) -> dict:
             "citl": round(obs - pred, 4), "cal_slope": round(calibration_slope(y, p), 3)}
 
 
+def transport_bootstrap_ci(y, p, n_boot: int = 500, seed: int = 42) -> dict:
+    """Patient-day bootstrap 95% CI on the external-site transport metrics.
+    Returns dict of (lo, hi) tuples for ``auroc``, ``oe_ratio``, ``cal_slope``.
+
+    Patient-day resampling per body §2.8; under-coverage caveat against
+    patient-cluster bootstrap disclosed in body Methods."""
+    y = np.asarray(y, dtype=float); p = np.asarray(p, dtype=float)
+    n = len(y)
+    rng = np.random.default_rng(seed)
+    aucs, oes, slopes = [], [], []
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        ys = y[idx]; ps = p[idx]
+        if 0 < ys.sum() < n:
+            try:
+                aucs.append(float(roc_auc_score(ys, ps)))
+            except Exception:
+                pass
+            mp = float(ps.mean())
+            if mp > 0:
+                oes.append(float(ys.mean() / mp))
+            try:
+                slopes.append(float(calibration_slope(ys, ps)))
+            except Exception:
+                pass
+    out = {}
+    for name, arr in (("auroc", aucs), ("oe_ratio", oes), ("cal_slope", slopes)):
+        if arr:
+            a = np.array(arr)
+            out[f"{name}_ci_low"] = round(float(np.percentile(a, 2.5)), 4)
+            out[f"{name}_ci_high"] = round(float(np.percentile(a, 97.5)), 4)
+        else:
+            out[f"{name}_ci_low"] = float("nan")
+            out[f"{name}_ci_high"] = float("nan")
+    return out
+
+
 def _arch_predict(leaf: Path, held: str, addition: str):
     out = Path(tempfile.gettempdir()) / f"siteA_{uuid.uuid4().hex}.npz"
     try:
@@ -100,12 +137,16 @@ def _record(rows, model, target, feature_set, held, train_rate,
     pid = np.asarray(pid).astype(str)
     within = WP.within_person_cstatistic(WP.per_patient_scores(y, p, pid, WP.MIN_POS))
     cal = calibration_transport(y, p)
+    cis = transport_bootstrap_ci(y, p)
+    within_ci_low = round(float(within["ci_low"]), 3) if within["ci_low"] == within["ci_low"] else float("nan")
+    within_ci_high = round(float(within["ci_high"]), 3) if within["ci_high"] == within["ci_high"] else float("nan")
     row = {"target": target, "feature_set": feature_set, "model": model, "held_out": held,
            "n_test": int(len(y)), "train_rate": round(train_rate, 4),
            "auroc": round(float(roc_auc_score(y, p)), 4) if len(set(y)) > 1 else float("nan"),
            "auprc": round(float(average_precision_score(y, p)), 4),
            "within_cstat": round(float(within["estimate"]), 3) if within["estimate"] == within["estimate"] else float("nan"),
-           "within_k": int(within["k_estimable"]), **cal}
+           "within_ci_low": within_ci_low, "within_ci_high": within_ci_high,
+           "within_k": int(within["k_estimable"]), **cal, **cis}
     rows.append(row)
     print(f"  {model:<16} site_{held:<10} AUROC {row['auroc']:.3f} | within {row['within_cstat']} "
           f"(k={row['within_k']}) | O:E {cal['oe_ratio']} slope {cal['cal_slope']} "
