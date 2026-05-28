@@ -25,13 +25,13 @@ or between-patient base-rate separation, on the publicly released Park
 
 ### Background
 
-Daily diary-based migraine forecasting is a candidate foundation for
-pre-emptive oral medication. The diary-only literature reports AUC in
+Pooled AUROC for daily migraine forecasting conflates within-person
+day-to-day ranking with between-patient base-rate separation, leaving
+clinical utility unresolved. The diary-only literature reports AUC in
 the 0.56 to 0.73 range under within-person or leave-one-out evaluation;
-wearable-augmented forecasts reach higher (up to 0.84 with physiological
-signals that diary-only inputs do not carry). Pooled-AUROC evaluations
-conflate within-person day-to-day ranking with between-patient base-rate
-separation, leaving clinical utility unresolved.
+wearable-augmented forecasts reach up to 0.84 using physiological
+signals that diary-only inputs do not carry. Diary-based forecasting
+remains a candidate foundation for pre-emptive oral medication.
 
 ### Methods
 
@@ -42,9 +42,9 @@ three feature sets, three split types (chronological, stratified,
 held-out-patient), two split ratios (70/30 and 70/15/15), and the
 architecture families {XGBoost stacking with and without 500-trial Optuna
 hyperparameter search; TabPFN tabular foundation model across five
-released variants; window-MLP sequence baseline}. Missing diary days
-were treated as structural rather than missing-at-random by a gap-aware
-reindexer; no imputation was performed. Headline cells were selected by
+released variants; window-MLP sequence baseline}. A gap-aware reindexer
+treated missing diary days as structural, not missing-at-random;
+no imputation was applied. Headline cells were selected by
 a composite rule gating on calibration slope before breaking AUROC and
 AUPRC ties on fixed tier bins. External validation was leave-one-site-out
 across the two recruitment clinics. Discrimination, calibration, and
@@ -62,9 +62,8 @@ calibration slope was 0.64. The precision-weighted within-person
 C-statistic, estimated by out-of-fold cross-validation on the
 non-hyperparameter-tuned 70/30 chronological cells, centred near 0.55;
 the per-patient AUROC distribution centred near chance, and the
-pooled-minus-within gap was large; the pooled AUROC therefore reflected
-between-patient base-rate separation rather than within-person
-day-to-day ranking. Brier skill against
+pooled-minus-within gap was large; the pooled AUROC value therefore exceeded
+the within-person C by a margin attributable to base-rate separation. Brier skill against
 per-patient climatology was negative for migraine and positive for
 headache. The migraine decision-curve net benefit sat near zero across
 the clinically plausible threshold band, whereas the headache curve was
