@@ -41,11 +41,15 @@ except Exception:  # pragma: no cover - style import is best-effort
         pass
 
 
-def plot_attribution_bar(ranking, metric_label, title, out_path, top_n=15):
+def plot_attribution_bar(ranking, metric_label, title, out_path, top_n=15, ci=None):
     """Horizontal bar of mean absolute attribution for the top features.
 
     Brand-styled (figure _style): blue bars, double-column width, vector PDF +
     300 dpi PNG via save(). ``out_path`` may be a .png stem; both siblings write.
+
+    When ``ci`` is provided it must map ``feature_name -> (lo, hi)`` for the
+    per-bar bootstrap envelope; whiskers render at xerr asymmetric from the bar
+    centre, and CI brackets append to each y-tick label.
     """
     S = _figure_style()
     S.apply()
@@ -54,12 +58,40 @@ def plot_attribution_bar(ranking, metric_label, title, out_path, top_n=15):
     vals = [v for _, v in items]
     fig, ax = plt.subplots(figsize=S.figsize("double", max(4.0, 0.4 * len(names) + 1)))
     ax.barh(range(len(names)), vals, color=S.OI["blue"])
+    if ci is not None:
+        lo_arr = np.array([max(0.0, vals[i] - ci.get(names[i], (vals[i], vals[i]))[0])
+                           for i in range(len(names))])
+        hi_arr = np.array([max(0.0, ci.get(names[i], (vals[i], vals[i]))[1] - vals[i])
+                           for i in range(len(names))])
+        ax.errorbar(vals, range(len(names)), xerr=[lo_arr, hi_arr],
+                    fmt="none", ecolor=S.REF_COLOR, elinewidth=0.9, capsize=2.0)
     ax.set_yticks(range(len(names)))
     ax.set_yticklabels(names, fontsize=8)
     ax.set_xlabel(metric_label)
     ax.set_title(title, fontsize=10)
     S.save(fig, out_path)
     plt.close(fig)
+
+
+def attribution_row_bootstrap_ci(shap_matrix, feature_names, n_boot=500, seed=42, alpha=0.05):
+    """Row-bootstrap 95% CI on mean(|SHAP|) per feature.
+
+    Resamples test rows (patient-days) with replacement n_boot times and
+    recomputes the per-feature mean of |SHAP|. Returns a dict mapping the
+    feature name to (lo, hi). This is a row-stability CI on a fixed model,
+    not a model-stability CI (which would require N model re-fits).
+    """
+    arr = np.abs(np.asarray(shap_matrix, dtype=float))
+    n = arr.shape[0]
+    rng = np.random.default_rng(seed)
+    boot = np.empty((n_boot, arr.shape[1]), dtype=float)
+    for b in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        boot[b] = arr[idx].mean(axis=0)
+    lo = np.percentile(boot, 100.0 * alpha / 2.0, axis=0)
+    hi = np.percentile(boot, 100.0 * (1.0 - alpha / 2.0), axis=0)
+    return {str(feature_names[j]): (float(lo[j]), float(hi[j]))
+            for j in range(arr.shape[1])}
 
 
 def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=12):

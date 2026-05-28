@@ -211,21 +211,34 @@ def _short_node_label(label):
     return label
 
 
-def _draw_node_rects(ax, node, row_h, row_pad):
+def _draw_node_rects(ax, node, row_h, row_pad, *, under_powered=False):
     """Recursively render each node as a coloured rectangle within its
     row stripe. ``row_h`` is the per-level stripe height in data units;
     ``row_pad`` is the vertical gap between stripes for visual
     separation.
+
+    ``under_powered`` propagates the migraine + `full_features` ancestry
+    flag (EPV = 5.5 per Section 2 of the methods); flagged cells render
+    with a ``///`` hatch overlay so the under-powered subtree is
+    identifiable across the icicle without changing entity colour.
     """
     if node.level >= 0:
+        # Set the flag as soon as both `target=migraine` (level 1) and
+        # `feature_set=full_features` (level 2) appear on the ancestry path.
+        if node.level == 1 and node.label == 'migraine':
+            under_powered = True
+        if node.level == 2 and node.label != 'full_features':
+            under_powered = False
         color = _node_fill(node.level, node.label)
         y_top = node.level * row_h
         y_bot = y_top + row_h - row_pad
         width = node.x1 - node.x0
         # The rectangle itself.
+        rect_kwargs = dict(facecolor=color, edgecolor='white', linewidth=0.6)
+        if under_powered and node.level >= 2:
+            rect_kwargs['hatch'] = '///'
         ax.add_patch(Rectangle(
-            (node.x0, y_top), width, row_h - row_pad,
-            facecolor=color, edgecolor='white', linewidth=0.6,
+            (node.x0, y_top), width, row_h - row_pad, **rect_kwargs,
         ))
         # Centred label, ink chosen for legibility on this cell's fill;
         # compacted then truncated to fit the cell width.
@@ -238,7 +251,7 @@ def _draw_node_rects(ax, node, row_h, row_pad):
                 fontfamily='monospace',
             )
     for child in node.children.values():
-        _draw_node_rects(ax, child, row_h, row_pad)
+        _draw_node_rects(ax, child, row_h, row_pad, under_powered=under_powered)
 
 
 def generate_tree_png(all_entries, out_path):
@@ -294,6 +307,23 @@ def generate_tree_png(all_entries, out_path):
     # Andrews 2019] citation belong in the LaTeX caption, not burned into the image.
     ax.set_title(f"Discovered experiment leaves ({n_leaves} total) - icicle plot",
                  fontsize=10, pad=10)
+
+    # Marker legend: a small hatched swatch + caption pinned below the icicle
+    # explains the under-powered overlay in-figure, so the reader does not
+    # need to consult the LaTeX caption to interpret the pattern.
+    swatch_x0, swatch_x1 = 0.0, 0.025
+    swatch_y = n_levels * row_h + 0.35
+    ax.add_patch(Rectangle(
+        (swatch_x0, swatch_y), swatch_x1 - swatch_x0, 0.45,
+        facecolor=TARGET.get('migraine', '#cccccc'),
+        edgecolor='white', linewidth=0.6, hatch='///',
+    ))
+    ax.text(
+        swatch_x1 + 0.008, swatch_y + 0.225,
+        "hatched cells = migraine `full_features` ancestry (EPV = 5.5, under-powered per Riley 2020)",
+        ha='left', va='center', fontsize=8, fontfamily='monospace', color=INK,
+    )
+    ax.set_ylim(n_levels * row_h + 1.0, -header_h)
 
     plt.tight_layout()
     save(fig, out_path)

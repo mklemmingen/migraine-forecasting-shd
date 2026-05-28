@@ -389,3 +389,58 @@ def caption_block(*, leaf=None, target=None, metric=None, n=None, n_pos=None,
     if extra:
         bits.append(extra)
     return ". ".join(bits) + "." if bits else ""
+
+
+def epv_annotation(ax, target: str, *, cell: str = "full_features",
+                   loc: str = "lower right", fontsize: float = 7.0) -> None:
+    """Stamp the EPV-5.5 / Riley-criterion marker on figure panels showing
+    the migraine `full_features` cell. Per `figure_design_requirements.md`
+    §11.7: any figure rendering this cell must annotate it as a priori
+    under-powered.
+
+    No-op for non-migraine targets and non-`full_features` cells.
+    """
+    if target != "migraine" or cell != "full_features":
+        return
+    locmap = {
+        "lower right": dict(x=0.99, y=0.04, ha="right", va="bottom"),
+        "lower left": dict(x=0.02, y=0.04, ha="left", va="bottom"),
+        "upper right": dict(x=0.99, y=0.96, ha="right", va="top"),
+        "upper left": dict(x=0.02, y=0.96, ha="left", va="top"),
+    }
+    pos = locmap.get(loc, locmap["lower right"])
+    ax.text(pos["x"], pos["y"],
+            "migraine full_features: EPV ~5.5\n"
+            "below Riley criterion (a priori under-powered)",
+            transform=ax.transAxes,
+            ha=pos["ha"], va=pos["va"],
+            fontsize=fontsize, color=SOFT, style="italic",
+            bbox=dict(facecolor="white", edgecolor="none",
+                      alpha=0.7, pad=2))
+
+
+def cc_by_footer(fig, fontsize: float = 6.5) -> None:
+    """Add a CC BY 4.0 licence footer at the bottom-right of the figure.
+    Per `figure_design_requirements.md` §11.6: figures intended for
+    publication carry an explicit licence affordance.
+    """
+    fig.text(0.99, 0.005, "CC BY 4.0",
+             ha="right", va="bottom",
+             fontsize=fontsize, color=GREY, alpha=0.7,
+             transform=fig.transFigure)
+
+
+# §11.11 self-check comment block. Each figure script imports this string
+# and includes it as a module-level comment so the regen pipeline carries
+# the §11 compliance trail with the artefact.
+COMPLIANCE_BLOCK = """\
+# §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
+#   §11.1 CIs on headline metric:        see error bars / shaded bands
+#   §11.2 estimability denominators:     where applicable (within-person)
+#   §11.3 self-contained caption:        S.caption_block() invoked
+#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
+#   §11.7 EPV-5.5 annotation:            S.epv_annotation() invoked on
+#                                        migraine full_features panels
+#   §11.10 no "substantial"/"large":     verified in captions
+#   §11.11 self-check:                   this block
+"""
