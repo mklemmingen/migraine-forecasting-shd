@@ -1,11 +1,11 @@
-# Post-Sweep Insights: Leaf-Selection Criteria
+# Post-sweep insights: leaf-selection criteria
 
 > Position in the paper: **Supplementary (6.1)**. Reads after `addition3_results.md`; precedes `paper_rigor_checklist.md`. Composite_sorted selection rule, its parameters, and the within-family fragility sensitivity sweep results.
 
 
 This document records which leaves get model-interpretability attention (feature attribution, embedding visualisation, partial-dependence) after the Addition 1 sweep finishes, and why.
 
-The starting observation is that running interpretability on all 154 leaves of Addition 1 (plus the parallel set under Addition 0) produces ~300 figures - too many to read, too expensive to compute. The selection below trades breadth for depth: the cells that drive the paper's discussion get figures; the rest are summarised numerically only.
+The starting observation is that running interpretability on all 154 leaves of Addition 1 (plus the parallel set under Addition 0) produces ~300 figures, too many to read, too expensive to compute. The selection below trades breadth for depth: the cells that drive the paper's discussion get figures; the rest are summarised numerically only.
 
 ## What "insights" means here
 
@@ -15,7 +15,7 @@ Three artefact kinds, all available via `tabpfn-extensions[interpretability]` on
 2. **Embedding projection**: the in-context-learning attention embedding for each row, projected to 2D (UMAP or t-SNE) and coloured by predicted probability. Tells whether the model has learned a meaningful neighbourhood structure for migraine-day clusters.
 3. **Partial-dependence**: per-feature marginal effect on `predict_proba`, useful for the Park-feature leaves where the comparison against Park et al.'s same-day OR estimates [1, Tab. 4, p. 8] is direct.
 
-`AutoTabPFNClassifier` exposes feature importance via AutoGluon's `feature_importance` API instead of SHAP - a different code path but it lands in the same per-leaf figure folder.
+`AutoTabPFNClassifier` exposes feature importance via AutoGluon's `feature_importance` API instead of SHAP; a different code path but it lands in the same per-leaf figure folder.
 
 ## What "runner-up" means here
 
@@ -24,8 +24,8 @@ results row per version × ratio combination. After the sweep finishes, the
 selection logic in `experiment/2/select.py` ranks those rows by a
 multi-metric composite and applies two rules.
 
-A **headline** result is the top-composite row per group -- the one the
-paper's main results table cites. A **runner-up** is the best-composite row
+A **headline** result is the top-composite row per group (the one the
+paper's main results table cites). A **runner-up** is the best-composite row
 of a *different* architecture family whose 95% AUROC CI overlaps the
 headline's (e.g., headline is TabPFN, runner-up is the XGBoost stack).
 
@@ -112,7 +112,7 @@ The verdict on the canonical full_features/chrono headline cell:
   stays in the `stacked_2xgb_meta_lr` family across all six.
 - **Within-family choice is fragile.** On headache, the TabPFN variant
   chosen by the composite flips between *v2.6* (default tier) and
-  *v2.5-finetuned* (when `AUROC_TOL` tightens to 0.01) - both leaves
+  *v2.5-finetuned* (when `AUROC_TOL` tightens to 0.01); both leaves
   sit inside the AUROC-tier band the composite considers a noise-level
   tie, so the calibration-distance tiebreak picks the winner. On
   migraine, the HP variant flips between *HP020* (default) and *HP050*
@@ -156,7 +156,7 @@ Total per leaf ~4-6 minutes. For 14 leaves: ~60-90 minutes added compute after t
 
 ## Why this isn't done inside `evaluate.py`
 
-`evaluate.py` is a deterministic metrics-only contract that the aggregator reads; injecting interpretability into it would (i) couple the runtime of every leaf to the SHAP cost, (ii) require the aggregator to know how to skip the insight figures, and (iii) commit us to producing figures for cells the paper does not discuss. A separate post-sweep `experiment/2/run_insights.py` driver loads the headline/runner-up leaves' `model.joblib`, regenerates the same train/val/test splits, and writes the figure packs - all without touching `evaluate.py`.
+`evaluate.py` is a deterministic metrics-only contract that the aggregator reads; injecting interpretability into it would (i) couple the runtime of every leaf to the SHAP cost, (ii) require the aggregator to know how to skip the insight figures, and (iii) commit us to producing figures for cells the paper does not discuss. A separate post-sweep `experiment/2/run_insights.py` driver loads the headline/runner-up leaves' `model.joblib`, regenerates the same train/val/test splits, and writes the figure packs, all without touching `evaluate.py`.
 
 ## Citation
 
