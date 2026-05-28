@@ -54,7 +54,7 @@ than stacked) and are not part of the HP-tuned branch.
 
 ### Final-model parameters (TRIPOD+AI Item 22)
 
-The full prediction-model specification per leaf is stored at three locations: (i) `<leaf>/model.joblib` — the serialised calibrated stack (shallow-depth-3 XGBoost + deep-depth-6 XGBoost + logistic-regression meta-learner + Platt-calibration sigmoid) ready to call via `calibrated_proba(bundle, X)` from `experiment/0/_model_architecture/stacked_2xgb_meta_lr_hp/model.py`; (ii) for the HP-tuned branch, the best-trial hyperparameters land in `<leaf>/HyperparameterTuned/<strategy>/<variant>/results/best_params.json`, naming the exact learning-rate, max-depth, subsample, colsample, gamma, min-child-weight, and `n_estimators` values; (iii) the underlying full Optuna search history (every trial) is in `<leaf>/HyperparameterTuned/<strategy>/trajectory.jsonl` for any third-party replicator who wants to inspect the search trajectory rather than only the final point. Together these three artefacts permit re-instantiation of any cell's model and inspection of how its hyperparameters were chosen.
+The full prediction-model specification per leaf is stored at three locations: (i) `<leaf>/model.joblib`, the serialised calibrated stack (shallow-depth-3 XGBoost + deep-depth-6 XGBoost + logistic-regression meta-learner + Platt-calibration sigmoid) ready to call via `calibrated_proba(bundle, X)` from `experiment/0/_model_architecture/stacked_2xgb_meta_lr_hp/model.py`; (ii) for the HP-tuned branch, the best-trial hyperparameters land in `<leaf>/HyperparameterTuned/<strategy>/<variant>/results/best_params.json`, naming the exact learning-rate, max-depth, subsample, colsample, gamma, min-child-weight, and `n_estimators` values; (iii) the underlying full Optuna search history (every trial) is in `<leaf>/HyperparameterTuned/<strategy>/trajectory.jsonl` for any third-party replicator who wants to inspect the search trajectory rather than only the final point. Together these three artefacts permit re-instantiation of any cell's model and inspection of how its hyperparameters were chosen.
 
 ## 2. Search infrastructure
 
@@ -132,8 +132,8 @@ scores post-Platt metrics on the held-out 1/5. The trial's reported
 metric is the per-fold average.
 
 Per-fold metrics are preserved in the trajectory file under the
-`per_fold` key so a reviewer can verify the average is not masking a
-high-variance fold.
+`per_fold` key so the per-trial average can be checked against
+per-fold variance.
 
 ### 4.1 Aggregation rule for the per-trial metric dictionary
 
@@ -145,8 +145,8 @@ Each per-fold metric is averaged across the five folds independently:
     stored_brier              =  mean(  per_fold_brier_k  for k in 1..5 )
     ...
 
-The `slope_dist_to_1` field is therefore the **K-fold-averaged
-per-fold absolute deviation of slope from 1.0**, NOT the absolute
+The `slope_dist_to_1` field is therefore the K-fold-averaged
+per-fold absolute deviation of slope from 1.0, not the absolute
 deviation of the K-fold-averaged slope. These are different
 quantities: `mean(|slope_k - 1|)` is bounded below by
 `|mean(slope_k) - 1|` (triangle inequality), with equality only when
@@ -328,9 +328,10 @@ miscalibrated, just not inverted). HP tuning explicitly searches for
 configurations that maximise per-fold AUROC inside `cal_sub`, which
 amplifies the latent overfitting the NonHP baseline only partly hides.
 
-The methodological implication is that **chronological splits are
-required when HP tuning is in the loop**, even for an HP-scoring
-protocol that already uses an internal 5-fold CV on `cal_sub`. The
+The methodological implication on this dataset is that chronological
+splits avoided the calibration-inversion failure that stratified splits
+exhibited under HP tuning, even when the HP-scoring protocol already
+used an internal 5-fold CV on `cal_sub`. The
 internal CV reduces variance of the per-trial metric estimate but does
 not prevent the calibration overfit that the stratified split enables
 through patient_id leakage. This strengthens the case for the
