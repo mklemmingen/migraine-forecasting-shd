@@ -24,6 +24,11 @@ the leaf count rendered in the figure.
 
 Usage: python fig_f5_leaf_tree.py
 """
+# §11 compliance: icicle plot of experiment leaves (structural, no metric).
+#   §11.1 N/A; §11.3 caption: feature-set + cell names self-contained
+#   §11.6 via renderer; §11.7: migraine `full_features` lineage rendered with
+#       `///` hatch overlay + in-figure legend swatch for EPV=5.5 identification
+#   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX; the layout description and citation were moved off the
 # image to keep the title to one line):
 #   Icicle plot of the discovered experiment leaves (Shneiderman 1992; Andrews &
