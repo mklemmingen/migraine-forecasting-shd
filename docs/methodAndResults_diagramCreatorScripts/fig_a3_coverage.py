@@ -47,20 +47,29 @@ def main():
     norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
     fig, ax = plt.subplots(figsize=S.figsize("double", 5.2))
     ax.imshow(grid, aspect="auto", cmap=cmap, norm=norm, interpolation="nearest")
+    # Thin white minor gridlines on every cell boundary for cell-level
+    # readability; spec rule for discrete heatmaps.
+    ax.set_xticks(np.arange(-0.5, grid.shape[1], 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, grid.shape[0], 1), minor=True)
+    ax.grid(which="minor", color="white", linewidth=0.2)
+    ax.tick_params(which="minor", length=0)
     # month ticks
     months = pd.date_range(dates.min(), dates.max(), freq="MS")
     ax.set_xticks([di[m] for m in months if m in di])
     ax.set_xticklabels([m.strftime("%b %Y") for m in months if m in di], rotation=45, ha="right")
     ax.set_ylabel("patient (sorted by enrolment start)")
     ax.set_xlabel("calendar date")
-    ax.set_title("Diary coverage: staggered enrolment and gaps (63 patients)")
+    coverage_pct = 100 * (grid > 0).mean()
+    ax.set_title(f"Diary coverage: 63 patients, {coverage_pct:.1f}% coverage "
+                 f"(staggered enrolment, gaps shown as white)")
     from matplotlib.patches import Patch
-    S.framed_legend(ax, handles=[Patch(fc=S.COVERAGE[1], label="headache-free"),
+    S.framed_legend(ax, handles=[Patch(fc="white", ec="#bbbbbb", label="no entry"),
+                                 Patch(fc=S.COVERAGE[1], label="headache-free"),
                                  Patch(fc=S.COVERAGE[2], label="headache"),
                                  Patch(fc=S.COVERAGE[3], label="migraine")],
                     loc="lower right")
     print(f"  grid {grid.shape[0]} patients x {grid.shape[1]} days; "
-          f"coverage {100 * (grid > 0).mean():.1f}%")
+          f"coverage {coverage_pct:.1f}%")
     print("saved", S.save(fig, HERE / "figures" / "fig_a3_coverage"))
 
 

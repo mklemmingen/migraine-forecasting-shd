@@ -41,16 +41,17 @@ def main():
     b2 = S.box(ax, (5, 6.8), 7.2, 1.3,
                "Recruitment site recovered from Sheet 1\n"
                "62 patients mapped: Uijeongbu 32 - Dongtan 30")
-    bex = S.box(ax, (8.5, 7.95), 2.8, 0.85,
-                "- 1 reconciliation patient\n(38 days), excluded\nfrom site analysis",
+    bex = S.box(ax, (9.0, 7.95), 2.0, 0.85,
+                "- 1 reconciliation patient\n(- 38 days), excluded\nfrom site analysis",
                 role="exclude", fontsize=7.5)
     bh = S.box(ax, (2.7, 4.6), 3.4, 1.15, f"Headache target\n{hea_r:.1%} of all days",
                fc=S.PALE_FILL, ec=S.TARGET["headache"])
     bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} of all days",
                 fc=S.PALE_FILL, ec=S.TARGET["migraine"])
-    b4 = S.box(ax, (5, 2.2), 7.6, 1.35,
-               f"Chronological 70/15/15 split (identical rows across targets)\n"
-               f"train {sizes['train']:,}  -  val {sizes['val']:,}  -  test {sizes['test']:,}",
+    b4 = S.box(ax, (5, 2.0), 7.6, 1.6,
+               f"Chronological 70/15/15 split (illustrative; A5 shows stratified / patient / site)\n"
+               f"train {sizes['train']:,}  -  val {sizes['val']:,}  -  test {sizes['test']:,}\n"
+               f"identical row partitioning across both targets",
                role="output")
     for a, b in [(b1, b2)]:
         S.arrow(ax, (a[0], a[1] - a[3] / 2), (b[0], b[1] + b[3] / 2))
