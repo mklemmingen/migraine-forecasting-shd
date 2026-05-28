@@ -5,7 +5,7 @@
 > EPV bands documented here are referenced from every per-Addition methods
 > doc.
 
-## Source Publication
+## Source publication
 
 **Park J-W, Chu MK, Kim J-M, Park S-G, Cho S-J (2016)**  
 Analysis of Trigger Factors in Episodic Migraineurs Using a Smartphone Headache Diary Applications.  
@@ -47,7 +47,7 @@ Three sheets. All column headers in Korean throughout.
 
 ---
 
-## Study Design
+## Study design
 
 Sixty-two episodic migraineurs were recruited between September 2014 and January 2015 at the neurology outpatient clinics of two Korean university hospitals: 의정부성모병원 (32 patients) and 동탄성심병원 (30 patients). Inclusion criteria: age 19–55, ICHD-3 beta-defined migraine with or without aura, 2–14 headache days per month, stable headache characteristics for at least one year prior to enrolment, personal smartphone capable of running the SHD application [1, p. 3].
 
@@ -73,7 +73,7 @@ The 50% relative gap in migraine base rate between sites (8.6% vs 5.7%) is the d
 
 ### Treatments observed but not modelled
 
-Park et al.'s data records preventive and acute medication use across Sheets 1-2 [1, pp. 3-4]: preventive prophylaxis status and acute analgesic intake on each headache day. This benchmark does not use medication variables as predictors; the feature dictionary in `## Benchmark Translation and Engineering Plan` includes only diary triggers and engineered history features. Potential residual confounding from preventive-medication effects on outcome rates is acknowledged in the Limitations (`discussion.md` §7.4).
+Park et al.'s data records preventive and acute medication use across Sheets 1-2 [1, pp. 3-4]: preventive prophylaxis status and acute analgesic intake on each headache day. This benchmark does not use medication variables as predictors; the feature dictionary in `## Benchmark translation and engineering plan` includes only diary triggers and engineered history features. Potential residual confounding from preventive-medication effects on outcome rates is acknowledged in the Limitations (`discussion.md` §7.4).
 
 ### Subjective assessment, blinding, and self-report design
 
@@ -81,7 +81,7 @@ Both the outcome (next-day headache occurrence; ICHD-3 migraine classification) 
 
 ---
 
-# Patient Count Reconciliation
+## Patient count reconciliation
 
 Park et al. reported: 62 patients
 Translated (Sheet 3): 63 unique
@@ -212,7 +212,7 @@ Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe)
 
 ---
 
-## Benchmark Translation and Engineering Plan
+## Benchmark translation and engineering plan
 
 This section describes how this benchmark translates and engineers `SHD-Dataset.xls` into its training-ready feature matrix. This is an independent rebuild - not a patch of the Spano pipeline - and reads directly from the Korean source to avoid carrying forward any translation artifacts.
 
@@ -220,7 +220,7 @@ We name the following steps in-depth, so that future work may peer-review and ch
 
 ---
 
-### Step 1 - Translation
+### Step 1 - translation
 
 Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-driven and fully reproducible. Column headers are read from the Korean source and mapped programmatically.
 
@@ -283,7 +283,7 @@ Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-drive
 | 격렬한 운동(분) | vigorous_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger                                                                                          |
 | 중등도운동(분) | moderate_exercise_min | Included | Enables exercise as behaviour to be derived separately from exercise as trigger                                                                                          |
 
-### Low-Significance Features Retained
+### Low-significance features retained
 
 | Feature | Prevalence | Park p-value | Retention rationale |
 |---------|-----------|--------------|---------------------|
@@ -301,21 +301,21 @@ their contribution.
 
 **Key translation decisions:**
 
-The weather column is read directly from the Korean header `날씨/온도 변화`. This bypasses the English typo `Wheater/temperature change` introduced in previous work, which caused all five weather features to be zeroed. All 236 weather-trigger rows are retained.
+The weather column was read directly from the Korean header `날씨/온도 변화`. This bypasses the English typo `Wheater/temperature change` introduced in earlier processing, which caused all five weather features to be zeroed. All 236 weather-trigger rows were retained.
 
-`exercise_as_trigger` is excluded from the final feature set (not significant in Park et al., p=0.78). However, `vigorous_exercise_min` and `moderate_exercise_min` are retained to derive `exercise_today` as a behaviour flag at the engineering step - these are semantically distinct and kept separate.
+`exercise_as_trigger` was excluded from the final feature set (not significant in Park et al., p=0.78). However, `vigorous_exercise_min` and `moderate_exercise_min` were retained to derive `exercise_today` as a behaviour flag at the engineering step; these are semantically distinct and kept separate.
 
-Six columns are excluded at translation based on Park et al. statistical findings: `sunlight` (p=0.73, 0.8% prevalence), `inappropriate_lighting` (not in 18-trigger inventory, 0.2%), `excessive_smoking` (p=0.73, insufficient cell counts in Park et al. subgroup analysis), `cheese_chocolate` (insufficient cell counts, 0.7%), `exercise_as_trigger` (p=0.78), and `other_trigger` (catch-all, not analysed).
+Six columns were excluded at translation based on Park et al. statistical findings: `sunlight` (p=0.73, 0.8% prevalence), `inappropriate_lighting` (not in 18-trigger inventory, 0.2%), `excessive_smoking` (p=0.73, insufficient cell counts in Park et al. subgroup analysis), `cheese_chocolate` (insufficient cell counts, 0.7%), `exercise_as_trigger` (p=0.78), and `other_trigger` (catch-all, not analysed).
 
-Patient IDs are uppercased on read. This resolves the `CM-004`/`cm-004` case artifact, giving 63 canonical patients throughout the translated diary.
+Patient IDs were uppercased on read. This resolves the `CM-004`/`cm-004` case artifact, giving 63 canonical patients throughout the translated diary.
 
-Group-sum columns (합계 columns) are not carried forward; they are derived quantities recomputed during engineering where needed.
+Group-sum columns (합계 columns) were not carried forward; they were recomputed as derived quantities during engineering where needed.
 
-The absorbed totals row is excluded by retaining only rows where `patient_id` matches a known patient identifier.
+The absorbed totals row was excluded by retaining only rows where `patient_id` matches a known patient identifier.
 
 ---
 
-### Step 2 - Engineering
+### Step 2 - engineering
 
 Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `test_engineered.parquet` files from `data/translated.parquet`. All features describe the current diary day; the target describes the next day.
 
@@ -333,7 +333,7 @@ Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `te
 
 **Rolling window edge handling:** All rolling features use `min_periods=1` - partial windows at the start of each patient's series compute over available days. This avoids dropping the first 6 days per patient.
 
-### Gap Awareness
+### Gap awareness
 
 208 of ~4,453 consecutive-day transitions have gaps > 1 day (max 37 days).
 Rolling features (`*_last3`, `*_last7`, `*_3day`, `*_7day`) use
@@ -344,9 +344,9 @@ a single day after a long gap. Two gap-awareness features are provided:
   previous diary entry. 1 = continuous; > 1 = gap.
 - `recording_gap_flag`: binary indicator (1 if gap > 1 day).
 
-Models should learn to discount rolling features when gap indicators are
-high. For LSTM (Addition 4), consider masking or segmenting sequences at
-gaps > N days.
+Models without gap-aware features may overweight rolling values computed
+over sparse windows. Sequence models in Addition 4 mask or segment
+sequences at gaps > N days.
 
 **Per-predictor missing-values count.** Each predictor's null count after
 the engineering pipeline is logged in
@@ -454,7 +454,7 @@ Last diary entry per patient dropped - no next-day label available (−63 rows).
 | sunlight_today | N! excluded | Not significant (p=0.73); 0.8% prevalence - too sparse for reliable modelling [1, Tab. 4] |
 | inappropriate_lighting_today | N! excluded | Not part of Park et al. 18-trigger inventory; 0.2% prevalence [1, p. 3] |
 
-### Prodromal Contamination Risk
+### Prodromal contamination risk
 
 Noise, specific smells, and emotional changes are known migraine prodromal
 symptoms [3], [4]. Park et al. measured
@@ -499,11 +499,11 @@ is the explanation.
 
 ---
 
-### Step 3 - Stage 5 Supplement (Sheet 2 Disability)
+### Step 3 - Stage 5 supplement (Sheet 2 disability)
 
 Sheet 2 is processed separately into separated Train, Val, and Test Parquet files and is not included in the Stage 0–4 feature matrix. It is joined to the daily diary by patient ID and date for Stage 5 experiments only.
 
-**Train/Val/Test Split Alignment:**
+**Train/val/test split alignment:**
 To ensure zero data leakage and exact temporal alignment with the daily diary features, the disability dataset is split into chronologically identical Train (70%), Validation (15%), and Test (15%) sets using the exact date cutoffs established in Step 2. Orphan patients without daily diary logs are filtered out. Outputs are physically separated into `train_disability.parquet`, `val_disability.parquet`, and `test_disability.parquet`.
 
 **Reading procedure for Sheet 2:**
@@ -555,7 +555,7 @@ Additionally retained for join and context: `entry_id`, `patient_id`, `date`, `s
 
 ---
 
-## Target Definitions
+## Target definitions
 
 Two independent parquet trees exist under `data/processed/`:
 
@@ -617,7 +617,7 @@ EPV concern is migraine-specific.
 
 ---
 
-### Row Provenance
+### Row provenance
 
 Upstream counts are stable facts about the source file. Split counts vary by
 ratio and strategy - authoritative figures are in `data/processed/dataset_characterization.pdf`
@@ -634,7 +634,7 @@ and the per-package `package_report.pdf` files.
 
 ---
 
-### What This Benchmark Uses That Spano Did Not
+### What this benchmark uses that Spano did not
 
 | Data | Decision | Reason |
 |------|----------|--------|
