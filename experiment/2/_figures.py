@@ -242,8 +242,16 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     for gi, st in enumerate(SPLIT_ORDER):
         ys = [base[ci] + (1 - gi) * 0.18 for ci, k in enumerate(cells) if st in by_cell[k]]
         xs = [by_cell[k][st]["calib_slope"] for k in cells if st in by_cell[k]]
+        x_lo = [by_cell[k][st].get("calib_slope_lo") for k in cells if st in by_cell[k]]
+        x_hi = [by_cell[k][st].get("calib_slope_hi") for k in cells if st in by_cell[k]]
         slugs = [_arch_var(by_cell[k][st].get("leaf_dir"))
                  for k in cells if st in by_cell[k]]
+        # Per-marker CI whiskers from the per-leaf bootstrap (parsed from
+        # holdout_Calibration Slope `mean [lo - hi]`).
+        for x_val, y_val, lo, hi in zip(xs, ys, x_lo, x_hi):
+            if lo is not None and hi is not None:
+                ax.plot([lo, hi], [y_val, y_val], color=SPLIT[st], lw=1.0,
+                        alpha=0.4, zorder=2)
         ax.scatter(xs, ys, s=55, color=SPLIT[st], zorder=3,
                    edgecolor="white", label=SPLIT_FIG_LABELS[st])
         # Per-marker slug annotation: each (target, feature_set, split) headline
@@ -256,8 +264,12 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_xlim(xmax * -0.02, xmax)
     ax.set_xlabel("calibration slope (shaded zones = excluded from selection)",
                   fontsize=9)
-    ax.set_title("Calibration of the headline model, by split type", fontsize=10)
+    ax.set_title("Calibration of the headline model, by split type\n"
+                 "Park 2016 SHD, n=62; whiskers = per-leaf bootstrap 95% CI on slope",
+                 fontsize=10)
     ax.legend(fontsize=7.5, loc="upper right", ncol=1, frameon=False)
+    fig.text(0.99, 0.005, "CC BY 4.0", ha="right", va="bottom",
+             fontsize=6.5, color=GREY, alpha=0.7)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -344,10 +356,23 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     ax.set_yticks(range(1, n + 1))
     ax.set_xlabel("Park 2016 odds-ratio rank (1 = strongest trigger)")
     ax.set_ylabel("model mean |SHAP| rank (1 = most weighted)")
-    # Report p and n with rho: on ~6 shared triggers any coefficient is highly
-    # uncertain, so a bare rho would read as far more conclusive than it is.
+    # Report p, n, and Fisher-z 95% CI with rho: on ~6 shared triggers any
+    # coefficient is highly uncertain, so a bare rho would read as far more
+    # conclusive than it is.
     p = sel.get("p")
-    stat = f"rho = {rho:+.2f}" + (f", p = {p:.2f}, n = {n}" if p is not None else f", n = {n}")
+    # Fisher z-transform CI (Bonett-Wright 2000 standard form). At n=6 this is
+    # asymptotic — surfaced anyway so the reader sees the uncertainty width.
+    if n > 3 and -1 < rho < 1:
+        z = np.arctanh(rho)
+        se = 1.0 / np.sqrt(n - 3)
+        rho_lo = float(np.tanh(z - 1.96 * se))
+        rho_hi = float(np.tanh(z + 1.96 * se))
+        ci_str = f", 95% CI [{rho_lo:+.2f}, {rho_hi:+.2f}]"
+    else:
+        ci_str = ""
+    stat = (f"rho = {rho:+.2f}"
+            + (f", p = {p:.2f}, n = {n}" if p is not None else f", n = {n}")
+            + ci_str)
     # Title names the role + architecture family (figdata park block does not
     # carry the per-variant leaf_dir; the family identifies the model class).
     arch = sel.get("architecture") or sel.get("family") or "?"

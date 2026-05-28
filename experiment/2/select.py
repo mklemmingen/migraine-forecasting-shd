@@ -98,6 +98,8 @@ def collect_holdout_rows() -> list[dict]:
             "auprc_lo": auprc[1] if auprc else None,
             "auprc_hi": auprc[2] if auprc else None,
             "calib_slope": calib[0] if calib else None,
+            "calib_slope_lo": calib[1] if calib else None,
+            "calib_slope_hi": calib[2] if calib else None,
         })
     return rows
 
