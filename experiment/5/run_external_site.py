@@ -113,19 +113,48 @@ def _record(rows, model, target, feature_set, held, train_rate,
     return row
 
 
+def _load_figdata_headlines() -> list[dict]:
+    """Headlines array from the latest experiment/2/figdata_*.json. See the
+    matching helper in run_personalization.py for rationale."""
+    import importlib.util as _ilu
+    spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+    F = _ilu.module_from_spec(spec); spec.loader.exec_module(F)
+    fp = F.latest_figdata(EXP / "2")
+    if fp is None:
+        return []
+    return F.load_figdata(fp).get("headlines", [])
+
+
+def _resolve_composite_leaf(headlines: list[dict], target: str, family: str) -> Path | None:
+    """Composite-tracked leaf for (target, family) in the full_features/chrono
+    headline cell. Mirrors the helper in run_personalization.py."""
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
+
+
 def default_leaves() -> dict:
-    """{target -> [Add 0/1/4 leaf model dirs]} for the full_features chrono cells."""
-    out = {}
+    """{target -> [Add 0/1/4 leaf model dirs]} on the composite headline cell.
+    Add-0 and Add-1 are resolved from experiment/2/figdata_*.json so they track
+    composite_sorted; Add-4 stays pinned to a documented window-MLP leaf as the
+    cross-addition contrast (composite selection covers Add-0 and Add-1 only)."""
+    headlines = _load_figdata_headlines()
+    out: dict = {}
     for tgt in ("headache", "migraine"):
-        ls = []
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            if "stacked_2xgb" in str(m) and "/70_15_15/chrono/" in str(m):
-                ls.append(m.parent); break
-        for sub in ("1/{t}/full_features/tabpfn/version_3-default/70_15_15/chrono",
-                    "4/{t}/full_features/sequence/version_window-mlp/70_15_15/chrono"):
-            dd = EXP / sub.format(t=tgt)
-            if (dd / "model.joblib").exists():
-                ls.append(dd)
+        ls: list[Path] = []
+        d0 = _resolve_composite_leaf(headlines, tgt, "xgboost")
+        if d0 is not None and (d0 / "model.joblib").exists():
+            ls.append(d0)
+        d1 = _resolve_composite_leaf(headlines, tgt, "tabpfn")
+        if d1 is not None and (d1 / "model.joblib").exists():
+            ls.append(d1)
+        d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
+        if (d4 / "model.joblib").exists():
+            ls.append(d4)
         out[tgt] = ls
     return out
 

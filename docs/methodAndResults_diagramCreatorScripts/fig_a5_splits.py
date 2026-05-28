@@ -54,11 +54,25 @@ def main():
         for j in range(N_DAY + 1):
             ax.axvline(j - 0.5, color="white", lw=0.6)
     axes[0].set_ylabel("patients", fontsize=8)
+    # Annotate site rows on panel (d): top half = site A (train+val), bottom half = site B (test).
+    site_ax = axes[3]
+    site_ax.annotate("site A", xy=(-0.07, 0.75), xycoords="axes fraction",
+                     ha="right", va="center", fontsize=7,
+                     color=S.SOFT, rotation=90)
+    site_ax.annotate("site B", xy=(-0.07, 0.25), xycoords="axes fraction",
+                     ha="right", va="center", fontsize=7,
+                     color=S.SOFT, rotation=90)
+    # Panel (b) explains the leakage mechanism inline.
+    leak_ax = axes[1]
+    leak_ax.annotate("history window\nstraddles split\nboundary",
+                     xy=(0.55, 0.52), xycoords="axes fraction",
+                     ha="left", va="center", fontsize=6.5,
+                     color=S.SOFT, style="italic")
     fig.legend(handles=[Patch(fc=S.SPLIT_GRID[0], label="train"),
                         Patch(fc=S.SPLIT_GRID[1], label="val"),
                         Patch(fc=S.SPLIT_GRID[2], label="test")],
                loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.06))
-    fig.supxlabel("days →", fontsize=9)
+    fig.supxlabel("days → (ratios illustrative; paper uses 70/15/15, 70/30, 80/20)", fontsize=9)
     fig.suptitle("Split strategies over patient-days", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_a5_splits"))
 

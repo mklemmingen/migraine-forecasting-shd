@@ -77,7 +77,12 @@ def _cv_predict(leaf: Path):
         r = subprocess.run([sys.executable, str(CV_WORKER), str(leaf), str(out)],
                            capture_output=True, text=True, timeout=3600, env=_env(add))
         if r.returncode != 0 or not out.exists():
-            print("  FAIL", leaf.name, (r.stderr.strip().splitlines() or ["?"])[-1])
+            print(f"  FAIL {leaf.name} (returncode={r.returncode}, out_exists={out.exists()})")
+            if r.stderr:
+                print("  --- worker stderr ---")
+                for line in r.stderr.strip().splitlines():
+                    print(f"    {line}")
+                print("  --- end stderr ---")
             return None
         z = np.load(out)
         return z["y"].astype(float), z["p"].astype(float), z["pid"].astype(str)
@@ -105,7 +110,7 @@ def _panel(ax, tgt, y, p, pid):
     ax.set_xlabel(f"patient, sorted by AUROC (k={len(est)})")
     ax.set_ylabel("per-patient AUROC")
     ax.set_title(f"{tgt} - TabPFN, CV out-of-fold")
-    ax.legend(loc="lower right")
+    ax.legend(loc="upper left")
     print(f"  {tgt:<9} pooled {pooled:.3f} | within {within['estimate']:.3f} "
           f"[{within['ci_low']:.3f}-{within['ci_high']:.3f}] | k={len(est)}")
 
@@ -130,7 +135,9 @@ def main():
         r = _cv_predict(leaf)
         if r is not None:
             _panel(ax, tgt, *r)
-            ax.set_title(f"{tgt} - {S.leaf_slug(leaf)}")
+            # Two-line title so the bold panel-label (a / b) at the top-left
+            # does not collide with the long 4-token slug stem.
+            ax.set_title(f"{tgt}\n{S.leaf_slug(leaf)}", fontsize=10)
     fig.suptitle("Per-patient discrimination vs pooled AUROC (history features, chrono)",
                  y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_c2_within_person"))

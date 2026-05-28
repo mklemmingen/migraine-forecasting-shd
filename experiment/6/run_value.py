@@ -122,18 +122,50 @@ def _plot_cell(cell, curves, out_png):
     plt.savefig(out_png, dpi=130); plt.close()
 
 
+def _load_figdata_headlines() -> list[dict]:
+    """Headlines array from the latest experiment/2/figdata_*.json. The Addition
+    6 leaves are resolved from this so they track the composite_sorted
+    selection driving the headline table; mirrors the helper in
+    run_personalization.py."""
+    import importlib.util as _ilu
+    spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+    F = _ilu.module_from_spec(spec); spec.loader.exec_module(F)
+    fp = F.latest_figdata(EXP / "2")
+    if fp is None:
+        return []
+    return F.load_figdata(fp).get("headlines", [])
+
+
+def _resolve_composite_leaf(headlines: list[dict], target: str, family: str) -> Path | None:
+    """Composite-tracked leaf for (target, family) on the full_features/chrono
+    headline cell. Prefer headline-role; runner-up is also valid when the
+    cross-architecture headline lives in the other family."""
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
+
+
 def default_leaves() -> list[Path]:
-    leaves = []
+    """Cross-architecture set on the composite headline cell (full_features
+    chronological): Add-0 XGBoost and Add-1 TabPFN resolved from
+    experiment/2/figdata_*.json so they track composite_sorted; Add-4 sequence
+    pinned to a documented window-MLP leaf as the cross-addition contrast."""
+    headlines = _load_figdata_headlines()
+    leaves: list[Path] = []
     for tgt in ("headache", "migraine"):
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            d = _dims(m.parent)
-            if d["ratio"] == "70_15_15" and d["split"] == "chrono" and "stacked_2xgb" in str(m):
-                leaves.append(m.parent); break
-        for sub in ("1/{t}/full_features/tabpfn/version_3-default/70_15_15/chrono",
-                    "4/{t}/full_features/sequence/version_window-mlp/70_15_15/chrono"):
-            dd = EXP / sub.format(t=tgt)
-            if (dd / "model.joblib").exists():
-                leaves.append(dd)
+        d0 = _resolve_composite_leaf(headlines, tgt, "xgboost")
+        if d0 is not None and (d0 / "model.joblib").exists():
+            leaves.append(d0)
+        d1 = _resolve_composite_leaf(headlines, tgt, "tabpfn")
+        if d1 is not None and (d1 / "model.joblib").exists():
+            leaves.append(d1)
+        d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
+        if (d4 / "model.joblib").exists():
+            leaves.append(d4)
     return leaves
 
 

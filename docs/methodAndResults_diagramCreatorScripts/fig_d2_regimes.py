@@ -2,10 +2,11 @@
 
 Pooled AUROC and the precision-weighted within-person C-statistic for the three
 personalisation regimes (pooled global LR, per-patient LR, partial-pooling
-empirical-Bayes intercept), per target, via CV out-of-fold. Partial pooling can
-lift the *pooled* AUROC while the within-person C-statistic stays flat near
-chance: the gain is between-patient base-rate separation, not better within-person
-ranking (Addition 5 Section 9d). Replicates the regime CV-OOF loop inline.
+empirical-Bayes intercept), per target, via CV out-of-fold. The pooled-vs-within
+gap is the load-bearing message: pooled lift exists (small on CV-OOF, larger on
+held-out per Add 5 Section 9d) but the within-person C-statistic stays flat near
+chance, so any pooled gain is between-patient base-rate separation, not
+within-person ranking. Replicates the regime CV-OOF loop inline.
 
 Usage: python fig_d2_regimes.py
 """

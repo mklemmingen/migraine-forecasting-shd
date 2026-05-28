@@ -43,9 +43,38 @@ def _latest_json() -> Path:
     return candidates[-1]
 
 
+_ARCH_TOKEN = {
+    "tabpfn_v2-5-finetuned": "TabPFN-v2.5f",
+    "tabpfn_v2-5-auto": "TabPFN-v2.5a",
+    "tabpfn_v2-5-real": "TabPFN-v2.5r",
+    "tabpfn_v2-6": "TabPFN-v2.6",
+    "tabpfn_v3-default": "TabPFN-v3d",
+    "tabpfn_v3-binary": "TabPFN-v3b",
+    "autotabpfn_v2-5-auto": "AutoTabPFN-v2.5a",
+}
+
+
+def _arch_to_var(arch_lbl: str) -> str:
+    """Translate internal arch labels to the canonical ARCH-VAR slug token."""
+    if arch_lbl in _ARCH_TOKEN:
+        return _ARCH_TOKEN[arch_lbl]
+    if arch_lbl.startswith("stacked_2xgb_"):
+        return "XGB-" + arch_lbl[len("stacked_2xgb_"):]
+    if arch_lbl == "blended_xgb_lr_spano2026":
+        return "XGB-blended"
+    if arch_lbl == "add4_window_mlp":
+        return "Seq-windowMLP"
+    return arch_lbl
+
+
+def _normalize_cell(cell: str) -> str:
+    return cell.replace("no_rolling", "no-roll").replace("full_features", "full")
+
+
 def _row_label(r: dict) -> str:
-    """Compact y-axis label: cell + arch-A vs arch-B."""
-    return f"{r['cell']}/{r['ratio']}  {r['arch_a']} vs {r['arch_b']}"
+    """Compact y-axis label using the canonical 4-token slug stem."""
+    return (f"{_normalize_cell(r['cell'])}/{r['ratio'].replace('_', '-')}  "
+            f"{_arch_to_var(r['arch_a'])} vs {_arch_to_var(r['arch_b'])}")
 
 
 def main():
