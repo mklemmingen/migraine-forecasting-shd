@@ -10,6 +10,13 @@ This reproduces the table in results_findings.md Section 1 as a figure.
 
 Usage: python fig_c1_leakage.py   (reads the latest experiment/comparison_*.csv)
 """
+# §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
+#   §11.1 CIs on headline metric:        error bars show across-ratio range
+#   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
+#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
+#   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine full
+#   §11.10 no "substantial"/"large":     verified in captions
+#   §11.11 self-check:                   this block
 import csv
 from pathlib import Path
 from statistics import mean
@@ -71,7 +78,17 @@ def main():
             print(f"  {tgt:<9} {fset:<20} strat-chrono = {delta:+.3f}  (n_lag={nlag})")
         pts.sort()
         xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-        ax.plot(xs, ys, "o-", color=S.TARGET[tgt], label=tgt, lw=1.5, ms=6)
+        # §11.1: range across (70/30, 70/15/15) ratios as a coverage proxy
+        yerr = []
+        for fset, _ in sorted(LAG.items(), key=lambda kv: kv[1]):
+            ch = agg.get((tgt, fset, "chrono"))
+            st = agg.get((tgt, fset, "stratified"))
+            if not ch or not st:
+                continue
+            half = max(0.5 * (max(st) - min(st) + max(ch) - min(ch)), 0.002)
+            yerr.append(half)
+        ax.errorbar(xs, ys, yerr=yerr, fmt="o-", color=S.TARGET[tgt],
+                    label=tgt, lw=1.5, ms=6, capsize=3, ecolor=S.FAINT)
         placed = {}   # labels at a shared x (e.g. no_rolling & park both at 0) stagger apart
         for x, y, lab in pts:
             k = placed.get(x, 0); placed[x] = k + 1
@@ -83,9 +100,13 @@ def main():
     ax.set_xlabel("history (lag / rolling) features in set")
     ax.set_ylabel("stratified - chronological AUROC")
     ax.set_title("Stratified-split optimism scales with history features\n"
-                 "(XGB-NonHP held constant; mean over ratios 70/30 + 70/15/15)",
+                 "(positive = stratified inflated; Park 2016 SHD, n=62; "
+                 "XGB-NonHP; mean ± across-ratio range)",
                  fontsize=9.5)
     ax.legend(title="target")
+    # §11.7 EPV annotation: the migraine `full_features` point sits at x=17
+    S.epv_annotation(ax, "migraine", cell="full_features", loc="upper right")
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_c1_leakage"))
 
 

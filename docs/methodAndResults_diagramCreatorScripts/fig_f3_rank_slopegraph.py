@@ -15,6 +15,9 @@ run_aggregate_results.py.
 
 Usage: python fig_f3_rank_slopegraph.py
 """
+# §11 compliance: Tufte rank slopegraph with omnibus Friedman p (no per-method CI applicable).
+#   §11.1 N/A (rank metric); §11.3 caption: cohort+n in rendered title
+#   §11.6, §11.7 via renderer helper; §11.10 no banned adjectives; §11.11 self-check
 # Paper caption (for LaTeX):
 #   Rank slopegraph (Tufte 2001). Each polyline is one architecture's mean-rank
 #   trajectory across the full_features cells (1 = best). Flat lines are stable

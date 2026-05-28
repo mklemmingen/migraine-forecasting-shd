@@ -22,6 +22,13 @@ visualises the headline leaves; §6 visualises the cohort.
 
 Usage: python fig_c3_calibration.py
 """
+# §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
+#   §11.1 CIs on headline metric:        bootstrap CI on slope in legend
+#   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
+#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
+#   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine panel
+#   §11.10 no "substantial"/"large":     verified
+#   §11.11 self-check:                   this block
 import os
 import subprocess
 import sys
@@ -88,6 +95,26 @@ def _predict(leaf: Path):
         out.unlink(missing_ok=True)
 
 
+def _bootstrap_slope_ci(y, p, n_boot=500, seed=42):
+    """Patient-day bootstrap CI on the calibration slope. Matches the
+    body §2.8 patient-day resampling unit."""
+    rng = np.random.default_rng(seed)
+    n = len(y)
+    slopes = []
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        ys = y[idx]; ps = p[idx]
+        if 0 < ys.sum() < n:
+            try:
+                slopes.append(calibration_slope(ys, ps))
+            except Exception:
+                pass
+    if not slopes:
+        return float("nan"), float("nan")
+    slopes = np.array(slopes)
+    return float(np.percentile(slopes, 2.5)), float(np.percentile(slopes, 97.5))
+
+
 def _reliability(y, p, nbins=N_BINS):
     edges = np.quantile(p, np.linspace(0, 1, nbins + 1))
     edges[0] -= 1e-9
@@ -141,15 +168,16 @@ def main():
             y, p = r
             xs, ys, ns = _reliability(y, p)
             slope = calibration_slope(y, p)
+            slope_lo, slope_hi = _bootstrap_slope_ci(y, p)
             sizes = 12 + 120 * ns / ns.max()
             col = S.arch_color(label)
             mk = mark.get(label, "o")
             ax.plot(xs, ys, "-", color=col, lw=1.5, marker=mk, markersize=4)
             slug = S.leaf_slug(leaf)
             ax.scatter(xs, ys, s=sizes, color=col, marker=mk,
-                       label=f"{slug}  slope {slope:.2f}")
+                       label=f"{label}  slope {slope:.2f} [{slope_lo:.2f}-{slope_hi:.2f}]")
             hi = max(hi, xs.max(), ys.max())
-            print(f"  {tgt:<9} {label:<13} slope {slope:+.2f}  bins {len(xs)}")
+            print(f"  {tgt:<9} {label:<13} slope {slope:+.2f} [{slope_lo:+.2f}-{slope_hi:+.2f}]  bins {len(xs)}")
         lim = min(1.0, hi * 1.1 + 0.02)
         ax.set_xlim(0, lim); ax.set_ylim(0, lim)
         ax.set_aspect("equal", adjustable="box")   # honest 45-degree perfect line
@@ -157,7 +185,10 @@ def main():
         ax.set_ylabel("observed frequency")
         ax.set_title(tgt)
         ax.legend(loc="lower right")
-    fig.suptitle("Reliability diagrams", y=1.02)
+        S.epv_annotation(ax, tgt, cell="full_features", loc="upper left")
+    fig.suptitle("Reliability diagrams - Park 2016 SHD, n=62\n"
+                 "bootstrap 95% CI on slope; 1:1 = perfect", y=1.04, fontsize=10)
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_c3_calibration"))
 
 

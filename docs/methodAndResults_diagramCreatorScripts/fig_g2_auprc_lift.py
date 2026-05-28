@@ -10,6 +10,9 @@ experiment/2/compare.py.
 
 Usage: python fig_g2_auprc_lift.py
 """
+# §11 compliance: AUPRC lift bars with 95% CI whiskers (already present).
+#   §11.1 PASS; §11.3 caption: cohort+n in rendered title
+#   §11.6, §11.7 via renderer helper; §11.10 no banned adjectives; §11.11 self-check
 # Paper caption (for LaTeX):
 #   AUPRC lift = AUPRC / test-set positive prevalence of the headline model per cell,
 #   one bar per split with 95% CIs. The dotted line at 1.0 is no skill (no better than

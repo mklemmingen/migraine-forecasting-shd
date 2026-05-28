@@ -348,7 +348,8 @@ def _park_ranks(ex):
 # in for headline rows so the AUPRC-lift plotter reads no parquet.
 _HEADLINE_FIELDS = ("role", "target", "feature_set", "splittype", "datasplit",
                     "family", "architecture", "auroc_mean", "auroc_lo", "auroc_hi",
-                    "auprc_mean", "auprc_lo", "auprc_hi", "calib_slope", "leaf_dir")
+                    "auprc_mean", "auprc_lo", "auprc_hi",
+                    "calib_slope", "calib_slope_lo", "calib_slope_hi", "leaf_dir")
 
 
 def _gather_figdata(raw_selections, selections) -> dict:

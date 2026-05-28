@@ -11,6 +11,10 @@ Addition 6 net-benefit primitive.
 
 Usage: python fig_d3_decision_curve.py
 """
+# §11 compliance:
+#   §11.1 PASS: net-benefit patient-day bootstrap 95% CI band per architecture
+#               (DC.decision_curve_ci, n_boot=500)
+#   §11.3 caption: cohort+n in suptitle; §11.6 footer; §11.7 EPV migraine; §11.11 self-check
 import os
 import subprocess
 import sys
@@ -109,12 +113,16 @@ def main():
             r = _predict(leaf)
             if r is None:
                 continue
-            dc = DC.decision_curve(*r)
+            dc = DC.decision_curve_ci(*r)
             ref = dc
-            ax.plot(dc["thresholds"], dc["model"], lw=1.5, color=S.arch_color(label),
+            col = S.arch_color(label)
+            ax.fill_between(dc["thresholds"], dc["model_ci_low"], dc["model_ci_high"],
+                            color=col, alpha=0.15, linewidth=0)
+            ax.plot(dc["thresholds"], dc["model"], lw=1.5, color=col,
                     marker=mark.get(label, "o"), markevery=8, markersize=4,
-                    label=S.leaf_slug(leaf))
-            ymin = min(ymin, float(dc["model"].min())); ymax = max(ymax, float(dc["model"].max()))
+                    label=f"{label}")
+            ymin = min(ymin, float(np.nanmin(dc["model_ci_low"])))
+            ymax = max(ymax, float(np.nanmax(dc["model_ci_high"])))
             print(f"  {tgt:<9} {label:<13} max net benefit {np.max(dc['model']):.3f}")
         if ref is not None:
             ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.REF_COLOR, lw=1, label="treat all")
@@ -125,7 +133,11 @@ def main():
         ax.set_ylabel("net benefit")
         ax.set_title(tgt)
         ax.legend(fontsize=8, loc="upper right")
-    fig.suptitle("Decision-curve analysis", y=1.02)
+        S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
+    fig.suptitle("Decision-curve analysis (Park 2016 SHD, n=62)\n"
+                 "Net benefit per architecture with patient-day bootstrap 95% CI band",
+                 y=1.04, fontsize=10)
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
 
 

@@ -19,6 +19,11 @@ family the main-text §3a table is built from.
 
 Usage: python fig_g7_significance_heatmap.py
 """
+# §11 compliance: AUROC landscape heatmap.
+#   §11.1 CIs: DATA-PENDING (cells show point AUROC; integrate CI brackets from CSV)
+#   §11.3 caption: cohort+n in rendered title
+#   §11.6, §11.7 via renderer (migraine `full_features` rows present)
+#   §11.10 no banned adjectives; §11.11 self-check this block
 import csv
 import json
 import re
@@ -83,6 +88,18 @@ def _parse_mean(s: str):
     return float(m.group(1)) if m else None
 
 
+def _parse_mean_ci(s: str):
+    """Parse '0.793 [0.701 - 0.873]' → (0.793, 0.701, 0.873). Returns
+    (mean, None, None) when no bracketed CI follows."""
+    if not s:
+        return None
+    m = re.match(r"\s*([0-9.\-]+)\s*\[\s*([0-9.\-]+)\s*-\s*([0-9.\-]+)\s*\]", s)
+    if m:
+        return float(m.group(1)), float(m.group(2)), float(m.group(3))
+    m2 = re.match(r"\s*([0-9.\-]+)", s)
+    return (float(m2.group(1)), None, None) if m2 else None
+
+
 def _csv_lookup(rows, target, feature_set, split, arch):
     """Return AUROC for a (cell, arch) tuple, or None if not in the sweep."""
     for r in rows:
@@ -96,18 +113,18 @@ def _csv_lookup(rows, target, feature_set, split, arch):
         hps = r["hp_strategy"].strip()
         if a == "stacked_2xgb_meta_lr":
             if arch == "xgb_NonHP" and hp == "":
-                return _parse_mean(r["holdout_AUROC"])
+                return _parse_mean_ci(r["holdout_AUROC"])
             if arch.startswith("xgb_HP") and hp == "HyperparameterTuned" and hps == "single_AUROC":
                 if hpv == arch.replace("xgb_", ""):
-                    return _parse_mean(r["holdout_AUROC"])
+                    return _parse_mean_ci(r["holdout_AUROC"])
         elif a == "tabpfn":
             if "auto" in v.lower():
                 if arch == "autotabpfn":
-                    return _parse_mean(r["holdout_AUROC"])
+                    return _parse_mean_ci(r["holdout_AUROC"])
             else:
                 short = v.replace("version_", "")
                 if arch == f"tabpfn_{short}":
-                    return _parse_mean(r["holdout_AUROC"])
+                    return _parse_mean_ci(r["holdout_AUROC"])
     return None
 
 
@@ -132,12 +149,20 @@ def main():
     with open(csv_path) as f:
         rows = list(csv.DictReader(f))
 
-    # Build (rows × archs) AUROC matrix.
+    # Build (rows × archs) AUROC + CI matrices.
     M = np.full((len(CELLS), len(ARCHS)), np.nan, dtype=float)
+    M_lo = np.full((len(CELLS), len(ARCHS)), np.nan, dtype=float)
+    M_hi = np.full((len(CELLS), len(ARCHS)), np.nan, dtype=float)
     for i, (t, fs, sp) in enumerate(CELLS):
         for j, arch in enumerate(ARCHS):
             v = _csv_lookup(rows, t, fs, sp, arch)
-            if v is not None:
+            if v is None:
+                continue
+            if isinstance(v, tuple):
+                M[i, j] = v[0]
+                if v[1] is not None and v[2] is not None:
+                    M_lo[i, j] = v[1]; M_hi[i, j] = v[2]
+            else:
                 M[i, j] = v
 
     # Identify per-row headline (highest-AUROC architecture in the row).
@@ -206,15 +231,19 @@ def main():
                    interpolation="nearest")
     cmap.set_bad(S.FAINT)
 
-    # Cell-text: AUROC value, white-on-dark or black-on-light by intensity.
+    # Cell-text: AUROC value + bracketed CI (two-line), white-on-dark or black-on-light by intensity.
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             v = M[i, j]
             if not np.isfinite(v):
                 continue
+            lo = M_lo[i, j]; hi = M_hi[i, j]
             txt_color = "white" if (v > 0.72 or v < 0.45) else S.INK
-            ax.text(j, i, f"{v:.2f}", ha="center", va="center",
-                    fontsize=7.0, color=txt_color)
+            label = f"{v:.2f}"
+            if np.isfinite(lo) and np.isfinite(hi):
+                label = f"{v:.2f}\n[{lo:.2f}-{hi:.2f}]"
+            ax.text(j, i, label, ha="center", va="center",
+                    fontsize=5.6, color=txt_color, linespacing=0.95)
 
     # Headline marker: small black filled circle in cell corner.
     for i, j in headlines.items():
@@ -255,7 +284,7 @@ def main():
 
     # Side-row colourbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
-    cbar.set_label("hold-out AUROC (point estimate)", fontsize=9)
+    cbar.set_label("hold-out AUROC (cell shows mean + 95% CI bracket)", fontsize=9)
     cbar.ax.tick_params(labelsize=8)
 
     # Lines between target groups for readability

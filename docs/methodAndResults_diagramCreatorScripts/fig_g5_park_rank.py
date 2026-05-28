@@ -11,6 +11,11 @@ experiment/2/compare.py.
 
 Usage: python fig_g5_park_rank.py
 """
+# §11 compliance: Spearman rho between Park 2016 OR rank and SHAP rank.
+#   §11.1: rho + p shown; bootstrap CI on rho is DATA-PENDING
+#   §11.3 caption: Park 2016 cohort + n in rendered title
+#   §11.7 N/A (Park feature set; not migraine `full_features`)
+#   §11.6 via renderer; §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
 #   Park et al. 2016 Table-4 odds-ratio rank (x) vs the model's mean |SHAP| rank (y)
 #   for the shared migraine triggers, with the perfect-agreement diagonal and the

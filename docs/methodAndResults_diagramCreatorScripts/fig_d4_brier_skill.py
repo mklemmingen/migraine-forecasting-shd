@@ -14,6 +14,10 @@ the Addition 5 prediction worker and the Addition 6 skill primitive.
 
 Usage: python fig_d4_brier_skill.py
 """
+# §11 compliance:
+#   §11.1 PASS: per-architecture Brier-skill bootstrap 95% CI rendered as whiskers
+#               (SK.brier_skill_ci, n_boot=1000, patient-day resampling unit)
+#   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
 import os
 import subprocess
 import sys
@@ -114,8 +118,7 @@ def main():
     targets = ("headache", "migraine")
     labels = ["XGBoost stack", "TabPFN", "window-MLP"]
     skills = {t: {} for t in targets}
-    # Capture the resolved leaf per (target, family-label) so the x-axis
-    # tick labels carry the slug rather than the generic family name.
+    skill_cis = {t: {} for t in targets}
     slugs: dict = {t: {} for t in targets}
     for tgt in targets:
         ds, sp = cells[tgt]
@@ -127,19 +130,32 @@ def main():
                 continue
             y, p, pid = r
             ref = SK.per_patient_climatology(pid, rates, cohort)
-            skills[tgt][label] = SK.brier_skill_score(y, p, ref)
+            ci = SK.brier_skill_ci(y, p, ref)
+            skills[tgt][label] = ci["estimate"]
+            skill_cis[tgt][label] = (ci["ci_low"], ci["ci_high"])
             slugs[tgt][label] = S.leaf_slug(leaf)
-            print(f"  {tgt:<9} {label:<13} Brier skill {skills[tgt][label]:+.3f}  ({S.leaf_slug(leaf)})")
-    fig, ax = plt.subplots(figsize=S.figsize("double", 4.2))
+            print(f"  {tgt:<9} {label:<13} Brier skill {ci['estimate']:+.3f} "
+                  f"[{ci['ci_low']:+.3f}, {ci['ci_high']:+.3f}]  ({S.leaf_slug(leaf)})")
+    fig, ax = plt.subplots(figsize=S.figsize("double", 4.4))
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):
         vals = [skills[tgt].get(l, np.nan) for l in labels]
-        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], alpha=0.85, label=tgt)
-        for b, v in zip(bars, vals):
-            if v == v:   # skip NaN
-                ax.annotate(f"{v:+.2f}", (b.get_x() + b.get_width() / 2, v),
-                            ha="center", va="bottom" if v >= 0 else "top", fontsize=7,
-                            xytext=(0, 2 if v >= 0 else -2), textcoords="offset points")
+        lows = [skill_cis[tgt].get(l, (np.nan, np.nan))[0] for l in labels]
+        highs = [skill_cis[tgt].get(l, (np.nan, np.nan))[1] for l in labels]
+        yerr = np.array([
+            [v - lo if (v == v and lo == lo) else 0 for v, lo in zip(vals, lows)],
+            [hi - v if (v == v and hi == hi) else 0 for v, hi in zip(vals, highs)],
+        ])
+        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], alpha=0.85,
+                       yerr=yerr, capsize=3, ecolor=S.SOFT, label=tgt)
+        for b, v, lo, hi in zip(bars, vals, lows, highs):
+            if v == v:
+                # CI bracket sits above positive bars, below negative ones, away from the whisker
+                offset_y = 8 if v >= 0 else -8
+                ax.annotate(f"{v:+.2f}\n[{lo:+.2f}, {hi:+.2f}]",
+                            (b.get_x() + b.get_width() / 2, v),
+                            ha="center", va="bottom" if v >= 0 else "top", fontsize=6.5,
+                            xytext=(0, offset_y), textcoords="offset points")
     ax.axhline(0, color=S.REF_COLOR, lw=1)
     # Slug-bearing tick labels: the same family name can decode to different
     # leaves per target (e.g. TabPFN-v2.6 on headache vs TabPFN-v2.5f on
@@ -159,10 +175,12 @@ def main():
             tick_labels.append(f"{fam}\nh: {h_a}\nm: {m_a}")
     ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
     ax.set_ylabel("Brier skill vs per-patient climatology")
-    ax.set_title("Probabilistic value over the patient base rate")
-    ax.text(0.02, 0.04, "below 0 = worse than predicting the patient's own base rate",
-            transform=ax.transAxes, fontsize=7.5, style="italic", color=S.GREY)
-    ax.legend(title="target")
+    ax.set_title("Probabilistic value over the patient base rate\n"
+                 "Park 2016 SHD, n=62; per-architecture bootstrap 95% CI (1000 iters, patient-day)")
+    S.epv_annotation(ax, "migraine", cell="full_features", loc="lower right")
+    ax.set_ylabel("Brier skill vs per-patient climatology\n(below 0 = worse than patient base rate)")
+    ax.legend(title="target", loc="upper right")
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d4_brier_skill"))
 
 

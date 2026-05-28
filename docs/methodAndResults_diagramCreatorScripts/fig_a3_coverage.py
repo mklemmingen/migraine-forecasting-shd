@@ -8,6 +8,8 @@ the CV out-of-fold pooling (Figure C2).
 
 Usage: python fig_a3_coverage.py
 """
+# §11 compliance: coverage heatmap (no per-cell metric).
+#   §11.3 caption: cohort+n in title; §11.6 footer; §11.11 self-check this block
 from pathlib import Path
 
 import sys as _sys
@@ -70,6 +72,7 @@ def main():
                     loc="lower right")
     print(f"  grid {grid.shape[0]} patients x {grid.shape[1]} days; "
           f"coverage {coverage_pct:.1f}%")
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a3_coverage"))
 
 

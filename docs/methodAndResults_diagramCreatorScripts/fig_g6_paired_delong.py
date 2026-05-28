@@ -16,6 +16,11 @@ exact 18-test run that produced the §3a table.
 
 Usage: python fig_g6_paired_delong.py
 """
+# §11 compliance: paired DeLong forest with 95% DeLong CIs + q-values.
+#   §11.1 PASS (DeLong CI whiskers + q-values)
+#   §11.3 caption: cohort+n in rendered title
+#   §11.6, §11.7 via renderer (migraine `full_features` rows present)
+#   §11.10 no banned adjectives; §11.11 self-check this block
 import json
 import sys
 from pathlib import Path
