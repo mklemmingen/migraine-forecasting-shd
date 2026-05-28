@@ -22,7 +22,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _style import apply, save, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED
+from _style import apply, save, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED, INK, leaf_slug
+
+
+def _arch_var(leaf_dir):
+    """Extract the ARCH-VAR token (first segment) from the canonical 4-token
+    slug. Returns "?" if leaf_dir is missing or unparseable."""
+    if not leaf_dir:
+        return "?"
+    s = leaf_slug(leaf_dir)
+    return s.split(" / ")[0] if s else "?"
 
 # Split-type hue from the canonical SPLIT palette (chrono blue / stratified
 # vermillion / patient green), plus the one-line honest/leaky/generalisation tag.
@@ -78,7 +87,7 @@ def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     fig, ax = plt.subplots(figsize=(7.2, 0.62 * n * g / 2 + 1.4))
     any_subchance = False
     for gi, st in enumerate(SPLIT_ORDER):
-        ys, vals, los, his, subchance = [], [], [], [], []
+        ys, vals, los, his, subchance, slugs = [], [], [], [], [], []
         for ci, key in enumerate(cells):
             s = by_cell[key].get(st)
             if s is None:
@@ -88,10 +97,17 @@ def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
             los.append(s["auroc_mean"] - s["auroc_lo"])
             his.append(s["auroc_hi"] - s["auroc_mean"])
             subchance.append(s["auroc_lo"] <= 0.5)
-        bars = ax.barh(ys, vals, height=bh, color=SPLIT[st],
+            slugs.append(_arch_var(s.get("leaf_dir")))
+        bars = ax.barh(ys, vals, height=bh, color=SPLIT[st], alpha=0.85,
                        xerr=[los, his],
                        error_kw={"elinewidth": 0.8, "capsize": 2},
                        label=SPLIT_FIG_LABELS[st])
+        # Per-bar slug annotation: each (target, feature_set, split) headline
+        # may decode to a different ARCH-VAR (e.g. TabPFN-v2.6 vs v3-default)
+        # depending on composite-rule selection. Surface the variant inline.
+        for y_val, x_val, hi, slug in zip(ys, vals, his, slugs):
+            ax.text(x_val + hi + 0.008, y_val, slug,
+                    fontsize=6, va="center", color=INK)
         for patch, sc in zip(bars.patches, subchance):
             if sc:
                 patch.set_hatch("////")
@@ -148,7 +164,7 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     xmax = 1.0
     any_noskill = False
     for gi, st in enumerate(SPLIT_ORDER):
-        ys, vals, los, his, noskill = [], [], [], [], []
+        ys, vals, los, his, noskill, slugs = [], [], [], [], [], []
         for ci, key in enumerate(cells):
             sp = by_cell[key].get(st)
             if sp is None:
@@ -160,10 +176,16 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
             ys.append(base[ci] + (g / 2 - gi - 0.5) * bh)
             vals.append(lift); los.append(lo); his.append(hi)
             noskill.append(lift - lo <= 1.0)   # 95% CI reaches the no-skill line
+            slugs.append(_arch_var(s.get("leaf_dir")))
             xmax = max(xmax, lift + hi)
         bars = ax.barh(ys, vals, height=bh, color=SPLIT[st],
                        xerr=[los, his], error_kw={"elinewidth": 0.8, "capsize": 2},
                        label=SPLIT_FIG_LABELS[st])
+        # Per-bar slug annotation: surface the ARCH-VAR of each cell's headline
+        # so a reader can tell when TabPFN-v2.6 vs v3-default is the chosen leaf.
+        for y_val, x_val, hi, slug in zip(ys, vals, his, slugs):
+            ax.text(x_val + hi + xmax * 0.01, y_val, slug,
+                    fontsize=6, va="center", color=INK)
         # Hatch bars whose CI reaches no-skill: not significantly above the base
         # rate (same honesty convention as the split-AUROC chance hatching).
         for patch, ns in zip(bars.patches, noskill):
@@ -203,14 +225,14 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
         if key not in by_cell:
             by_cell[key] = {}
             cells.append(key)
-        by_cell[key][s["splittype"]] = s["calib_slope"]
+        by_cell[key][s["splittype"]] = s
     if not cells:
         return None
     cells.sort()
     apply()
     n = len(cells)
     base = np.arange(n)[::-1]
-    vals = [v for c in by_cell.values() for v in c.values()]
+    vals = [s_data["calib_slope"] for c in by_cell.values() for s_data in c.values()]
     xmax = max(2.2, max(vals) + 0.3)
     fig, ax = plt.subplots(figsize=(7.0, 0.55 * n + 1.4))
     ax.axvspan(xmax * -0.02, 0.0, color=OI["vermillion"], alpha=0.10, zorder=0)
@@ -219,9 +241,16 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
                label="perfect calibration (1.0)")
     for gi, st in enumerate(SPLIT_ORDER):
         ys = [base[ci] + (1 - gi) * 0.18 for ci, k in enumerate(cells) if st in by_cell[k]]
-        xs = [by_cell[k][st] for k in cells if st in by_cell[k]]
+        xs = [by_cell[k][st]["calib_slope"] for k in cells if st in by_cell[k]]
+        slugs = [_arch_var(by_cell[k][st].get("leaf_dir"))
+                 for k in cells if st in by_cell[k]]
         ax.scatter(xs, ys, s=55, color=SPLIT[st], zorder=3,
                    edgecolor="white", label=SPLIT_FIG_LABELS[st])
+        # Per-marker slug annotation: each (target, feature_set, split) headline
+        # may decode to a different ARCH-VAR. Surface the variant inline.
+        for x_val, y_val, slug in zip(xs, ys, slugs):
+            ax.text(x_val + xmax * 0.012, y_val, slug,
+                    fontsize=6, va="center", color=INK)
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(xmax * -0.02, xmax)
@@ -271,8 +300,14 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     ax.set_yticks(y)
     ax.set_yticklabels(feats, fontsize=8)
     ax.set_xlabel("relative attribution: share of each model's total mean |SHAP| (%)")
-    ax.set_title(f"{sel['target']} / {sel['feature_set']} - {sel['splittype']}",
-                 fontsize=10)
+    # Title names the cell, headline architecture family, and runner-up family.
+    # The figdata cross_arch block does not carry the per-variant leaf_dir so
+    # we name the families directly (legend below adds the role).
+    ax.set_title(
+        f"{sel['target']} / {sel['feature_set']} / {sel['splittype']}\n"
+        f"headline: {h.get('arch_family', '?')}  |  "
+        f"runner-up: {r.get('arch_family', '?')}",
+        fontsize=9)
     ax.legend(fontsize=8, loc="lower right")
     # Integrity caveat: these are single-fit shares on a small, imbalanced dataset.
     ax.text(0.0, -0.16,
@@ -313,7 +348,10 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     # uncertain, so a bare rho would read as far more conclusive than it is.
     p = sel.get("p")
     stat = f"rho = {rho:+.2f}" + (f", p = {p:.2f}, n = {n}" if p is not None else f", n = {n}")
-    ax.set_title(f"{sel['role']} {sel['family']} - Spearman {stat}", fontsize=10)
+    # Title names the role + architecture family (figdata park block does not
+    # carry the per-variant leaf_dir; the family identifies the model class).
+    arch = sel.get("architecture") or sel.get("family") or "?"
+    ax.set_title(f"{sel['role']} {arch} - Spearman {stat}", fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
     save(fig, out_png)
     plt.close(fig)

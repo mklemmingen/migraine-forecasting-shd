@@ -164,9 +164,9 @@ be joined and added as candidate features, then ablated against the diary-only
 model.
 
 This sub-component is run on the **headache** target only. The migraine
-`full_features` cell already sits at events-per-variable 3.9, the high-risk
+`full_features` cell already sits at events-per-variable 5.5, the high-risk
 overfitting band (`docs/dataset.md`, EPV section), and adding weather columns
-would worsen it; shrinkage cannot manufacture information that the ~201 positive
+would worsen it; shrinkage cannot manufacture information that the 287 positive
 migraine days do not contain [martin2025samplesize, p. 2]. The headache target,
 in the low-risk EPV band across feature sets, is where a weather-feature ablation
 is statistically defensible. The result is reported as an ablation (with vs

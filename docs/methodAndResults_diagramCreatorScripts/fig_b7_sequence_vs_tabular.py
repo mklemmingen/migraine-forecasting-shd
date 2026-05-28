@@ -26,12 +26,14 @@ symmetric. Three asymmetries should be read alongside the bar heights:
 
 The qualitative result holds despite these asymmetries: on migraine the
 window-MLP at AUROC 0.771 sits between the XGB-HP020 headline (0.793)
-and the TabPFN-v2.6 runner-up (0.761) - sequence is competitive but
+and the TabPFN-v2.5f runner-up (0.761) - sequence is competitive but
 not dominant, and Addition 3's prediction that the temporal signal
 is short-range is supported. On headache no sequence variant beats
 either tabular family (best sequence GRU 0.640 vs tabular best 0.657).
 The right verb for the result is "competitive, not dominant," not
-"failed to beat."
+"failed to beat." Note that the TabPFN composite-tracked runner-up
+is target-specific: v2.5-finetuned on migraine, v2.6 on headache - the
+per-bar x-tick label discloses each variant explicitly.
 
 Usage: python fig_b7_sequence_vs_tabular.py
 """
@@ -149,11 +151,36 @@ def main():
             transform=ax.get_xaxis_transform())
     ax.text(3.0, 0.83, "sequence", ha="center", fontsize=8, color=S.GREY,
             transform=ax.get_xaxis_transform())
-    ax.set_xticks(x); ax.set_xticklabels(ORDER)
-    ax.set_ylim(0.5, 0.85)
+    # Slug-bearing tick labels: every reported AUROC must name the model+cell
+    # that produced it. Where the headache and migraine bars use the same
+    # ARCH-VAR (e.g. window-MLP, GRU, TCN), one slug suffices; where they
+    # diverge (TabPFN-v2.6 on headache vs TabPFN-v2.5f on migraine via the
+    # composite-tracked headline), both are disclosed.
+    def _slug_arch(s):
+        return s.split(" / ")[0] if s else "?"
+    tick_labels = []
+    for fam in ORDER:
+        h_a = _slug_arch(slug_per_label["headache"].get(fam, ""))
+        m_a = _slug_arch(slug_per_label["migraine"].get(fam, ""))
+        if h_a == m_a and h_a != "?":
+            tick_labels.append(f"{fam}\n{h_a}")
+        elif h_a == "?" and m_a == "?":
+            tick_labels.append(fam)
+        else:
+            tick_labels.append(f"{fam}\nh: {h_a}\nm: {m_a}")
+    ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
+    ax.set_ylim(0.5, 0.88)
     ax.set_ylabel("AUROC (val+test horizon)")
     ax.set_title("Sequence vs tabular discrimination (full_features, chrono)")
     ax.legend(title="target", loc="upper right")
+    # Three structural asymmetries the reader must keep in mind alongside bar heights:
+    # tabular = 70/30 + HP-tuned; sequence = 70/15/15 + NonHP. The visible XGB-HP020
+    # vs Seq-windowMLP 0.79 vs 0.77 gap absorbs these.
+    ax.text(0.5, -0.32,
+            "tabular bars: 70/30 / composite-tracked / HP-tuned · "
+            "sequence bars: 70/15/15 / NonHP / wider bootstrap CI",
+            transform=ax.transAxes, ha="center", va="top",
+            fontsize=6.5, color=S.SOFT, style="italic")
     print("saved", S.save(fig, HERE / "figures" / "fig_b7_sequence_vs_tabular"))
 
 

@@ -10,7 +10,9 @@ clinical-value layer), with bootstrap discrimination CIs, calibration
 slope, decision-curve net benefit, and within-person evaluation
 reported together. On the chronological headline cell the migraine
 AUROC reaches 0.793 and the headache AUROC 0.652, but the per-patient
-AUROC distribution centres near 0.55, the precision-weighted
+AUROC distribution on the out-of-fold cross-validation pass over the
+non-hyperparameter-tuned 70/30 chronological leaves (addition5 §9b)
+centres near 0.55, the precision-weighted
 within-person C-statistic clusters in the same band, and the Brier
 skill against per-patient climatology is negative for migraine. The
 pooled discrimination commonly reported in the next-day-diary

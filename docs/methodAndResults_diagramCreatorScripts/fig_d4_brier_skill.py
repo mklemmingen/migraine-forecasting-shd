@@ -134,14 +134,30 @@ def main():
     x = np.arange(len(labels)); w = 0.38
     for i, tgt in enumerate(targets):
         vals = [skills[tgt].get(l, np.nan) for l in labels]
-        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
+        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], alpha=0.85, label=tgt)
         for b, v in zip(bars, vals):
             if v == v:   # skip NaN
                 ax.annotate(f"{v:+.2f}", (b.get_x() + b.get_width() / 2, v),
                             ha="center", va="bottom" if v >= 0 else "top", fontsize=7,
                             xytext=(0, 2 if v >= 0 else -2), textcoords="offset points")
     ax.axhline(0, color=S.REF_COLOR, lw=1)
-    ax.set_xticks(x); ax.set_xticklabels(labels)
+    # Slug-bearing tick labels: the same family name can decode to different
+    # leaves per target (e.g. TabPFN-v2.6 on headache vs TabPFN-v2.5f on
+    # migraine via the composite-tracked headline). Disclose ARCH-VAR
+    # alongside the family name so the reader can verify the cell.
+    def _slug_arch(s):
+        return s.split(" / ")[0] if s else "?"
+    tick_labels = []
+    for fam in labels:
+        h_a = _slug_arch(slugs["headache"].get(fam, ""))
+        m_a = _slug_arch(slugs["migraine"].get(fam, ""))
+        if h_a == m_a and h_a != "?":
+            tick_labels.append(f"{fam}\n{h_a}")
+        elif h_a == "?" and m_a == "?":
+            tick_labels.append(fam)
+        else:
+            tick_labels.append(f"{fam}\nh: {h_a}\nm: {m_a}")
+    ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
     ax.set_ylabel("Brier skill vs per-patient climatology")
     ax.set_title("Probabilistic value over the patient base rate")
     ax.text(0.02, 0.04, "below 0 = worse than predicting the patient's own base rate",

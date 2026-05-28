@@ -62,7 +62,11 @@ def _predict(leaf):
         r = subprocess.run([sys.executable, str(WORKER), str(leaf), str(out)],
                            capture_output=True, text=True, timeout=1800, env=_env(add))
         if r.returncode != 0 or not out.exists():
-            print("  skip", leaf.name); return None
+            print(f"  skip {leaf.name} (returncode={r.returncode}, out_exists={out.exists()})")
+            if r.stderr:
+                for line in r.stderr.strip().splitlines()[-10:]:
+                    print(f"    {line}")
+            return None
         z = np.load(out)
         return z["y"].astype(float), z["p"].astype(float)
     finally:
@@ -107,20 +111,20 @@ def main():
                 continue
             dc = DC.decision_curve(*r)
             ref = dc
-            ax.plot(dc["thresholds"], dc["model"], lw=1.6, color=S.arch_color(label),
+            ax.plot(dc["thresholds"], dc["model"], lw=1.5, color=S.arch_color(label),
                     marker=mark.get(label, "o"), markevery=8, markersize=4,
                     label=S.leaf_slug(leaf))
             ymin = min(ymin, float(dc["model"].min())); ymax = max(ymax, float(dc["model"].max()))
             print(f"  {tgt:<9} {label:<13} max net benefit {np.max(dc['model']):.3f}")
         if ref is not None:
-            ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.GREY, lw=1, label="treat all")
+            ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.REF_COLOR, lw=1, label="treat all")
             ax.plot(ref["thresholds"], ref["treat_none"], ":", color=S.REF_COLOR, lw=1, label="treat none")
             # scale to the model curves (the message); treat-all may clip below
             ax.set_ylim(ymin - 0.03, ymax + 0.03)
         ax.set_xlabel("threshold probability")
         ax.set_ylabel("net benefit")
         ax.set_title(tgt)
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8, loc="upper right")
     fig.suptitle("Decision-curve analysis", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
 
