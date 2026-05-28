@@ -11,7 +11,7 @@ experiment/2/compare.py.
 Usage: python fig_g3_calib_slope.py
 """
 # §11 compliance: calibration slope markers per cell.
-#   §11.1 CIs: DATA-PENDING bootstrap CI per slope marker
+#   §11.1 CIs: whiskers from calib_slope_lo/hi (figdata) via F.calib_slope_figure()
 #   §11.3 caption: cohort+n in rendered title
 #   §11.6, §11.7 via renderer; §11.10 no banned adjectives; §11.11 self-check
 # Paper caption (for LaTeX):

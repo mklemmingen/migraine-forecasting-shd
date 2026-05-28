@@ -11,7 +11,7 @@ within-person ranking. Replicates the regime CV-OOF loop inline.
 Usage: python fig_d2_regimes.py
 """
 # §11 compliance:
-#   §11.1 partial PASS (regime within-person C has error bars); pooled bars: DATA-PENDING bootstrap
+#   §11.1 PASS: regime within-person C carries [ci_low, ci_high] errorbars from the wp summary
 #   §11.2 add estimability denominator on plot; §11.3 caption cohort+n
 #   §11.6 footer; §11.7 EPV migraine; §11.11 self-check this block
 import sys
