@@ -75,14 +75,16 @@ def main():
         placed = {}   # labels at a shared x (e.g. no_rolling & park both at 0) stagger apart
         for x, y, lab in pts:
             k = placed.get(x, 0); placed[x] = k + 1
-            dy = (7 + 14 * k) if tgt == "headache" else -(7 + 14 * k)  # split targets up/down
-            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(8, dy),
+            dy = (12 + 18 * k) if tgt == "headache" else -(12 + 18 * k)  # wider stagger
+            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(10, dy),
                         fontsize=7, color=S.TARGET[tgt], va="center")
-    ax.set_ylim(bottom=-0.05)   # headroom for the staggered x=0 cluster labels
+    ax.set_ylim(bottom=-0.10, top=0.16)   # headroom for the staggered x=0 cluster labels
     S.refline(ax, y=0)
     ax.set_xlabel("history (lag / rolling) features in set")
     ax.set_ylabel("stratified - chronological AUROC")
-    ax.set_title("Stratified-split optimism scales with history features")
+    ax.set_title("Stratified-split optimism scales with history features\n"
+                 "(XGB-NonHP held constant; mean over ratios 70/30 + 70/15/15)",
+                 fontsize=9.5)
     ax.legend(title="target")
     print("saved", S.save(fig, HERE / "figures" / "fig_c1_leakage"))
 

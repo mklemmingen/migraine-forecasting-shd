@@ -144,7 +144,7 @@ def main():
             sizes = 12 + 120 * ns / ns.max()
             col = S.arch_color(label)
             mk = mark.get(label, "o")
-            ax.plot(xs, ys, "-", color=col, lw=1.2, marker=mk, markersize=4)
+            ax.plot(xs, ys, "-", color=col, lw=1.5, marker=mk, markersize=4)
             slug = S.leaf_slug(leaf)
             ax.scatter(xs, ys, s=sizes, color=col, marker=mk,
                        label=f"{slug}  slope {slope:.2f}")
@@ -156,7 +156,7 @@ def main():
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency")
         ax.set_title(tgt)
-        ax.legend(loc="upper left")
+        ax.legend(loc="lower right")
     fig.suptitle("Reliability diagrams", y=1.02)
     print("saved", S.save(fig, HERE / "figures" / "fig_c3_calibration"))
 
