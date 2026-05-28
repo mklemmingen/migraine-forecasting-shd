@@ -23,6 +23,11 @@ rather than the live experiment/ tree.
 
 Usage: python fig_f1_critical_difference.py
 """
+# §11 compliance: Friedman + Nemenyi diagrams (renderer = render_cd_diagram).
+#   §11.1 PASS (Nemenyi CD bars + p-value rendered by helper)
+#   §11.3 caption: cohort+n carried by rendered title (Park 2016 SHD, n=62)
+#   §11.6, §11.7: applied via the cross-fig renderer helper when present
+#   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX; kept here so the how-to-read text survives the move
 # off the figure image):
 #   Critical-difference diagram (Demsar 2006, JMLR). Each method is ranked 1 (best)
@@ -59,7 +64,7 @@ def main():
         out = HERE / "figures" / f"fig_f1_critical_difference_{tgt}"
         render_cd_diagram(
             mean_ranks, cd, prep["text_kept"], out,
-            title=f"Critical Difference - {tgt} AUROC",
+            title=f"Critical Difference - {tgt} AUROC (Park 2016 SHD, n=62)",
             p_value=p_value, n_cells=n_cells,
             arch_tuples=prep["arch_kept"], dropped_archs=prep["dropped_text"],
         )

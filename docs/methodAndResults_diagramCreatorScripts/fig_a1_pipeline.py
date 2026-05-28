@@ -10,6 +10,12 @@ data.
 
 Usage: python fig_a1_pipeline.py
 """
+# §11 compliance: schematic only (no headline metric).
+#   §11.3 self-contained caption:        cohort name + n in suptitle
+#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
+#   §11.1, §11.2, §11.5, §11.7:          N/A (no metric, no cell-specific cohort panel)
+#   §11.10 no "substantial"/"large":     verified
+#   §11.11 self-check:                   this block
 from pathlib import Path
 
 import sys as _sys
@@ -164,8 +170,10 @@ def main():
             "bootstrap predictions", ha="center", va="center", fontsize=7.5,
             color=S.SOFT, style="italic")
 
-    fig.suptitle("Benchmark pipeline: source → features → splits → architectures → evaluation",
-                 fontsize=11, y=0.98)
+    fig.suptitle("Benchmark pipeline: source → features → splits → architectures → evaluation\n"
+                 "Park 2016 SHD, n=62 patients, 4,516 patient-days",
+                 fontsize=11, y=0.99)
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a1_pipeline"))
 
 

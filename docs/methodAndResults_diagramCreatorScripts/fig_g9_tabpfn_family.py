@@ -19,6 +19,12 @@ Reads experiment/comparison_*.csv (no compute).
 
 Usage: python fig_g9_tabpfn_family.py
 """
+# §11 compliance: within-family TabPFN AUROC at the canonical migraine cell.
+#   §11.1 PASS (95% CI xerr + 0.02-AUROC tie band rendered)
+#   §11.3 caption: cohort+n + within-family-tie note in rendered title
+#   §11.7 CRITICAL: this IS the migraine `full_features` cell; renderer
+#       must overlay the EPV-5.5 marker per §11 -- helper enhancement pending
+#   §11.6 via renderer; §11.10 no banned adjectives; §11.11 self-check this block
 import re
 import sys
 from pathlib import Path
@@ -136,6 +142,7 @@ def main():
         ax.set_xlabel("hold-out AUROC (95% CI)")
         ax.set_title(tgt)
         S.refline(ax, x=0.5)
+        S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
         print(f"  {tgt}: {len(rows)} variants, top {top:.3f}, span "
               f"{max(means) - min(means):+.3f}")
 
@@ -148,7 +155,8 @@ def main():
     fig.legend(handles=handles, loc="lower center", ncol=2, frameon=False,
                bbox_to_anchor=(0.5, -0.04), fontsize=8)
     fig.suptitle("Within-family AUROC across all TabPFN variants "
-                 "(full / chrono / 70-30)", y=1.02)
+                 "(Park 2016 SHD, n=62; full / chrono / 70-30)", y=1.02)
+    S.cc_by_footer(fig)
     print(f"  saved {S.save(fig, HERE / 'figures' / 'fig_g9_tabpfn_family')}")
 
 

@@ -10,6 +10,10 @@ Reads the latest experiment/5/external_site_summary_*.csv (regenerate with
 
 Usage: python fig_e1_calibration_drift.py
 """
+# §11 compliance:
+#   §11.1 CIs: DATA-PENDING bootstrap CI whiskers on O:E bars
+#   §11.5 per-direction: numeric per-direction values (0.50/1.54) in suptitle
+#   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
 import csv
 from pathlib import Path
 
@@ -53,12 +57,19 @@ def main():
                 if not r:
                     continue
                 oe = float(r["oe_ratio"])
+                oe_lo = float(r.get("oe_ratio_ci_low", "nan")) if r.get("oe_ratio_ci_low") not in (None, "") else float("nan")
+                oe_hi = float(r.get("oe_ratio_ci_high", "nan")) if r.get("oe_ratio_ci_high") not in (None, "") else float("nan")
                 # bars emanate from the O:E=1 neutral, so bar length = deviation
                 # from perfect calibration (a ratio drawn from 0 would exaggerate
                 # over-prediction relative to equal-magnitude under-prediction).
+                yerr_arr = None
+                if oe_lo == oe_lo and oe_hi == oe_hi:
+                    yerr_arr = [[max(oe - oe_lo, 0)], [max(oe_hi - oe, 0)]]
                 ax.bar(si + (mi - 1.5) * w, oe - 1.0, w, bottom=1.0, color=S.ARCH[m],
+                       yerr=yerr_arr, capsize=2, ecolor=S.SOFT,
                        label=MLAB[m] if si == 0 else None)
-                print(f"  {tgt:<9} {site:<10} {m:<16} O:E {oe:.2f}")
+                print(f"  {tgt:<9} {site:<10} {m:<16} O:E {oe:.2f} "
+                      f"[{oe_lo:.2f}-{oe_hi:.2f}]")
         S.refline(ax, y=1.0)
         ax.text(0.5, 1.0, "perfect (O:E = 1)", transform=ax.get_yaxis_transform(),
                 ha="center", va="bottom", fontsize=7, color=S.INK)
@@ -69,12 +80,15 @@ def main():
                 va="center", fontsize=7, color=S.GREY, style="italic")
         ax.set_xticks(range(len(SITES))); ax.set_xticklabels(xticklab, fontsize=8)
         ax.set_title(f"{tgt}  (bars from O:E = 1)")
+        S.epv_annotation(ax, tgt, cell="full_features", loc="upper right")
     axes[0].set_ylabel("observed / expected (O:E)")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
-    fig.suptitle("Calibration drift on the held-out site tracks the base-rate gap",
+    fig.suptitle("Calibration drift on the held-out site tracks the base-rate gap\n"
+                 "Park 2016 SHD, n=62; per-direction O:E (fell to 0.50 / rose to 1.54 for migraine)",
                  y=1.02)
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_e1_calibration_drift"))
 
 

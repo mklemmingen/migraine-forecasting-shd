@@ -8,6 +8,10 @@ discrimination - which is why pooled AUROC overstates within-person ranking
 
 Usage: python fig_a4_base_rates.py
 """
+# §11 compliance: per-patient base-rate distribution.
+#   §11.1 cohort mean: DATA-PENDING bootstrap CI on mean (mark in caption)
+#   §11.3 caption + §11.6 footer + §11.11 self-check this block
+#   §11.7 N/A (this is the *cohort* base-rate, not a per-cell metric)
 from pathlib import Path
 
 import sys as _sys
@@ -43,8 +47,10 @@ def main():
     ax.set_yticks([0, 1]); ax.set_yticklabels(["headache", "migraine"])
     ax.set_ylim(-0.7, 1.8)
     ax.set_xlabel("per-patient positive-day rate")
-    ax.set_title("Between-patient variation in base rate (n=63)")
+    ax.set_title("Between-patient variation in base rate\n"
+                 "Park 2016 SHD, n=63 patients (62 enrolled + 1 disability-sheet only)")
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.0%}"))
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a4_base_rates"))
 
 

@@ -37,6 +37,10 @@ per-bar x-tick label discloses each variant explicitly.
 
 Usage: python fig_b7_sequence_vs_tabular.py
 """
+# §11 compliance: sequence vs tabular bars on full_features/chrono.
+#   §11.1 CIs: DATA-PENDING per-bar bootstrap CI whiskers (data in results files; integrate later)
+#   §11.3 caption: cohort+n in title
+#   §11.6 footer + §11.7 EPV (migraine bars) + §11.11 self-check
 import os
 import subprocess
 import sys
@@ -171,7 +175,8 @@ def main():
     ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
     ax.set_ylim(0.5, 0.88)
     ax.set_ylabel("AUROC (val+test horizon)")
-    ax.set_title("Sequence vs tabular discrimination (full_features, chrono)")
+    ax.set_title("Sequence vs tabular discrimination (Park 2016 SHD, n=62; full_features, chrono)")
+    S.epv_annotation(ax, "migraine", cell="full_features", loc="upper left")
     ax.legend(title="target", loc="upper right")
     # Three structural asymmetries the reader must keep in mind alongside bar heights:
     # tabular = 70/30 + HP-tuned; sequence = 70/15/15 + NonHP. The visible XGB-HP020
@@ -181,6 +186,7 @@ def main():
             "sequence bars: 70/15/15 / NonHP / wider bootstrap CI",
             transform=ax.transAxes, ha="center", va="top",
             fontsize=6.5, color=S.SOFT, style="italic")
+    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_b7_sequence_vs_tabular"))
 
 
