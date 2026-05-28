@@ -51,3 +51,37 @@ def decision_curve(y_true, y_prob, thresholds=DEFAULT_THRESHOLDS) -> dict:
         "treat_all": treat_all_net_benefit(y_true, thresholds),
         "treat_none": np.zeros(len(thresholds)),
     }
+
+
+def decision_curve_ci(y_true, y_prob, thresholds=DEFAULT_THRESHOLDS,
+                      n_boot: int = 500, seed: int = 42) -> dict:
+    """Patient-day bootstrap 95% CI on the model's net-benefit curve.
+
+    Returns the standard curves plus per-threshold ``model_ci_low`` and
+    ``model_ci_high`` arrays. Bootstrap resamples patient-day rows with
+    replacement; matches the body §2.8 resampling unit (the patient-cluster
+    bootstrap under-coverage caveat applies)."""
+    base = decision_curve(y_true, y_prob, thresholds)
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(y_prob, dtype=float)
+    n = len(y)
+    rng = np.random.default_rng(seed)
+    curves = np.empty((n_boot, len(thresholds)))
+    valid = 0
+    for k in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        if y[idx].sum() == 0:
+            curves[k] = np.nan
+            continue
+        curves[valid] = net_benefit(y[idx], p[idx], thresholds)
+        valid += 1
+    if valid == 0:
+        base["model_ci_low"] = np.full_like(base["model"], np.nan)
+        base["model_ci_high"] = np.full_like(base["model"], np.nan)
+        base["n_boot_valid"] = 0
+        return base
+    curves = curves[:valid]
+    base["model_ci_low"] = np.percentile(curves, 2.5, axis=0)
+    base["model_ci_high"] = np.percentile(curves, 97.5, axis=0)
+    base["n_boot_valid"] = valid
+    return base

@@ -89,17 +89,24 @@ def value_for_leaf(model_dir: Path) -> tuple:
     y, p, pid, d = _predict(model_dir)
     rates, cohort = _train_climatology(d["target"], d["ratio"], d["split"])
     ref = SK.per_patient_climatology(pid, rates, cohort)
-    dc = DC.decision_curve(y, p)
+    dc = DC.decision_curve_ci(y, p)
     mcc_t, _ = find_operating_thresholds(pd.Series(y), p)
     om = OP.map_threshold(mcc_t, dc["thresholds"], dc["model"])
     thr, sens, fpr = OP.sensitivity_at_fpr(y, p, target_fpr=0.10)
     # threshold band where the model's net benefit beats treat-all and treat-none
     beats = (dc["model"] > np.maximum(dc["treat_all"], 0.0))
     band = dc["thresholds"][beats]
+    skill_ci = SK.brier_skill_ci(y, p, ref)
+    citl_ci = SK.citl_ci(y, p)
     row = {"addition": d["addition"], "target": d["target"],
            "feature_set": d["feature_set"], "architecture": d["architecture"],
            "auroc": float(roc_auc_score(y, p)) if len(set(y)) > 1 else float("nan"),
-           "brier_skill": SK.brier_skill_score(y, p, ref),
+           "brier_skill": skill_ci["estimate"],
+           "brier_skill_ci_low": skill_ci["ci_low"],
+           "brier_skill_ci_high": skill_ci["ci_high"],
+           "citl": citl_ci["estimate"],
+           "citl_ci_low": citl_ci["ci_low"],
+           "citl_ci_high": citl_ci["ci_high"],
            "nb_optimal_threshold": om["net_benefit_optimal_threshold"],
            "nb_at_optimal": om["net_benefit_at_optimal"],
            "sens_at_fpr0.10": sens,
@@ -180,8 +187,10 @@ def main(leaves=None):
             curves.setdefault((d["target"], d["feature_set"]), {})[
                 f"add{d['addition']} {d['architecture']}"] = dc
             print(f"  add{row['addition']} {row['target']:<8} {row['architecture']:<18} "
-                  f"AUROC {row['auroc']:.3f} | Brier skill {row['brier_skill']:+.3f} | "
-                  f"NB+band {row['nb_positive_band']} | sens@FPR0.10 {row['sens_at_fpr0.10']:.2f}")
+                  f"AUROC {row['auroc']:.3f} | Brier skill {row['brier_skill']:+.3f} "
+                  f"[{row['brier_skill_ci_low']:+.3f}, {row['brier_skill_ci_high']:+.3f}] | "
+                  f"CITL {row['citl']:.2f} [{row['citl_ci_low']:.2f}, {row['citl_ci_high']:.2f}] | "
+                  f"NB+band {row['nb_positive_band']}")
         except Exception as e:  # noqa: BLE001
             print(f"  SKIP {leaf.relative_to(EXP)}: {type(e).__name__}: {e}")
     ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
