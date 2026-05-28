@@ -198,9 +198,26 @@ def main():
                                    facecolor="none", edgecolor=S.INK, lw=1.8))
 
     ax.set_xticks(range(len(ARCHS)))
-    ax.set_xticklabels(ARCHS, rotation=45, ha="right", fontsize=8)
+    _DISPLAY = {
+        "xgb_NonHP": "XGB-NonHP",
+        "xgb_HP020": "XGB-HP020", "xgb_HP050": "XGB-HP050",
+        "xgb_HP100": "XGB-HP100", "xgb_HP200": "XGB-HP200",
+        "xgb_HP500": "XGB-HP500",
+        "tabpfn_2-5-real": "TabPFN-v2.5r",
+        "tabpfn_2-5-finetuned": "TabPFN-v2.5f",
+        "tabpfn_2-6": "TabPFN-v2.6",
+        "tabpfn_3-default": "TabPFN-v3d",
+        "tabpfn_3-binary": "TabPFN-v3b",
+        "autotabpfn": "AutoTabPFN-v2.5a",
+    }
+    ax.set_xticklabels([_DISPLAY.get(a, a) for a in ARCHS],
+                       rotation=45, ha="right", fontsize=8)
     ax.set_yticks(range(len(CELLS)))
-    ax.set_yticklabels([f"{t}/{fs.replace('_features','')}/{sp}"
+    # Canonical FEATURE-token normalisation: full_features → full,
+    # no_rolling_features → no-roll, park_features → park, spano_features → spano.
+    _ftok = {"full_features": "full", "no_rolling_features": "no-roll",
+             "park_features": "park", "spano_features": "spano"}
+    ax.set_yticklabels([f"{t}/{_ftok.get(fs, fs.replace('_features',''))}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
     ax.set_title("AUROC heatmap with main-text BH-FDR overlay (18-test targeted family)")
