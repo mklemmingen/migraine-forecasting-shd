@@ -1,0 +1,45 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 1 / no_rolling_features / tabpfn (version_2-5-real)
+======================================================================
+architecture family : tabpfn
+attribution         : TabPFN-native SHAP (tabpfn_extensions.interpretability)
+background samples  : 678 (val/cal set in evaluate scope; never the train set)
+explained rows      : 40
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. menstruation_today               0.014425
+   2. lack_of_sleep_today              0.011153
+   3. any_sleep_issue_today            0.008194
+   4. dow                              0.006697
+   5. exercise_today                   0.006686
+   6. specific_smells_today            0.006666
+   7. inappropriate_lighting_today     0.005922
+   8. sunlight_today                   0.005675
+   9. ovulation_today                  0.004740
+  10. travel_today                     0.004489
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  menstruation_today               +0.179749
+  lack_of_sleep_today              +0.095621
+  any_sleep_issue_today            +0.061330
+  dow                              +0.010950
+  exercise_today                   -0.019833
+----------------------------------------------------------------------
+Top pairwise interactions (ShapIQ k-SII order-2, mean |interaction|):
+  lack_of_sleep_today      x exercise_as_trigger_today 0.204868
+  exercise_today           x specific_smells_today    0.201417
+  stress_today             x exercise_today           0.183817
+  vigorous_exercise_min    x excessive_smoking_today  0.167288
+  sunlight_today           x alcohol_today            0.164999
+  stress_today             x alcohol_today            0.155867
+  physical_fatigue_today   x menstruation_today       0.154010
+  vigorous_exercise_min    x irregular_meals_today    0.146416
+  exercise_as_trigger_today x excessive_smoking_today  0.143372
+  stress_today             x excessive_smoking_today  0.141913
+  [background n=678, explained n=6, seed=42]
+----------------------------------------------------------------------
+Embedding projection: UMAP {'n_neighbors': 15, 'min_dist': 0.1, 'random_state': 42}
+  Caveat: 2D embedding distances are a qualitative aid only; inter-cluster distances must not be over-read.
+----------------------------------------------------------------------

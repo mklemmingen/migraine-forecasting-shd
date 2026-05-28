@@ -1,0 +1,30 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 0 / no_rolling_features / stacked_2xgb_meta_lr
+======================================================================
+architecture family : xgboost
+attribution         : KernelSHAP (model-agnostic, over calibrated probability)
+background samples  : 234 (val/cal set in evaluate scope; never the train set)
+background summary  : k-means with k=50
+explained rows      : 400
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. exercise_today                   0.001940
+   2. stress_today                     0.001764
+   3. dow                              0.001504
+   4. physical_fatigue_today           0.001413
+   5. no_exercise_today                0.001285
+   6. lack_of_sleep_today              0.001077
+   7. menstruation_today               0.000777
+   8. moderate_exercise_min            0.000632
+   9. exercise_as_trigger_today        0.000419
+  10. vigorous_exercise_min            0.000256
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  exercise_today                   +0.006846
+  stress_today                     -0.009329
+  dow                              +0.002982
+  physical_fatigue_today           -0.008702
+  no_exercise_today                +0.016902
+----------------------------------------------------------------------

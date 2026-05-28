@@ -1,0 +1,26 @@
+======================================================================
+EXPLAINABILITY SUMMARY - STAGE 0 / park_features / stacked_2xgb_meta_lr
+======================================================================
+architecture family : xgboost
+attribution         : KernelSHAP (model-agnostic, over calibrated probability)
+background samples  : 195 (val/cal set in evaluate scope; never the train set)
+background summary  : distinct-rows with k=8
+explained rows      : 400
+seed                : 42
+----------------------------------------------------------------------
+Top features by mean |SHAP|:
+   1. hormonal_changes_today           0.033754
+   2. alcohol_today                    0.011481
+   3. stress_today                     0.009548
+   4. overeating_today                 0.004313
+   5. noise_today                      0.002349
+   6. travel_today                     0.001224
+----------------------------------------------------------------------
+ALE net slope (last - first centred effect) for top features:
+  positive slope: feature increases predicted migraine probability
+  hormonal_changes_today           +0.101019
+  alcohol_today                    +0.005418
+  stress_today                     +0.040207
+  overeating_today                 +0.009045
+  noise_today                      +0.029226
+----------------------------------------------------------------------

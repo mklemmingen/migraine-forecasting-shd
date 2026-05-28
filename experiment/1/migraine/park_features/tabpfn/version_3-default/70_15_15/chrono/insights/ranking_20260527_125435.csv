@@ -1,0 +1,8 @@
+# metric: mean |SHAP|
+rank,feature,value
+1,hormonal_changes_today,0.01815053
+2,stress_today,0.00799673
+3,noise_today,0.00753147
+4,overeating_today,0.00662062
+5,alcohol_today,0.00605825
+6,travel_today,0.00415908
