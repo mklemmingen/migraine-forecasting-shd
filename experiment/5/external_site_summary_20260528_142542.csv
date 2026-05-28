@@ -1,0 +1,17 @@
+target,feature_set,model,held_out,n_test,train_rate,auroc,auprc,within_cstat,within_k,observed_rate,mean_predicted,oe_ratio,citl,cal_slope
+headache,full_features,pooled_lr,uijeongbu,2308,0.2161,0.6615,0.3884,0.576,29,0.2539,0.2417,1.05,0.0122,0.882
+headache,full_features,add0_stacked,uijeongbu,2308,0.2161,0.6357,0.3851,0.567,29,0.2539,0.177,1.435,0.0769,0.582
+headache,full_features,add1_tabpfn,uijeongbu,2308,0.2161,0.6698,0.4413,0.586,29,0.2539,0.2168,1.171,0.0371,1.135
+headache,full_features,add4_window_mlp,uijeongbu,2308,0.2161,0.5881,0.3025,0.549,29,0.2539,0.2484,1.022,0.0055,0.47
+headache,full_features,pooled_lr,dongtan,2170,0.2539,0.6044,0.2935,0.539,29,0.2161,0.2603,0.83,-0.0441,0.361
+headache,full_features,add0_stacked,dongtan,2170,0.2539,0.615,0.3204,0.54,29,0.2161,0.1654,1.307,0.0507,2.732
+headache,full_features,add1_tabpfn,dongtan,2170,0.2539,0.6254,0.3498,0.529,29,0.2161,0.2217,0.975,-0.0056,0.727
+headache,full_features,add4_window_mlp,dongtan,2170,0.2539,0.5671,0.2696,0.488,29,0.2161,0.2815,0.768,-0.0654,0.32
+migraine,full_features,pooled_lr,uijeongbu,2308,0.0567,0.6912,0.1803,0.538,14,0.0858,0.0756,1.135,0.0102,0.359
+migraine,full_features,add0_stacked,uijeongbu,2308,0.0567,0.6224,0.1275,0.457,14,0.0858,0.0556,1.542,0.0302,0.369
+migraine,full_features,add1_tabpfn,uijeongbu,2308,0.0567,0.728,0.2803,0.577,14,0.0858,0.0601,1.427,0.0257,0.756
+migraine,full_features,add4_window_mlp,uijeongbu,2308,0.0567,0.6967,0.1716,0.555,14,0.0858,0.0612,1.403,0.0246,0.442
+migraine,full_features,pooled_lr,dongtan,2170,0.0858,0.7296,0.1664,0.542,10,0.0567,0.083,0.683,-0.0263,0.629
+migraine,full_features,add0_stacked,dongtan,2170,0.0858,0.7262,0.187,0.529,10,0.0567,0.06,0.944,-0.0034,1.957
+migraine,full_features,add1_tabpfn,dongtan,2170,0.0858,0.7852,0.2441,0.515,10,0.0567,0.0604,0.939,-0.0037,1.141
+migraine,full_features,add4_window_mlp,dongtan,2170,0.0858,0.7422,0.1467,0.521,10,0.0567,0.114,0.497,-0.0574,0.549
