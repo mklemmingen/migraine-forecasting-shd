@@ -101,24 +101,58 @@ def within_person_for_leaf(model_dir: Path, worker: Path = WORKER, min_pos: int 
             "pooled_minus_within": pooled - within["estimate"]}
 
 
+def _load_figdata_headlines() -> list[dict]:
+    """Return the headlines array from the latest experiment/2/figdata_*.json.
+
+    The Addition 5 leaves are resolved from this so they track the same
+    composite_sorted selection as the headline table and the g/h figures.
+    Requires that ``compare.py`` has been run since the
+    ``leaf_dir``-in-headlines extension landed; otherwise the per-architecture
+    leaf_dir field is absent and the resolver returns no match.
+    """
+    import importlib.util as _ilu
+    spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
+    F = _ilu.module_from_spec(spec); spec.loader.exec_module(F)
+    fp = F.latest_figdata(EXP / "2")
+    if fp is None:
+        return []
+    return F.load_figdata(fp).get("headlines", [])
+
+
+def _resolve_composite_leaf(headlines: list[dict], target: str, family: str) -> Path | None:
+    """Composite-tracked leaf for (target, family) in the full_features/chrono
+    headline cell. Prefer headline-role over runner-up; both are valid since the
+    cross-architecture cell can have the headline in either family."""
+    for role in ("headline", "runner_up"):
+        for e in headlines:
+            if (e.get("target") == target and e.get("feature_set") == "full_features"
+                    and e.get("splittype") == "chrono" and e.get("role") == role
+                    and e.get("family") == family and e.get("leaf_dir")):
+                return Path(e["leaf_dir"])
+    return None
+
+
 def default_leaves() -> list[Path]:
-    """Cross-architecture set: the chronological full_features 70/15/15 headline
-    leaf per (target, architecture-family) across Additions 0 (XGBoost stack),
-    1 (TabPFN v3-default) and 4 (sequence window-MLP)."""
-    leaves = []
+    """Cross-architecture set on the full_features/chrono headline cell. The
+    Addition 0 (XGBoost stack) and Addition 1 (TabPFN) leaves are resolved
+    from the latest experiment/2/figdata_*.json so they track the
+    composite_sorted selection that drives the paper's headline table and
+    g/h figures. Addition 4 (sequence) is not part of composite selection;
+    a documented window-MLP leaf is pinned as the cross-addition contrast."""
+    headlines = _load_figdata_headlines()
+    leaves: list[Path] = []
     for tgt in ("headache", "migraine"):
-        # Addition 0 - XGBoost stack, NonHP
-        for m in (EXP / "0" / tgt / "full_features").rglob("NonHP/model.joblib"):
-            dd = _leaf_dims(m.parent)
-            if dd["ratio"] == "70_15_15" and dd["split"] == "chrono" and "stacked_2xgb" in str(m):
-                leaves.append(m.parent)
-                break
-        # Additions 1 (TabPFN) and 4 (sequence)
-        for sub in ("1/{t}/full_features/tabpfn/version_3-default/70_15_15/chrono",
-                    "4/{t}/full_features/sequence/version_window-mlp/70_15_15/chrono"):
-            d = EXP / sub.format(t=tgt)
-            if (d / "model.joblib").exists():
-                leaves.append(d)
+        d0 = _resolve_composite_leaf(headlines, tgt, "xgboost")
+        if d0 is not None and (d0 / "model.joblib").exists():
+            leaves.append(d0)
+        d1 = _resolve_composite_leaf(headlines, tgt, "tabpfn")
+        if d1 is not None and (d1 / "model.joblib").exists():
+            leaves.append(d1)
+        # Add-4 sequence: pinned representative (composite selection does not
+        # cover Add-4; the window-MLP variant is the documented contrast).
+        d4 = EXP / "4" / tgt / "full_features/sequence/version_window-mlp/70_15_15/chrono"
+        if (d4 / "model.joblib").exists():
+            leaves.append(d4)
     return leaves
 
 
