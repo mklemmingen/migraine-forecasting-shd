@@ -14,7 +14,7 @@ the paper's methods section.
 
 ## 1. Architecture (NonHP baseline)
 
-The `stacked_2xgb_meta_lr` cells use a depth-diverse stacking ensemble
+The `stacked_2xgb_meta_lr` cells used a depth-diverse stacking ensemble
 of two XGBoost classifiers (`max_depth=3` and `max_depth=6`) with an
 L1-penalised logistic-regression meta-learner. The stack is wrapped in
 sklearn's `StackingClassifier` with `KFold(n_splits=5, shuffle=False)`
@@ -125,11 +125,11 @@ set returns a near-degenerate value). This would reduce the Pareto
 frontier's y-axis to a flat line and make NSGA-II behave like
 single-objective AUROC search [3, calibration-on-the-same-set warning].
 
-The HP-scoring protocol uses **5-fold cross-validation** on the
-calibration parquet: each trial fits the stacker once on `X_train`,
-then for each fold fits Platt on 4/5 of the calibration parquet and
-scores post-Platt metrics on the held-out 1/5. The trial's reported
-metric is the per-fold average.
+The HP-scoring protocol used **5-fold cross-validation** on the
+calibration parquet: each trial fitted the stacker once on `X_train`,
+then for each fold fitted Platt on 4/5 of the calibration parquet and
+scored post-Platt metrics on the held-out 1/5. The trial's reported
+metric was the per-fold average.
 
 Per-fold metrics are preserved in the trajectory file under the
 `per_fold` key so the per-trial average can be checked against
@@ -229,7 +229,7 @@ subset of the search trajectory in (x_objective, \|slope-1\|) space:
 
 ## 7. What is NOT tuned
 
-By design, the following are held at their NonHP-baseline values
+By design, the following were held at their NonHP-baseline values
 across all HP variants:
 
 - The L1 logistic meta-learner (`penalty='l1'`, `solver='saga'`,
@@ -257,7 +257,7 @@ the paper's methods discussion.
 ### 8.1 Budget convergence at approximately 100 trials
 
 Across every chronological cell, the single-objective tier ladder
-saturates between HP100 and HP200, and HP500 is bit-identical to HP200
+saturated between HP100 and HP200, and HP500 was bit-identical to HP200
 or HP100 on most cells. Two representative examples:
 
 | Cell | HP020 AUROC | HP100 AUROC | HP500 AUROC |
@@ -290,7 +290,7 @@ than collapsed into one number.
 
 ### 8.3 Stratified cells reveal anti-predictive Platt fits under HP search
 
-The stratified-split cells show a failure mode that is informative for
+The stratified-split cells showed a failure mode informative for
 the paper's split-design discussion. Headache/70_30/stratified is the
 clearest example:
 

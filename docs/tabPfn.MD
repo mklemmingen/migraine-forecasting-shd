@@ -60,7 +60,7 @@ Both bare TabPFN builders pin the model version explicitly via `create_default_f
 All other arguments are left at their library defaults. Most relevant defaults (identical for v2.6 and v3):
 `n_estimators=8`, `softmax_temperature=0.9`, `eval_metric=None`, `balance_probabilities=False`, `categorical_features_indices=None`, `ignore_pretraining_limits=False`, `tuning_config=None`. With `tuning_config=None`, no runtime temperature recalibration step runs - the calibration property of the model rests on its meta-trained prior [1] combined with the fixed `softmax_temperature=0.9` baked into the architecture defaults (verifiable in [TabPFN v8.0.1 `classifier.py::create_default_for_version`](https://github.com/PriorLabs/TabPFN/blob/v8.0.1/src/tabpfn/classifier.py)).
 
-The fitted base estimator is **returned directly** - no external calibrator wraps it. See §4 for the rationale and the asymmetry vs the XGBoost-family architectures.
+The fitted base estimator was returned directly; no external calibrator wrapped it. See §4 for the rationale and the asymmetry vs the XGBoost-family architectures.
 
 ---
 
@@ -71,7 +71,7 @@ The target has a positive rate of ~7.2% (see [`docs/dataset.md`](dataset.md) for
 1. `balance_probabilities=True` - applies class-prior reweighting that **directly rewrites the output probability vector** so probabilities reflect a balanced prior rather than the natural prior. This is a probability-shape transform.
 2. `eval_metric='f1'` (or `'roc_auc'`, `'balanced_accuracy'`, etc.) - triggers TabPFN's internal **decision-threshold tuning**. The underlying `predict_proba` is unaffected as a function of the input, but the tuning consumes part of the train context as an internal validation split, so probability values shift marginally vs `eval_metric=None`.
 
-We use **neither**. Two reasons:
+Neither was used, for two reasons:
 
 - **`balance_probabilities=True`** would corrupt the Brier Score and ECE10 columns reported in the paper. Both metrics measure squared error / calibration of probability vs label; once probabilities are intentionally shifted off the natural prior, those columns no longer measure what their textbook names imply.
 - **`eval_metric='f1'`** would be redundant double-tuning. The experiment pipeline already selects the MCC-optimal operating threshold externally on a held-out calibration set (see [`experiment/_eval/sharedMetricPrinter.py`](../experiment/_eval/sharedMetricPrinter.py) and the per-leaf `evaluate.py` / `evaluate_cv.py` files). Setting `eval_metric='f1'` would have TabPFN tune internally for F1, which we then override with externally-chosen MCC thresholds. The internal tuning would also marginally contaminate `predict_proba`, slightly weakening the calibration analysis for no methodological benefit.
@@ -97,9 +97,9 @@ Methodological context: this paper extends the benchmarking work of Spano [5], w
 - **XGBoost-family models** (stacked variants - both the Spano replication and the cleaner `stacked_2xgb_meta_lr` re-implementation) produce raw margin scores that are not calibrated as posteriors. A sigmoid (Platt) calibrator is fit on a held-out calibration set after training the base model. The sigmoid scaling method itself is due to Platt [2], originally for SVMs; the empirical justification for applying it to tree ensembles via a held-out calibration set is established by Niculescu-Mizil & Caruana [3], with the broader supervised-learning context covered in their companion ICML survey [4].
 - **TabPFN** is meta-trained against a Bayesian prior that includes class-prior modelling. PriorLabs' overview documents the model as returning calibrated probabilities directly; the TabPFN-2.5 model report [6] states that the models are *"meta-trained to yield strong calibration, without the need for time-consuming and labor-intensive hyperparameter tuning."* The architecture default `softmax_temperature=0.9` is the only temperature transformation applied at inference time; with `tuning_config=None` (the default), no runtime temperature recalibration step runs (see §1). For external probability-shape control, PriorLabs recommends adjusting `softmax_temperature` rather than wrapping the model in a post-hoc calibrator.
 
-Wrapping TabPFN in `CalibratedClassifierCV(..., method='sigmoid')` would constitute *double calibration*: a monotone sigmoid applied to already-calibrated probabilities. On the present study's calibration-set size (~439 rows × ~7.2% positives ≈ 32 positives), the Platt fit is also statistically thin and risks introducing variance rather than reducing it.
+Wrapping TabPFN in `CalibratedClassifierCV(..., method='sigmoid')` would have double-calibrated the output: a monotone sigmoid applied to already-calibrated probabilities. On the present study's calibration-set size (~439 rows × ~7.2% positives ≈ 32 positives), the Platt fit is also statistically thin and risks introducing variance rather than reducing it.
 
-The asymmetry should be noted in the methodology section of the paper. Because AUROC and AUPRC are calibration-invariant (rank-based), the comparison on those metrics is unaffected by the asymmetry. The Brier Score and ECE10 columns are the ones where this design decision is load-bearing - for those, each architecture is reporting calibration of its own native, recommended output, which is the methodologically clean comparison.
+The asymmetry is noted in the methodology section of the paper. Because AUROC and AUPRC are calibration-invariant (rank-based), the comparison on those metrics is unaffected by the asymmetry. The Brier Score and ECE10 columns are where this design decision is load-bearing: on those columns, each architecture reported calibration of its own native, recommended output, which is the methodologically clean comparison.
 
 ---
 
