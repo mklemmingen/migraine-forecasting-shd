@@ -56,12 +56,19 @@ TREE_LEVELS = (
     ('hp_variant',     'HP operating point'),
 )
 
-# Cell colour carries ENTITY IDENTITY, not depth. Depth is already encoded by row
-# position (top -> bottom), so a depth colour ramp would be redundant; spending the
-# colour channel on the canonical entity hues instead tells the reader which target /
-# feature set / model / split a cell is, consistent with every other figure. Levels
-# without a canonical entity (addition index, model version, split ratio, the three
-# HP rows) stay a neutral grey so the branded rows stand out.
+# Cell colour carries ENTITY IDENTITY, not an ordinal depth ramp.
+#
+# This is a deliberate, documented deviation from the general "ordinal palette
+# for hierarchies" convention: depth is ALREADY encoded by the vertical row
+# axis (top = root, bottom = leaf), so spending the colour channel on a
+# redundant depth ramp would be pure decoration. Instead the colour channel
+# carries the canonical entity hue (TARGET, FEATURE_SET, ARCH, SPLIT) at the
+# branded rows, so a reader can identify which target / feature set / model
+# family / split each cell belongs to without consulting the row legend; this
+# stays consistent with the rest of the paper figures where the same hues
+# encode the same entities. Levels without a canonical entity (addition index,
+# model version, split ratio, the three HP rows) fall back to a neutral grey
+# so the branded rows stand out as the load-bearing dimensions.
 _LEVEL_PALETTE = {
     1: TARGET,        # headache / migraine
     2: FEATURE_SET,   # full / spano / no_rolling / park (dirs carry a _features suffix)

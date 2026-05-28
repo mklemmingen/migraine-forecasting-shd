@@ -471,20 +471,25 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             label = sorted_labels[r]
             y = first_row_y + row * pitch
             if sorted_tuples[r] is not None:
-                color, _, _ = _family_style_for(sorted_tuples[r])
+                color, linestyle, linewidth = _family_style_for(sorted_tuples[r])
+                marker = _family_marker(sorted_tuples[r])
             else:
                 color = GREY
+                linestyle, linewidth = "-", 1.5
+                marker = "o"
             x_elbow = x_elbow_right if side == "right" else x_elbow_left
-            # Connector: a solid, full-weight polyline that starts on the
-            # rank axis, drops to the label row, then runs out to the
-            # elbow. Rounded joins keep the corner clean; the dark label
-            # text (higher zorder) still reads on top where they meet.
+            # Connector: per-family linestyle + width so the line itself
+            # carries family identity in grayscale; rounded joins keep the
+            # corner clean.
             ax.plot([rank, rank, x_elbow], [top_y, y, y],
-                    "-", lw=1.7, color=color, alpha=conn_alpha, zorder=2,
+                    linestyle=linestyle, lw=linewidth, color=color,
+                    alpha=conn_alpha, zorder=2,
                     solid_capstyle="round", solid_joinstyle="round")
-            # Endpoint dot where the connector meets its label.
-            ax.plot([x_elbow], [y], marker="o", ms=4.5, color=color,
-                    alpha=conn_alpha, zorder=3)
+            # Endpoint marker carries the within-family member identity
+            # (4-channel encoding: hue + brightness + linestyle + marker).
+            ax.plot([x_elbow], [y], marker=marker, ms=5.5, color=color,
+                    alpha=conn_alpha, zorder=3, markeredgecolor="white",
+                    markeredgewidth=0.6)
             # Text sits beyond the elbow, growing outward toward the plot
             # edge so it never overlaps the connector lines or the marker.
             # On the inverted axis the right column grows toward smaller x
@@ -556,7 +561,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             0.5, 0.075,
             "Excluded from Friedman (incomplete cell coverage): "
             + ", ".join(dropped_archs),
-            ha="center", va="bottom", fontsize=8.0,
+            ha="center", va="bottom", fontsize=8.5,
             style="italic", color=GREY,
         )
 
@@ -647,7 +652,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
         ax.text(
             0.5, -0.13,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
-            transform=ax.transAxes, ha="center", fontsize=8.0,
+            transform=ax.transAxes, ha="center", fontsize=8.5,
             style="italic", color=GREY,
         )
     # Legend outside the axes so it does not overlap the staircase
@@ -655,7 +660,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
     # swatch reproduces colour, line style, AND marker so a reader can
     # match each entry to its curve in grayscale.
     ax.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
-              fontsize=7.5, framealpha=0.9, ncol=1,
+              fontsize=8.5, framealpha=0.9, ncol=1,
               handlelength=3.0, borderaxespad=0.2)
     fig.tight_layout(pad=0.6)
     save(fig, out_path)
@@ -808,7 +813,7 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
         0.0, -0.42,
         "Ranks order per-cell point estimates; a crossing smaller than the "
         "critical difference (see CD diagram) is not a significant difference.",
-        transform=ax.transAxes, ha="left", fontsize=8.0,
+        transform=ax.transAxes, ha="left", fontsize=8.5,
         style="italic", color=GREY,
     )
     if dropped_archs:
@@ -816,7 +821,7 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
         ax.text(
             0.0, -0.52,
             "Excluded (incomplete cell coverage): " + ", ".join(dropped_archs),
-            transform=ax.transAxes, ha="left", fontsize=8.0,
+            transform=ax.transAxes, ha="left", fontsize=8.5,
             style="italic", color=GREY,
         )
     fig.tight_layout(pad=0.6)
