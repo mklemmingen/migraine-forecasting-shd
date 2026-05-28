@@ -13,8 +13,8 @@ result Addition 3 already produced as its motivation.
 ## 1. Why this addition exists, and what it builds on
 
 The single most consistent finding across the prior machine-learning work on
-migraine prediction is that individualised models -- models trained on a single
-patient's own history -- beat generalised (cross-patient) models, and that
+migraine prediction is that individualised models (models trained on a single
+patient's own history) beat generalised (cross-patient) models, and that
 achievable skill varies considerably between individuals; an individualised model
 is defined there as one trained only on the target patient's data
 [dumkrieger2025review, p. 1; p. 3]. The same pattern recurs in the
@@ -30,12 +30,12 @@ accuracy above 84% one night ahead but with wide between-subject variance
 state-space (N4SID) models with an average 47-minute forecast horizon
 [pagan2015ambulatory, p. 15419].
 
-Crucially, the closest methodological comparator argued the *evaluation* point
-directly. Holsteen et al. reported their next-day trigger-exposure model with a
-within-person C-statistic of 0.56 (95% CI 0.54-0.58) -- only slightly better than
-chance -- precisely because a pooled C-statistic mixes between-patient base-rate
+The closest methodological comparator made the *evaluation* point
+explicitly. Holsteen et al. reported their next-day trigger-exposure model with a
+within-person C-statistic of 0.56 (95% CI 0.54-0.58), only slightly better than
+chance, precisely because a pooled C-statistic mixes between-patient base-rate
 variation into the discrimination estimate and overstates within-person
-forecasting skill [holsteen2020triggers, p. 2364]. Additions 0-1 currently report
+forecasting skill [holsteen2020triggers, p. 2364]. Additions 0-1 report
 the pooled metric, which is the quantity that argument warns against.
 
 Addition 3 supplied the cohort-specific evidence that personalisation is worth
@@ -52,7 +52,7 @@ the signal that tells a model whether to personalise.
    models achieve a higher *within-person* AUROC distribution than the pooled
    Addition 0/1/4 models on the same chronological evaluation?
 2. **Pooled vs within-person reporting.** How large is the gap between the pooled
-   C-statistic the benchmark currently reports and the within-person C-statistic
+   C-statistic the benchmark reports and the within-person C-statistic
    that the comparator literature argues for [holsteen2020triggers, p. 2364]? Is
    the benchmark's headline discrimination optimistic by the same mechanism?
 3. **Who is predictable?** Which patient characteristics (event count, base rate,
@@ -82,7 +82,7 @@ reproduces across architectures and split ratios (Section 9d below).
 - **Pooled (baseline).** The existing Additions 0/1/4 models, re-scored under the
   within-person evaluation of Section 3.3 so the comparison is on one metric.
 - **Per-patient.** One model per patient, trained on that patient's own
-  chronological history -- the individualised design the literature favours
+  chronological history (the individualised design the literature favours)
   [dumkrieger2025review, p. 3; houle2017stress, p. 1044; siirtola2018sleep, p. 1].
   Feasible only for patients with enough events; patients below an event-count
   floor are reported as not-estimable rather than forced.
@@ -205,7 +205,7 @@ the pooled-vs-within-person gap (RQ2) is read across the two.
 
 ## 6. Build order
 
-1. `_personal/within_person.py` first -- the evaluation is the contribution, so
+1. `_personal/within_person.py` first: the evaluation is the contribution, so
    it is built and tested before any new model, and applied to the *existing*
    Addition 0/1 predictions to produce the RQ2 pooled-vs-within-person gap with
    zero new training.
@@ -218,7 +218,7 @@ Each module stays under the 300-line budget.
 
 ## 7. Dependencies
 
-- `statsmodels` (mixed-effects GLM / GEE) -- already pinned for Addition 3.
+- `statsmodels` (mixed-effects GLM / GEE): already pinned for Addition 3.
 - Optional `lifelines` reuse from Addition 3 if a recurrent-event personalised
   hazard is added later; not required for the first pass.
 - No new data dependency.
@@ -269,7 +269,7 @@ C-statistics cluster near chance (~0.40-0.57), next to Holsteen's
 independent-cohort 0.56 [holsteen2020triggers, p. 2364]. Second, the pooled
 ranking does not survive the within-person reframing: pooled migraine is a
 three-way tie (~0.76) but within-person it is sequence > XGBoost > TabPFN, and
-pooled headache favours TabPFN while within-person favours XGBoost - so the
+pooled headache favours TabPFN while within-person favours XGBoost, so the
 headline metric can mislead about per-patient utility. Caveats: the chronological
 hold-out contains only late-enrolment patients, so migraine is estimable for only
 3 patients (wide CIs); this hold-out pass is superseded by the CV out-of-fold
@@ -294,11 +294,11 @@ date range. Estimability rises from 13->57 patients (headache) and 3->19
 | migraine | sequence (add 4) | 0.685        | 0.530 [0.476-0.585]  | 19/63| +0.155 |
 
 The headline is now clean and well-estimated: **within-person discrimination
-clusters at ~0.53-0.57 for every architecture and both targets** - near chance,
-architecture-independent, and beside Holsteen's independent-cohort 0.56
+clusters at ~0.53-0.57 for every architecture and both targets**, near chance
+and architecture-independent, beside Holsteen's independent-cohort 0.56
 [holsteen2020triggers, p. 2364]. The pooled "leads" largely evaporate
 within-person (migraine TabPFN's pooled 0.738 falls to 0.563, the largest gap),
-and the within-person architecture differences sit inside overlapping CIs - i.e.
+and the within-person architecture differences sit inside overlapping CIs,
 statistically indistinguishable per patient. Reproduce with
 `run_personalization.py --cv`. This is the trustworthy RQ2 estimate; 9a is the
 sparse first pass kept for the hold-out-vs-CV contrast.
@@ -321,11 +321,11 @@ regime name). Migraine, chronological 70/15/15, test-set AUROC:
 | park_features (6)  | 0.602  | 0.617       | 0.701        |
 | no_rolling (26)    | 0.728  | 0.730       | 0.738        |
 
-**Partial pooling improves pooled AUROC** on the hold-out, markedly on the
+**Partial pooling improves pooled AUROC** on the hold-out, substantially on the
 sparse park trigger set (+0.10 test AUROC over pooled) and modestly on no_rolling
 (+0.01); §9d below shows that gain does not survive within-person re-evaluation.
 A per-patient random
-intercept - essentially each patient's shrunk base rate - carries next-day signal
+intercept, essentially each patient's shrunk base rate, carries next-day signal
 the same-day triggers miss, consistent with the within-patient self-excitation of
 Addition 3. Per-patient LR alone barely moves (its own-history models are
 data-starved), which is why the shrinkage of partial pooling is the right tool.
@@ -361,8 +361,8 @@ Headache (full_features only, the cell `fig_d2_regimes.py` plots):
 | full_features   | per_patient  | 0.603            | 0.528 [0.494-0.561]  |
 | full_features   | partial_pool | 0.641            | 0.527 [0.497-0.556]  |
 
-The decisive finding: **partial pooling's large pooled-AUROC gain (+0.10 to +0.13
-over pooled) does not survive the within-person reframing - it slightly lowers
+The decisive finding: **partial pooling's pooled-AUROC gain (+0.10 to +0.13
+over pooled) does not survive the within-person reframing; it slightly lowers
 the within-person C-statistic** (park 0.546 -> 0.486; no_rolling 0.521 -> 0.490).
 The per-patient random intercept improves pooled discrimination by separating
 high-rate from low-rate patients (a between-patient base-rate effect), but it
@@ -370,7 +370,7 @@ adds no within-patient ranking of a given patient's migraine vs non-migraine
 days, and the per-patient noise costs a little. This is the Holsteen caution
 [holsteen2020triggers, p. 2364] made concrete on this cohort: a personalisation
 "improvement" measured by pooled AUROC can be entirely between-patient and
-vanish - or reverse - per patient. The honest RQ1 answer is therefore: on the
+vanish, or reverse, per patient. The honest RQ1 answer is therefore: on the
 pooled metric partial pooling helps, but it does not improve per-patient
 next-day forecasting, which remains near chance (~0.49-0.55) for every regime.
 This is why the within-person metric, not pooled AUROC, must headline the
@@ -399,8 +399,8 @@ margin widening as history accrues (e.g. headache 8-14 days: 0.207 -> 0.176).
 Knowing even a little of a patient's own attack history improves the next-day
 *probability* forecast, because patients are heterogeneous in base rate
 (Addition 3). Important nuance, consistent with Section 9d: this is the
-between-patient *level* (base-rate) effect - it lowers Brier by getting each
-patient's overall rate right - not an improvement in within-patient day-to-day
+between-patient *level* (base-rate) effect: it lowers Brier by getting each
+patient's overall rate right, not an improvement in within-patient day-to-day
 discrimination, which stays near chance. So personalisation pays off immediately
 for *calibrated risk level*, not for ranking which of a patient's days is the
 attack.

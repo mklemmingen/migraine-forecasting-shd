@@ -6,26 +6,26 @@ External validity is the benchmark's binding impact ceiling: it is developed
 on a single 62-patient cohort, and a truly independent external dataset is
 data-blocked because no comparable public next-day-diary migraine-forecasting
 cohort exists. This addition
-runs the strongest external validation achievable with the data in hand -
+runs the strongest external validation achievable with the data in hand,
 geographic internal-external validation across the two SHD recruitment
-sites - and records the weaker/parallel routes.
+sites, and records the weaker/parallel routes.
 
 ## 1. Why this addition exists, and what it builds on
 
 Clinical-prediction-model methodology distinguishes internal, internal-external,
 and external validation; when a separate cohort is unavailable, internal-external
-validation - leaving out one cluster (here, a recruitment site) in turn, training
-on the rest and validating on the held-out cluster - is the appropriate design,
+validation, leaving out one cluster (here, a recruitment site) in turn, training
+on the rest and validating on the held-out cluster, is the appropriate design,
 and is preferred over inefficient split-sample "independent" validation
 [steyerberg2016validation, p. 245]. TRIPOD+AI requires reporting model
 performance under a validation design with discrimination and calibration
 together [collins2024tripodAI, p. 6].
 
 The SHD cohort supports exactly this: it was recruited at two Korean university
-hospitals, so a leave-one-site-out split tests whether the benchmark's findings -
+hospitals, so a leave-one-site-out split tests whether the benchmark's findings,
 especially the within-person near-chance discrimination and the
 pooled-overstates-within-person result (`docs/addition5_personalization.md`
-Sections 9b/9d) - transport to a different clinic's patients.
+Sections 9b/9d), transport to a different clinic's patients.
 
 ## 2. The data (verified)
 
@@ -49,15 +49,15 @@ one site must transport to a different patient mix and prevalence.
 Two-fold leave-one-site-out: (train Uijeongbu -> test Dongtan) and (train Dongtan
 -> test Uijeongbu). For each fold, evaluate three things:
 
-1. **Discrimination transport** - pooled AUROC/AUPRC on the held-out site, with
+1. **Discrimination transport**: pooled AUROC/AUPRC on the held-out site, with
    bootstrap 95% CIs, in the standard sharedMetricPrinter contract so the cells
    fold into `comparison_*.html` as a new split type.
-2. **Within-person transport** - the per-patient AUROC distribution and the
+2. **Within-person transport**: the per-patient AUROC distribution and the
    precision-weighted within-person C-statistic on the held-out site (reusing
    `_personal/within_person.py`), testing whether the near-chance per-patient
    result (`docs/addition5_personalization.md` Section 9b) replicates across
    sites.
-3. **Calibration transport (the distinctive result)** - calibration-in-the-large
+3. **Calibration transport (the distinctive result)**: calibration-in-the-large
    (the ratio of observed event rate to mean predicted risk; 1.0 is perfect)
    and calibration slope on the held-out site [huang2020calibration, p. 621].
    We report the observed-to-expected ratio O:E = (observed rate) / (mean
@@ -111,13 +111,13 @@ than scattering them through each addition's tree.
 
 ## 6. Build status (implemented)
 
-1. `_personal/_site.py` - the verified site join (Section 2; named `_site` to
+1. `_personal/_site.py`: the verified site join (Section 2; named `_site` to
    avoid shadowing the stdlib `site` module). The 32/30 patient counts and the
    8.6%/5.7% base rates reproduce.
-2. `_personal/_site_worker.py` - per-addition subprocess that refits an
+2. `_personal/_site_worker.py`: per-addition subprocess that refits an
    architecture on the other site and predicts the held-out site (mirrors the
    CV-OOF worker; the GPU is shown only to Addition 1).
-3. `run_external_site.py` - the 2-fold driver: in-process pooled LR plus the
+3. `run_external_site.py`: the 2-fold driver: in-process pooled LR plus the
    architectures via the worker, with within-person and
    calibration-in-the-large/slope per held-out site, emitting the standard
    bootstrap contract per cell. The aggregator folds the site cells into
@@ -157,16 +157,16 @@ Three findings, all architecture-independent:
    TabPFN strongest); the models are not catastrophically worse on a different
    clinic. This is within-study geographic transport, not separate-cohort transport.
 2. **Within-person near-chance replicates off-site** (0.46-0.59 everywhere; one
-   cell below 0.50). The benchmark's central result - that per-patient day-to-day
-   ranking is near-chance - is reproduced on an independent recruitment site, so
+   cell below 0.50). The benchmark's central result, that per-patient day-to-day
+   ranking is near-chance, is reproduced on an independent recruitment site, so
    it is not a single-cohort artefact.
 3. **Calibration drifts with the site base rate (the distinctive result).** A
    model carried from the 8.6% site to the 5.7% site over-predicts (O:E down to
-   0.50 - the window-MLP forecasts 11.4% risk where 5.7% is observed); carried the
+   0.50, the window-MLP forecasts 11.4% risk where 5.7% is observed); carried the
    other way it under-predicts (O:E up to 1.54). The mean predicted risk tracks
    the *training* site, not the test site, and calibration slopes fall below 1
-   (over-confident off-site). This is a concrete transportability statement -
-   any deployment at a new site needs intercept recalibration - and it ties the
+   (over-confident off-site). This is a concrete transportability statement;
+   any deployment at a new site needs intercept recalibration, and it ties the
    external-validity layer to the benchmark's calibration-first theme
    [huang2020calibration, p. 621].
 
@@ -183,10 +183,10 @@ corresponding TRIPOD+AI items 12f (recalibration arising from
 evaluation) and 24 (model-updating results) are answered in the
 negative.
 
-## 8. What this establishes - and what it does not
+## 8. What this establishes, and what it does not
 
 - **Establishes**: geographic internal-external validation
-  [steyerberg2016validation, p. 245] - whether discrimination, within-person
+  [steyerberg2016validation, p. 245]: whether discrimination, within-person
   skill, and calibration transport across two recruitment sites with different
   base rates. The headline (Section 7) is that the near-chance within-person
   result replicates across sites (robustness) while calibration drifts with the
@@ -200,16 +200,16 @@ negative.
 
 ## 9. Other routes (recorded)
 
-- **Route B - temporal-by-enrolment split**: train early-enrolled patients, test
+- **Route B, temporal-by-enrolment split**: train early-enrolled patients, test
   late-enrolled (study-start dates available). Feasible, low effort, but partly
   redundant with the existing chronological and patient-holdout splits; a
   secondary robustness check.
-- **Route C - true external on the 82-patient SHED cohort** (Cho 2018 / Park
+- **Route C, true external on the 82-patient SHED cohort** (Cho 2018 / Park
   2018): the only route to genuine external validation, but the expanded cohort
   was never deposited, so it requires a data-sharing request to the authors
   (Cho Soo-Jin / Park Jeong-Wook). Pursue in parallel; do not gate the paper on
   it. This is the single highest-impact move if granted.
-- **Route D - other public datasets**: none comparable exist; cross-sectional
+- **Route D, other public datasets**: none comparable exist; cross-sectional
   symptom-classification sets are the wrong task. Unavailable.
 
 ## References
