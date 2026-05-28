@@ -1,8 +1,6 @@
-# Local working notes — not part of the scientific record
-FINDINGSCHECK.md
-docs/paper_readiness.md
-AUDIT_TRAIL.md
-/PaperSourcesDesign/
+# Local working notes — not part of the scientific record - holds all papers in pdf form locally so I can work through them in my IDE view
+PaperSources/
+PaperSourcesDesign/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
