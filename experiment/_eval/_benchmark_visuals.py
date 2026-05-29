@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import friedmanchisquare
 
-from _style import apply, save, cc_by_footer, OI, GREY, INK, SOFT, MUTED
+from _style import apply, save, OI, GREY, INK, SOFT, MUTED
 
 
 # Nemenyi q-alpha critical values for alpha=0.05, from Demsar 2006
@@ -547,7 +547,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         if n_cells is not None:
             sub.append(f"n_cells = {n_cells}")
         suffix = (" (" + ", ".join(sub) + ")") if sub else ""
-        ax.set_title(title + suffix + " · Park 2016 SHD (n=62)", fontsize=11, pad=14)
+        ax.set_title(title + suffix, fontsize=11, pad=14)
 
     # The how-to-read explanation (ranking method, what a connecting bar means)
     # belongs in the LaTeX caption, not burned into the image; the integrity
@@ -566,7 +566,6 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         )
 
     fig.subplots_adjust(left=0.04, right=0.96, top=0.90, bottom=0.14)
-    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)
 
@@ -648,7 +647,7 @@ def render_performance_profile(matrix, arch_labels, out_path,
     ax.set_ylim(0, 1.05)
     ax.set_xlim(1.0, x_max)
     if title:
-        ax.set_title(f"{title} (n_cells = {n_cells}) · Park 2016 SHD (n=62)", fontsize=10)
+        ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10)
     if dropped_archs:
         ax.text(
             0.5, -0.13,
@@ -664,7 +663,6 @@ def render_performance_profile(matrix, arch_labels, out_path,
               fontsize=8.5, framealpha=0.9, ncol=1,
               handlelength=3.0, borderaxespad=0.2)
     fig.tight_layout(pad=0.6)
-    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)
 
@@ -799,7 +797,7 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
     # The banner sits above the title so the two never overlap.
     title_pad = 20 if not omnibus_sig else 6
     if title:
-        ax.set_title(f"{title} (n_cells = {n_cells}) · Park 2016 SHD (n=62)", fontsize=10, pad=title_pad)
+        ax.set_title(f"{title} (n_cells = {n_cells})", fontsize=10, pad=title_pad)
     if not omnibus_sig:
         p_txt = f" (p = {p_value:.3f})" if p_value is not None else ""
         ax.text(
@@ -827,7 +825,6 @@ def render_rank_slopegraph(matrix, cell_labels, arch_labels, out_path,
             style="italic", color=GREY,
         )
     fig.tight_layout(pad=0.6)
-    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)
 

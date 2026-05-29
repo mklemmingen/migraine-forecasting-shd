@@ -280,7 +280,7 @@ def main():
     ax.set_yticklabels([f"{t}/{_ftok.get(fs, fs.replace('_features',''))}/{sp}"
                         for (t, fs, sp) in CELLS], fontsize=8)
     ax.set_xlabel("Architecture variant")
-    ax.set_title("Supplementary AUROC heatmap at ratio 70_30 across the sweep · Park 2016 SHD (n=62)")
+    ax.set_title("Supplementary AUROC heatmap at ratio 70_30 across the sweep")
 
     # Side-row colourbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
@@ -314,7 +314,6 @@ def main():
 
     fig.tight_layout()
     out_stem = _FIG_DIR / "fig_g7_significance_heatmap"
-    S.cc_by_footer(fig)
     S.save(fig, out_stem)
     print(f"source CSV:    {csv_path.relative_to(_REPO)}")
     if delong_src is not None:

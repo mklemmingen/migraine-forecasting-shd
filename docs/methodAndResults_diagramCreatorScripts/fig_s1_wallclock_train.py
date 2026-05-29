@@ -205,7 +205,7 @@ def _strip_panel(ax, rows: list[dict], rng) -> list[str]:
     ax.axvline(1.0, color=S.REF_COLOR, lw=S.REF_LW, ls=":", alpha=0.6)
     ax.text(1.0, 0.98, "1 s", ha="left", va="top", fontsize=6.5, color=S.SOFT,
             transform=ax.get_xaxis_transform())
-    ax.set_title("Training wall-clock per leaf, by architecture class · Park 2016 SHD (n=62)",
+    ax.set_title("Training wall-clock per leaf, by architecture class",
                  fontsize=10)
     return order
 

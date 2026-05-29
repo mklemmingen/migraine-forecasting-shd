@@ -131,7 +131,7 @@ def main():
     n_sig = int(sig.sum())
     ax.set_title(
         f"Paired DeLong + BH-FDR (q ≤ 0.05) across {n} cross-architecture tests; "
-        f"{n_sig} significant after multiplicity correction · Park 2016 SHD (n=62)"
+        f"{n_sig} significant after multiplicity correction"
     )
 
     x_lo = min(ci_lo.min(), -0.02) - 0.012
@@ -160,7 +160,6 @@ def main():
     fig.tight_layout()
 
     out_stem = _FIG_DIR / "fig_g6_paired_delong"
-    S.cc_by_footer(fig)
     S.save(fig, out_stem)
     print(f"source: {src.relative_to(_REPO)}")
 
