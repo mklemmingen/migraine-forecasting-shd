@@ -59,21 +59,23 @@ Park's stepwise model is migraine-specific). The two spano cells yield no
 cross-family runner-up (Addition 1 has no spano leaves), so they contribute
 the headline only -> 12 leaves.
 
-Of the 12-leaf selection, nine claim-critical leaves are reported below,
-covering every cell the five claims need (full_features chronological and
-stratified for both targets, no_rolling for both, park for both, and a
-cross-architecture full_features pair). Twelve leaves now carry the
-attribution artefacts the five claims read from; the AutoTabPFN
+Eleven claim-critical leaves now carry the attribution artefacts the five
+claims read from, covering every cell the five claims need (full_features
+chronological and stratified for both targets, no_rolling for both, park
+for both, and a cross-architecture full_features pair). The AutoTabPFN
 migraine chronological leaf, formerly the open follow-up for Claim 3,
 completed and is the AutoTabPFN-vs-XGBoost-stack pair the headline
-question called for.
+question called for; the headache cross-architecture pair sits on the
+matching chronological cell (v2.6) rather than the previously cited
+v2-5-finetuned stratified leaf, because Section 1 documents the
+feature-channel leak that confounds attribution on stratified
+full_features cells.
 
 | target | feature_set | split | architecture | artefacts |
 |---|---|---|---|---|
 | headache | full_features | chrono | stacked_2xgb (KernelSHAP) | shap, ale, ranking |
 | headache | full_features | stratified | stacked_2xgb (KernelSHAP) | shap, ale, ranking |
 | headache | no_rolling | chrono | stacked_2xgb (KernelSHAP) | shap, ale, ranking |
-| headache | full_features | stratified | tabpfn v2-5-finetuned (native) | shap, ale |
 | headache | full_features | chrono | tabpfn v2-6 (native) | shap, ale, shapiq, embedding |
 | migraine | full_features | chrono | stacked_2xgb (KernelSHAP) | shap, ale, ranking |
 | migraine | full_features | stratified | stacked_2xgb (KernelSHAP) | shap, ale, ranking |
@@ -235,12 +237,23 @@ features in the top 10 (`headache_free_streak`, `migraine_rate_last7`,
 `exercise_days_7day`); Spearman rank correlation on those six
 shared-top-10 pairs is ρ ≈ +0.49 (n = 6, Fisher-z 95% CI [-0.55, +0.91];
 positive but uninformative on rank order at this n). The corroborating
-headache cross-family pair (headache/full_features: XGBoost
-KernelSHAP vs TabPFN `version_2-5-finetuned` native SHAP) shows the
-same pattern: both XGBoost and TabPFN headache rankings led with the
-recent-history rolling features (XGBoost `migraine_rate_last7` /
-`headache_free_streak`; TabPFN `migraine_rate_last7` (0.036) /
-`migraine_rate_last3` (0.026) / `headache_free_streak` (0.010)).
+headache cross-family pair on the matching chronological cell
+(headache/full_features/70_30/chrono: XGBoost-HP020 KernelSHAP vs
+TabPFN `version_2-6` native SHAP) showed the same set + direction
+pattern. XGBoost-HP020 led with `headache_free_streak` (0.022) /
+`migraine_rate_last7` (0.018) / `consecutive_sedentary_days` (0.017);
+TabPFN-v2.6 led with `migraine_rate_last3` (0.030) /
+`migraine_rate_last7` (0.027) / `headache_free_streak` (0.018). The
+two top-10 rankings shared six features (`headache_free_streak`,
+`migraine_rate_last7`, `consecutive_sedentary_days`,
+`days_since_last_migraine`, `migraine_rate_last3`, `menstruation_today`);
+Spearman rank correlation on the shared-six pairs was ρ ≈ +0.14
+(n = 6, Fisher-z 95% CI [-0.76, +0.86]), weaker than the migraine
+cross-architecture pair's ρ ≈ +0.49 but still set + direction
+consistent. The matching-chronological pair is the methodologically
+clean comparator: Claim 1 documents that stratified full_features
+cells over-weight history features through the feature-channel leak,
+which would have confounded a stratified-cell comparison.
 Permutation importance scales (AUROC drop) and KernelSHAP scales
 (probability margin) are not directly comparable in magnitude; the
 rank-order convergence is the load-bearing evidence.
