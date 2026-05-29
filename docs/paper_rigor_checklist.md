@@ -28,7 +28,7 @@ The four domains map onto our methodology as follows:
 - **Participants and data sources.** Single-cohort retrospective re-analysis of the Park et al. 2016 Korean smartphone-headache-diary cohort, downloaded from the published dataset. No new recruitment, no consent step beyond the original PLOS ONE approval.
 - **Predictors.** All predictors are diary self-reports plus calendar-derived calendar features; no laboratory, imaging, or wearable signals enter the model. The feature dictionary is fixed at training time per cell.
 - **Outcome.** Binary next-day target derived from the diary's day-of-headache field; the outcome definition is identical across cells.
-- **Analysis.** Class imbalance is reported per split (Section 2). Calibration is reported with slope, intercept, ECE10, and Brier (Section 3). Discrimination is reported with both AUROC and AUPRC (Section 4). All metrics carry bootstrap 95% confidence intervals.
+- **Analysis.** Class imbalance was reported per split (Section 2). Calibration was reported with slope, intercept, ECE10, and Brier (Section 3). Discrimination was reported with both AUROC and AUPRC (Section 4). All metrics carried bootstrap 95% confidence intervals.
 
 ## 1b. Regulatory context (EU AI Act, MDR, GDPR)
 
@@ -48,7 +48,7 @@ DECIDE-AI [8] is the stage-specific reporting guideline for the early live clini
 
 The events-per-variable (EPV) framing [2] is the first-pass discipline check. We adopt the conservative reading consistent with Peduzzi 1996 and the Riley 2020 sample-size literature: `<10` high overfitting risk, `10-19` marginal, `>=20` low. Modern Riley-school formulae [2] supersede the rule of thumb but the bands remain useful for headlining risk.
 
-Our migraine target sits at EPV-5.5 on the `full_features` set (52 features, 287 positive days), the high-risk band, and at EPV 47.8 on the `park_features` set (6 features), comfortably low-risk. The headache target sits at EPV 18.2 on `full_features` (marginal) and >=30 on the smaller-feature sets (low). See `docs/dataset.md` (Events-per-variable section) for the full table and implications.
+Our migraine target sat at EPV-5.5 on the `full_features` set (52 features, 287 positive days), the high-risk band, and at EPV 47.8 on the `park_features` set (6 features), comfortably low-risk. The headache target sat at EPV 18.2 on `full_features` (marginal) and >=30 on the smaller-feature sets (low). See `docs/dataset.md` (Events-per-variable section) for the full table and implications.
 
 The discussion section needs to:
 
@@ -91,7 +91,7 @@ TRIPOD+AI item 22 [1] requires public code and model availability. Our repositor
 - Pinned `requirements.txt` (done).
 - TabPFN checkpoint hashes (documented in the builder docstrings).
 - Exact split files on disk under `data/processed/`.
-- Hardware and software stack: the canonical environment table (CPU, discrete AMD Radeon RX 7900 XT via PyTorch ROCm, OS, library versions) lives in the Hardware section of the top-level `README.md`. Per-leaf wall-clock for train and eval phases is not persisted in the per-leaf result artifacts; the only on-disk timing is the AutoGluon-internal `total runtime = ...` line inside `experiment/1/.../_running_output/training_*.txt` for Addition 1 leaves. Adding a `Wall-clock` row to the result-text emitter in `_scaffold_leaves.py` is a pending instrumentation task; until that lands, the paper should report the sweep wall-clock derived from those AutoGluon logs only for Addition 1 (AutoTabPFN family), and disclose that Addition 0 and the evaluator phase are unrecorded.
+- Hardware and software stack: the canonical environment table (CPU, discrete AMD Radeon RX 7900 XT via PyTorch ROCm, OS, library versions) lives in the Hardware section of the top-level `README.md`. Per-leaf wall-clock for the train phase is recoverable from three on-disk signals, ordered by precision: (a) the explicit `# Generated:` and `# Finished:` ISO-timestamp markers wrapping every `_running_output/training_*.txt` (second resolution, present on every wrapped training run across Addition 0 and Addition 1); (b) the AutoGluon-internal `total runtime = NNN.NNs` line (sub-second, AutoTabPFN only); (c) embedded filename timestamps on every `training_*.txt` and `results_*.txt` (form `<prefix>_YYYYMMDD_HHMMSS_<ms>_<uuid>.txt`), which survive `cp -p` and post-hoc `touch` operations that corrupt mtime. `experiment/extract_wallclock.py` walks all three Additions and reports header-precise, AutoGluon-precise, and filename-span per leaf, plus a `multi_day_gap` flag (set when the filename span exceeds 12 hours, indicating train and eval ran in separate sessions). The current extraction covers 465 leaves: 236 Addition 0 + 229 Addition 1, both header-precise (every wrapped training run; the four AutoTabPFN leaves additionally carry AutoGluon-precise); 0 Addition 4 because Addition 4 emits neither `results/` nor `_running_output/`. Addition 0 header-precise training duration: median 2 s, range 1-372 s, total 4.2 h across 236 leaves (the median is dominated by single-fit NonHP variants; the 500-trial Optuna HP-tuned leaves are the minute-scale tail). Addition 1 header-precise: median 1 s, range 0-3404 s, total 9.4 h across 229 leaves; AutoTabPFN per-leaf 1826-3404 s header-precise (2.3× the AutoGluon-internal `total runtime`, the gap being wrapper-script imports, data load, ensemble selection over the 40+ TabPFN copies, and `model.joblib` serialization). Combined header-precise training wall-clock: 13.6 h. The paper reports these aggregates and discloses that header-precise covers only the train phase (the eval phase is not wrapped by a separate log), that the AutoGluon-precise channel underestimates wall-clock by the wrapper overhead factor, and that Addition 4 sequence leaves are excluded because they were never wrapped. Adding a per-leaf `Wall-clock` row to the result-text emitter (`experiment/0/_scaffold_leaves.py`, `experiment/1/_scaffold_leaves.py`, `experiment/4/_scaffold_leaves.py`: three sibling emitters, one per Addition) remains the path to instrumented eval-phase coverage and to Addition 4 coverage.
 - The seed used in `run_bootstrap_evaluation` (`seed=42` in `_scaffold_leaves.py`).
 
 ## 7. Migraine-domain context
@@ -101,7 +101,7 @@ Two direct comparators in the recent migraine-forecasting literature:
 - **Stubberud et al. (2023)** [5]: 18 patients with episodic migraine, 388 headache diary entries (295 days analysed). Best random-forest model achieved hold-out AUC 0.62. This is the small-cohort scale roughly comparable to ours by patient count, although the modality (diary + wearable biofeedback) differs from our diary-only setup.
 - **Faisal et al. (2026)** [6]: 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model achieved hold-out next-day AUC 0.84 (95% CI 0.82-0.85). This is the current high-water mark. It uses diary + biofeedback wearables (trapezius EMG, HRV, peripheral skin temperature); the most predictive features were headache intensity, headache duration, and heart-rate scores.
 
-Implication: our work uses diary-only inputs and a smaller cohort, so a numerical AUC comparison against Faisal et al. would be apples-to-oranges. The honest framing is to position our results as "what is achievable with diary-only inputs at the Park 2016 cohort scale, using publicly available ML stack", which is a complementary scientific question to the wearable-augmented work.
+Implication: this work used diary-only inputs on a smaller cohort, so a numerical AUC comparison against Faisal et al. would be apples-to-oranges. The honest framing is to position our results as "what is achievable with diary-only inputs at the Park 2016 cohort scale, using publicly available ML stack", which is a complementary scientific question to the wearable-augmented work.
 
 ## 8. Honest comparison reporting
 
@@ -321,3 +321,80 @@ Anyone walking the TRIPOD+AI checklist with the manuscript open should find:
 - An evidence note quoting or pointing to the specific claim.
 
 The table is updated each time a follow-up edit closes one of the ⚠️/✗ rows. The expected end-state for submission is 50/50 sub-items at ✓ or N/A-with-explicit-statement.
+
+
+## 11. Reviewer-derived methodological discipline
+
+The following methodological standards were codified after a multi-persona reviewer pass against the JHP submission body. Each standard is grounded in a verified primary source from the CPM literature. They are enforced on every body regen and every long-form doc audit.
+
+### 11.1 CIs on every reported metric (Andaur Navarro 2023)
+
+Every numerical performance figure carries a 95% CI at every appearance in prose: AUROC, AUPRC, calibration slope, calibration intercept, ECE10, Brier score, Brier skill, within-person C-statistic, observed-to-expected ratio. Bootstrap CIs (1,000 iterations) with the resampling unit specified explicitly. Andaur Navarro et al. (J Clin Epidemiol 2023) report that 74.6% of ML-CPM abstracts give discrimination without precision estimates; this is the most prevalent spin pattern in the field.
+
+### 11.2 Active-voice non-deployment disclaimer
+
+Papers without separate-cohort external validation state "we do not recommend clinical deployment" in active voice in (a) abstract Conclusion, (b) Discussion, and (c) Conclusion section. The active form is harder to misquote and prevents the Andaur Navarro 95.2% deployment-overclaim pattern.
+
+### 11.3 Pre-specified, not pre-registered, absent OSF artefact
+
+"Pre-registered" claims require a public registration record (OSF URL, PROSPERO ID, ClinicalTrials.gov entry). Without such an artefact, "pre-specified" or "pre-planned" is used. TRIPOD+AI Item 18d (registration) is a positive declaration; a missing artefact behind a "pre-registered" claim is a spin pattern.
+
+### 11.4 Within-person estimability denominators
+
+Every within-person C-statistic and per-patient AUROC distribution appears with its denominator (X of Y patients estimable at the threshold-event floor). On the present cohort, the migraine within-person finding is evaluable on 19 of 63 patients; this denominator appears in the abstract, body Results, body Discussion, and body Conclusion.
+
+### 11.5 Manuscript licence: CC BY 4.0
+
+Selected at submission, stated explicitly in Declarations. CC BY-NC-ND prohibits LLM analysis of the paper; CC BY permits it. The journal's default is CC BY 4.0; opting in explicitly preserves machine-readable downstream analysis.
+
+### 11.6 Code and data identifiers minted before submission
+
+GitHub URL and Zenodo DOI cited in body Declarations, not left as TBD placeholders. TRIPOD+AI Item 13 requires the identifier.
+
+### 11.7 Riley-school sample-size calculation
+
+Riley / Ensor / Martin framework applied per cell: required N derived from outcome prevalence, target shrinkage (≥ 0.9), expected Cox-Snell R², and target CITL precision (≤ 0.05). On the present cohort, the migraine `full_features` cell (EPV-5.5) sits below the Riley criterion and is declared a priori as an under-powered development cell, not retroactively as a discovered limitation. Peduzzi 1996 EPV is necessary but not sufficient.
+
+### 11.8 Class-imbalance handling: van den Goorbergh chain
+
+Where `scale_pos_weight` or analogous class-weighting is used, the van den Goorbergh et al. 2022 observation is named: reweighting distorts calibration-in-the-large, Platt is the corrective, and the calibration-slope column monitors restoration. The chain (imbalance → reweight → distort CITL → Platt restore → monitor via slope) is explicit in Methods.
+
+### 11.9 Bootstrap resampling unit + paired DeLong assumption
+
+The bootstrap resampling unit (patient-day, patient-cluster, block) is stated in Methods. Patient-day bootstrap under serial dependence underestimates variance; the under-coverage caveat is disclosed when patient-day is used. Paired DeLong (Sun-Xu midrank) assumes within-class independence; on patient-day data the assumption is violated, but Type-I error inflation under the violation runs toward more significance, so null results are conservative against the assumption.
+
+### 11.10 Small-k random-effects pooling
+
+For k < 20 estimable patients, DerSimonian-Laird τ² is biased downward. REML or Paule-Mandel is preferred, or the DL CI is read as a lower bound on between-patient uncertainty.
+
+### 11.11 Demographic narrowness in the abstract Methods
+
+Cohort demographic restrictions (single sex predominance, single ethnicity, narrow age band, single country) are named in the abstract Methods sub-section, not only in body §4.4 Limitations.
+
+### 11.12 No editorial adjectives without numeric anchors
+
+"Substantial", "large", "remarkable", "considerable" — dropped or replaced with the numeric anchor. The reader gets the substantive claim; the adjective is editorial.
+
+### 11.13 Reproduction-plus-extension framing
+
+When a finding reproduces a prior result on a different cohort, the contribution is framed as reproduction-plus-extension: the prior cohort is cited explicitly; the extension half enumerates what the present cohort and methodology add.
+
+### 11.14 Disease-classification version qualifier
+
+Diagnostic-criteria citations name the version including any beta / draft / final qualifier and subset breakdown.
+
+### 11.15 Citation verification before use
+
+Every citation key in body prose resolves in `Sources.bib` and has at least one in-text use. Unused references are dropped or cited.
+
+### Source primary sources for §11
+
+- Andaur Navarro et al. (J Clin Epidemiol 2023), spin patterns in ML CPM: discrimination without CIs (74.6%); deployment overclaim (95.2%).
+- Collins et al. (BMJ 2024), TRIPOD+AI 27-item checklist + 13-item Abstract checklist.
+- Moons et al. (2025), PROBAST+AI 34 signalling questions across four domains.
+- Riley, Ensor, Martin (2020-2025), sample-size framework for binary CPM.
+- van den Goorbergh et al. (2022), class-imbalance correction and calibration.
+- Huang et al. (2020), calibration measurement (CITL + slope + reliability diagram).
+- Hanley and McNeil (1982), C-statistic binormal variance estimator.
+
+The full ruleset (with verbatim primary-source quotes, grouped under banned-word and sentence-structure axes) lives in the project's writing guide and is summarised here for the public-facing record.

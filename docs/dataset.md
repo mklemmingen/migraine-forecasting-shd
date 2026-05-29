@@ -214,15 +214,15 @@ Columns 51/52 are mutually exclusive (three-level ordinal: none/moderate/severe)
 
 ## Benchmark translation and engineering plan
 
-This section describes how this benchmark translates and engineers `SHD-Dataset.xls` into its training-ready feature matrix. This is an independent rebuild - not a patch of the Spano pipeline - and reads directly from the Korean source to avoid carrying forward any translation artifacts.
+This section describes how `SHD-Dataset.xls` was translated and engineered into the training-ready feature matrix. The pipeline was rebuilt independently of the Spano pipeline rather than patched, and the Korean source was read directly to avoid carrying forward translation artifacts.
 
-We name the following steps in-depth, so that future work may peer-review and change approaches when found insufficient.
+Each step below is documented at the operational level to support peer review and substitution where found insufficient.
 
 ---
 
 ### Step 1 - translation
 
-Produces `data/translated.parquet` from Sheet 3 of `SHD-Dataset.xls`. Code-driven and fully reproducible. Column headers are read from the Korean source and mapped programmatically.
+`data/translated.parquet` was produced from Sheet 3 of `SHD-Dataset.xls` by a code-driven, fully reproducible procedure. Column headers were read from the Korean source and mapped programmatically.
 
 **Reading procedure:**
 
@@ -317,7 +317,7 @@ The absorbed totals row was excluded by retaining only rows where `patient_id` m
 
 ### Step 2 - engineering
 
-Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `test_engineered.parquet` files from `data/translated.parquet`. All features describe the current diary day; the target describes the next day.
+Separated `train_engineered.parquet`, `val_engineered.parquet`, and `test_engineered.parquet` files were produced from `data/translated.parquet`. Each feature describes the current diary day and the target describes the next day.
 
 **Operation order (script-level):**
 
@@ -331,7 +331,7 @@ Produces separated `train_engineered.parquet`, `val_engineered.parquet`, and `te
 8. Drop structural columns (`headache_ongoing`, `severity_category`, `severity_vas`).
 9. Apply chronological 70/15/15 train/val/test split.
 
-**Rolling window edge handling:** All rolling features use `min_periods=1` - partial windows at the start of each patient's series compute over available days. This avoids dropping the first 6 days per patient.
+**Rolling window edge handling.** All rolling features were computed with `min_periods=1`, so partial windows at the start of each patient's series used whatever days were available rather than dropping the first six per patient.
 
 ### Gap awareness
 
@@ -501,7 +501,7 @@ is the explanation.
 
 ### Step 3 - Stage 5 supplement (Sheet 2 disability)
 
-Sheet 2 is processed separately into separated Train, Val, and Test Parquet files and is not included in the Stage 0–4 feature matrix. It is joined to the daily diary by patient ID and date for Stage 5 experiments only.
+Sheet 2 was processed separately into Train, Val, and Test parquet files and was excluded from the Stage 0–4 feature matrix. It was joined to the daily diary by patient ID and date for Stage 5 experiments only.
 
 **Train/val/test split alignment:**
 To ensure zero data leakage and exact temporal alignment with the daily diary features, the disability dataset is split into chronologically identical Train (70%), Validation (15%), and Test (15%) sets using the exact date cutoffs established in Step 2. Orphan patients without daily diary logs are filtered out. Outputs are physically separated into `train_disability.parquet`, `val_disability.parquet`, and `test_disability.parquet`.

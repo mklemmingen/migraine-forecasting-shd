@@ -14,7 +14,7 @@ needed to test that premise: 62 enrolled patients across two neurology
 clinics, 4,516 patient-days, daily attack indicator with eighteen
 candidate trigger factors recorded each evening.
 
-The next-day-diary migraine-forecasting literature has reported discrimination
+The next-day-diary migraine-forecasting literature reports discrimination
 as a pooled AUROC computed across patient-days. Pooled AUROC mixes two
 distinct quantities into a single number: how well the model ranks days
 within a patient, and how well it separates high-base-rate patients from
@@ -35,7 +35,7 @@ distinction matters clinically: a model whose pooled AUROC reflects
 between-patient base-rate separation is useful for triaging
 patient-level risk strata, but it cannot tell a given patient which of
 *their* days is the attack. The diary-only-forecasting literature
-has converged in the AUC 0.56-0.73 range under within-person evaluation
+sits in the AUROC 0.56-0.73 range under within-person evaluation
 [houle2017stress, p. 1041; holsteen2020triggers, p. 2364], well below
 the wearable-augmented work that reaches higher numbers on different
 inputs (Faisal 2026 reports 0.84 with EMG, HRV, and skin-temperature
@@ -50,7 +50,7 @@ classification task that is not next-day forecasting; the only other
 known reuse is a Bachelor's thesis that this benchmark builds on
 [spano2026thesis]. The 2025 Cephalalgia narrative review of the
 ML-migraine-prediction field [dumkrieger2025review, p. 1] does not cite
-Park 2016 anywhere. The benchmark presented here therefore fills a real
+Park 2016 anywhere. The benchmark presented here therefore fills a
 gap: a peer-reviewable next-day forecasting evaluation on the largest
 open trigger-diary cohort, with the reporting discipline the
 prediction-model literature has converged on.
@@ -62,9 +62,9 @@ hyperparameter search; the TabPFN tabular foundation model across five
 released variants) across three feature sets, three split types
 (chronological, stratified, patient hold-out), and two split ratios,
 with bootstrap CIs and calibration slope reported alongside
-discrimination throughout. Addition 2 layers SHAP and ALE explainability
-on the headline cells to triangulate the leakage mechanism and
-recover Park's univariate trigger ordering. Addition 3 characterises the
+discrimination throughout. Addition 2 applies SHAP and ALE explainability
+to the headline cells, triangulating the leakage mechanism and
+recovering Park's univariate trigger ordering. Addition 3 characterises the
 temporal dependence of the daily attack series and tests whether a
 sequence model is justified; Addition 4 implements that sequence
 comparison. Addition 5 reports the per-patient AUROC distribution and
@@ -80,11 +80,10 @@ distinguishes forecast *quality* from forecast *value*
 follows TRIPOD+AI reporting [collins2024tripodAI, p. 6] and PROBAST+AI
 risk-of-bias assessment [moons2025probastAI].
 
-The intended use of the benchmark is to characterise the achievable
-performance of next-day diary-based migraine and headache forecasting
-on the Park 2016 SHD cohort, so that an end-user evaluating whether
-diary-only forecasting can support a pre-emptive medication decision
-has an honest reference point. Within this study, the intended users
+The benchmark characterises achievable next-day diary-based migraine
+and headache forecasting on the Park 2016 SHD cohort. An end-user
+evaluating whether diary-only forecasting can support a pre-emptive
+medication decision therefore has an honest reference point. Within this study, the intended users
 of the prediction models being benchmarked are the patient cohort
 itself (for self-directed timing decisions) and any clinician
 supervising preventive treatment; deployment-stage user-interaction
@@ -100,10 +99,8 @@ therefore makes no fairness claims across underrepresented groups, and
 results should be applied only to populations resembling the Park 2016
 inclusion criteria.
 
-The paper's load-bearing finding, which the per-Addition layering makes
-defensible, is that the pooled AUROC commonly reported in the
-diary-forecasting literature overstates within-person forecasting skill
-on the Park 2016 cohort. The within-person C-statistic, estimated by
+Pooled AUROC overstates within-person forecasting skill on the Park
+2016 cohort; the per-Addition layering makes the finding defensible. The within-person C-statistic, estimated by
 out-of-fold cross-validation on the non-hyperparameter-tuned 70/30
 chronological cells (addition5 §9b), clusters near 0.55; the per-patient
 AUROC distribution centres near chance; and the Brier skill against

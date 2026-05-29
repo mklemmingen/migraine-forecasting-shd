@@ -47,7 +47,7 @@ one site must transport to a different patient mix and prevalence.
 ## 3. Design
 
 Two-fold leave-one-site-out: (train Uijeongbu -> test Dongtan) and (train Dongtan
--> test Uijeongbu). For each fold, evaluate three things:
+-> test Uijeongbu). For each fold, three quantities were evaluated:
 
 1. **Discrimination transport**: pooled AUROC/AUPRC on the held-out site, with
    bootstrap 95% CIs, in the standard sharedMetricPrinter contract so the cells
@@ -150,22 +150,31 @@ are the Addition 0/1/4 architectures.
 rates are closer). Both folds have k=29 estimable patients; migraine k=10-14
 (MIN_POS=5). Each cell emits the standard bootstrap contract.
 
+The latest `external_site_summary_*.csv` carries patient-day bootstrap 95% CI
+columns `auroc_ci_low`/`auroc_ci_high`, `within_ci_low`/`within_ci_high`,
+`oe_ratio_ci_low`/`oe_ratio_ci_high`, and `cal_slope_ci_low`/`cal_slope_ci_high`
+per `(target, feature_set, model, held_out)` row. Figures `fig_e1` and `fig_e2`
+render the O:E and within-person C CIs as whiskers; the wide CIs on the small
+per-site test folds (n=2,170-2,308 patient-days per site, with migraine k=10-14
+estimable patients) are an inherent limit of geographic internal-external
+validation rather than a feature of any one architecture.
+
 Three findings, all architecture-independent:
 
-1. **Pooled discrimination holds across sites within the study.** Pooled AUROC on
-   the held-out site is comparable to the internal hold-out (migraine 0.62-0.80,
-   TabPFN strongest); the models are not catastrophically worse on a different
+1. **Pooled discrimination held across sites within the study.** Pooled AUROC on
+   the held-out site was comparable to the internal hold-out (migraine 0.62-0.80,
+   TabPFN strongest); the models were not catastrophically worse on a different
    clinic. This is within-study geographic transport, not separate-cohort transport.
-2. **Within-person near-chance replicates off-site** (0.46-0.59 everywhere; one
+2. **Within-person near-chance replicated off-site** (0.46-0.59 everywhere; one
    cell below 0.50). The benchmark's central result, that per-patient day-to-day
-   ranking is near-chance, is reproduced on an independent recruitment site, so
+   ranking is near-chance, was reproduced on an independent recruitment site, so
    it is not a single-cohort artefact.
-3. **Calibration drifts with the site base rate (the distinctive result).** A
-   model carried from the 8.6% site to the 5.7% site over-predicts (O:E down to
-   0.50, the window-MLP forecasts 11.4% risk where 5.7% is observed); carried the
-   other way it under-predicts (O:E up to 1.54). The mean predicted risk tracks
-   the *training* site, not the test site, and calibration slopes fall below 1
-   (over-confident off-site). This is a concrete transportability statement;
+3. **Calibration drifted with the site base rate (the distinctive result).** A
+   model carried from the 8.6% site to the 5.7% site over-predicted (O:E fell to
+   0.50; the window-MLP forecast 11.4% risk where 5.7% was observed); carried the
+   other way it under-predicted (O:E rose to 1.54). The mean predicted risk tracked
+   the *training* site, not the test site, and calibration slopes fell below 1,
+   indicating off-site over-confidence. This is a concrete transportability statement;
    any deployment at a new site needs intercept recalibration, and it ties the
    external-validity layer to the benchmark's calibration-first theme
    [huang2020calibration, p. 621].

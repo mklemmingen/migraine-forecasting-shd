@@ -18,7 +18,7 @@ common standards for evaluating migraine prediction algorithms
 separates *quality* (the correspondence between forecasts and observations)
 from *value* (the incremental economic or other benefit a decision maker
 realises by acting on the forecasts) [murphy1993forecast, p. 281]. Discrimination
-and calibration, which the benchmark already reports, measure quality, not value:
+and calibration, reported in the benchmark, measured quality rather than value:
 a model can beat the base rate on AUPRC yet provide no net clinical benefit, and
 AUPRC's baseline itself moves with prevalence so it cannot be read as value across
 the migraine (~7%) and headache (~24%) cells [mcdermott2024aurocAuprc, p. 1]. Accuracy is base-rate
@@ -118,7 +118,7 @@ reported together throughout, per TRIPOD+AI [collins2024tripodAI, p. 6].
 
 ### 3.3 Operating-point analysis (TRIPOD+AI Item 15 risk groups)
 
-The three threshold bands defined below (t = 0.10-0.20, t = 0.20-0.35, t > 0.35) function as risk groups in the TRIPOD+AI Item 15 sense: each band carries a documented clinical action and the bands are pre-specified before evaluation rather than being post-hoc tertiles. The risk-group definitions are literature- and clinical-judgement-anchored (per the medication-burden and behavioural-tolerability arguments named below); the underlying model output is the calibrated probability, with the bands operationalising that probability into recommended actions.
+Three threshold bands (t = 0.10-0.20, t = 0.20-0.35, t > 0.35) functioned as risk groups in the TRIPOD+AI Item 15 sense: each band carries a documented clinical action and the bands are pre-specified before evaluation rather than being post-hoc tertiles. The risk-group definitions are literature- and clinical-judgement-anchored (per the medication-burden and behavioural-tolerability arguments named below); the underlying model output is the calibrated probability, with the bands operationalising that probability into recommended actions.
 
 The validation-derived MCC threshold (the benchmark's existing
 threshold-metric choice) was mapped onto the net-benefit-optimal threshold from
@@ -175,12 +175,12 @@ model.
 
 ## 4. Multiple-comparisons and honest-reporting discipline
 
-The pre-registered confirmatory outputs are the per-target decision curve (RQ1)
+The pre-registered confirmatory outputs were the per-target decision curve (RQ1)
 and the Brier skill score vs climatology (RQ2) at the canonical 70/15/15
 chronological `full_features` cell. The operating-point mapping (RQ3) and the
-weather ablation (RQ4) are exploratory and labelled as such. Net benefit and skill
-are reported with bootstrap 95% CIs consistent with the rest of the benchmark, and
-no clinical-utility claim is made beyond the development stage, per the DECIDE-AI
+weather ablation (RQ4) were exploratory and labelled as such. Net benefit and skill
+were reported with bootstrap 95% CIs consistent with the rest of the benchmark, and
+no clinical-utility claim was made beyond the development stage, per the DECIDE-AI
 boundary [vasey2022decideAI, p. 1].
 
 ## 5. Directory and output layout
@@ -260,24 +260,33 @@ the extra columns (minutes, reusing the Addition 0/1 training path).
 0 (XGBoost), 1 (TabPFN v3-default) and 4 (sequence window-MLP), val+test horizon,
 Brier skill against each patient's TRAIN-set base-rate climatology:
 
-| target   | architecture | AUROC | Brier skill | net-benefit+ band | sens @ FPR 0.10 |
-|----------|--------------|-------|-------------|-------------------|------------------|
-| headache | XGBoost      | 0.637 | +0.194      | 0.05-0.50         | 0.32 |
-| headache | TabPFN       | 0.654 | +0.210      | 0.07-0.50         | 0.35 |
-| headache | sequence     | 0.598 | +0.139      | 0.02-0.50         | 0.25 |
-| migraine | XGBoost      | 0.763 | -0.068      | 0.02-0.42         | 0.42 |
-| migraine | TabPFN       | 0.764 | -0.054      | 0.03-0.49         | 0.42 |
-| migraine | sequence     | 0.771 | -0.117      | 0.03-0.50         | 0.47 |
+| target   | architecture | AUROC | Brier skill (95% CI)        | CITL (95% CI)        | net-benefit+ band |
+|----------|--------------|-------|------------------------------|----------------------|-------------------|
+| headache | XGBoost      | 0.658 | +0.198 [+0.126, +0.268]     | 1.03 [0.88, 1.18]    | 0.07-0.47         |
+| headache | TabPFN       | 0.653 | +0.215 [+0.143, +0.287]     | 0.98 [0.84, 1.12]    | 0.07-0.50         |
+| headache | sequence     | 0.598 | +0.139 [+0.066, +0.211]     | 0.90 [0.76, 1.05]    | 0.02-0.50         |
+| migraine | XGBoost      | 0.791 | -0.068 [-0.160, +0.005]     | 1.09 [0.79, 1.42]    | 0.03-0.26         |
+| migraine | TabPFN       | 0.761 | -0.057 [-0.146, +0.020]     | 1.14 [0.83, 1.48]    | 0.03-0.49         |
+| migraine | sequence     | 0.771 | -0.117 [-0.227, -0.037]     | 0.93 [0.66, 1.22]    | 0.03-0.50         |
 
-**The decisive value finding: the migraine models have NEGATIVE Brier skill
-(-0.05 to -0.12) despite AUROC ~0.76**; they produce worse probability forecasts
-than simply predicting each patient's own historical attack rate. High
-discrimination does not translate into value: the migraine AUROC is ranking skill
-that does not beat the trivial per-patient base rate on a proper scoring rule,
-exactly Murphy's quality-vs-value distinction [murphy1993forecast, p. 281] and
-consistent with the near-chance within-person discrimination
+CIs computed by patient-day bootstrap (n=1,000 iterations) per body §2.8.
+Calibration-in-the-large (CITL) added per Huang 2020 trio.
+
+**The decisive value finding (revised with CIs):**
+the headache models all produce probabilistic value beyond the per-patient
+climatology with CIs comfortably above zero (Brier skill +0.07 to +0.29). For
+migraine the picture is more nuanced than the original point-estimate
+framing implied: only the sequence baseline carries a CI fully below zero
+(-0.117 [-0.227, -0.037]). The migraine XGBoost CI (-0.068 [-0.160, +0.005])
+and TabPFN CI (-0.057 [-0.146, +0.020]) both include zero, so the tabular
+models are statistically indistinguishable from the per-patient climatology
+baseline rather than significantly worse. High migraine AUROC (~0.76) still
+fails to translate into significant probabilistic value beyond the per-patient
+base rate, exactly Murphy's quality-vs-value distinction with finite-sample
+uncertainty acknowledged [murphy1993forecast, p. 281]. Consistent with the
+near-chance within-person discrimination
 (`docs/addition5_personalization.md` Section 9b) and the fragile calibration
-(`docs/results_findings.md` Section 6). Headache (denser, ~24% positive) does add
+on small/sparse cells (`docs/results_findings.md` Section 6). Headache (denser, ~24% positive) does add
 modest value (Brier skill +0.14 to +0.21). At a tolerated 10% false-alarm rate
 the models catch 25-47% of attacks. Every model has a low-threshold net-benefit
 band over treat-all/treat-none, but for migraine that band rests on poorly

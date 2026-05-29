@@ -79,14 +79,14 @@ development sets [martin2025samplesize, p. 2].
 - **Temporal convolutional network (TCN)** with a receptive field capped at the
   look-back window. A 1D-convolutional alternative that is cheaper and often more
   stable than recurrence on short sequences.
-- **N-day-window MLP**: flatten the last N days of features and feed a small
+- **N-day-window MLP**: the last N days of features were flattened and passed to a small
   dense network. This is the bridge model: it is a sequence model only in that
   it sees N days at once, and it is the cleanest test of RQ2 (does seeing the raw
   window beat seeing the engineered summary of the window?).
 
-All three are trained without imbalance reweighting (`_pos_weight = 1.0`,
+All three were trained without imbalance reweighting (`_pos_weight = 1.0`,
 matching Decision 3 in Section 9); reweighting and resampling both
-mis-calibrate the minority class on the small SHD cohort, and imbalance is
+miscalibrated the minority class on the small SHD cohort, and imbalance was
 handled downstream by the external operating-threshold step. The reported
 probabilities are the network's sigmoid output; the validation split is used
 to select the operating threshold (the external threshold step shared with

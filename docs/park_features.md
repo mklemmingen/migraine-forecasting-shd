@@ -28,7 +28,7 @@ The Discussion confirms this as the paper's headline finding:
 
 > "traveling, hormonal changes, noise, alcohol, overeating and stress increased the risk of migraines" [1, p. 8, main finding #4]
 
-The Park feature set materialised here keeps exactly these six features, with column-mapping notes below.
+The Park feature set implemented here retains exactly these six features, with column-mapping notes below.
 
 ## Mapping to engineered columns
 
@@ -42,7 +42,7 @@ Five of Park's six triggers map one-to-one onto an engineered column in `data/pr
 | Overeating  | `overeating_today`    | direct |
 | Traveling   | `travel_today`        | direct |
 
-The remaining trigger, "hormonal changes", requires reconstruction. Park et al.'s baseline 18-trigger survey [1, Methods, p. 3] lists "hormonal changes" as a single binary trigger. The Korean SHD source, by contrast, records the trigger as two distinct columns: 월경기 (menstruation) and 배란기 (ovulation), preserved in our pipeline as `menstruation_today` and `ovulation_today`. To match Park's single-feature representation, the Park filter combines them inside `select_park_features`:
+The remaining trigger, "hormonal changes", requires reconstruction. Park et al.'s baseline 18-trigger survey [1, Methods, p. 3] lists "hormonal changes" as a single binary trigger. The Korean SHD source, by contrast, records the trigger as two distinct columns: 월경기 (menstruation) and 배란기 (ovulation), preserved in our pipeline as `menstruation_today` and `ovulation_today`. To match Park's single-feature representation, the Park filter combined them inside `select_park_features`:
 
 ```python
 df["hormonal_changes_today"] = (
@@ -55,7 +55,7 @@ That is, `hormonal_changes_today` is **1** if either menstruation or ovulation i
 
 ## Final feature inventory
 
-After the filter runs, the model receives six features plus the standard structural columns:
+After the filter ran, the model received six features plus the standard structural columns:
 
 | Type           | Columns                                                                                       |
 |----------------|-----------------------------------------------------------------------------------------------|
@@ -64,7 +64,7 @@ After the filter runs, the model receives six features plus the standard structu
 
 ## Migraine target only
 
-The Park feature set is scaffolded **only** under `experiment/<addition>/migraine/park_features/...`; it is not generated for the `headache/` target tree.
+The Park feature set was scaffolded **only** under `experiment/<addition>/migraine/park_features/...`; it was not generated for the `headache/` target tree.
 
 Reasoning: Park et al.'s stepwise multiple logistic regression in Table 4 [1, Tab. 4, p. 8] is specifically a **migraine vs non-migraine headache discriminator**, run on the 1,099 headache days in the SHD dataset, of which 336 were migraines and 763 non-migraine headaches. Park did **not** run an analogous stepwise regression for any-headache-vs-no-headache (the comparison would be 1,099 vs 3,480 days, a different statistical setup with different baseline rates). The Park feature set therefore has direct scientific grounding for the migraine target and weaker grounding for the headache target. Scaffolding it for both targets would invite the reader to compare cells whose underlying analytic justifications differ; cleaner to scope the feature set to the target Park's regression actually addresses.
 
@@ -72,13 +72,13 @@ This choice is also reflected in `experiment/<addition>/_scaffold_leaves.py` `en
 
 ## Two design points that warrant disclosure
 
-**1. Same-day vs next-day prediction framing.** Park et al.'s analysis is for same-day trigger-migraine association: the question is *given today's triggers, is today's headache a migraine*. This benchmark predicts *next-day* migraine state: `migraine_target = migraine_today.shift(-1)` per patient. Using Park's stepwise-selected triggers at a one-day lag is a defensible scientific choice (the carry-over hypothesis: triggers that statistically discriminate same-day migraines are plausible candidates for next-day prediction too) but it is not exactly what Park studied. The methodology section should disclose this.
+**1. Same-day vs next-day prediction framing.** Park et al.'s analysis is for same-day trigger-migraine association: the question is *given today's triggers, is today's headache a migraine*. This benchmark predicts *next-day* migraine state: `migraine_target = migraine_today.shift(-1)` per patient. Using Park's stepwise-selected triggers at a one-day lag is a defensible scientific choice (the carry-over hypothesis: triggers that statistically discriminate same-day migraines are plausible candidates for next-day prediction too) but it is not exactly what Park studied. The methodology section discloses this lag deliberately.
 
-**2. Preventive medication is absent.** Park et al. uses `preventive_medication` as a stratifier in Table 5 [1, Tab. 5, p. 9], demonstrating that it modifies several trigger-migraine associations. Including it as a covariate in our Park feature set would let the model learn the interaction effects Park documents. The current engineered parquets in this benchmark, however, do **not** carry the `preventive_medication` column. This is a pre-existing translation-stage gap unrelated to the Park feature set definition: `data/pipeline/translate.py` declares the column mapping at line 62, but the output translated parquet does not actually contain the column. The Park feature set therefore excludes `preventive_medication` as a data-availability matter, not a scientific choice. If the translation pipeline is fixed in a later iteration, `preventive_medication` can be added to `_PARK_REQUIRED_COLUMNS` in `experiment/_dataRead/filter_to_park_features.py` and the filter will pick it up on the next sweep.
+**2. Preventive medication is absent.** Park et al. uses `preventive_medication` as a stratifier in Table 5 [1, Tab. 5, p. 9], demonstrating that it modifies several trigger-migraine associations. Including it as a covariate in our Park feature set would let the model learn the interaction effects Park documents. The current engineered parquets in this benchmark, however, do **not** carry the `preventive_medication` column. This is a pre-existing translation-stage gap unrelated to the Park feature set definition: `data/pipeline/translate.py` declares the column mapping at line 62, but the output translated parquet does not actually contain the column. The Park feature set therefore excludes `preventive_medication` because the column is unavailable in the engineered parquets, not as a scientific choice. If the translation pipeline is fixed in a later iteration, `preventive_medication` can be added to `_PARK_REQUIRED_COLUMNS` in `experiment/_dataRead/filter_to_park_features.py` and the filter will pick it up on the next sweep.
 
 ## Interaction terms
 
-Park's stepwise model also selected two interaction terms: `stress × hormonal_changes` and `noise × travel` [1, Tab. 4, p. 8]. These are **not** materialised as explicit features by the filter. Both gradient-boosted trees (Addition 0) and TabPFN (Addition 1) can learn pairwise interactions from the constituent features themselves, so explicit interaction columns would add no model expressiveness in either architecture family.
+Park's stepwise model also selected two interaction terms: `stress × hormonal_changes` and `noise × travel` [1, Tab. 4, p. 8]. These were **not** materialised as explicit features by the filter. Both gradient-boosted trees (Addition 0) and TabPFN (Addition 1) can learn pairwise interactions from the constituent features themselves, so explicit interaction columns would add no model expressiveness in either architecture family.
 
 ## Citation
 

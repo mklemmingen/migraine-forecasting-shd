@@ -20,8 +20,8 @@ dependence in both targets, confirmed by four independent methods.
   same-day stress/sleep/weather/overeating): migraine lag-1 OR 5.43
   (p = 3e-21), lag-2 2.08, lag-3 2.13; likelihood-ratio vs triggers-only
   chi2 = 155, p = 2.5e-33. Headache lag-1 OR 2.44; LR chi2 = 203,
-  p = 1.1e-43. So the attack history predicts the next day even after
-  controlling for today's triggers. Consistent with Houle et al. 2005's
+  p = 1.1e-43. Attack history therefore predicted the next day after
+  adjustment for same-day triggers. Consistent with Houle et al. 2005's
   day-1 -> day-2 positive autocorrelation [houle2005timeseries, p. 445].
 
 ### RQ2 clustering vs cycle vs Poisson: short-range clustering, not bursts
@@ -38,13 +38,13 @@ dependence in both targets, confirmed by four independent methods.
   short-memory autocorrelation, not a long-tailed bursty stream.
 
 ### RQ3 history-conditioned hazard: YES
-- Recurrent-event regression on inter-attack gap times with the trailing
-  14-day attack rate as covariate, Andersen-Gill counting-process
-  regression with the Prentice-Williams-Peterson gap-time variant
-  [amorim2015recurrent, p. 326]: migraine
-  Andersen-Gill HR 3.50 (p = 0.001), PWP-gap-time HR 3.71 (p = 3e-05);
-  headache AG 2.79, PWP 3.36 (p = 5e-21). A higher recent attack rate
-  shortens the time to the next attack, beyond the marginal rate.
+- A higher trailing 14-day attack rate shortened the time to the next
+  attack beyond the marginal rate. Recurrent-event regression on the
+  inter-attack gap times, with Andersen-Gill counting-process estimation
+  and the Prentice-Williams-Peterson gap-time variant
+  [amorim2015recurrent, p. 326], yielded migraine Andersen-Gill HR 3.50
+  (p = 0.001), PWP-gap-time HR 3.71 (p = 3e-05); headache AG 2.79, PWP
+  3.36 (p = 5e-21).
 
 ### RQ4 periodicity: no significant weekly structure
 - Day-of-week chi-square goodness-of-fit: migraine chi2 = 5.0, p = 0.54
@@ -56,30 +56,31 @@ dependence in both targets, confirmed by four independent methods.
 
 ## Multiple-comparisons discipline (Section 3.7)
 
-The pre-registered confirmatory tests (one family per target) are the
-pooled lag-1 Markov transition, the self-excitation likelihood-ratio test,
-and the day-of-week omnibus; all reported with raw p-values above. The
+Three confirmatory tests were pre-registered per target: the pooled
+lag-1 Markov transition, the self-excitation likelihood-ratio test, and
+the day-of-week omnibus, all reported above with raw p-values. The
 exploratory ACF lags 2-14 are Benjamini-Hochberg FDR-corrected in the
 per-target HTML report. The serial-dependence conclusion rests on the
 confirmatory set, not on a scan over lags.
 
 ## Addition-4 verdict
 
-**A sequence model is justified.** Both targets show significant
+**A sequence model is justified.** Both targets showed significant
 within-patient self-excitation beyond same-day triggers (migraine LR
-p = 2.5e-33, headache p = 1.1e-43). The dependence is short-range (lag-1
+p = 2.5e-33, headache p = 1.1e-43). The dependence was short-range (lag-1
 dominant, decaying by ~day 3-7) rather than long-range bursty, so a model
-that consumes the recent attack history (a few days) captures the available
+consuming the recent attack history (a few days) captures the available
 signal; a long-memory architecture is not indicated by the burstiness
 result. Per-patient heterogeneity (below) suggests personalisation is worth
 testing alongside a shared dynamic.
 
 ## Three paper claims (Section 9a)
 
-1. **Cohort effect size.** An attack today raises the probability of an
-   attack tomorrow from 5.0% to 31.5% in migraine (risk ratio 6.3); the
-   trigger-controlled lag-1 odds ratio is 5.4. Headache: 17.9% to 39.7%
-   (RR 2.2). These are the citable effect sizes.
+1. **Cohort effect size.** In migraine, an attack today raised the
+   probability of an attack tomorrow from 5.0% to 31.5% (risk ratio 6.3);
+   the trigger-controlled lag-1 odds ratio was 5.4. In headache, the
+   probability rose from 17.9% to 39.7% (RR 2.2). These were the citable
+   effect sizes.
 2. **Heterogeneity.** Self-excitation is not universal: per-patient lag-1
    autocorrelation is estimable for 49 (migraine) / 62 (headache) patients
    and spans a wide range, and only ~26% (migraine) / 31% (headache) of

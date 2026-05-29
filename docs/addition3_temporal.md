@@ -2,9 +2,9 @@
 
 > Position in the paper: **Methods (4.2)**. Reads after `addition2_explainability.md`; precedes `addition4_sequence.md`. The temporal-dependence verdict from this doc gates the sequence-modelling decision documented in addition4_sequence.md (the IID-row falsification test).
 
-The temporal-dependence layer (`experiment/3/`) trains no models and
-fits none. It reads the engineered diary parquets directly and
-characterises the temporal structure of the attack series. The purpose
+The temporal-dependence layer (`experiment/3/`) trained no models. It
+read the engineered diary parquets directly and characterised the
+temporal structure of the attack series. The purpose
 is to test, on the SHD cohort, whether next-day attacks depend on the
 recent attack history, and to feed that answer into the decision of
 whether a sequence model (Addition 4) is justified over the tabular
@@ -88,15 +88,15 @@ per patient, easy to plot as a cohort distribution.
 
 ### 3.3 Discrete-time self-excitation (not continuous Hawkes)
 
-We considered a continuous-time self-exciting (Hawkes-type) point
-process and rejected it for this data. Such a process is a
+A continuous-time self-exciting (Hawkes-type) point process was
+considered and rejected for this data. Such a process is a
 continuous-time model whose likelihood assumes precise event
 timestamps with continuous inter-event densities. The SHD diary is
 day-resolution binary: inter-event times are integers and attacks
 cannot be ordered within a day, which violates the continuous-density
 assumption the standard self-exciting-process MLE rests on. Forcing
 day-indexed integers into the continuous likelihood would be a misuse,
-so we do not use it. (The originating Hawkes
+so the continuous formulation was not used. (The originating Hawkes
 1971 reference is not cited because the source PDF could not be
 obtained; the rejection rests on the data-resolution argument, not on
 that paper's content, so no citation is needed for the choice.)

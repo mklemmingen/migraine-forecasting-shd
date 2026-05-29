@@ -10,8 +10,8 @@ Reads the latest experiment/5/external_site_summary_*.csv.
 Usage: python fig_e2_within_person_sites.py
 """
 # §11 compliance:
-#   §11.1 CIs: DATA-PENDING Hanley-McNeil whiskers on scatter points
-#   §11.2 estimability: DATA-PENDING on-plot denominator annotation
+#   §11.1 CIs: errorbar whiskers from within_ci_low/high in external_site_summary csv
+#   §11.2 estimability: "k=X estimable" annotation per panel (bottom-left)
 #   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
 import csv
 from pathlib import Path

@@ -2,7 +2,7 @@
 
 One curve per architecture, per target, over the full_features cells. The curve
 at factor tau is the fraction of cells where that architecture is within tau of
-the best architecture in the cell [Dolan & More 2002, Math. Prog.]. Curves that
+the best architecture in the cell [dolanmore2002profile, p. 201]. Curves that
 rise fastest in the top-left dominate; flat curves are unstable across cells.
 Uses the same coverage-filtered architecture set as the critical-difference
 diagram so the two views describe one matched design - that filter removes
@@ -22,7 +22,7 @@ Usage: python fig_f2_performance_profile.py
 #   §11.6, §11.7: applied via renderer helper where present
 #   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
-#   Dolan-More performance profile (Dolan & More 2002, Math. Prog.). For each
+#   Dolan-More performance profile [dolanmore2002profile, p. 201]. For each
 #   architecture, the curve at tolerance tau is the fraction of full_features cells
 #   where its AUROC is within a factor tau of the best architecture in that cell.
 #   Curves rising fastest toward 1.0 (top-left) dominate; flatter curves solve fewer

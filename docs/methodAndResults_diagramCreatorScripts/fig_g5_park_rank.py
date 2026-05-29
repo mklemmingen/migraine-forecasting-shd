@@ -12,7 +12,7 @@ experiment/2/compare.py.
 Usage: python fig_g5_park_rank.py
 """
 # §11 compliance: Spearman rho between Park 2016 OR rank and SHAP rank.
-#   §11.1: rho + p shown; bootstrap CI on rho is DATA-PENDING
+#   §11.1: Fisher-z 95% CI on rho printed in title by F.park_scatter_figure()
 #   §11.3 caption: Park 2016 cohort + n in rendered title
 #   §11.7 N/A (Park feature set; not migraine `full_features`)
 #   §11.6 via renderer; §11.10 no banned adjectives; §11.11 self-check this block

@@ -10,7 +10,7 @@ in `insights_leaf_selection.md`.
 
 ## 1. Architecture: a shared _explain module + an optional evaluate flag
 
-The attribution runs as an optional, off-by-default block at the end of
+The attribution ran as an optional, off-by-default block at the end of
 the evaluate templates, backed by a shared `experiment/_explain/` module
 that holds the heavy logic as testable sub-300-line files. This reuses
 the model and splits `evaluate.py` already loaded:
@@ -118,7 +118,7 @@ L1-LR meta) wrapped by a Platt calibrator; `blended_xgb_lr_spano2026`
 is an XGB + LR-pipeline convex blend with isotonic/Platt calibrators.
 TreeSHAP [lundberg2020treeshap, p. 3] explains one tree ensemble's margin and
 cannot represent the meta-learner, the blend, or the calibrators, so it
-is the wrong tool for the calibrated output. We therefore use:
+is the wrong tool for the calibrated output. The following was therefore used:
 
 - **XGBoost leaves (Addition 0)**: model-agnostic **KernelSHAP**
   (the Shapley-value estimator that learns a local linear surrogate
@@ -230,7 +230,7 @@ is extracted with `tabpfn_extensions.embedding.TabPFNEmbedding`, the
 package's own attention-embedding accessor, so we do not reach into
 private model internals.
 
-We use **UMAP** [mcinnes2018umap, p. 1] for the projection rather than t-SNE.
+UMAP [mcinnes2018umap, p. 1] was used for the projection rather than t-SNE.
 The figure's question is cluster separation, and UMAP preserves
 global and inter-cluster structure better than t-SNE, whose
 inter-cluster distances are not interpretable. UMAP with a fixed
@@ -263,7 +263,7 @@ clinical literature suggests migraine triggers combine non-additively
 (for example weather change on a high-stress day), so the pairwise
 interaction question is a substantive question for this paper.
 
-ShapIQ pairwise (order-2) interactions are run on the TabPFN headline
+ShapIQ pairwise (order-2) interactions were run on the TabPFN headline
 leaves only, where the foundation model's flexible function class makes
 interactions plausible and the extension is native. The intent is to
 report the top interaction pairs as a small heatmap and check whether
@@ -337,7 +337,7 @@ parsed metrics, not hand-picked, so it updates when the sweep does.
 
 ## 5. Directory and output layout
 
-Per-leaf figures land inside the source leaf (the chosen output
+Per-leaf figures landed inside the source leaf (the chosen output
 location). Cross-leaf comparison artefacts live under `experiment/2/`.
 
 ```

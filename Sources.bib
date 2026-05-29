@@ -120,6 +120,24 @@
 }
 
 % ====================================================================
+% Benchmarking methodology (performance profiles)
+% ====================================================================
+
+@article{dolanmore2002profile,
+  author  = {Dolan, Elizabeth D. and Mor{\'e}, Jorge J.},
+  title   = {Benchmarking Optimization Software with Performance Profiles},
+  journal = {Mathematical Programming},
+  volume  = {91},
+  number  = {2},
+  pages   = {201--213},
+  year    = {2002},
+  month   = jan,
+  doi     = {10.1007/s101070100263},
+  url     = {https://doi.org/10.1007/s101070100263},
+  note    = {Canonical reference for the cumulative ratio-to-best benchmark visualisation used in this study. Cited by fig\_f2\_performance\_profile (within-family AUROC profile) and fig\_s1\_wallclock\_train (training wall-clock profile across architecture classes); both adapt the original method: AUROC by replacing higher-is-better with the standard solver-time inversion, and wall-clock by treating per-leaf training duration as the cost metric and (target, feature\_set, split, ratio) tuples as the problem set. The p. 201 anchor is the abstract definitional statement (``We propose performance profiles -- distribution functions for a performance metric -- as a tool for benchmarking and comparing optimization software''). The p. 203 anchor is Section 2 ``Performance Evaluation'' where the formal definitions live: performance ratio $r_{p,s} = t_{p,s} / \min\{t_{p,s} : s \in \mathcal{S}\}$ and performance profile $\rho_s(\tau) = (1/n_p)\,\textrm{size}\{p \in \mathcal{P} : r_{p,s} \le \tau\}$. The p. 204 anchor is the failed-problem convention ($r_{p,s} = r_M$ when solver $s$ does not solve problem $p$, so $\rho_s^* = \lim_{\tau \to r_M^-} \rho_s(\tau)$ is the probability the solver solves a problem); the implementation in fig\_s1 divides by the full $n_p$ denominator rather than the count of valid ratios, so classes with missing cells flatline below 1.0, which is semantically equivalent to the paper's $r_M$ convention. PDF at PaperSources/dolanmore\_2002\_performance\_profiles.pdf (arXiv:cs/0102001v2 preprint mirror, 5 Mar 2004, identical content to the Math. Prog. journal version).}
+}
+
+% ====================================================================
 % Post-hoc ensemble selection (background for AutoTabPFN methodology)
 % ====================================================================
 
@@ -138,6 +156,20 @@
 % ====================================================================
 % Clinical / domain background (premonitory symptoms)
 % ====================================================================
+
+@article{steiner2020migraine,
+  author  = {Steiner, T. J. and Stovner, L. J. and Jensen, R. and Uluduz, D. and Katsarava, Z.},
+  title   = {Migraine remains second among the world's causes of disability, and first among young women: findings from {GBD2019}},
+  journal = {The Journal of Headache and Pain},
+  volume  = {21},
+  number  = {1},
+  pages   = {137},
+  year    = {2020},
+  month   = dec,
+  doi     = {10.1186/s10194-020-01208-0},
+  url     = {https://doi.org/10.1186/s10194-020-01208-0},
+  note    = {Open-access editorial in our target journal, on behalf of Lifting The Burden: the Global Campaign against Headache. Cited in the body Introduction (§1) as the primary source for "Migraine is the second-leading single cause of disability worldwide, and the leading cause among young women aged 15-49". The p. 1 anchor is the title-level claim; the p. 2 anchor is Table 1 (headache disorders rank 3rd globally as a level-3 category at 5.4\% YLDs, all ages both sexes) and Table 2 (migraine 2nd overall and 1st in young women at IHME level-4 single-cause analysis). Pinned at GBD2019 because that is the most recent GBD cycle the editorial summarises. Open access under CC BY 4.0; PDF at PaperSources/steiner_2020_migraine_gbd2019.pdf.}
+}
 
 @article{giffin2003premonitory,
   author  = {Giffin, N. J. and Ruggiero, L. and Lipton, R. B. and Silberstein, S. D. and Tvedskov, J. F. and Olesen, J. and Altman, J. and Goadsby, P. J. and Macrae, A.},
@@ -242,9 +274,10 @@
   journal = {The Journal of Headache and Pain},
   volume  = {27},
   number  = {91},
+  pages   = {91},
   year    = {2026},
   doi     = {10.1186/s10194-026-02346-7},
-  note    = {Open access (CC-BY 4.0) via BMC. 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model: next-day test-set AUC 0.84 (95\% CI 0.82-0.85); 3-day window AUC 0.76. Most predictive features: headache intensity, duration, heart-rate scores. Current high-water-mark migraine-forecasting benchmark; their diary+wearable modality differs from our diary-only modality - cite carefully.},
+  note    = {Open access (CC-BY 4.0) via BMC. 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model: next-day test-set AUC 0.84 (95\% CI 0.82-0.85); 3-day window AUC 0.76. Most predictive features: headache intensity, duration, heart-rate scores. Current high-water-mark migraine-forecasting benchmark; their diary+wearable modality differs from our diary-only modality - cite carefully. BMC/JHP convention: article-number serves as locator; pages and number fields both carry the article number 91 (J Headache Pain 27, Article 91).},
 }
 
 @misc{mcdermott2024aurocAuprc,
@@ -493,10 +526,13 @@
   journal = {Cephalalgia},
   volume  = {45},
   number  = {11},
+  pages   = {3331024251391207},
   year    = {2025},
+  month   = nov,
   doi     = {10.1177/03331024251391207},
   url     = {https://doi.org/10.1177/03331024251391207},
-  note    = {Narrative review of ML for individual migraine-attack prediction, covering trigger- and premonitory-based approaches, diary and wearable inputs, and evaluation standards; reports that individualised models consistently beat generalised ones and that achievable skill varies widely between individuals. Notably does not cite Park et al. 2016, reinforcing that the SHD dataset is under-exploited in the ML-prediction literature.}
+  pmid    = {41182861},
+  note    = {Narrative review of ML for individual migraine-attack prediction, covering trigger- and premonitory-based approaches, diary and wearable inputs, and evaluation standards; reports that individualised models consistently beat generalised ones and that achievable skill varies widely between individuals. Notably does not cite Park et al. 2016, reinforcing that the SHD dataset is under-exploited in the ML-prediction literature. SAGE/Cephalalgia convention: e-locator (article number) serves as page citation; PMID 41182861 verifies the citation block "Cephalalgia. 2025 Nov;45(11):3331024251391207".}
 }
 
 % --- Temporal-forecasting and evaluation-methodology anchors for Additions 4-6 ---
@@ -713,7 +749,7 @@
   month   = oct,
   doi     = {10.23915/distill.00002},
   url     = {https://distill.pub/2016/misread-tsne},
-  note    = {Open access (interactive web article; CC BY).}
+  note    = {Open access (interactive web article; CC BY). Distill uses a non-traditional web-only citation format that explicitly omits volume and page-range fields per the publisher's canonical BibTeX at distill.pub; the DOI serves as the locator. The omission is deliberate, not a data-quality defect, so this entry omits volume and pages on purpose. Third-party indexers (Semantic Scholar, BibBase) sometimes assign volume 1 / issue 10 to this article but Distill does not endorse those values.}
 }
 
 % ====================================================================

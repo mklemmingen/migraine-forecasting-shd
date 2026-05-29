@@ -3,7 +3,7 @@
 > Position in the paper: **Supplementary (6.1)**. Reads after `addition3_results.md`; precedes `paper_rigor_checklist.md`. Composite_sorted selection rule, its parameters, and the within-family fragility sensitivity sweep results.
 
 
-This document records which leaves get model-interpretability attention (feature attribution, embedding visualisation, partial-dependence) after the Addition 1 sweep finishes, and why.
+This document records which leaves received model-interpretability attention (feature attribution, embedding visualisation, partial-dependence) after the Addition 1 sweep, and why.
 
 The starting observation is that running interpretability on all 154 leaves of Addition 1 (plus the parallel set under Addition 0) produces ~300 figures, too many to read, too expensive to compute. The selection below trades breadth for depth: the cells that drive the paper's discussion get figures; the rest are summarised numerically only.
 
@@ -131,7 +131,7 @@ tiebreak with the AUROC values disclosed.
 
 ## Output destinations
 
-Each figure pack lands under the headline / runner-up leaf's own folder:
+Each figure pack landed under the headline / runner-up leaf's own folder:
 
 ```
 experiment/1/<target>/<feature_set>/<arch>/<version>/<ratio>/<split>/
@@ -152,7 +152,7 @@ Per leaf:
 - UMAP projection of attention embeddings: ~30 seconds.
 - PDP for top-5 features: ~1 minute total.
 
-Total per leaf ~4-6 minutes. For 14 leaves: ~60-90 minutes added compute after the sweep. Run on the same GPU; non-overlapping with sweep so no contention.
+Total per leaf was ~4-6 minutes. For 14 leaves, ~60-90 minutes of added compute followed the sweep, executed on the same GPU and non-overlapping with it, so no contention occurred.
 
 ## Why this isn't done inside `evaluate.py`
 

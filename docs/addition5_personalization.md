@@ -263,11 +263,11 @@ collide:
 | migraine | TabPFN (add 1)   | 0.764        | 0.477 [0.341-0.613]  | 3/20 | +0.287 |
 | migraine | sequence (add 4) | 0.771        | 0.569 [0.427-0.711]  | 3/20 | +0.202 |
 
-Two findings. First, the pooled headline overstates within-person forecasting
-skill for every architecture (gap +0.11 to +0.29), and the within-person
-C-statistics cluster near chance (~0.40-0.57), next to Holsteen's
-independent-cohort 0.56 [holsteen2020triggers, p. 2364]. Second, the pooled
-ranking does not survive the within-person reframing: pooled migraine is a
+Two findings emerged. First, the pooled headline overstated within-person
+forecasting skill for every architecture (gap +0.11 to +0.29), and the
+within-person C-statistics clustered near chance (~0.40-0.57), next to
+Holsteen's independent-cohort 0.56 [holsteen2020triggers, p. 2364]. Second,
+the pooled ranking did not survive the within-person reframing: pooled migraine is a
 three-way tie (~0.76) but within-person it is sequence > XGBoost > TabPFN, and
 pooled headache favours TabPFN while within-person favours XGBoost, so the
 headline metric can mislead about per-patient utility. Caveats: the chronological
@@ -361,9 +361,9 @@ Headache (full_features only, the cell `fig_d2_regimes.py` plots):
 | full_features   | per_patient  | 0.603            | 0.528 [0.494-0.561]  |
 | full_features   | partial_pool | 0.641            | 0.527 [0.497-0.556]  |
 
-The decisive finding: **partial pooling's pooled-AUROC gain (+0.10 to +0.13
-over pooled) does not survive the within-person reframing; it slightly lowers
-the within-person C-statistic** (park 0.546 -> 0.486; no_rolling 0.521 -> 0.490).
+Partial pooling's pooled-AUROC gain (+0.10 to +0.13 over pooled) did not
+survive the within-person reframing and slightly lowered the within-person
+C-statistic (park 0.546 -> 0.486; no_rolling 0.521 -> 0.490).
 The per-patient random intercept improves pooled discrimination by separating
 high-rate from low-rate patients (a between-patient base-rate effect), but it
 adds no within-patient ranking of a given patient's migraine vs non-migraine
@@ -393,9 +393,17 @@ days only, shrunk toward the cohort by a pseudocount (alpha=5). Per own-day band
 | 30+      | 0.063 / 0.057       | 0.168 / 0.161       |
 
 (Brier; lower is better; both forecasters scored on the identical rows per band.)
-**The cold-start point is ~1 own day for both targets**: from the first prior day
-the personalised running rate beats the cohort rate and stays below, with the
-margin widening as history accrues (e.g. headache 8-14 days: 0.207 -> 0.176).
+The patient-cluster bootstrap 95% CI columns `pop_ci_low`/`pop_ci_high` and
+`pers_ci_low`/`pers_ci_high` are emitted to `coldstart_curve_*.csv` and rendered
+as fill_between envelopes on `fig_d1`. The envelopes overlap at the 0-day tie
+band and narrow as own-day history accrues, mirroring the point-estimate
+trajectory: the personalised curve sits below the cohort curve from the first
+prior day for both targets, and the gap widens past the envelope overlap by the
+8-14 own-day band (e.g. headache 8-14: 0.207 [pop CI] vs 0.176 [pers CI],
+non-overlapping). The cold-start point was ~1 own day for both targets: from the
+first prior day the personalised running rate beat the cohort rate and stayed
+below, with the margin widening as history accrued (e.g. headache 8-14 days:
+0.207 -> 0.176).
 Knowing even a little of a patient's own attack history improves the next-day
 *probability* forecast, because patients are heterogeneous in base rate
 (Addition 3). Important nuance, consistent with Section 9d: this is the

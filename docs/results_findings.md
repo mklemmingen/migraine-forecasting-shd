@@ -26,9 +26,9 @@ trivial-baseline forecasts. Each Addition is a piece of evidence the
 paper draws on independently, so the per-Addition conclusions stand
 or fall on their own data, not on a sequential chain.
 
-## 1. The stratified-split optimism is feature-channel leakage, not the model
+## 1. Stratified-split optimism was driven by feature-channel leakage, not by the model
 
-A tabular model (XGBoost stack, TabPFN) is row-permutation-invariant -
+A tabular model (XGBoost stack, TabPFN) was row-permutation-invariant and
 it cannot learn sequence or row order. So a random/stratified split
 cannot leak "temporal structure" through the model. The optimism a
 stratified split shows on this cohort is therefore mediated entirely by
@@ -37,7 +37,7 @@ patient's neighbouring days; when random shuffling places those
 neighbouring days on both sides of the train/test boundary, the test
 row's lag features encode train-set outcomes.
 
-This predicts the leak is **feature-set-dependent**, and the data
+This predicted the leak was **feature-set-dependent**, and the data
 confirm it. Holding the architecture fixed (stacked_2xgb, NonHP),
 mean hold-out AUROC over ratios, stratified minus chronological:
 
@@ -235,7 +235,7 @@ The full per-cell results are persisted at
 individual parseability. The supplementary heatmap is
 `docs/methodAndResults_diagramCreatorScripts/figures/fig_g7_significance_heatmap.pdf`.
 
-## 4. Robustness: TabPFN is robust where HP-tuned XGBoost stacking is fragile
+## 4. Robustness: TabPFN held up on cells where HP-tuned XGBoost stacking collapsed
 
 Of 42 anti-predictive cells (hold-out AUROC < 0.45) across the 488-cell
 grid, 38 are `stacked_2xgb_meta_lr`; the remaining four are TabPFN and
@@ -251,7 +251,7 @@ splits.
 Verify: cells with `holdout_AUROC < 0.45` grouped by architecture and
 splittype.
 
-## 5. Hyperparameter tuning: apparent large gains are inflated by selection
+## 5. Hyperparameter tuning: apparent large gains were inflated by selection
 
 Taking the best single_AUROC HP variant vs NonHP on chronological
 full_features suggests +0.097 (headache) and +0.135 (migraine) AUROC.
@@ -264,7 +264,7 @@ with that caveat. The earlier budget-ladder analysis already showed the
 single-objective search saturates by ~100 trials, so a true HP gain of
 the magnitude above is not credible without the selection correction.
 
-## 6. Calibration is fragile on the small/sparse cells
+## 6. Calibration was fragile on the small/sparse cells
 
 Across 488 cells the calibration slope has median 0.64 (over-confident,
 the classic small-sample overfitting fingerprint), and 98 cells have a
@@ -308,8 +308,14 @@ so the grid is complete and reproducible from the committed code.
    day-to-day ranking (see takeaway 2).
 2. **Within-person personalisation is not demonstrated.** The
    precision-weighted within-person C-statistic clusters near 0.55
-   on the canonical leaves (Addition 5), and Brier skill against
-   per-patient climatology is negative for migraine (Addition 6).
+   on the canonical leaves (Addition 5); Brier skill against
+   per-patient climatology under patient-day bootstrap is significantly
+   positive for headache across architectures (CIs +0.07 to +0.29) and
+   only significantly negative for migraine on the sequence baseline
+   (-0.117 [-0.227, -0.037]) — migraine XGBoost and TabPFN CIs include
+   zero, so the tabular forecasts are indistinguishable from the
+   per-patient climatology baseline rather than significantly worse
+   (Addition 6).
    The near-chance within-person result replicates across the two
    recruitment sites in the leave-one-site-out validation
    (`docs/external_validation_site.md` Section 7), so it is not a

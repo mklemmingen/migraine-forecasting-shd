@@ -16,68 +16,21 @@ headache prediction models on the Park 2016 SHD cohort
 
 ## Abstract
 
-### Objective
-
-To evaluate whether pooled AUROC for 24-hour migraine and headache
-forecasting reflects clinically usable within-person day-to-day ranking
-or between-patient base-rate separation, on the publicly released Park
-2016 smartphone-headache-diary cohort.
-
 ### Background
 
-Pooled AUROC for daily migraine forecasting conflates within-person
-day-to-day ranking with between-patient base-rate separation, leaving
-clinical utility unresolved. The diary-only literature reports AUC in
-the 0.56 to 0.73 range under within-person or leave-one-out evaluation;
-wearable-augmented forecasts reach up to 0.84 using physiological
-signals that diary-only inputs do not carry. Diary-based forecasting
-remains a candidate foundation for pre-emptive oral medication.
+Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. The diary-only literature sits in AUROC 0.56 to 0.73 under within-person evaluation, well below wearable-augmented work (up to 0.84) using physiological inputs the diary cohort does not carry.
 
 ### Methods
 
-Next-day migraine and headache forecasting were evaluated on the Park
-2016 SHD cohort (62 enrolled patients; 4,516 patient-days; 7.2 % pooled
-positive rate; two Korean university clinics). The factorial grid spanned
-three feature sets, three split types (chronological, stratified,
-held-out-patient), two split ratios (70/30 and 70/15/15), and the
-architecture families {XGBoost stacking with and without 500-trial Optuna
-hyperparameter search; TabPFN tabular foundation model across five
-released variants; window-MLP sequence baseline}. A gap-aware reindexer
-treated missing diary days as structural, not missing-at-random;
-no imputation was applied. Headline cells were selected by
-a composite rule gating on calibration slope before breaking AUROC and
-AUPRC ties on fixed tier bins. External validation was leave-one-site-out
-across the two recruitment clinics. Discrimination, calibration, and
-1,000-iteration bootstrap 95 % confidence intervals were reported
-together; cross-architecture comparisons used paired DeLong tests with
-Benjamini-Hochberg false-discovery-rate correction across 18 pre-registered
-contrasts.
+Next-day migraine and headache forecasting were evaluated on the Park 2016 smartphone-headache-diary cohort (62 patients; 4,516 patient-days; 7.2% positive rate; two Korean clinics; 19-55 y; 82.3% female; single ethnicity). Three architecture families were compared across three feature sets, three split types (chronological, stratified, patient hold-out), and two train/calibration ratios (70/30 and 70/15/15): XGBoost stacking (with and without 500-trial Optuna HP search), TabPFN across five variants, and a window-MLP sequence baseline. Missing days were structural; no imputation. Headline cells were selected by a composite rule gating on calibration slope. External validation: leave-one-site-out across clinics. Discrimination, calibration, and 1,000-iteration bootstrap 95% CIs were reported together; cross-architecture comparisons used paired DeLong with Benjamini-Hochberg correction across 18 pre-specified contrasts, escalated to a 166-pair all-pairs Bonferroni sensitivity at the canonical headline cells (0 of 166 significant).
 
 ### Results
 
-On chronological splits the headline AUROC reached 0.793 for migraine
-(XGB-HP020 stack) and 0.652 for headache (TabPFN family v2.6, v3-default,
-and v3-binary tied within the composite rule's 0.02 AUROC tier). Median
-calibration slope was 0.64. The precision-weighted within-person
-C-statistic, estimated by out-of-fold cross-validation on the
-non-hyperparameter-tuned 70/30 chronological cells, centred near 0.55;
-the per-patient AUROC distribution centred near chance, and the
-pooled-minus-within gap was large; the pooled AUROC value therefore exceeded
-the within-person C by a margin attributable to base-rate separation. Brier skill against
-per-patient climatology was negative for migraine and positive for
-headache. The migraine decision-curve net benefit sat near zero across
-the clinically plausible threshold band, whereas the headache curve was
-value-positive (+0.05 to +0.20). Leave-one-site-out external validation
-showed substantial calibration drift (observed-to-expected ratio 0.50 to
-1.54) tracking the inter-site base-rate gap.
+Chronological-split headline AUROC reached 0.793 (95% CI 0.701-0.873) for migraine (XGB-HP020) and 0.652 (0.589-0.712) for headache (TabPFN-v2.6, headline-tied with v3-default and v3-binary within a 0.02 AUROC tier, picked by calibration-distance tiebreak). Headline calibration slopes were 1.417 [0.952-1.942] (migraine) and 1.095 [0.744-1.427] (headache). The within-person C-statistic clustered at 0.53-0.57 across architectures and targets (TabPFN headache 0.542 [0.508-0.576], 57 of 63 estimable patients; TabPFN migraine 0.563 [0.500-0.626], 19 of 63 at the five-positive floor); per-patient AUROC centred near chance. Pooled AUROC therefore exceeded within-person C by a margin attributable to between-patient base-rate separation, not day-to-day ranking. Brier skill against each patient's TRAIN-set climatology was significantly positive for headache across architectures (CIs +0.07 to +0.29) and significantly negative for migraine only on the sequence baseline (-0.117 [-0.227, -0.037]); migraine XGBoost and TabPFN CIs included zero. Leave-one-site-out external validation showed calibration drift: observed-to-expected ratio fell to 0.50 when an 8.6%-prevalence site trained the model applied to the 5.7% site, and rose to 1.54 in the opposite direction.
 
 ### Conclusion
 
-A clinically usable 24-hour migraine forecast on this cohort requires
-richer per-patient signal or a re-framed prediction target; pooled AUROC
-is not a sufficient endpoint for the migraine target on diary-only data.
-The finding is migraine-specific: headache forecasts retained
-probabilistic value across the same threshold band.
+Pooled AUROC is not a sufficient endpoint for the migraine target on diary-only data; a usable forecast requires richer per-patient signal or a re-framed target. This work reports development and internal validation on a single 62-patient cohort; we do not recommend clinical deployment.
 
 ## Funding
 
@@ -85,9 +38,7 @@ This work received no external funding.
 
 ---
 
-**Word count.** Title 17 words. Abstract 409 words (Objective 29;
-Background 58; Methods 145; Results 131; Conclusion 46). Under the JHP
-450-word abstract cap with 41-word headroom.
+**Word count.** Title 17 words. Abstract 356 words (slight overshoot due to mandatory CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11). Under-target trim before JHP submission.
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
 (Background paragraph), Setting and participants (Methods; cohort, sites,
