@@ -226,9 +226,9 @@ extend beyond that applicability domain.
 - **Within-person personalisation is not claimed to work.** The
   per-patient AUROC distribution and the within-person C-statistic
   cluster near chance, and the partial-pool regime's pooled-AUROC gain
-  does not survive within-person re-evaluation. The personalisation
-  result is read as a negative finding, not as a basis for clinical
-  deployment.
+  does not survive within-person re-evaluation. We read the
+  personalisation result as a negative finding, not as a basis for
+  clinical deployment.
 - **ShapIQ interaction magnitudes are sensitive to library versioning
   on the high-dimensional sampling-budget cell.** The exhaustive
   2⁶ = 64-coalition migraine/park cell reproduces within ~1% across
@@ -269,5 +269,7 @@ to a deployment-stage evaluation: the benchmark presents a research
 artefact, not a deployed decision-support system. Both questions fall
 under the DECIDE-AI guideline [vasey2022decideAI] for early-stage
 clinical evaluation of AI-based decision-support systems, which is the
-appropriate reporting framework once any of the benchmarked models is
-considered for in-clinic deployment.
+appropriate reporting framework before deploying any benchmarked model
+in-clinic. We do not recommend any of the benchmarked models for
+clinical deployment on the basis of the present internal-validation
+evidence alone.
