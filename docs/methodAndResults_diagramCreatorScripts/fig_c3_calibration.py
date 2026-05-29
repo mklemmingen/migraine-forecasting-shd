@@ -23,12 +23,13 @@ visualises the headline leaves; §6 visualises the cohort.
 Usage: python fig_c3_calibration.py
 """
 # §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
-#   §11.1 CIs on headline metric:        bootstrap CI on slope in legend
+#   §11.1 CIs on headline metric:        bootstrap CI on slope in suptitle
 #   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
+#   §11.6 CC BY 4.0 footer:              auto-applied by S.save()
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine panel
 #   §11.10 no "substantial"/"large":     verified
 #   §11.11 self-check:                   this block
+#   §6 shared legend:                    fig.legend frameless below panels
 import os
 import subprocess
 import sys
@@ -158,6 +159,8 @@ def main():
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
     mark = {"XGBoost stack": "o", "TabPFN": "s", "window-MLP": "^"}  # CVD/grayscale reinforcement
+    abbr = {"XGBoost stack": "XGB", "TabPFN": "TabP", "window-MLP": "wMLP"}
+    slopes_by_target: dict[str, list[tuple[str, float, float, float]]] = {"headache": [], "migraine": []}
     for ax, tgt in zip(axes, ("headache", "migraine")):
         ax.plot([0, 1], [0, 1], color=S.REF_COLOR, lw=S.REF_LW, ls="--", label="perfect")
         hi = 0.0
@@ -173,9 +176,8 @@ def main():
             col = S.arch_color(label)
             mk = mark.get(label, "o")
             ax.plot(xs, ys, "-", color=col, lw=1.5, marker=mk, markersize=4)
-            slug = S.leaf_slug(leaf)
-            ax.scatter(xs, ys, s=sizes, color=col, marker=mk,
-                       label=f"{label}  slope {slope:.2f} [{slope_lo:.2f}-{slope_hi:.2f}]")
+            ax.scatter(xs, ys, s=sizes, color=col, marker=mk, label=label)
+            slopes_by_target[tgt].append((label, slope, slope_lo, slope_hi))
             hi = max(hi, xs.max(), ys.max())
             print(f"  {tgt:<9} {label:<13} slope {slope:+.2f} [{slope_lo:+.2f}-{slope_hi:+.2f}]  bins {len(xs)}")
         lim = min(1.0, hi * 1.1 + 0.02)
@@ -184,11 +186,22 @@ def main():
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency")
         ax.set_title(tgt)
-        ax.legend(loc="lower right")
         S.epv_annotation(ax, tgt, cell="full_features", loc="upper left")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
+               bbox_to_anchor=(0.5, -0.04), frameon=False)
+
+    def _slope_line(tgt: str) -> str:
+        parts = [f"{abbr.get(lab, lab)} {sl:.2f} [{lo:.2f}-{hi:.2f}]"
+                 for lab, sl, lo, hi in slopes_by_target[tgt]]
+        return f"{tgt}: " + "  ".join(parts)
+
     fig.suptitle("Reliability diagrams - Park 2016 SHD, n=62\n"
-                 "bootstrap 95% CI on slope; 1:1 = perfect", y=1.04, fontsize=10)
-    S.cc_by_footer(fig)
+                 "bootstrap 95% CI on slope; 1:1 = perfect",
+                 y=1.12, fontsize=10)
+    fig.text(0.5, 1.00,
+             _slope_line("headache") + "\n" + _slope_line("migraine"),
+             ha="center", va="bottom", fontsize=8, color=S.GREY)
     print("saved", S.save(fig, HERE / "figures" / "fig_c3_calibration"))
 
 
