@@ -35,7 +35,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from _style import apply, save, INK, FAINT, TARGET, ARCH, SPLIT, FEATURE_SET
+from _style import apply, save, cc_by_footer, INK, FAINT, TARGET, ARCH, SPLIT, FEATURE_SET
 
 
 # Path-segment levels in the order they appear under experiment/.
@@ -305,7 +305,7 @@ def generate_tree_png(all_entries, out_path):
     # Concise one-line title; the layout description (row = path level, cell
     # width proportional to descendant-leaf count) and the [Shneiderman 1992;
     # Andrews 2019] citation belong in the LaTeX caption, not burned into the image.
-    ax.set_title(f"Discovered experiment leaves ({n_leaves} total) - icicle plot",
+    ax.set_title(f"Discovered experiment leaves ({n_leaves} total) - icicle plot · Park 2016 SHD (n=62)",
                  fontsize=10, pad=10)
 
     # Marker legend: a small hatched swatch + caption pinned below the icicle
@@ -326,5 +326,6 @@ def generate_tree_png(all_entries, out_path):
     ax.set_ylim(n_levels * row_h + 1.0, -header_h)
 
     plt.tight_layout()
+    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)

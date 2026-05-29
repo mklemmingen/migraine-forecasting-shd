@@ -22,7 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _style import apply, save, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED, INK, leaf_slug
+from _style import apply, save, cc_by_footer, OI, ARCH, SPLIT, GREY, SOFT, FAINT, MUTED, INK, leaf_slug
 
 
 def _arch_var(leaf_dir):
@@ -126,8 +126,9 @@ def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_xlim(0.45, max(0.95, max(s["auroc_hi"] for c in by_cell.values()
                                     for s in c.values()) + 0.03))
     ax.set_xlabel("best hold-out AUROC (95% CI)", fontsize=9)
-    ax.set_title("Discrimination by split type, per cell (headline model)",
+    ax.set_title("Discrimination by split type, per cell (headline model) · Park 2016 SHD (n=62)",
                  fontsize=10)
+    cc_by_footer(fig)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -199,7 +200,7 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
     ax.set_xlim(0, xmax * 1.05)
     ax.set_xlabel("AUPRC lift over no-skill baseline (AUPRC / test prevalence)",
                   fontsize=9)
-    ax.set_title("Precision-recall skill by split type, per cell (headline)",
+    ax.set_title("Precision-recall skill by split type, per cell (headline) · Park 2016 SHD (n=62)",
                  fontsize=10)
     handles, _labels = ax.get_legend_handles_labels()
     if any_noskill:
@@ -207,6 +208,7 @@ def auprc_lift_figure(headlines: list[dict], out_png) -> Path | None:
         handles.append(Patch(facecolor=FAINT, hatch="////", edgecolor="white",
                              label="CI reaches no-skill (ns)"))
     ax.legend(handles=handles, fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    cc_by_footer(fig)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -270,6 +272,7 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
     ax.legend(fontsize=7.5, loc="upper right", ncol=1, frameon=False)
     fig.text(0.99, 0.005, "CC BY 4.0", ha="right", va="bottom",
              fontsize=6.5, color=GREY, alpha=0.7)
+    cc_by_footer(fig)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -316,7 +319,7 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     # The figdata cross_arch block does not carry the per-variant leaf_dir so
     # we name the families directly (legend below adds the role).
     ax.set_title(
-        f"{sel['target']} / {sel['feature_set']} / {sel['splittype']}\n"
+        f"{sel['target']} / {sel['feature_set']} / {sel['splittype']} · Park 2016 SHD (n=62)\n"
         f"headline: {h.get('arch_family', '?')}  |  "
         f"runner-up: {r.get('arch_family', '?')}",
         fontsize=9)
@@ -325,6 +328,7 @@ def cross_arch_figure(h, r, sel, out_png, top_n: int = 8) -> Path | None:
     ax.text(0.0, -0.16,
             "Single-fit attribution shares; small bar-length differences are not significant.",
             transform=ax.transAxes, ha="left", fontsize=7.5, style="italic", color=GREY)
+    cc_by_footer(fig)
     save(fig, out_png)
     plt.close(fig)
     return out_png
@@ -376,8 +380,9 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     # Title names the role + architecture family (figdata park block does not
     # carry the per-variant leaf_dir; the family identifies the model class).
     arch = sel.get("architecture") or sel.get("family") or "?"
-    ax.set_title(f"{sel['role']} {arch} - Spearman {stat}", fontsize=10)
+    ax.set_title(f"{sel['role']} {arch} - Spearman {stat} · Park 2016 SHD (n=62)", fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
+    cc_by_footer(fig)
     save(fig, out_png)
     plt.close(fig)
     return out_png

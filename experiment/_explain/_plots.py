@@ -69,6 +69,7 @@ def plot_attribution_bar(ranking, metric_label, title, out_path, top_n=15, ci=No
     ax.set_yticklabels(names, fontsize=8)
     ax.set_xlabel(metric_label)
     ax.set_title(title, fontsize=10)
+    S.cc_by_footer(fig)
     S.save(fig, out_path)
     plt.close(fig)
 
@@ -133,6 +134,7 @@ def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=
         cbar.set_ticks([0.0, 1.0])
         cbar.set_ticklabels(["low", "high"])
         cbar.set_label("feature value", fontsize=8)
+    S.cc_by_footer(fig)
     S.save(fig, out_path)
     plt.close(fig)
 

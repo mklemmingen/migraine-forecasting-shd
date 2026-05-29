@@ -33,7 +33,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
-from _style import apply, save, panel_label, FEATURE_SET, OI, GREY, INK, SOFT, FAINT
+from _style import apply, save, cc_by_footer, panel_label, FEATURE_SET, OI, GREY, INK, SOFT, FAINT
 
 
 # Columns produced by data/pipeline/engineer.py via aggregation, lag,
@@ -252,7 +252,7 @@ def generate_count_venn_png(feature_sets, out_path):
     _draw_nested_euler(ax, regions, sizes, _count_label)
 
     ax.set_title(
-        "Feature-set inclusion - nested Euler "
+        "Feature-set inclusion - nested Euler · Park 2016 SHD (n=62) "
         "(spano, no_rolling subset full; schematic, areas not to scale)",
         fontsize=12, pad=14,
     )
@@ -281,6 +281,7 @@ def generate_count_venn_png(feature_sets, out_path):
     _park_sidebar(ax, feature_sets.get("park", set()), full, _count_lines)
 
     plt.tight_layout()
+    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)
 
@@ -386,7 +387,7 @@ def generate_names_venn_png(feature_sets, out_path):
     # --- left: nested Euler with region counts (structure context) ---
     _draw_nested_euler(ax_venn, regions, sizes,
                        lambda _rid, feats: str(len(feats)) if feats else '')
-    ax_venn.set_title("Feature-set structure - nested Euler (schematic)",
+    ax_venn.set_title("Feature-set structure - nested Euler (schematic) · Park 2016 SHD (n=62)",
                       fontsize=12, pad=10)
     panel_label(ax_venn, "a")
 
@@ -409,5 +410,6 @@ def generate_names_venn_png(feature_sets, out_path):
     fig.suptitle("Feature-set inclusion - every feature name, colour-coded by origin",
                  fontsize=14, y=0.94)
     plt.tight_layout(rect=[0, 0.06, 1, 0.91])
+    cc_by_footer(fig)
     save(fig, out_path)
     plt.close(fig)
