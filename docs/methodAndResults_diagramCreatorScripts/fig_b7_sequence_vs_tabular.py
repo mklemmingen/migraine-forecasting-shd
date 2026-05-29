@@ -38,7 +38,8 @@ per-bar x-tick label discloses each variant explicitly.
 Usage: python fig_b7_sequence_vs_tabular.py
 """
 # §11 compliance: sequence vs tabular bars on full_features/chrono.
-#   §11.1 CIs: DATA-PENDING per-bar bootstrap CI whiskers (data in results files; integrate later)
+#   §11.1 CIs: per-bar patient-day bootstrap (n_boot=1000) 95% CI whiskers from the
+#       worker's (y, p) test arrays; renders the wider sequence CIs the disclosure cites
 #   §11.3 caption: cohort+n in title
 #   §11.6 footer + §11.7 EPV (migraine bars) + §11.11 self-check
 import os
@@ -70,7 +71,9 @@ def _env(addition):
     return e
 
 
-def _auroc(leaf):
+def _auroc_with_ci(leaf, n_boot: int = 1000, seed: int = 42):
+    """Returns (auroc, ci_low, ci_high, n_rows) via patient-day bootstrap on (y, p),
+    or None when the leaf has no recoverable predictions."""
     add = leaf.relative_to(EXP).parts[0]
     out = Path(tempfile.gettempdir()) / f"b7_{uuid.uuid4().hex}.npz"
     try:
@@ -80,7 +83,21 @@ def _auroc(leaf):
             print("  skip", leaf.name, (r.stderr.strip().splitlines() or ["?"])[-1])
             return None
         z = np.load(out)
-        return float(roc_auc_score(z["y"], z["p"]))
+        y, p = z["y"], z["p"]
+        point = float(roc_auc_score(y, p))
+        rng = np.random.default_rng(seed)
+        n = len(y)
+        boot = []
+        for _ in range(n_boot):
+            idx = rng.integers(0, n, size=n)
+            yb, pb = y[idx], p[idx]
+            if yb.min() == yb.max():
+                continue
+            boot.append(roc_auc_score(yb, pb))
+        boot = np.asarray(boot, dtype=float)
+        lo, hi = (np.percentile(boot, [2.5, 97.5]) if len(boot) > 10
+                  else (float("nan"), float("nan")))
+        return point, float(lo), float(hi), int(n)
     finally:
         out.unlink(missing_ok=True)
 
@@ -130,24 +147,34 @@ def main():
     headlines = _F.load_figdata(figdata_path).get("headlines", [])
     print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
     aurocs = {t: {} for t in ("headache", "migraine")}
+    cis = {t: {} for t in ("headache", "migraine")}
     slug_per_label = {t: {} for t in ("headache", "migraine")}
     for tgt in aurocs:
         for label, leaf in _leaves(tgt, headlines).items():
             if not (leaf / "model.joblib").exists():
                 print(f"  {tgt} {label}: no model.joblib"); continue
-            a = _auroc(leaf)
-            if a is not None:
+            res = _auroc_with_ci(leaf)
+            if res is not None:
+                a, lo, hi, n_rows = res
                 aurocs[tgt][label] = a
+                cis[tgt][label] = (lo, hi)
                 slug_per_label[tgt][label] = S.leaf_slug(leaf)
-                print(f"  {tgt:<9} {label:<14} AUROC {a:.3f}  ({S.leaf_slug(leaf)})")
+                print(f"  {tgt:<9} {label:<14} AUROC {a:.3f} [{lo:.3f}, {hi:.3f}]  "
+                      f"n={n_rows}  ({S.leaf_slug(leaf)})")
     fig, ax = plt.subplots(figsize=S.figsize("double", 4.3))
     x = np.arange(len(ORDER)); w = 0.38
     for i, tgt in enumerate(("headache", "migraine")):
         vals = [aurocs[tgt].get(l, np.nan) for l in ORDER]
-        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt)
+        lo_arr = [max(0.0, vals[j] - cis[tgt].get(ORDER[j], (vals[j], vals[j]))[0])
+                  if vals[j] == vals[j] else 0.0 for j in range(len(ORDER))]
+        hi_arr = [max(0.0, cis[tgt].get(ORDER[j], (vals[j], vals[j]))[1] - vals[j])
+                  if vals[j] == vals[j] else 0.0 for j in range(len(ORDER))]
+        bars = ax.bar(x + (i - 0.5) * w, vals, w, color=S.TARGET[tgt], label=tgt,
+                      yerr=[lo_arr, hi_arr], capsize=2.0, ecolor=S.SOFT,
+                      error_kw={"elinewidth": 0.9})
         for b, v in zip(bars, vals):
             if v == v:
-                ax.text(b.get_x() + b.get_width() / 2, v + 0.005, f"{v:.2f}",
+                ax.text(b.get_x() + b.get_width() / 2, v + 0.018, f"{v:.2f}",
                         ha="center", fontsize=7)
     S.refline(ax, y=0.5)
     ax.axvline(1.5, color=S.FAINT, lw=1, ls=":")        # tabular | sequence divider
