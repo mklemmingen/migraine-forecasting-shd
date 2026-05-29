@@ -6,9 +6,16 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ## Reading order
 
-The paper text lives across several docs by section. Read in this order for
-the intended scientific narrative; each doc carries a short breadcrumb at
-the top that confirms its place in the chain.
+**The paper** (`docs/body.md`) is the condensed ~4000-word JHP submission
+body: the entire narrative — abstract, methods, results, discussion,
+conclusion — in one self-contained file, with pointers down into the
+long-form record for detail. Read it first for the whole study end to end.
+
+**The long-form records** below expand each section of the body
+with per-Addition methods, results, and the TRIPOD+AI compliance trail;
+read them in this order when you want the evidence behind a specific claim.
+Each carries a short breadcrumb at the top confirming its place in the
+chain.
 
 1. **Background** — this README (you are here).
 2. **Data and features**
@@ -33,7 +40,7 @@ the top that confirms its place in the chain.
    - `docs/paper_rigor_checklist.md` — TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
-referenced from the Methods and Results docs by name; every figure carries a
+referenced from `docs/body.md` as well as the long-form Methods and Results docs by name; every figure carries a
 four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`).
 
 ---

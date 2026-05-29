@@ -273,7 +273,11 @@ def figsize(cols="double", h=4.0):
 
 def save(fig, out, dpi=300) -> str:
     """Write ``out`` as PDF (vector) + PNG (raster). ``out`` may be a stem or a
-    path with any suffix; both siblings are written next to it."""
+    path with any suffix; both siblings are written next to it. The CC BY 4.0
+    licence footer is auto-applied here (idempotent: skipped if the script
+    already called ``cc_by_footer`` directly), so every figure rendered via
+    ``save`` carries the licence affordance per design-guide §11.6."""
+    cc_by_footer(fig)
     stem = Path(out).with_suffix("")
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(f"{stem}.png", dpi=dpi, bbox_inches="tight")
@@ -423,11 +427,18 @@ def cc_by_footer(fig, fontsize: float = 6.5) -> None:
     """Add a CC BY 4.0 licence footer at the bottom-right of the figure.
     Per `figure_design_requirements.md` §11.6: figures intended for
     publication carry an explicit licence affordance.
+
+    Idempotent: calling twice on the same figure is a no-op on the second
+    call, so the helper can be called both explicitly by a wrapper script
+    AND implicitly by ``save`` without producing a double footer.
     """
+    if getattr(fig, "_shd_cc_by_footer_added", False):
+        return
     fig.text(0.99, 0.005, "CC BY 4.0",
              ha="right", va="bottom",
              fontsize=fontsize, color=GREY, alpha=0.7,
              transform=fig.transFigure)
+    fig._shd_cc_by_footer_added = True
 
 
 # §11.11 self-check comment block. Each figure script imports this string

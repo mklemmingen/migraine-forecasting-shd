@@ -7,10 +7,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline import (translate_sheet3, engineer_features, assign_cv_folds,
                       process_disability_sheet)
+from pipeline._special import extract_aura_status
 
 DATA_DIR      = os.path.dirname(os.path.abspath(__file__))
 RAW_XLS       = os.path.join(DATA_DIR, "raw", "SHD-Dataset.xls")
 BASE_PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
+SPECIAL_DIR   = os.path.join(BASE_PROCESSED_DIR, "special")
 PROCESSED_DIR = None
 
 raw_df = None
@@ -52,6 +54,16 @@ def runBase(target_mode: str = "headache"):
     disability_df = process_disability_sheet(raw_dis_df)
     disability_df.to_parquet(os.path.join(PROCESSED_DIR, "disability.parquet"), index=False)
     print(f"Saved: disability.parquet  ({len(disability_df)} rows)")
+
+    # Step 4 (special) - Per-patient phenotype flags that are absent from the
+    # engineered diary features but needed for sensitivity analyses. Persisted
+    # once to data/processed/special/ rather than per target-mode because the
+    # flags are patient-level baseline characteristics shared by both targets.
+    os.makedirs(SPECIAL_DIR, exist_ok=True)
+    aura_df = extract_aura_status(RAW_XLS)
+    aura_df.to_parquet(os.path.join(SPECIAL_DIR, "aura_status.parquet"), index=False)
+    n_aura = int(aura_df["has_aura"].sum())
+    print(f"Saved: special/aura_status.parquet  ({len(aura_df)} patients, {n_aura} with aura)")
 
 def main():
     runBase()

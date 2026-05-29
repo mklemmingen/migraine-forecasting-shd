@@ -43,7 +43,7 @@ from _dataRead.read import (  # noqa: E402
     load_raw, chronological_subsplit, NON_FEATURE_COLS, TARGET_COL)
 from _dataRead.filter_to_no_rolling_features import select_non_rolling_features  # noqa: E402
 from _dataRead.filter_to_park_features import select_park_features  # noqa: E402
-from _eval.metrics_lib import calibration_slope  # noqa: E402
+from _eval.metrics_lib import calibration_intercept, calibration_slope  # noqa: E402
 
 SITE_WORKER = HERE / "_personal" / "_site_worker.py"
 LOADERS = {"full_features": None,
@@ -61,14 +61,21 @@ def _env(addition: str) -> dict:
 
 
 def calibration_transport(y, p) -> dict:
-    """Calibration-in-the-large (mean observed vs mean predicted) and slope on a
-    held-out site. citl<0 and oe_ratio<1 both denote over-prediction - the
-    expected sign when a higher-base-rate site's model is applied to a lower one."""
+    """Calibration-in-the-large (mean observed vs mean predicted), slope, and
+    Platt-style refit intercept on a held-out site. citl<0 and oe_ratio<1 both
+    denote over-prediction - the expected sign when a higher-base-rate site's
+    model is applied to a lower one. refit_alpha is the intercept of the
+    Platt-style LogReg(y ~ logit(p)) refit on the held-out site; by
+    construction, the refit-intercept recalibrated model has O:E = 1 on the
+    held-out set, and |refit_alpha| quantifies the logit-scale shift required
+    to recover mean calibration (Van Calster 2019)."""
     y = np.asarray(y, dtype=float); p = np.asarray(p, dtype=float)
     obs, pred = float(y.mean()), float(p.mean())
     return {"observed_rate": round(obs, 4), "mean_predicted": round(pred, 4),
             "oe_ratio": round(obs / pred, 3) if pred > 0 else float("nan"),
-            "citl": round(obs - pred, 4), "cal_slope": round(calibration_slope(y, p), 3)}
+            "citl": round(obs - pred, 4),
+            "cal_slope": round(calibration_slope(y, p), 3),
+            "refit_alpha": round(calibration_intercept(y, p), 3)}
 
 
 def transport_bootstrap_ci(y, p, n_boot: int = 500, seed: int = 42) -> dict:
@@ -80,7 +87,7 @@ def transport_bootstrap_ci(y, p, n_boot: int = 500, seed: int = 42) -> dict:
     y = np.asarray(y, dtype=float); p = np.asarray(p, dtype=float)
     n = len(y)
     rng = np.random.default_rng(seed)
-    aucs, oes, slopes = [], [], []
+    aucs, oes, slopes, alphas = [], [], [], []
     for _ in range(n_boot):
         idx = rng.integers(0, n, size=n)
         ys = y[idx]; ps = p[idx]
@@ -96,8 +103,13 @@ def transport_bootstrap_ci(y, p, n_boot: int = 500, seed: int = 42) -> dict:
                 slopes.append(float(calibration_slope(ys, ps)))
             except Exception:
                 pass
+            try:
+                alphas.append(float(calibration_intercept(ys, ps)))
+            except Exception:
+                pass
     out = {}
-    for name, arr in (("auroc", aucs), ("oe_ratio", oes), ("cal_slope", slopes)):
+    for name, arr in (("auroc", aucs), ("oe_ratio", oes),
+                      ("cal_slope", slopes), ("refit_alpha", alphas)):
         if arr:
             a = np.array(arr)
             out[f"{name}_ci_low"] = round(float(np.percentile(a, 2.5)), 4)

@@ -47,6 +47,20 @@ def expected_calibration_error(y_true, y_prob, n_bins: int = 10) -> float:
     return ece / len(y_true)
 
 
+def _fit_recalibration_lr(y_true, y_prob) -> LogisticRegression | None:
+    """Fit the single-feature Platt-style logistic regression of the binary
+    outcome on logit(predicted probability). Shared by calibration_slope and
+    calibration_intercept so both metrics come from the same fit."""
+    p     = np.clip(np.asarray(y_prob, dtype=float), 1e-7, 1 - 1e-7)
+    logit = np.log(p / (1.0 - p)).reshape(-1, 1)
+    lr = LogisticRegression(C=1e10, solver='lbfgs', max_iter=2000)
+    try:
+        lr.fit(logit, np.asarray(y_true, dtype=int))
+    except (ValueError, np.linalg.LinAlgError):
+        return None
+    return lr
+
+
 def calibration_slope(y_true, y_prob) -> float:
     """Slope of the logistic recalibration line on the held-out set.
 
@@ -58,16 +72,29 @@ def calibration_slope(y_true, y_prob) -> float:
     under-confidence. Required by TRIPOD+AI (Collins et al., BMJ 2024)
     alongside ECE/Brier for a complete picture of calibration.
     """
-    p     = np.clip(np.asarray(y_prob, dtype=float), 1e-7, 1 - 1e-7)
-    logit = np.log(p / (1.0 - p)).reshape(-1, 1)
-    # Effectively unpenalised logistic regression; class_weight=None on
-    # purpose so the slope reflects raw recalibration, not class re-balancing.
-    lr = LogisticRegression(C=1e10, solver='lbfgs', max_iter=2000)
-    try:
-        lr.fit(logit, np.asarray(y_true, dtype=int))
-    except (ValueError, np.linalg.LinAlgError):
+    lr = _fit_recalibration_lr(y_true, y_prob)
+    if lr is None:
         return float('nan')
     return float(lr.coef_[0, 0])
+
+
+def calibration_intercept(y_true, y_prob) -> float:
+    """Intercept of the Platt-style logistic recalibration line on the held-out
+    set. Together with calibration_slope, fully parameterises the refit
+    LogReg(y) = sigmoid(intercept + slope * logit(p)).
+
+    A non-zero intercept under a refit-intercept-only model encodes the
+    logit-scale shift required to recover mean calibration on the held-out
+    cohort (Van Calster et al. 2019 BMC Medicine, "Calibration: the Achilles
+    heel of predictive analytics"). By construction, the refit-intercept
+    recalibrated model has observed-to-expected ratio 1 on the held-out set;
+    the magnitude |intercept| quantifies how much logit shift the original
+    transport miscalibration required.
+    """
+    lr = _fit_recalibration_lr(y_true, y_prob)
+    if lr is None:
+        return float('nan')
+    return float(lr.intercept_[0])
 
 
 def find_operating_thresholds(y_true, y_prob) -> tuple[float, float]:
