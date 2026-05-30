@@ -389,7 +389,7 @@ so the grid is complete and reproducible from the committed code.
 
 The findings above hold for the Park 2016 SHD cohort (62 enrolled
 patients, 63 unique patient IDs after engineering, ICHD-3 episodic
-migraine, 19-55 years, 82% female, two Korean university hospitals).
+migraine, 19-55 years, 82.3% female, two Korean university hospitals).
 The claims we make do not extend beyond that applicability domain.
 Specifically:
 

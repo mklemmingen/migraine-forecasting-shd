@@ -198,7 +198,7 @@ dataset exists for true out-of-cohort transport
 
 The findings hold for the Park 2016 cohort (62 enrolled patients, 63
 unique patient IDs after engineering, ICHD-3 episodic migraine, 19-55
-years, 82% female, two Korean university hospitals); the claims do not
+years, 82.3% female, two Korean university hospitals); the claims do not
 extend beyond that applicability domain.
 
 - **Out-of-cohort transport is not claimed.** The Addition 5
