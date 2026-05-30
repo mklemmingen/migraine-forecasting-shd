@@ -61,27 +61,79 @@ def _hanley_mcneil_var(auc: float, n_pos: int, n_neg: int) -> float:
     return num / (n_pos * n_neg)
 
 
-def within_person_cstatistic(scores: pd.DataFrame) -> dict:
+def _pm_tau2(a: np.ndarray, v: np.ndarray,
+             max_iter: int = 100, tol: float = 1e-8) -> float:
+    """Paule-Mandel τ² estimator via bisection on the PM equation
+    ``Σ w_i (a_i - μ_w)² = k - 1`` where ``w_i = 1/(v_i + τ²)`` and
+    ``μ_w = Σ w_i a_i / Σ w_i``. The PM equation always has a non-negative
+    solution; if Q(0) ≤ k-1 then τ²=0 is the optimum (no between-patient
+    heterogeneity beyond Hanley-McNeil within-patient noise). Preferred over
+    DerSimonian-Laird at k < 20 per Veroniki et al. 2016 (Res Synth Methods
+    7:55-79) since DL systematically underestimates τ² at small k."""
+    k = len(a)
+    if k <= 1:
+        return 0.0
+
+    def q_gen(t2: float) -> float:
+        w = 1.0 / (v + t2)
+        mu = float(np.sum(w * a) / np.sum(w))
+        return float(np.sum(w * (a - mu) ** 2))
+
+    if q_gen(0.0) <= k - 1 + tol:
+        return 0.0
+
+    lo, hi = 0.0, max(float(np.var(a, ddof=1)) * 4.0, 1.0)
+    # Ensure upper bound brackets the root (q is monotonically decreasing in τ²).
+    while q_gen(hi) > k - 1:
+        hi *= 2.0
+        if hi > 1e6:
+            return hi  # safety bound; pathological case
+
+    for _ in range(max_iter):
+        mid = 0.5 * (lo + hi)
+        q = q_gen(mid)
+        if abs(q - (k - 1)) < tol:
+            return mid
+        if q > k - 1:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def within_person_cstatistic(scores: pd.DataFrame, method: str = "PM") -> dict:
     """Precision-weighted random-effects within-person C-statistic.
 
     Combines the estimable per-patient AUROCs into a cohort summary, weighting
     short/noisy patient series less than long ones - the partial-pooling
     discipline Addition 3 adopted for clustered longitudinal estimates
-    (docs/addition3_temporal.md Section 9), applied to discrimination. Per
-    docs Section 9, Decision 1: per-patient variance via Hanley-McNeil,
-    between-patient heterogeneity tau^2 via DerSimonian-Laird, and the
-    random-effects weighted mean (the version to report, because the
-    between-patient variation is the whole point, RQ3).
+    (docs/addition3_temporal.md Section 9), applied to discrimination. Per-
+    patient variance via Hanley-McNeil; between-patient heterogeneity τ²
+    via either Paule-Mandel (default, preferred under k < 20 per body §2.4)
+    or DerSimonian-Laird (legacy default, reported here as a sensitivity).
 
-    Returns: estimate, ci_low, ci_high, tau2, k_estimable, median_auroc.
+    Args:
+        scores: per_patient_scores output (one row per patient).
+        method: "PM" (Paule-Mandel, default) or "DL" (DerSimonian-Laird).
+
+    Returns: estimate, ci_low, ci_high, tau2, tau2_method (the chosen
+    method's primary results), plus tau2_dl, estimate_dl, ci_low_dl,
+    ci_high_dl, tau2_pm, estimate_pm, ci_low_pm, ci_high_pm (always both
+    methods' values for side-by-side reporting), plus k_estimable,
+    median_auroc.
     """
     est = scores[scores["estimable"]].dropna(subset=["auroc"])
     k = len(est)
+    nan = float("nan")
     base = {"k_estimable": int(k),
-            "median_auroc": float(est["auroc"].median()) if k else float("nan")}
+            "median_auroc": float(est["auroc"].median()) if k else nan}
     if k == 0:
-        return {**base, "estimate": float("nan"), "ci_low": float("nan"),
-                "ci_high": float("nan"), "tau2": float("nan")}
+        return {**base, "estimate": nan, "ci_low": nan, "ci_high": nan,
+                "tau2": nan, "tau2_method": method.upper(),
+                "tau2_dl": nan, "estimate_dl": nan,
+                "ci_low_dl": nan, "ci_high_dl": nan,
+                "tau2_pm": nan, "estimate_pm": nan,
+                "ci_low_pm": nan, "ci_high_pm": nan}
 
     a = est["auroc"].to_numpy(dtype=float)
     n_pos = est["n_pos"].to_numpy(dtype=int)
@@ -89,19 +141,47 @@ def within_person_cstatistic(scores: pd.DataFrame) -> dict:
     v = np.array([_hanley_mcneil_var(ai, p, q) for ai, p, q in zip(a, n_pos, n_neg)])
     v = np.clip(v, 1e-6, None)
 
+    # DerSimonian-Laird τ² (legacy sensitivity)
     w = 1.0 / v
     a_fe = float(np.sum(w * a) / np.sum(w))
     if k > 1:
         Q = float(np.sum(w * (a - a_fe) ** 2))
         C = float(np.sum(w) - np.sum(w ** 2) / np.sum(w))
-        tau2 = max(0.0, (Q - (k - 1)) / C) if C > 0 else 0.0
+        tau2_dl = max(0.0, (Q - (k - 1)) / C) if C > 0 else 0.0
     else:
-        tau2 = 0.0
-    ws = 1.0 / (v + tau2)
-    est_re = float(np.sum(ws * a) / np.sum(ws))
-    se_re = float(np.sqrt(1.0 / np.sum(ws)))
-    return {**base, "estimate": est_re, "ci_low": est_re - 1.96 * se_re,
-            "ci_high": est_re + 1.96 * se_re, "tau2": tau2}
+        tau2_dl = 0.0
+    w_dl = 1.0 / (v + tau2_dl)
+    est_dl = float(np.sum(w_dl * a) / np.sum(w_dl))
+    se_dl = float(np.sqrt(1.0 / np.sum(w_dl)))
+
+    # Paule-Mandel τ² (primary)
+    tau2_pm = _pm_tau2(a, v) if k > 1 else 0.0
+    w_pm = 1.0 / (v + tau2_pm)
+    est_pm = float(np.sum(w_pm * a) / np.sum(w_pm))
+    se_pm = float(np.sqrt(1.0 / np.sum(w_pm)))
+
+    method_u = method.upper()
+    if method_u in ("PM", "PAULE_MANDEL", "PAULEMANDEL"):
+        primary_est, primary_tau2, primary_se = est_pm, tau2_pm, se_pm
+    elif method_u in ("DL", "DERSIMONIAN_LAIRD", "DERSIMONIANLAIRD"):
+        primary_est, primary_tau2, primary_se = est_dl, tau2_dl, se_dl
+    else:
+        raise ValueError(f"unknown method: {method!r}; expected 'PM' or 'DL'")
+
+    return {**base,
+            "estimate": primary_est,
+            "ci_low": primary_est - 1.96 * primary_se,
+            "ci_high": primary_est + 1.96 * primary_se,
+            "tau2": primary_tau2,
+            "tau2_method": method_u,
+            "tau2_dl": tau2_dl,
+            "estimate_dl": est_dl,
+            "ci_low_dl": est_dl - 1.96 * se_dl,
+            "ci_high_dl": est_dl + 1.96 * se_dl,
+            "tau2_pm": tau2_pm,
+            "estimate_pm": est_pm,
+            "ci_low_pm": est_pm - 1.96 * se_pm,
+            "ci_high_pm": est_pm + 1.96 * se_pm}
 
 
 def pooled_vs_within(pooled_auroc: float, within: dict) -> dict:
