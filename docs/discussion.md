@@ -15,10 +15,14 @@ by calibration-distance tiebreak). The per-patient AUROC distribution on the out
 pass over the non-hyperparameter-tuned 70/30 chronological cells
 (addition5 §9b; Figure C2) centres near 0.55, the precision-weighted
 within-person C-statistic clusters in the same band, and the Brier skill
-against each patient's own TRAIN-set climatology is significantly positive
-for headache across architectures (CIs +0.07 to +0.29) and significantly
-negative for migraine only on the sequence baseline (-0.117 [-0.227, -0.037]);
-the migraine XGBoost and TabPFN Brier-skill CIs include zero (Figure D4).
+against each patient's own TRAIN-set climatology under patient-cluster
+bootstrap (primary) is significantly positive for headache only on
+TabPFN-v2.6 (+0.215 [+0.017, +0.396]); the headache XGBoost (+0.198
+[-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362]) CIs cross zero
+under patient-cluster though both are positive under patient-day-iid
+sensitivity, and Brier skill is significantly negative for migraine only
+on the sequence baseline (-0.117 [-0.241, -0.026] patient-cluster); the
+migraine XGBoost and TabPFN Brier-skill CIs include zero (Figure D4).
 Pooled discrimination on this cohort is therefore overwhelmingly
 between-patient base-rate separation, not within-person day-to-day
 ranking. The implication for clinical deployment is direct: a 24-hour
@@ -125,13 +129,16 @@ E1) driven by the 8.6% vs 5.7% base-rate gap between the two sites
 [huang2020calibration, p. 621].
 
 Addition 6 converts the discrimination layer into a clinical-value
-layer. Patient-day bootstrap CIs on Brier skill against per-patient
-TRAIN-set climatology reveal a target-specific verdict that the
-original point-estimate framing obscured: headache forecasts add
-significant probabilistic value (CIs +0.07 to +0.29 across
-architectures); migraine forecasts only significantly fail the Murphy
-quality-versus-value test on the sequence baseline
-(-0.117 [-0.227, -0.037]). The migraine XGBoost (-0.068 [-0.160, +0.005])
+layer. Patient-cluster bootstrap CIs (primary) on Brier skill against
+per-patient TRAIN-set climatology reveal a target-specific and
+architecture-specific verdict that the original point-estimate framing
+obscured: only the TabPFN-v2.6 headache cell adds significantly positive
+probabilistic value (+0.215 [+0.017, +0.396]); the headache XGBoost
+(+0.198 [-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362]) CIs
+cross zero under patient-cluster though they remain positive under
+patient-day-iid sensitivity. Migraine forecasts only significantly fail
+the Murphy quality-versus-value test on the sequence baseline
+(-0.117 [-0.241, -0.026] patient-cluster). The migraine XGBoost (-0.068 [-0.160, +0.005])
 and TabPFN (-0.057 [-0.146, +0.020]) Brier-skill CIs both include zero,
 so the tabular models are statistically indistinguishable from the
 per-patient climatology baseline rather than significantly worse. Decision-curve

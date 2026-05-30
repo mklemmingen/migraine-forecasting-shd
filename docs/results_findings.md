@@ -309,13 +309,16 @@ so the grid is complete and reproducible from the committed code.
 2. **Within-person personalisation is not demonstrated.** The
    precision-weighted within-person C-statistic clusters near 0.55
    on the canonical leaves (Addition 5); Brier skill against
-   per-patient climatology under patient-day bootstrap is significantly
-   positive for headache across architectures (CIs +0.07 to +0.29) and
-   only significantly negative for migraine on the sequence baseline
-   (-0.117 [-0.227, -0.037]) — migraine XGBoost and TabPFN CIs include
-   zero, so the tabular forecasts are indistinguishable from the
-   per-patient climatology baseline rather than significantly worse
-   (Addition 6).
+   per-patient climatology under patient-cluster bootstrap (primary)
+   is significantly positive for headache only on TabPFN-v2.6
+   (+0.215 [+0.017, +0.396]); the headache XGBoost (+0.198
+   [-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362]) CIs
+   cross zero under patient-cluster though both are positive under
+   patient-day-iid sensitivity, and only significantly negative for
+   migraine on the sequence baseline (-0.117 [-0.241, -0.026]
+   patient-cluster). Migraine XGBoost and TabPFN CIs include zero,
+   so the tabular forecasts are indistinguishable from the per-patient
+   climatology baseline rather than significantly worse (Addition 6).
    The near-chance within-person result replicates across the two
    recruitment sites in the leave-one-site-out validation
    (`docs/external_validation_site.md` Section 7), so it is not a
