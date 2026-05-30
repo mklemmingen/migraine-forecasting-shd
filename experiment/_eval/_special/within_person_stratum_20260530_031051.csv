@@ -1,0 +1,43 @@
+target,architecture,stratum_dim,stratum,n_estimable,below_floor,within_c,ci_low,ci_high
+headache,XGBoost stack,(pooled),(pooled),57,False,0.543,0.511,0.575
+headache,XGBoost stack,site,site=Uijeongbu,28,False,0.541,0.493,0.589
+headache,XGBoost stack,site,site=Dongtan,28,False,0.541,0.498,0.584
+headache,XGBoost stack,sex,sex=female,47,False,0.539,0.505,0.573
+headache,XGBoost stack,sex,sex=male,9,False,0.55,0.457,0.642
+headache,XGBoost stack,base_rate,base_rate above 25.0%,22,False,0.539,0.49,0.587
+headache,XGBoost stack,base_rate,base_rate below 25.0%,35,False,0.547,0.504,0.59
+headache,TabPFN,(pooled),(pooled),57,False,0.542,0.508,0.576
+headache,TabPFN,site,site=Uijeongbu,28,False,0.555,0.503,0.608
+headache,TabPFN,site,site=Dongtan,28,False,0.524,0.481,0.566
+headache,TabPFN,sex,sex=female,47,False,0.543,0.507,0.579
+headache,TabPFN,sex,sex=male,9,False,0.527,0.428,0.625
+headache,TabPFN,base_rate,base_rate above 25.0%,22,False,0.544,0.492,0.597
+headache,TabPFN,base_rate,base_rate below 25.0%,35,False,0.54,0.495,0.585
+headache,window-MLP,(pooled),(pooled),57,False,0.538,0.505,0.572
+headache,window-MLP,site,site=Uijeongbu,28,False,0.541,0.491,0.59
+headache,window-MLP,site,site=Dongtan,28,False,0.531,0.485,0.578
+headache,window-MLP,sex,sex=female,47,False,0.524,0.487,0.561
+headache,window-MLP,sex,sex=male,9,False,0.598,0.522,0.673
+headache,window-MLP,base_rate,base_rate above 25.0%,22,False,0.509,0.472,0.546
+headache,window-MLP,base_rate,base_rate below 25.0%,35,False,0.56,0.509,0.611
+migraine,XGBoost stack,(pooled),(pooled),19,False,0.554,0.505,0.604
+migraine,XGBoost stack,site,site=Uijeongbu,11,False,0.559,0.492,0.625
+migraine,XGBoost stack,site,site=Dongtan,8,False,0.544,0.465,0.623
+migraine,XGBoost stack,sex,sex=female,18,False,0.56,0.508,0.612
+migraine,XGBoost stack,sex,sex=male,1,True,,,
+migraine,XGBoost stack,base_rate,base_rate above 7.2%,16,False,0.553,0.498,0.608
+migraine,XGBoost stack,base_rate,base_rate below 7.2%,3,True,,,
+migraine,TabPFN,(pooled),(pooled),19,False,0.563,0.5,0.626
+migraine,TabPFN,site,site=Uijeongbu,11,False,0.593,0.506,0.681
+migraine,TabPFN,site,site=Dongtan,8,False,0.522,0.447,0.596
+migraine,TabPFN,sex,sex=female,18,False,0.569,0.503,0.635
+migraine,TabPFN,sex,sex=male,1,True,,,
+migraine,TabPFN,base_rate,base_rate above 7.2%,16,False,0.563,0.491,0.634
+migraine,TabPFN,base_rate,base_rate below 7.2%,3,True,,,
+migraine,window-MLP,(pooled),(pooled),19,False,0.53,0.476,0.585
+migraine,window-MLP,site,site=Uijeongbu,11,False,0.55,0.476,0.623
+migraine,window-MLP,site,site=Dongtan,8,False,0.499,0.417,0.581
+migraine,window-MLP,sex,sex=female,18,False,0.532,0.474,0.591
+migraine,window-MLP,sex,sex=male,1,True,,,
+migraine,window-MLP,base_rate,base_rate above 7.2%,16,False,0.528,0.467,0.589
+migraine,window-MLP,base_rate,base_rate below 7.2%,3,True,,,
