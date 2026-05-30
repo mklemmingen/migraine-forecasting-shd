@@ -271,10 +271,11 @@ the classic small-sample overfitting fingerprint), and 98 cells have a
 negative slope (Platt inversion on a tiny calibration sub-split). At
 the chronological headline cells the bootstrap CIs are wide: the
 migraine *XGB-HP020 / full / chrono / 70-30* leaf has calibration
-slope 1.417 [0.952-1.942] and the headache *TabPFN v2.6 / full / chrono
-/ 70-30* leaf 1.095 [0.744-1.427]; both CIs include 1.0, so
-calibration is not distinguishable from unity at the headline cells,
-though the wide CIs reflect the small-sample calibration uncertainty.
+slope 1.386 [0.401-2.067] patient-cluster primary and the headache
+*TabPFN v2.6 / full / chrono / 70-30* leaf 1.094 [0.594-1.429]
+patient-cluster primary; both CIs include 1.0, so calibration is
+not distinguishable from unity at the headline cells, though the
+wide CIs reflect the small-sample calibration uncertainty.
 The paper must report calibration slope with its bootstrap CI alongside
 discrimination and flag that threshold-derived metrics on the
 negative-slope cells are unreliable; AUROC/AUPRC remain interpretable
