@@ -220,11 +220,11 @@ cells fold into the existing `comparison_*.html` without aggregator changes.
 
 The full chain is implemented and runs end-to-end. All three sequence variants
 are trained on the `full_features` chronological cells for both targets (val+test
-AUROC via the shared prediction worker, Figure 3 (working-notes ID B7)): window-MLP 0.60 / GRU 0.64 /
+AUROC via the shared prediction worker, supplementary Figure B7): window-MLP 0.60 / GRU 0.64 /
 TCN 0.63 on headache, and 0.77 / 0.74 / 0.73 on migraine. No sequence variant
 beats the XGBoost stack on the headline AUROC; on migraine the window-MLP
 narrowly beats the vanilla TabPFN baseline (0.77 vs 0.76), so the verdict is
-"competitive but not dominant" rather than uniformly behind (Figure 3 (working-notes ID B7)). The
+"competitive but not dominant" rather than uniformly behind (supplementary Figure B7). The
 broader pattern still holds: explicit temporal modelling adds nothing decisive
 once the rolling/lag history features are present, consistent with
 the Addition 3 finding that day-to-day dependence decays within a few days.
