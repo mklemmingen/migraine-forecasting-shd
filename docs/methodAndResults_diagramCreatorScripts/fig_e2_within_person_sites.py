@@ -29,8 +29,8 @@ MODELS = ["pooled_lr", "add0_stacked", "add1_tabpfn", "add4_window_mlp"]
 MLAB = {"pooled_lr": "pooled LR", "add0_stacked": "XGBoost stack",
         "add1_tabpfn": "TabPFN", "add4_window_mlp": "window-MLP"}
 SITES = ["uijeongbu", "dongtan"]
-# internal CV-OOF within-person (TabPFN, Figure C2 / Addition 5 Section 9b)
-INTERNAL = {"headache": 0.542, "migraine": 0.563}
+# internal CV-OOF within-person Paule-Mandel primary (TabPFN, Figure C2 / Addition 5 Section 9b)
+INTERNAL = {"headache": 0.542, "migraine": 0.565}
 
 
 def _latest():

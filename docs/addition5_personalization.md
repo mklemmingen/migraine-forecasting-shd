@@ -120,9 +120,12 @@ person-specific discriminations, following the comparator's explicit argument
 that within-person metrics are the fitting way to evaluate individual-attack
 forecasting [holsteen2020triggers, p. 2364]. Per-patient AUROC variance is
 estimated by the Hanley-McNeil binormal approximation (Hanley and McNeil
-1982); the cohort summary is a DerSimonian-Laird random-effects pooled mean
-that accommodates between-patient heterogeneity in the true discrimination,
-with τ² estimated from the per-patient sampling variances. Reporting is:
+1982); the cohort summary is a Paule-Mandel τ² random-effects pooled mean
+(primary, robust under k<20 per Veroniki et al. 2016), with
+DerSimonian-Laird τ² reported alongside as a sensitivity for
+comparability with the migraine-forecasting literature; τ² is
+estimated from the per-patient sampling variances under either
+estimator. Reporting is:
 
 - the distribution (median and IQR, with a per-patient strip/box plot), not a
   single pooled scalar;
