@@ -31,7 +31,7 @@ between-patient base-rate separation more than within-patient
 day-to-day ranking. This reproduces the within-person Holsteen 2020
 pattern on an independent cohort [holsteen2020triggers, p. 2364] and
 clarifies why the diary-only forecasting regime sits in the AUC
-0.56-0.73 band that the field reports under within-person evaluation,
+0.56-0.65 band that the field reports under within-person evaluation,
 well below the wearable-augmented high-water mark. We do not recommend
 any of the benchmarked models for clinical deployment on the basis of
 the present internal-validation evidence alone. Future diary-only

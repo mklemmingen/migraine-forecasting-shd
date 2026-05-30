@@ -18,7 +18,7 @@ headache prediction models on the Park 2016 Korean SHD cohort
 
 ### Background
 
-Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. Diary-only literature reaches AUROC 0.56-0.73 within-person, below wearable-augmented work (up to 0.84) on inputs the diary lacks.
+Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. Diary-only literature reaches AUROC 0.56-0.65 within-person, below wearable-augmented work (up to 0.84) on inputs the diary lacks.
 
 ### Methods
 
@@ -26,7 +26,7 @@ Next-day migraine and headache forecasting were evaluated on the Park 2016 SHD c
 
 ### Results
 
-The within-person C-statistic clustered at 0.53-0.57 across architectures and targets (headache 0.542 [0.509, 0.575] Paule-Mandel pooled, 57/63 estimable; migraine 0.565 [0.508, 0.622], 19/63 at the five-positive floor); per-patient AUROC near chance. Pooled headline AUROC reached 0.793 (95% CI 0.701-0.873) for migraine (XGB-HP020) and 0.652 (0.589-0.712) for headache (TabPFN-v2.6); pooled AUROC therefore exceeded within-person C from between-patient base-rate separation, not day-to-day ranking. Headline calibration slopes (patient-cluster primary) were 1.386 [0.401, 2.067] (migraine) and 1.094 [0.594, 1.429] (headache). Brier skill against per-patient TRAIN-set climatology (patient-cluster primary) was significantly positive for headache only on TabPFN-v2.6 (+0.215 [+0.017, +0.396]); XGBoost and sequence headache CIs crossed zero under patient-cluster, and migraine Brier skill was significantly negative only on the sequence baseline (-0.117 [-0.241, -0.026]); migraine XGBoost and TabPFN CIs included zero. Leave-one-site-out calibration drift: observed-to-expected ratio ranged 0.50-1.54 across the two clinics.
+The within-person C-statistic clustered at 0.53-0.57 across architectures and targets (headache 0.542 [0.509, 0.575] Paule-Mandel, 57/63; migraine 0.565 [0.508, 0.622], 19/63 five-positive floor); per-patient AUROC near chance. Pooled headline AUROC reached 0.793 (95% CI 0.701-0.873) for migraine (XGB-HP020) and 0.652 (0.589-0.712) for headache (TabPFN-v2.6); pooled AUROC therefore exceeded within-person C from between-patient base-rate separation, not day-to-day ranking. Headline calibration slopes (patient-cluster primary) were 1.386 [0.401, 2.067] (migraine) and 1.094 [0.594, 1.429] (headache). Brier skill against per-patient TRAIN-set climatology (patient-cluster primary) was significantly positive for headache only on TabPFN-v2.6 (+0.215 [+0.017, +0.396]); XGBoost and sequence headache CIs crossed zero under patient-cluster, and migraine Brier skill was significantly negative only on the sequence baseline (-0.117 [-0.241, -0.026]); migraine XGBoost and TabPFN CIs included zero. Headache decision-curve net benefit was +0.05 to +0.20 across 0.01-0.50; migraine near zero. Leave-one-site-out calibration drift: observed-to-expected ratio ranged 0.50-1.54 across the two clinics.
 
 ### Conclusion
 
@@ -42,7 +42,7 @@ This work received no external funding.
 
 ---
 
-**Word count.** Title 18 words. Abstract 340 words (under the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill and the headache-vs-migraine target-asymmetry sentence retained in the Conclusion).
+**Word count.** Title 18 words. Abstract 349 words (under the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
 (Background paragraph), Setting and participants (Methods; cohort, sites,

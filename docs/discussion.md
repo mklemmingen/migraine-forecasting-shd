@@ -171,7 +171,7 @@ the wearable-augmented regime its high-water-mark results occupy. Faisal
 2026 reaches AUC 0.84 on 21,550 headache days with trapezius EMG, HRV,
 and skin-temperature inputs that the diary-only SHD cohort does not
 carry [faisal2026forecasting, p. 1; p. 5]; the diary-only comparator
-sits at AUC 0.56-0.73 [houle2017stress, p. 1041; holsteen2020triggers,
+sits at AUC 0.56-0.65 [houle2017stress, p. 1041; holsteen2020triggers,
 p. 2364]. The Park-cohort result reported here lands inside the
 diary-only band and confirms it. Reading the Faisal 2026 number as the
 diary-only target sets up an unrealistic expectation; the diary-only
