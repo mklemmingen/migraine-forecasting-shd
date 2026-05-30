@@ -156,7 +156,7 @@ Status codes:
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 4-heading JHP-structured abstract (Background / Methods / Results / Conclusion), 449 words under the 450-word JHP cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
+| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 4-heading JHP-structured abstract (Background / Methods / Results / Conclusion), 340 words under the JHP 350-word research-article cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
 
 ### INTRODUCTION
 
@@ -261,7 +261,7 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
 | 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
-| **2** (Abstract 4-heading JHP restructure) | `abstract.md` (manuscript front-matter; Background / Methods / Results / Conclusion, 449 words) | ✓ |
+| **2** (Abstract 4-heading JHP restructure) | `abstract.md` (manuscript front-matter; Background / Methods / Results / Conclusion, 340 words) | ✓ |
 
 **Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 4-heading JHP layout (Background / Methods / Results / Conclusion) and the missing TRIPOD+AI Abstract sub-items integrated.
 
