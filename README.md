@@ -7,8 +7,8 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 ## Reading order
 
 **The paper** (`docs/body.md`) is the condensed ~4000-word JHP submission
-body: the entire narrative — abstract, methods, results, discussion,
-conclusion — in one self-contained file, with pointers down into the
+body: the entire narrative - abstract, methods, results, discussion,
+conclusion - in one self-contained file, with pointers down into the
 long-form record for detail. Read it first for the whole study end to end.
 
 **The long-form records** below expand each section of the body
@@ -17,27 +17,27 @@ read them in this order when you want the evidence behind a specific claim.
 Each carries a short breadcrumb at the top confirming its place in the
 chain.
 
-1. **Background** — this README (you are here).
+1. **Background** - this README (you are here).
 2. **Data and features**
-   - `docs/dataset.md` — Park 2016 SHD cohort, engineered-feature build, EPV bands.
-   - `docs/park_features.md` — the six Park-trigger features used in the cross-cohort recovery check.
+   - `docs/dataset.md` - Park 2016 SHD cohort, engineered-feature build, EPV bands.
+   - `docs/park_features.md` - the six Park-trigger features used in the cross-cohort recovery check.
 3. **Architectures**
-   - `docs/xgboost.md` — stacked XGBoost configuration and hyperparameter-tuning protocol.
-   - `docs/tabPfn.MD` — TabPFN configuration, calibration policy, and the v2.6 / v3-default / v3-binary within-family tie at the headline cell.
+   - `docs/xgboost.md` - stacked XGBoost configuration and hyperparameter-tuning protocol.
+   - `docs/tabPfn.MD` - TabPFN configuration, calibration policy, and the v2.6 / v3-default / v3-binary within-family tie at the headline cell.
 4. **Methods, per Addition**
-   - `docs/addition2_explainability.md` — SHAP + ALE + ShapIQ pipeline.
-   - `docs/addition3_temporal.md` — autocorrelation / burstiness / recurrent-event regression.
-   - `docs/addition4_sequence.md` — window-MLP / GRU / TCN sequence baselines.
-   - `docs/addition5_personalization.md` — per-patient / partial-pool regimes + within-person C-statistic.
-   - `docs/external_validation_site.md` — leave-one-site-out external validation.
-   - `docs/addition6_clinical_value.md` — decision curve + Brier skill.
+   - `docs/addition2_explainability.md` - SHAP + ALE + ShapIQ pipeline.
+   - `docs/addition3_temporal.md` - autocorrelation / burstiness / recurrent-event regression.
+   - `docs/addition4_sequence.md` - window-MLP / GRU / TCN sequence baselines.
+   - `docs/addition5_personalization.md` - per-patient / partial-pool regimes + within-person C-statistic.
+   - `docs/external_validation_site.md` - leave-one-site-out external validation.
+   - `docs/addition6_clinical_value.md` - decision curve + Brier skill.
 5. **Results**
-   - `docs/results_findings.md` — **start here for results**: the cross-Addition synthesis, the seven cross-cell findings, the Headline takeaways, and the Limitations section.
-   - `docs/addition2_results.md` — explainability findings (SHAP rankings, ALE shapes, ShapIQ failure-mode disclosure).
-   - `docs/addition3_results.md` — temporal-dependence findings (AG hazard, Goh-Barabasi B/M, weekly periodicity).
+   - `docs/results_findings.md` - **start here for results**: the cross-Addition synthesis, the seven cross-cell findings, the Headline takeaways, and the Limitations section.
+   - `docs/addition2_results.md` - explainability findings (SHAP rankings, ALE shapes, ShapIQ failure-mode disclosure).
+   - `docs/addition3_results.md` - temporal-dependence findings (AG hazard, Goh-Barabasi B/M, weekly periodicity).
 6. **Supplementary**
-   - `docs/insights_leaf_selection.md` — `composite_sorted` selection rule and its within-family fragility.
-   - `docs/paper_rigor_checklist.md` — TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
+   - `docs/insights_leaf_selection.md` - `composite_sorted` selection rule and its within-family fragility.
+   - `docs/paper_rigor_checklist.md` - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
 referenced from `docs/body.md` as well as the long-form Methods and Results docs by name; every figure carries a

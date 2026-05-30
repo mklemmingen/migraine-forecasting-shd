@@ -110,7 +110,7 @@ selection produces a same-ratio pair; (b) within-family-tie tests at
 the headache full chrono 70_30 cell where v2.6 / v3-default / v3-binary
 sit within the 0.02 AUROC composite tier; (c) the HP-ladder at the
 migraine full chrono 70_30 cell (HP020 vs HP050 / HP100 / HP200 /
-HP500) and the AutoTabPFN-vs-XGBoost comparison at the same cell —
+HP500) and the AutoTabPFN-vs-XGBoost comparison at the same cell -
 both required to test §3's "AutoTabPFN leads migraine" and
 "HP020 is the composite winner" claims.
 
@@ -199,7 +199,7 @@ heatmap (Figure G8) for visual inspection.
 
 The §3a 18-test BH-FDR family targets specific hypotheses. As a
 *supplementary* counterpart, an all-pairs within-cell paired-DeLong
-analysis at ratio 70_30 was run with Bonferroni FWER correction —
+analysis at ratio 70_30 was run with Bonferroni FWER correction -
 strictly more conservative than BH-FDR, and the standard "fishing
 defense" inferential procedure. Scope: 15 (target, feature_set, split)
 cells where ≥2 architectures share the same test set; 487 paired tests

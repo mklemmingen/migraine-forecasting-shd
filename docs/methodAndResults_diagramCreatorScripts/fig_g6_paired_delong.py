@@ -1,4 +1,4 @@
-"""Figure G6 — paired DeLong forest plot for cross-architecture
+"""Figure G6 - paired DeLong forest plot for cross-architecture
 significance (Section 3a).
 
 One row per paired test (cell + arch pair); ΔAUC point with 95%

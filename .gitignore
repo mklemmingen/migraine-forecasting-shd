@@ -1,4 +1,4 @@
-# Local working notes — not part of the scientific record - holds all papers in pdf form locally so I can work through them in my IDE view
+# Local working notes - not part of the scientific record - holds all papers in pdf form locally so I can work through them in my IDE view
 PaperSources/
 PaperSourcesDesign/
 
@@ -227,7 +227,7 @@ __marimo__/
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
 
-# Trained-model artefacts at every leaf depth — ignore all .joblib under experiment/.
+# Trained-model artefacts at every leaf depth - ignore all .joblib under experiment/.
 experiment/**/*.joblib
 
 # AutoGluon TabularPredictor save directories spawned by AutoTabPFN leaves.

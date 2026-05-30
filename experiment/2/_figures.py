@@ -361,7 +361,7 @@ def park_scatter_figure(shared, or_rank, shap_rank, rho, sel, out_png) -> Path |
     # conclusive than it is.
     p = sel.get("p")
     # Fisher z-transform CI (Bonett-Wright 2000 standard form). At n=6 this is
-    # asymptotic — surfaced anyway so the reader sees the uncertainty width.
+    # asymptotic - surfaced anyway so the reader sees the uncertainty width.
     if n > 3 and -1 < rho < 1:
         z = np.arctanh(rho)
         se = 1.0 / np.sqrt(n - 3)

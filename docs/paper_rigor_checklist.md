@@ -373,7 +373,7 @@ Cohort demographic restrictions (single sex predominance, single ethnicity, narr
 
 ### 11.12 No editorial adjectives without numeric anchors
 
-"Substantial", "large", "remarkable", "considerable" — dropped or replaced with the numeric anchor. The reader gets the substantive claim; the adjective is editorial.
+"Substantial", "large", "remarkable", "considerable" - dropped or replaced with the numeric anchor. The reader gets the substantive claim; the adjective is editorial.
 
 ### 11.13 Reproduction-plus-extension framing
 
