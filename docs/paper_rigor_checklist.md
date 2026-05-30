@@ -150,13 +150,13 @@ Status codes:
 
 | # | Spec (Collins 2024 wt1) | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 Korean SHD cohort": names prediction models, outcomes (migraine and headache), population (Korean SHD cohort, Park 2016 corpus), time horizon (next-day). The single demographic anchor "Korean" in the cohort name satisfies the verbatim TRIPOD+AI Item 1 "target population" requirement at the title-page surface where PubMed-scanning neurologists triage; age band (19-55 y), sex distribution (82.3% female), and clinic count (two participating Korean clinics) live in abstract Methods + body §2.1 per TRIPOD+AI Item 8 representativeness placement. |
+| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | `abstract.md` §Title (L14-15); `body.md` H1 (L1) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 Korean SHD cohort": names prediction models, outcomes (migraine and headache), population (Korean SHD cohort, Park 2016 corpus), time horizon (next-day). The single demographic anchor "Korean" in the cohort name satisfies the verbatim TRIPOD+AI Item 1 "target population" requirement at the title-page surface where PubMed-scanning neurologists triage; age band (19-55 y), sex distribution (82.3% female), and clinic count (two participating Korean clinics) live in abstract Methods + body §2.1 per TRIPOD+AI Item 8 representativeness placement. |
 
 ### ABSTRACT
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 5-heading JHP-structured abstract (Objective / Background / Methods / Results / Conclusion), 409 words under the 450-word JHP cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
+| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 4-heading JHP-structured abstract (Background / Methods / Results / Conclusion), 449 words under the 450-word JHP cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
 
 ### INTRODUCTION
 
@@ -261,9 +261,9 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
 | 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
-| **2** (Abstract 5-heading JHP restructure) | `abstract.md` (manuscript front-matter; Objective / Background / Methods / Results / Conclusion, 409 words) | ✓ |
+| **2** (Abstract 4-heading JHP restructure) | `abstract.md` (manuscript front-matter; Background / Methods / Results / Conclusion, 449 words) | ✓ |
 
-**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 5-heading JHP layout and the missing TRIPOD+AI Abstract sub-items integrated.
+**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 4-heading JHP layout (Background / Methods / Results / Conclusion) and the missing TRIPOD+AI Abstract sub-items integrated.
 
 A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification*: full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
 
