@@ -6,7 +6,7 @@
 > multivariable prediction model, names the population, the outcomes, and
 > the time horizon). The 4-heading structured Abstract follows *Journal of
 > Headache and Pain* submission requirements and addresses the 13 TRIPOD+AI
-> for Abstracts sub-items [collins2024tripodAI, wt1 p. 1]. The Funding line
+> for Abstracts sub-items [7]. The Funding line
 > below the Abstract satisfies TRIPOD+AI Item 18a.
 
 ## Title
