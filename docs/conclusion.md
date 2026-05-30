@@ -9,14 +9,14 @@ modelling, personalisation with leave-one-site-out external check, and
 a clinical-value layer. Each contribution reported bootstrap
 discrimination CIs, calibration slope, decision-curve net benefit, and
 within-person evaluation together. On the chronological headline cell
-the migraine AUROC reaches 0.793 and the headache AUROC 0.652. Under
+the migraine AUROC reaches 0.793 (from the pre-specified EPV-5.5 under-powered migraine `full_features` cell) and the headache AUROC 0.652. Under
 within-person evaluation, however, the per-patient AUROC distribution
 centres near 0.55 on the out-of-fold cross-validation pass over the
 non-hyperparameter-tuned 70/30 chronological leaves (addition5 §9b);
 the precision-weighted within-person C-statistic clusters in the same
 band, and the Brier skill against per-patient climatology under
 patient-cluster bootstrap (primary) is significantly positive for
-headache only on TabPFN-v2.6 (+0.215 [+0.017, +0.396]); the headache
+headache only on TabPFN-v2.6 (+0.215 [+0.017, +0.396]; the TabPFN-v2.6 architecture itself selected from the three-way AUROC-tied headache headline cell by the composite-rule calibration-distance tiebreak); the headache
 XGBoost (+0.198 [-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362])
 CIs cross zero under patient-cluster though both are positive under
 patient-day-iid sensitivity, and Brier skill is significantly negative

@@ -18,7 +18,7 @@ headache prediction models on the Park 2016 Korean SHD cohort
 
 ### Background
 
-Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. Diary-only literature reaches AUROC 0.56-0.65 within-person, below wearable-augmented work (up to 0.84) on inputs the diary lacks.
+Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. Diary-only literature reaches AUROC 0.56-0.65 within-person, below wearable-augmented time-series work (up to 0.84) on inputs the diary lacks.
 
 ### Methods
 
@@ -42,7 +42,7 @@ This work received no external funding.
 
 ---
 
-**Word count.** Title 18 words. Abstract 349 words (under the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
+**Word count.** Title 18 words. Abstract 350 words (at the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
 (Background paragraph), Setting and participants (Methods; cohort, sites,
