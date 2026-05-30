@@ -150,7 +150,7 @@ Status codes:
 
 | # | Spec (Collins 2024 wt1) | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort": names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
+| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 Korean SHD cohort": names prediction models, outcomes (migraine and headache), population (Korean SHD cohort, Park 2016 corpus), time horizon (next-day). The single demographic anchor "Korean" in the cohort name satisfies the verbatim TRIPOD+AI Item 1 "target population" requirement at the title-page surface where PubMed-scanning neurologists triage; age band (19-55 y), sex distribution (82.3% female), and clinic count (two participating Korean clinics) live in abstract Methods + body §2.1 per TRIPOD+AI Item 8 representativeness placement. |
 
 ### ABSTRACT
 
