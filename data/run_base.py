@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline import (translate_sheet3, engineer_features, assign_cv_folds,
                       process_disability_sheet)
-from pipeline._special import extract_aura_status
+from pipeline._special import extract_aura_status, extract_cohort_metadata
 
 DATA_DIR      = os.path.dirname(os.path.abspath(__file__))
 RAW_XLS       = os.path.join(DATA_DIR, "raw", "SHD-Dataset.xls")
@@ -64,6 +64,14 @@ def runBase(target_mode: str = "headache"):
     aura_df.to_parquet(os.path.join(SPECIAL_DIR, "aura_status.parquet"), index=False)
     n_aura = int(aura_df["has_aura"].sum())
     print(f"Saved: special/aura_status.parquet  ({len(aura_df)} patients, {n_aura} with aura)")
+
+    meta_df = extract_cohort_metadata(RAW_XLS)
+    meta_df.to_parquet(os.path.join(SPECIAL_DIR, "cohort_metadata.parquet"), index=False)
+    n_female = int((meta_df["sex"] == "female").sum())
+    n_uijeongbu = int((meta_df["site"] == "Uijeongbu").sum())
+    print(f"Saved: special/cohort_metadata.parquet  ({len(meta_df)} patients; "
+          f"{n_female} female / {len(meta_df) - n_female} male; "
+          f"{n_uijeongbu} Uijeongbu / {len(meta_df) - n_uijeongbu} Dongtan)")
 
 def main():
     runBase()
