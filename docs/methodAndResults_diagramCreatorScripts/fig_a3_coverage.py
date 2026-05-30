@@ -62,8 +62,8 @@ def main():
     ax.set_ylabel("patient (sorted by enrolment start)")
     ax.set_xlabel("calendar date")
     coverage_pct = 100 * (grid > 0).mean()
-    ax.set_title(f"Diary coverage: 63 patients, {coverage_pct:.1f}% coverage "
-                 f"(staggered enrolment, gaps shown as white)")
+    ax.set_title(f"Diary coverage: n=63 patients (62 enrolled + 1 disability-sheet only), "
+                 f"{coverage_pct:.1f}% coverage (staggered enrolment, gaps shown as white)")
     from matplotlib.patches import Patch
     S.framed_legend(ax, handles=[Patch(fc="white", ec="#bbbbbb", label="no entry"),
                                  Patch(fc=S.COVERAGE[1], label="headache-free"),
