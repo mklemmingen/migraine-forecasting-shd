@@ -244,3 +244,12 @@ experiment/**/autogluon_predictor/
 # checkpoints are only kept to allow mid-fit resume after an interruption.
 experiment/**/finetune_checkpoints/
 experiment/**/finetune_checkpoints_pass1/
+
+# Per-leaf within-person score CSVs written by experiment/5/run_personalization.py
+# (cv_oof_worker and predict_worker write one CSV per architecture per cell as
+# the per-patient scores feeding the within-person C-statistic). The canonical
+# aggregated summary at experiment/5/within_person_summary_{cv,holdout}_*.csv
+# is the load-bearing artefact and is intentionally tracked; these per-leaf
+# intermediates are regenerable by re-running the personalisation pipeline.
+experiment/**/within_person_cv_add*.csv
+experiment/**/within_person_holdout_add*.csv
