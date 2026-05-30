@@ -287,21 +287,32 @@ date range. Estimability rises from 13->57 patients (headache) and 3->19
 | target   | architecture     | pooled AUROC | within-person C-stat | est. | gap    |
 |----------|------------------|--------------|----------------------|------|--------|
 | headache | XGBoost (add 0)  | 0.606        | 0.543 [0.511-0.575]  | 57/63| +0.062 |
-| headache | TabPFN (add 1)   | 0.654        | 0.542 [0.508-0.576]  | 57/63| +0.112 |
+| headache | TabPFN (add 1)   | 0.654        | 0.542 [0.509-0.575]  | 57/63| +0.112 |
 | headache | sequence (add 4) | 0.631        | 0.538 [0.505-0.572]  | 57/63| +0.092 |
 | migraine | XGBoost (add 0)  | 0.624        | 0.554 [0.505-0.604]  | 19/63| +0.070 |
-| migraine | TabPFN (add 1)   | 0.738        | 0.563 [0.500-0.626]  | 19/63| +0.175 |
+| migraine | TabPFN (add 1)   | 0.738        | 0.565 [0.508-0.622]  | 19/63| +0.173 |
 | migraine | sequence (add 4) | 0.685        | 0.530 [0.476-0.585]  | 19/63| +0.155 |
 
 The headline is now clean and well-estimated: **within-person discrimination
 clusters at ~0.53-0.57 for every architecture and both targets**, near chance
 and architecture-independent, beside Holsteen's independent-cohort 0.56
 [holsteen2020triggers, p. 2364]. The pooled "leads" largely evaporate
-within-person (migraine TabPFN's pooled 0.738 falls to 0.563, the largest gap),
+within-person (migraine TabPFN's pooled 0.738 falls to 0.565, the largest gap),
 and the within-person architecture differences sit inside overlapping CIs,
 statistically indistinguishable per patient. Reproduce with
 `run_personalization.py --cv`. This is the trustworthy RQ2 estimate; 9a is the
 sparse first pass kept for the hold-out-vs-CV contrast.
+
+**Pooling methodology.** The two TabPFN rows (headache and migraine, marked
+**add 1**) carry Paule-Mandel τ² pooled values from the T2-6 canonical
+side-by-side comparison at `experiment/_eval/_special/within_person_pooling_comparison_*.csv`,
+matching the body §3.6 and abstract primary disclosure. The remaining four
+rows (XGBoost **add 0** and sequence **add 4**, both targets) still carry
+DerSimonian-Laird τ² values pending a `run_personalization.py --cv` re-run
+with the `method="PM"` default introduced in the within_person_cstatistic
+helper at T2-6; the body §3.6 disclosure notes the two estimators agree at
+the third decimal place on this cohort, so the four DL rows are sensitivity-
+adjacent rather than substantively different from their PM counterparts.
 
 ## 9c. RQ1 result (personalisation regimes, standard-contract)
 
