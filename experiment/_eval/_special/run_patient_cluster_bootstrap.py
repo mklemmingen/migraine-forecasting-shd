@@ -1,8 +1,8 @@
 """Patient-cluster bootstrap CIs on the headline-cell metrics cited in body
 §3.2 (AUROC) / §3.4 (calibration slope + CITL) / §3.7 (Brier skill against
 per-patient TRAIN climatology), side-by-side with the patient-day-iid CIs
-currently in the body. Closes the T2-2 panel-revision ask (P4 Collins, P5
-Riley, P6 Van Calster, P9 McElfresh, P10 Barnett) for the headline cells.
+also in the body. Patient-cluster is primary on the headline cells per the
+body §2.8 reporting convention; patient-day-iid is sensitivity.
 
 Resamples whole PATIENTS with replacement (the resampling unit is the
 patient, not the patient-day row), then concatenates the resampled patients'
@@ -10,19 +10,19 @@ rows and recomputes the metric. This is the appropriate unit because the
 within-patient day-level outcomes are not independent (Addition 3 quantified
 substantial within-patient serial dependence), and patient-day-iid bootstrap
 under-covers relative to patient-cluster when the substantive claim is
-direction-of-effect rather than equivalence (Barnett's quote at body §3.7).
+direction-of-effect rather than equivalence.
 
 The existing patient-day CIs from `experiment/_eval/metrics_lib.py` +
 `experiment/6/_value/skill.py` are preserved as side-by-side sensitivity
 values per the §2.8 reporting convention: primary = patient-cluster,
 sensitivity = patient-day for literature comparability.
 
-Uses the hold-out test predict worker (NOT the cv_oof worker fig_c5 / T3-5 /
-T3-6 / T2-6 used) because §3.2 / §3.4 / §3.7 cite TEST-SET metrics not OOF
-metrics; the within-person C-statistic in §3.6 is the only metric that uses
-OOF predictions and that estimator is already patient-level via
-Hanley-McNeil + Paule-Mandel pooling rather than a row bootstrap, so the
-within-person C is not retouched by this commit.
+Uses the hold-out test predict worker (NOT the cv_oof worker fig_c5 or the
+within-person stratum / pooling-comparison runners use) because §3.2 / §3.4 /
+§3.7 cite TEST-SET metrics not OOF metrics; the within-person C-statistic in
+§3.6 is the only metric that uses OOF predictions and that estimator is
+already patient-level via Hanley-McNeil + Paule-Mandel pooling rather than a
+row bootstrap, so the within-person C is not retouched by this script.
 
 Usage: ``python experiment/_eval/_special/run_patient_cluster_bootstrap.py``
 """
@@ -224,7 +224,7 @@ def main() -> None:
         est_citl = _citl(y, p)
         est_brier_skill = _brier_skill(y, p, ref)
 
-        # Bootstrap CIs: patient-day (current §2.8) AND patient-cluster (T2-2 primary)
+        # Bootstrap CIs: patient-day (sensitivity) AND patient-cluster (primary per §2.8)
         auroc_day = _bootstrap(_auroc, y, p, N_BOOT, 42)
         auroc_cluster = _bootstrap(_auroc, y, p, N_BOOT, 42, pid=pid)
         slope_day = _bootstrap(lambda yy, pp: float(calibration_slope(yy, pp)), y, p, N_BOOT, 42)

@@ -15,8 +15,8 @@ pmcalplot convention so a sparse-data region does not get over-interpreted as
 Architecture set mirrors fig_c3 (XGBoost stack, TabPFN, window-MLP) so the
 two calibration figures are read in parallel: fig_c3 shows discrete-bin
 reliability with calibration slope CIs in the title, fig_c4 shows the
-continuous moderate-calibration smooth that the panel-derived T2-3 ask
-specifically wanted.
+continuous moderate-calibration smooth that complements the discrete-bin
+reliability plot.
 
 Usage: python fig_c4_calibration_flexible.py
 """

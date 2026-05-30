@@ -1,18 +1,19 @@
 """Pooled within-person C-statistic computed under both Paule-Mandel (the
-T2-6 panel-revision primary) and DerSimonian-Laird (legacy comparability
-sensitivity) for the canonical TabPFN headline cells.
+current primary) and DerSimonian-Laird (legacy comparability sensitivity)
+for the canonical TabPFN headline cells.
 
-Pierson P14 (T3-6) asked for stratum disaggregation; Coppola P20 (T2-6) asked
-for the τ² estimator itself to be switched from DerSimonian-Laird (legacy,
-underestimates τ² at k < 20 per Veroniki 2016) to Paule-Mandel or REML as the
-primary. This script delivers the comparison values used to update body §3.6 +
-abstracts: PM as primary, DL retained as side-by-side sensitivity so the
-literature-comparability baseline is preserved.
+DerSimonian-Laird underestimates τ² at k < 20 per Veroniki 2016, which is
+the regime this cohort sits in (k=19 estimable patients on migraine,
+k=57 on headache); Paule-Mandel τ² is robust in that regime. This script
+delivers the comparison values used in body §3.6 + abstract: PM as primary,
+DL retained as side-by-side sensitivity so the literature-comparability
+baseline is preserved.
 
-Uses the same CV-OOF prediction path as fig_c5 + the T3-6 stratum runner so
-the per-patient AUROC distribution is the same one body §3.6 cites; only the
-pooling step changes between DL and PM. Output CSV is timestamped to preserve
-prior runs per the never-overwrite convention LOSO summary CSVs established.
+Uses the same CV-OOF prediction path as fig_c5 + the within-person stratum
+runner so the per-patient AUROC distribution is the same one body §3.6
+cites; only the pooling step changes between DL and PM. Output CSV is
+timestamped to preserve prior runs per the never-overwrite convention LOSO
+summary CSVs established.
 
 Usage: ``python experiment/_eval/_special/run_within_person_pooling_comparison.py``
 """
@@ -68,7 +69,7 @@ def _predict(leaf: Path):
 
 def _resolve_tabpfn_headlines() -> dict[str, Path]:
     """Resolve TabPFN headline cells for both targets (the §3.6-cited
-    architecture). Mirrors fig_c5 / T3-6 stratum runner."""
+    architecture). Mirrors fig_c5 / within-person stratum runner."""
     spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
     mod = _ilu.module_from_spec(spec); spec.loader.exec_module(mod)
     fp = mod.latest_figdata(EXP / "2")

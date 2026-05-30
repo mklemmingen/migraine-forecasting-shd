@@ -165,8 +165,8 @@ def _pool_with_patient_bootstrap_ci(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _resolve_headlines() -> dict[str, list[tuple[str, Path]]]:
-    """Same composite-tracked leaf resolution as fig_c3, fig_c4 and the T2-5
-    sensitivity runner. Add-4 window-MLP stays pinned per fig_c3."""
+    """Same composite-tracked leaf resolution as fig_c3 and fig_c4.
+    Add-4 window-MLP stays pinned per fig_c3."""
     spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
     mod = _ilu.module_from_spec(spec); spec.loader.exec_module(mod)
     fp = mod.latest_figdata(EXP / "2")

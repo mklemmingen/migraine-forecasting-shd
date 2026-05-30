@@ -1,8 +1,7 @@
 """Within-person C-statistic disaggregated by site / sex / base-rate stratum.
 
-Closes the panel-revision T3-6 ask (P14 Pierson) by computing the within-person
-C-statistic separately for each of the three demographic / cohort strata the
-panel named:
+Computes the within-person C-statistic separately for each of the three
+demographic / cohort strata:
 
 - site: Uijeongbu vs Dongtan (the leave-one-site-out frame from §3.8)
 - sex: female vs male (the §2.1 / §4.4 demographic-narrowness frame)
