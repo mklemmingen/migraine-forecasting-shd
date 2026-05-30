@@ -259,12 +259,12 @@ collide:
 
 | target   | architecture     | pooled AUROC | within-person C-stat | est. | gap    |
 |----------|------------------|--------------|----------------------|------|--------|
-| headache | XGBoost (add 0)  | 0.637        | 0.530 [0.463-0.597]  | 13/20| +0.107 |
-| headache | TabPFN (add 1)   | 0.654        | 0.484 [0.419-0.550]  | 13/20| +0.169 |
-| headache | sequence (add 4) | 0.598        | 0.395 [0.292-0.498]  | 13/20| +0.203 |
-| migraine | XGBoost (add 0)  | 0.763        | 0.538 [0.398-0.677]  | 3/20 | +0.225 |
-| migraine | TabPFN (add 1)   | 0.764        | 0.477 [0.341-0.613]  | 3/20 | +0.287 |
-| migraine | sequence (add 4) | 0.771        | 0.569 [0.427-0.711]  | 3/20 | +0.202 |
+| headache | XGBoost (add 0)  | 0.637        | 0.530 [0.463, 0.597]  | 13/20| +0.107 |
+| headache | TabPFN (add 1)   | 0.654        | 0.484 [0.419, 0.550]  | 13/20| +0.169 |
+| headache | sequence (add 4) | 0.598        | 0.395 [0.292, 0.498]  | 13/20| +0.203 |
+| migraine | XGBoost (add 0)  | 0.763        | 0.538 [0.398, 0.677]  | 3/20 | +0.225 |
+| migraine | TabPFN (add 1)   | 0.764        | 0.477 [0.341, 0.613]  | 3/20 | +0.287 |
+| migraine | sequence (add 4) | 0.771        | 0.569 [0.427, 0.711]  | 3/20 | +0.202 |
 
 Two findings emerged. First, the pooled headline overstated within-person
 forecasting skill for every architecture (gap +0.11 to +0.29), and the
@@ -289,12 +289,12 @@ date range. Estimability rises from 13->57 patients (headache) and 3->19
 
 | target   | architecture     | pooled AUROC | within-person C-stat | est. | gap    |
 |----------|------------------|--------------|----------------------|------|--------|
-| headache | XGBoost (add 0)  | 0.606        | 0.543 [0.511-0.575]  | 57/63| +0.062 |
-| headache | TabPFN (add 1)   | 0.654        | 0.542 [0.509-0.575]  | 57/63| +0.112 |
-| headache | sequence (add 4) | 0.631        | 0.538 [0.506-0.570]  | 57/63| +0.093 |
-| migraine | XGBoost (add 0)  | 0.624        | 0.558 [0.511-0.604]  | 19/63| +0.067 |
-| migraine | TabPFN (add 1)   | 0.738        | 0.565 [0.508-0.622]  | 19/63| +0.173 |
-| migraine | sequence (add 4) | 0.685        | 0.530 [0.476-0.584]  | 19/63| +0.155 |
+| headache | XGBoost (add 0)  | 0.606        | 0.543 [0.511, 0.575]  | 57/63| +0.062 |
+| headache | TabPFN (add 1)   | 0.654        | 0.542 [0.509, 0.575]  | 57/63| +0.112 |
+| headache | sequence (add 4) | 0.631        | 0.538 [0.506, 0.570]  | 57/63| +0.093 |
+| migraine | XGBoost (add 0)  | 0.624        | 0.558 [0.511, 0.604]  | 19/63| +0.067 |
+| migraine | TabPFN (add 1)   | 0.738        | 0.565 [0.508, 0.622]  | 19/63| +0.173 |
+| migraine | sequence (add 4) | 0.685        | 0.530 [0.476, 0.584]  | 19/63| +0.155 |
 
 The headline is now clean and well-estimated: **within-person discrimination
 clusters at ~0.53-0.57 for every architecture and both targets**, near chance
@@ -360,23 +360,23 @@ Migraine:
 
 | feature_set     | regime       | pooled OOF AUROC | within-person C-stat |
 |-----------------|--------------|------------------|----------------------|
-| full_features   | pooled       | 0.677            | 0.540 [0.478-0.602]  |
-| full_features   | per_patient  | 0.635            | 0.511 [0.446-0.577]  |
-| full_features   | partial_pool | 0.694            | 0.517 [0.453-0.581]  |
-| park_features   | pooled       | 0.570            | 0.546 [0.483-0.609]  |
-| park_features   | per_patient  | 0.612            | 0.472 [0.414-0.531]  |
-| park_features   | partial_pool | 0.704            | 0.486 [0.423-0.549]  |
-| no_rolling      | pooled       | 0.569            | 0.521 [0.467-0.575]  |
-| no_rolling      | per_patient  | 0.595            | 0.477 [0.403-0.550]  |
-| no_rolling      | partial_pool | 0.663            | 0.490 [0.425-0.555]  |
+| full_features   | pooled       | 0.677            | 0.540 [0.478, 0.602]  |
+| full_features   | per_patient  | 0.635            | 0.511 [0.446, 0.577]  |
+| full_features   | partial_pool | 0.694            | 0.517 [0.453, 0.581]  |
+| park_features   | pooled       | 0.570            | 0.546 [0.483, 0.609]  |
+| park_features   | per_patient  | 0.612            | 0.472 [0.414, 0.531]  |
+| park_features   | partial_pool | 0.704            | 0.486 [0.423, 0.549]  |
+| no_rolling      | pooled       | 0.569            | 0.521 [0.467, 0.575]  |
+| no_rolling      | per_patient  | 0.595            | 0.477 [0.403, 0.550]  |
+| no_rolling      | partial_pool | 0.663            | 0.490 [0.425, 0.555]  |
 
 Headache (full_features only, the cell `fig_d2_regimes.py` plots):
 
 | feature_set     | regime       | pooled OOF AUROC | within-person C-stat |
 |-----------------|--------------|------------------|----------------------|
-| full_features   | pooled       | 0.620            | 0.538 [0.510-0.567]  |
-| full_features   | per_patient  | 0.603            | 0.528 [0.494-0.561]  |
-| full_features   | partial_pool | 0.641            | 0.527 [0.497-0.556]  |
+| full_features   | pooled       | 0.620            | 0.538 [0.510, 0.567]  |
+| full_features   | per_patient  | 0.603            | 0.528 [0.494, 0.561]  |
+| full_features   | partial_pool | 0.641            | 0.527 [0.497, 0.556]  |
 
 Partial pooling's pooled-AUROC gain (+0.10 to +0.13 over pooled) did not
 survive the within-person reframing and slightly lowered the within-person

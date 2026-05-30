@@ -271,8 +271,8 @@ the classic small-sample overfitting fingerprint), and 98 cells have a
 negative slope (Platt inversion on a tiny calibration sub-split). At
 the chronological headline cells the bootstrap CIs are wide: the
 migraine *XGB-HP020 / full / chrono / 70-30* leaf has calibration
-slope 1.386 [0.401-2.067] patient-cluster primary and the headache
-*TabPFN v2.6 / full / chrono / 70-30* leaf 1.094 [0.594-1.429]
+slope 1.386 [0.401, 2.067] patient-cluster primary and the headache
+*TabPFN v2.6 / full / chrono / 70-30* leaf 1.094 [0.594, 1.429]
 patient-cluster primary; both CIs include 1.0, so calibration is
 not distinguishable from unity at the headline cells, though the
 wide CIs reflect the small-sample calibration uncertainty.
@@ -293,16 +293,16 @@ so the grid is complete and reproducible from the committed code.
 
 1. **The pooled AUROC overstates clinical utility, and held-out-patient
    transport collapses on the migraine headline.** On the chronological
-   headline cells the migraine AUROC reaches 0.793 [0.701-0.873]
+   headline cells the migraine AUROC reaches 0.793 [0.701, 0.873]
    (*XGB-HP020 / full / chrono / 70-30*) and the headache AUROC 0.652
-   [0.589-0.712] (*TabPFN family / full / chrono / 70-30*: v2.6 /
+   [0.589, 0.712] (*TabPFN family / full / chrono / 70-30*: v2.6 /
    v3-default / v3-binary tied within the composite rule's 0.02 AUROC
    tier). At the **held-out-patient** counterparts (same architecture and
    ratio, split type `patient`), the migraine cell collapses to AUROC
-   **0.283** [0.233-0.333] (anti-predictive, with calibration slope
+   **0.283** [0.233, 0.333] (anti-predictive, with calibration slope
    -0.748, Platt-inverted), while the headache TabPFN family stays
-   within band at 0.631-0.637 (v2.6 0.631 [0.593-0.664]; v3-default
-   0.635 [0.599-0.669]; v3-binary 0.637 [0.601-0.672]). The
+   within band at 0.631-0.637 (v2.6 0.631 [0.593, 0.664]; v3-default
+   0.635 [0.599, 0.669]; v3-binary 0.637 [0.601, 0.672]). The
    chronological 0.793 is a within-cohort deployable number, not a
    held-out-patient generalisation number. Pooled discrimination is
    overwhelmingly between-patient base-rate separation, not within-person
