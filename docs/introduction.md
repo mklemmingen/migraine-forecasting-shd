@@ -35,7 +35,7 @@ distinction matters clinically: a model whose pooled AUROC reflects
 between-patient base-rate separation is useful for triaging
 patient-level risk strata, but it cannot tell a given patient which of
 *their* days is the attack. The diary-only-forecasting literature
-sits in the AUROC 0.56-0.73 range under within-person evaluation
+sits in the AUROC 0.56-0.65 range under within-person evaluation
 [houle2017stress, p. 1041; holsteen2020triggers, p. 2364], well below
 the wearable-augmented work that reaches higher numbers on different
 inputs (Faisal 2026 reports 0.84 with EMG, HRV, and skin-temperature
