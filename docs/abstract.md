@@ -38,7 +38,7 @@ This work received no external funding.
 
 ---
 
-**Word count.** Title 18 words. Abstract 449 words (under the JHP 450-word cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, plus the T2-2 patient-cluster sensitivity framing on AUROC / slope / CITL / Brier skill and the T3-7 headache-vs-migraine target-asymmetry sentence in the Conclusion).
+**Word count.** Title 18 words. Abstract 449 words (under the JHP 450-word cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, plus patient-cluster bootstrap as the primary CI unit on AUROC / slope / CITL / Brier skill (patient-day-iid as sensitivity) and the headache-vs-migraine target-asymmetry sentence in the Conclusion).
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
 (Background paragraph), Setting and participants (Methods; cohort, sites,
