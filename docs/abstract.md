@@ -32,6 +32,10 @@ The within-person C-statistic clustered at 0.53-0.57 across architectures and ta
 
 Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; positive Brier skill survived only for headache at the TabPFN-v2.6 headline cell, and no architecture achieved positive Brier skill for migraine. Development and internal validation on a single 62-patient Korean cohort; no clinical deployment recommended.
 
+## Keywords
+
+Migraine; Headache; Forecasting; Machine learning; Calibration; Decision curve analysis; Smartphone applications; Within-person evaluation
+
 ## Funding
 
 This work received no external funding.
