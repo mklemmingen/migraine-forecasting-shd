@@ -10,5 +10,6 @@ patient-keyed DataFrame; the corresponding persisted artefact lives under
 re-touching the raw XLS.
 """
 from .aura import extract_aura_status
+from .cohort_metadata import extract_cohort_metadata
 
-__all__ = ["extract_aura_status"]
+__all__ = ["extract_aura_status", "extract_cohort_metadata"]
