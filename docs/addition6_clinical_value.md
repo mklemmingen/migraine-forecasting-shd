@@ -260,7 +260,7 @@ the extra columns (minutes, reusing the Addition 0/1 training path).
 0 (XGBoost), 1 (TabPFN v3-default) and 4 (sequence window-MLP), val+test horizon,
 Brier skill against each patient's TRAIN-set base-rate climatology:
 
-| target   | architecture | AUROC | Brier skill (95% CI)        | CITL (95% CI)        | net-benefit+ band |
+| target   | architecture | AUROC | Brier skill (day-iid CI)    | CITL (day-iid CI)    | net-benefit+ band |
 |----------|--------------|-------|------------------------------|----------------------|-------------------|
 | headache | XGBoost      | 0.658 | +0.198 [+0.126, +0.268]     | 1.03 [0.88, 1.18]    | 0.07-0.47         |
 | headache | TabPFN       | 0.653 | +0.215 [+0.143, +0.287]     | 0.98 [0.84, 1.12]    | 0.07-0.50         |
@@ -269,17 +269,29 @@ Brier skill against each patient's TRAIN-set base-rate climatology:
 | migraine | TabPFN       | 0.761 | -0.057 [-0.146, +0.020]     | 1.14 [0.83, 1.48]    | 0.03-0.49         |
 | migraine | sequence     | 0.771 | -0.117 [-0.227, -0.037]     | 0.93 [0.66, 1.22]    | 0.03-0.50         |
 
-CIs computed by patient-day bootstrap (n=1,000 iterations) per body §2.8.
+CIs in this table use patient-day-iid bootstrap (n=1,000 iterations,
+sensitivity). Body §3.7 reports patient-cluster bootstrap as primary on
+the headline cells per body §2.8, under which the headache positive
+Brier skill narrows to TabPFN-v2.6 only: cluster CIs are +0.215
+[+0.017, +0.396] (TabPFN), +0.198 [-0.017, +0.385] (XGBoost crosses
+zero), +0.139 [-0.123, +0.362] (sequence crosses zero). Migraine
+sequence cluster CI -0.117 [-0.241, -0.026] remains significantly
+negative; the migraine XGBoost cluster [-0.257, +0.077] and TabPFN
+cluster [-0.172, +0.063] CIs include zero.
 Calibration-in-the-large (CITL) added per Huang 2020 trio.
 
 **The decisive value finding (revised with CIs):**
-the headache models all produce probabilistic value beyond the per-patient
-climatology with CIs comfortably above zero (Brier skill +0.07 to +0.29). For
-migraine the picture is more nuanced than the original point-estimate
-framing implied: only the sequence baseline carries a CI fully below zero
-(-0.117 [-0.227, -0.037]). The migraine XGBoost CI (-0.068 [-0.160, +0.005])
-and TabPFN CI (-0.057 [-0.146, +0.020]) both include zero, so the tabular
-models are statistically indistinguishable from the per-patient climatology
+under patient-cluster bootstrap (primary) the headache positive Brier
+skill survives only at the TabPFN-v2.6 cell (+0.215 [+0.017, +0.396]);
+the XGBoost (+0.198 [-0.017, +0.385]) and sequence (+0.139 [-0.123,
++0.362]) headache CIs cross zero under patient-cluster though both
+remain positive under patient-day-iid sensitivity. For migraine the
+picture is more nuanced than the original point-estimate framing
+implied: only the sequence baseline carries a CI fully below zero
+(-0.117 [-0.241, -0.026] patient-cluster). The migraine XGBoost CI
+([-0.257, +0.077] patient-cluster) and TabPFN CI ([-0.172, +0.063]
+patient-cluster) both include zero, so the tabular models are
+statistically indistinguishable from the per-patient climatology
 baseline rather than significantly worse. High migraine AUROC (~0.76) still
 fails to translate into significant probabilistic value beyond the per-patient
 base rate, exactly Murphy's quality-vs-value distinction with finite-sample

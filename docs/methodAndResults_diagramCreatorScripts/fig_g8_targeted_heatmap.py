@@ -1,4 +1,4 @@
-"""Figure G8 — targeted-hypothesis-test AUROC heatmap, with the
+"""Figure G8 - targeted-hypothesis-test AUROC heatmap, with the
 main-text BH-FDR-significant pair from §3a overlaid.
 
 Companion to ``fig_g7_significance_heatmap.py`` (which carries the

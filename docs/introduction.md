@@ -3,7 +3,7 @@
 > Position in the paper: **Introduction (1)**. Synthesises the clinical motivation, the gap in the next-day-diary migraine-forecasting literature, and the contribution.
 
 Migraine is the second-most disabling neurological condition globally, and
-its attacks are largely predictable from same-day or recent-day exposures
+its attacks carry day-level associations with same-day or recent-day exposures
 (stress, sleep disruption, hormonal change, weather, dietary triggers).
 A sufficiently accurate one-day-ahead probability would let a patient take
 an oral pre-emptive medication before symptom onset, converting a reactive
@@ -104,6 +104,8 @@ Pooled AUROC overstates within-person forecasting skill on the Park
 out-of-fold cross-validation on the non-hyperparameter-tuned 70/30
 chronological cells (addition5 §9b), clusters near 0.55; the per-patient
 AUROC distribution centres near chance; and the Brier skill against
-per-patient climatology is negative for migraine.
+per-patient climatology is significantly negative only on the sequence
+baseline for migraine, with the migraine XGBoost and TabPFN Brier-skill
+CIs including zero.
 These findings reproduce the within-cohort Holsteen pattern and
 realign the published-AUROC framing for the cohort.

@@ -1,4 +1,4 @@
-"""Figure G7 — supplementary AUROC landscape heatmap across the 70_30
+"""Figure G7 - supplementary AUROC landscape heatmap across the 70_30
 sweep, with BH-FDR-significant paired-DeLong comparisons overlaid.
 
 Rows: (target, feature_set, split) cells at ratio=70_30 (the headline
@@ -222,7 +222,7 @@ def main():
     # Diverging colormap aligned with the project-wide _metric_palette
     # convention: warm = bad, cool = good (Crameri 2020 + _metric_palette.py).
     # For AUROC (higher is better), low values render warm/red and high
-    # values render cool/blue — so the supplementary heatmap reads the same
+    # values render cool/blue - so the supplementary heatmap reads the same
     # way as the comparison-table HTML heatmap.
     cmap = plt.get_cmap("RdBu")
     vmin, vmax = 0.35, 0.85

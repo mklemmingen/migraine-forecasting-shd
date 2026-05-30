@@ -110,7 +110,7 @@ selection produces a same-ratio pair; (b) within-family-tie tests at
 the headache full chrono 70_30 cell where v2.6 / v3-default / v3-binary
 sit within the 0.02 AUROC composite tier; (c) the HP-ladder at the
 migraine full chrono 70_30 cell (HP020 vs HP050 / HP100 / HP200 /
-HP500) and the AutoTabPFN-vs-XGBoost comparison at the same cell —
+HP500) and the AutoTabPFN-vs-XGBoost comparison at the same cell -
 both required to test §3's "AutoTabPFN leads migraine" and
 "HP020 is the composite winner" claims.
 
@@ -199,7 +199,7 @@ heatmap (Figure G8) for visual inspection.
 
 The §3a 18-test BH-FDR family targets specific hypotheses. As a
 *supplementary* counterpart, an all-pairs within-cell paired-DeLong
-analysis at ratio 70_30 was run with Bonferroni FWER correction —
+analysis at ratio 70_30 was run with Bonferroni FWER correction -
 strictly more conservative than BH-FDR, and the standard "fishing
 defense" inferential procedure. Scope: 15 (target, feature_set, split)
 cells where ≥2 architectures share the same test set; 487 paired tests
@@ -271,10 +271,11 @@ the classic small-sample overfitting fingerprint), and 98 cells have a
 negative slope (Platt inversion on a tiny calibration sub-split). At
 the chronological headline cells the bootstrap CIs are wide: the
 migraine *XGB-HP020 / full / chrono / 70-30* leaf has calibration
-slope 1.417 [0.952-1.942] and the headache *TabPFN v2.6 / full / chrono
-/ 70-30* leaf 1.095 [0.744-1.427]; both CIs include 1.0, so
-calibration is not distinguishable from unity at the headline cells,
-though the wide CIs reflect the small-sample calibration uncertainty.
+slope 1.386 [0.401, 2.067] patient-cluster primary and the headache
+*TabPFN v2.6 / full / chrono / 70-30* leaf 1.094 [0.594, 1.429]
+patient-cluster primary; both CIs include 1.0, so calibration is
+not distinguishable from unity at the headline cells, though the
+wide CIs reflect the small-sample calibration uncertainty.
 The paper must report calibration slope with its bootstrap CI alongside
 discrimination and flag that threshold-derived metrics on the
 negative-slope cells are unreliable; AUROC/AUPRC remain interpretable
@@ -292,16 +293,16 @@ so the grid is complete and reproducible from the committed code.
 
 1. **The pooled AUROC overstates clinical utility, and held-out-patient
    transport collapses on the migraine headline.** On the chronological
-   headline cells the migraine AUROC reaches 0.793 [0.701-0.873]
+   headline cells the migraine AUROC reaches 0.793 [0.701, 0.873]
    (*XGB-HP020 / full / chrono / 70-30*) and the headache AUROC 0.652
-   [0.589-0.712] (*TabPFN family / full / chrono / 70-30*: v2.6 /
+   [0.589, 0.712] (*TabPFN family / full / chrono / 70-30*: v2.6 /
    v3-default / v3-binary tied within the composite rule's 0.02 AUROC
    tier). At the **held-out-patient** counterparts (same architecture and
    ratio, split type `patient`), the migraine cell collapses to AUROC
-   **0.283** [0.233-0.333] (anti-predictive, with calibration slope
+   **0.283** [0.233, 0.333] (anti-predictive, with calibration slope
    -0.748, Platt-inverted), while the headache TabPFN family stays
-   within band at 0.631-0.637 (v2.6 0.631 [0.593-0.664]; v3-default
-   0.635 [0.599-0.669]; v3-binary 0.637 [0.601-0.672]). The
+   within band at 0.631-0.637 (v2.6 0.631 [0.593, 0.664]; v3-default
+   0.635 [0.599, 0.669]; v3-binary 0.637 [0.601, 0.672]). The
    chronological 0.793 is a within-cohort deployable number, not a
    held-out-patient generalisation number. Pooled discrimination is
    overwhelmingly between-patient base-rate separation, not within-person
@@ -309,13 +310,16 @@ so the grid is complete and reproducible from the committed code.
 2. **Within-person personalisation is not demonstrated.** The
    precision-weighted within-person C-statistic clusters near 0.55
    on the canonical leaves (Addition 5); Brier skill against
-   per-patient climatology under patient-day bootstrap is significantly
-   positive for headache across architectures (CIs +0.07 to +0.29) and
-   only significantly negative for migraine on the sequence baseline
-   (-0.117 [-0.227, -0.037]) — migraine XGBoost and TabPFN CIs include
-   zero, so the tabular forecasts are indistinguishable from the
-   per-patient climatology baseline rather than significantly worse
-   (Addition 6).
+   per-patient climatology under patient-cluster bootstrap (primary)
+   is significantly positive for headache only on TabPFN-v2.6
+   (+0.215 [+0.017, +0.396]); the headache XGBoost (+0.198
+   [-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362]) CIs
+   cross zero under patient-cluster though both are positive under
+   patient-day-iid sensitivity, and only significantly negative for
+   migraine on the sequence baseline (-0.117 [-0.241, -0.026]
+   patient-cluster). Migraine XGBoost and TabPFN CIs include zero,
+   so the tabular forecasts are indistinguishable from the per-patient
+   climatology baseline rather than significantly worse (Addition 6).
    The near-chance within-person result replicates across the two
    recruitment sites in the leave-one-site-out validation
    (`docs/external_validation_site.md` Section 7), so it is not a
@@ -385,7 +389,7 @@ so the grid is complete and reproducible from the committed code.
 
 The findings above hold for the Park 2016 SHD cohort (62 enrolled
 patients, 63 unique patient IDs after engineering, ICHD-3 episodic
-migraine, 19-55 years, 82% female, two Korean university hospitals).
+migraine, 19-55 years, 82.3% female, two Korean university hospitals).
 The claims we make do not extend beyond that applicability domain.
 Specifically:
 

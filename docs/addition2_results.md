@@ -214,8 +214,9 @@ the migraine chronological full_features cell: AutoTabPFN
 (`stacked_2xgb_meta_lr` HP020, KernelSHAP over the calibrated
 probability). On the same data slice, AutoTabPFN reached AUROC 0.745
 [0.656, 0.825], calibration slope 0.992 [0.642, 1.346] (the best
-slope in the migraine family; XGBoost-HP020 is 1.417 [0.952, 1.942]
-and TabPFN is 1.095 [0.744, 1.427] per §3.4), and the two architectures'
+slope in the migraine family; XGBoost-HP020 is 1.386 [0.401, 2.067]
+patient-cluster primary and TabPFN-v2-5-finetuned is 0.964
+[0.604, 1.346] per §3.4), and the two architectures'
 top-10 rankings overlap on six features:
 
 | rank | AutoTabPFN (perm-importance ×100) | XGBoost-HP020 (KernelSHAP ×100) |
@@ -411,7 +412,7 @@ checkpoint.
 |---|---|---|
 | 1. SHAP triangulates the leakage | partially supported (mechanism confirmed) | no_rolling carries 0% history attribution (no channel); neighbour-averaging features (`migraine_rate_last7`, `days_since_last_migraine`) gain rank/magnitude under stratification; magnitude alone cannot isolate the leaked fraction |
 | 2. Recovery of Park's triggers | partially supported | both architectures use all six triggers and rank hormonal_changes top with positive ALE; ranking diverges from Park's univariate ORs (stress over-, travel under-weighted) |
-| 3. Architecture feature-reliance | convergent across all three architectures | AutoTabPFN permutation importance and XGBoost-HP020 KernelSHAP on migraine `full_features` chrono share six of the top-10 features and both put `headache_free_streak` at #1; AutoTabPFN's advantage is calibration (slope 0.992 vs 1.417), not feature selection |
+| 3. Architecture feature-reliance | convergent across all three architectures | AutoTabPFN permutation importance and XGBoost-HP020 KernelSHAP on migraine `full_features` chrono share six of the top-10 features and both put `headache_free_streak` at #1; AutoTabPFN's advantage is calibration (slope 0.992 vs 1.386), not feature selection |
 | 4. Prodromal contamination | supported | noise/specific_smells/emotional_changes collapse to near-zero next-day SHAP (rank 28-44/52) |
 | 5. ShapIQ interactions | partially supported (park cell) | top-tier k-SII pairs are all among Park triggers with hormonal_changes dominant; within-set rank shifts with library versions; both Park interaction terms appear with positive k-SII |
 

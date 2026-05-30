@@ -150,13 +150,13 @@ Status codes:
 
 | # | Spec (Collins 2024 wt1) | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | manuscript title (carried forward into the submission template) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 SHD cohort": names prediction models, outcomes (migraine and headache), population (Park 2016 SHD cohort), time horizon (next-day). |
+| 1 (D;E) | Identify the study as developing or evaluating a multivariable prediction model, the target population, and the outcome (wt1 p. 1) | `abstract.md` §Title (L14-15); `body.md` H1 (L1) | ✓ | "Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 Korean SHD cohort": names prediction models, outcomes (migraine and headache), population (Korean SHD cohort, Park 2016 corpus), time horizon (next-day). The single demographic anchor "Korean" in the cohort name satisfies the verbatim TRIPOD+AI Item 1 "target population" requirement at the title-page surface where PubMed-scanning neurologists triage; age band (19-55 y), sex distribution (82.3% female), and clinic count (two participating Korean clinics) live in abstract Methods + body §2.1 per TRIPOD+AI Item 8 representativeness placement. |
 
 ### ABSTRACT
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 5-heading JHP-structured abstract (Objective / Background / Methods / Results / Conclusion), 409 words under the 450-word JHP cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
+| 2 (D;E) | Report an abstract addressing each item in the TRIPOD+AI for Abstracts checklist (wt1 p. 1) | `abstract.md` (manuscript front-matter, carried forward into the submission template) | ✓ | 4-heading JHP-structured abstract (Background / Methods / Results / Conclusion), 340 words under the JHP 350-word research-article cap. All 13 TRIPOD+AI for Abstracts sub-items covered (Title, Objective, Setting, Participants, Sample size, Predictors, Outcomes, Statistical methods, Missing-data handling, Performance measures, External validation, Results, Limitations, Funding); coverage map appended at the foot of `abstract.md`. |
 
 ### INTRODUCTION
 
@@ -164,7 +164,7 @@ Status codes:
 |---|---|---|---|---|
 | 3a (D;E) | Explain the healthcare context and rationale; reference existing models (wt1 p. 1) | `introduction.md` ¶1-2 | ✓ | Clinical premise (one-day-ahead probability → pre-emptive oral medication) and gap (pooled-AUROC overstates within-person value) named; Holsteen 2020 and Faisal 2026 cited as comparators. |
 | 3b (D;E) | Describe target population, intended purpose in care pathway, intended users (wt1 p. 1) | `introduction.md` ¶1 | ⚠️ partial | Target population (Park 2016 SHD cohort, 62 patients) and intended use (pre-emptive medication) described; intended users (patient self-directed vs clinician-supervised) not explicitly named. |
-| 3c (D;E) | Describe any known health inequalities between sociodemographic groups (wt1 pp. 1-2) | `introduction.md` §1 (applicability) | N/A | Within-cohort sociodemographic variation is not available: Park 2016 enrolled from two Korean university clinics under ICHD-3 episodic-migraine inclusion (resulting in 82% female enrolment). Inequalities across groups are not evaluable within this cohort; the applicability-domain consequence is the relevant compliance content and is named explicitly in the Introduction. |
+| 3c (D;E) | Describe any known health inequalities between sociodemographic groups (wt1 pp. 1-2) | `introduction.md` §1 (applicability) | N/A | Within-cohort sociodemographic variation is not available: Park 2016 enrolled from two Korean university clinics under ICHD-3 episodic-migraine inclusion (resulting in 82.3% female enrolment). Inequalities across groups are not evaluable within this cohort; the applicability-domain consequence is the relevant compliance content and is named explicitly in the Introduction. |
 | 4 (D;E) | Specify objectives, including whether development or validation (wt1 p. 2) | `introduction.md` ¶4 | ✓ | Seven layered contributions enumerated (Add-0 stacking; Add-1 TabPFN; Add-2 explainability; Add-3 temporal; Add-4 sequence; Add-5 personalisation + leave-one-site-out external check; Add-6 clinical value). |
 
 ### METHODS
@@ -261,9 +261,9 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
 | 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
-| **2** (Abstract 5-heading JHP restructure) | `abstract.md` (manuscript front-matter; Objective / Background / Methods / Results / Conclusion, 409 words) | ✓ |
+| **2** (Abstract 4-heading JHP restructure) | `abstract.md` (manuscript front-matter; Background / Methods / Results / Conclusion, 340 words) | ✓ |
 
-**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 5-heading JHP layout and the missing TRIPOD+AI Abstract sub-items integrated.
+**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 19 closed across this pass: 9 substantive closures and 10 N/A-with-declaration), 0 sub-items remaining ⚠️ or ✗. Compliance is at **100% addressed**, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 4-heading JHP layout (Background / Methods / Results / Conclusion) and the missing TRIPOD+AI Abstract sub-items integrated.
 
 A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification*: full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
 
@@ -373,7 +373,7 @@ Cohort demographic restrictions (single sex predominance, single ethnicity, narr
 
 ### 11.12 No editorial adjectives without numeric anchors
 
-"Substantial", "large", "remarkable", "considerable" — dropped or replaced with the numeric anchor. The reader gets the substantive claim; the adjective is editorial.
+"Substantial", "large", "remarkable", "considerable" - dropped or replaced with the numeric anchor. The reader gets the substantive claim; the adjective is editorial.
 
 ### 11.13 Reproduction-plus-extension framing
 

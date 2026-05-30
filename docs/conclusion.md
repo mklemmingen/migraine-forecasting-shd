@@ -14,13 +14,17 @@ within-person evaluation, however, the per-patient AUROC distribution
 centres near 0.55 on the out-of-fold cross-validation pass over the
 non-hyperparameter-tuned 70/30 chronological leaves (addition5 §9b);
 the precision-weighted within-person C-statistic clusters in the same
-band, and the Brier skill against per-patient climatology is
-significantly positive for headache across architectures (CIs +0.07
-to +0.29) and significantly negative for migraine only on the sequence
-baseline (-0.117 [-0.227, -0.037]); the migraine XGBoost and TabPFN
-Brier-skill CIs include zero, so the tabular migraine forecasts are
-statistically indistinguishable from per-patient climatology rather
-than significantly worse. The pooled discrimination commonly reported
+band, and the Brier skill against per-patient climatology under
+patient-cluster bootstrap (primary) is significantly positive for
+headache only on TabPFN-v2.6 (+0.215 [+0.017, +0.396]); the headache
+XGBoost (+0.198 [-0.017, +0.385]) and sequence (+0.139 [-0.123, +0.362])
+CIs cross zero under patient-cluster though both are positive under
+patient-day-iid sensitivity, and Brier skill is significantly negative
+for migraine only on the sequence baseline (-0.117 [-0.241, -0.026]
+patient-cluster); the migraine XGBoost and TabPFN Brier-skill CIs
+include zero, so the tabular migraine forecasts are statistically
+indistinguishable from per-patient climatology rather than significantly
+worse. The pooled discrimination commonly reported
 in the next-day-diary migraine-forecasting literature therefore
 overstates within-person forecasting skill on this cohort: it reflects
 between-patient base-rate separation more than within-patient
