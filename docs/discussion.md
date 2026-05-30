@@ -143,7 +143,7 @@ and TabPFN (-0.057 [-0.146, +0.020]) Brier-skill CIs both include zero,
 so the tabular models are statistically indistinguishable from the
 per-patient climatology baseline rather than significantly worse. Decision-curve
 net benefit for migraine sits near zero across the clinically plausible threshold
-band, while the headache curve is value-positive at +0.05 to +0.20 (Figure D3)
+band, while the headache curve is value-positive at +0.05 to +0.20 (Figure 5, working-notes ID D3)
 [vickers2019dca, p. 1; murphy1993forecast, p. 281]. The quality-versus-value
 distinction on this cohort is therefore target-specific and finite-sample
 limited: even on tabular architectures the migraine forecast does not add

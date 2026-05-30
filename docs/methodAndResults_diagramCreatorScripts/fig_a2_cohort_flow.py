@@ -1,4 +1,4 @@
-"""Figure A2 - cohort flow diagram (TRIPOD-style participant flow).
+"""Figure 1 (working-notes ID: A2) - cohort flow diagram (TRIPOD-style participant flow).
 
 From the published diary export to the headline evaluation split, with the
 site-reconciliation exclusion noted. Counts are computed from the processed

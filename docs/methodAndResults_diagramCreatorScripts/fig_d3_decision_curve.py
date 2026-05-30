@@ -1,4 +1,4 @@
-"""Figure D3 - decision-curve (net benefit) analysis.
+"""Figure 5 (working-notes ID: D3) - decision-curve (net benefit) analysis.
 
 Net benefit vs threshold probability overlaying the composite-best XGBoost
 (Add-0) and TabPFN (Add-1) leaves resolved from the latest

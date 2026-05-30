@@ -1,4 +1,4 @@
-"""Figure C4 - flexible (loess) calibration curves at the headline cells.
+"""Figure 2 (working-notes ID: C4) - flexible (loess) calibration curves at the headline cells.
 
 Adds the moderate-calibration-level diagnostic of the Van Calster 2016
 calibration hierarchy on top of the weak-calibration (slope + CITL) reporting
