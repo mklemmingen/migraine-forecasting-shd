@@ -130,6 +130,8 @@ We benchmarked 24-hour migraine and headache forecasting on the Park 2016 SHD co
 
 **Ethics approval and consent to participate.** Secondary analysis of the Park 2016 publicly released dataset under PLOS ONE CC BY 4.0; original IRB approval Dongtan Sacred Heart Hospital (2014-132) and Uijeongbu St. Mary's (UC14OIM10085). No new data collection.
 
+**Patient and public involvement.** This work is a secondary computational re-analysis of the publicly released Park 2016 SHD dataset; no new patient contact, recruitment, or study-design step occurred at which patient and public involvement could have shaped the research question or methods. A deployment-stage clinical evaluation of any of the benchmarked models would require patient and public involvement per the DECIDE-AI guideline [22]; no such evaluation is undertaken here.
+
 **Availability of data and code.** Park 2016 raw dataset available as Supplementary File S1 of [2] under CC BY 4.0. Analytical code is released under Apache-2.0 at `https://github.com/mklemmingen/migraine-forecasting-shd`; the exact commit corresponding to this submission will be archived at Zenodo (DOI to be assigned at submission). `requirements.txt` is pinned (Python 3.13.12, scikit-learn, XGBoost, `tabpfn>=8.0.1`; `tabpfn-extensions` pinned to commit `b2f624f`). Reference compute environment: AMD Radeon RX 7900 XT via PyTorch ROCm 7.2; FlashAttention-3 is not available on AMD and was not used.
 
 **Manuscript licence.** This manuscript is released under CC BY 4.0.

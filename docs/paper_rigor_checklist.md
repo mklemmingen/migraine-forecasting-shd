@@ -213,7 +213,7 @@ Status codes:
 
 | # | Spec | Doc:Section | Status | Evidence / note |
 |---|---|---|---|---|
-| 19 (D;E) | Patient and public involvement; state no involvement if absent (wt1 p. 10) | `paper_rigor_checklist.md §10 (Patient and public involvement)` | N/A | No patients or public were involved in study design, conduct, reporting, interpretation, or dissemination. An explicit one-sentence "No patient or public involvement" declaration (GRIPP2 inapplicable) sits in §10. |
+| 19 (D;E) | Patient and public involvement; state no involvement if absent (wt1 p. 10) | `body.md` §Declarations (Patient and public involvement); `paper_rigor_checklist.md §10` | ✓ | The body §Declarations carries an explicit negative declaration: this work is a secondary computational re-analysis of the publicly released Park 2016 SHD dataset with no new patient contact, recruitment, or study-design step at which patient and public involvement could have shaped the research question or methods; deployment-stage clinical evaluation would require PPI per DECIDE-AI [22] but no such evaluation is undertaken here. GRIPP2 framework is inapplicable in the absence of involvement. |
 
 ### RESULTS
 
@@ -245,7 +245,7 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 **Pre-closure state (the table above):**
 
 - Fully covered (✓): 33 sub-items.
-- N/A by design (9 sub-items): Intro 3c; Methods 8b, 8c, 9c; Open Science 18c, 18d; Patient & Public Involvement 19; Discussion 27a, 27b.
+- N/A by design (8 sub-items): Intro 3c; Methods 8b, 8c, 9c; Open Science 18c, 18d; Discussion 27a, 27b. (Item 19 moved out of N/A to ✓ via explicit negative declaration in body §Declarations now that the body manuscript carries the PPI statement directly rather than only in the rigor checklist supplement.)
 - Partial (⚠️): 10 sub-items: Abstract 2; Intro 3b; Methods 6c, 11, 12f, 14, 15; Results 20b, 22, 24. (Item 14 is partial-evaluable rather than N/A because §3.6 disaggregates the within-person C-statistic by site / sex / per-patient base-rate stratum, so within-cohort fairness IS evaluable on the strata above the 5-patient reporting floor; the canonical N/A framing applies only to cross-demographic fairness, which the monodemographic recruitment design genuinely prevents.)
 - Missing (✗): 0 sub-items.
 
@@ -258,13 +258,14 @@ The TRIPOD+AI expanded checklist resolves to 52 sub-items across the 27 numbered
 | 6c, 8b, 8c, 9c, 11 (treatments-not-modelled, self-report N/A, per-predictor missing count) | `dataset.md` (new subsections after Study Design and Gap Awareness) | ✓ |
 | 12f, 24 (no recalibration, no model updating) | `external_validation_site.md` §7 (new paragraph) | ✓ |
 | 15 (risk-group framing rename) | `addition6_clinical_value.md` §3.3 (header rename + spec pointer) | ✓ |
-| 18c, 18d, 19 + Open Science end-matter | `paper_rigor_checklist.md` §10 (new section) | ✓ |
+| 18c, 18d + Open Science end-matter | `paper_rigor_checklist.md` §10 (new section) | ✓ |
+| 19 (patient and public involvement) | `body.md` §Declarations (new explicit negative declaration); `paper_rigor_checklist.md` §10 (supplementary rationale) | ✓ (honest re-categorisation from N/A: a stated absence-with-rationale is the positive declaration Item 19 asks for, not an N/A) |
 | 20b (per-data-source characteristics) | `dataset.md` (new Per-site characteristics table) | ✓ |
 | 22 (final-model parameter-JSON path pointer) | `xgboost.md` §1 + `tabPfn.MD` §5 (new subsections) | ✓ |
 | 27a, 27b (deployment-stage scope-disclaimers) | `discussion.md` §7.5 (new paragraph) | ✓ |
 | **2** (Abstract 4-heading JHP restructure) | `abstract.md` (manuscript front-matter; Background / Methods / Results / Conclusion, 340 words) | ✓ |
 
-**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 18 closed across this pass: 9 substantive closures and 9 N/A-with-declaration + 1 honest re-categorisation of Item 14 from N/A to partial-evaluable). 0 sub-items remaining ✗; 1 sub-item ⚠️ partial (Item 14, since §3.6 within-cohort stratum disaggregation provides partial fairness evaluation while cross-demographic fairness remains genuinely untestable on a monodemographic cohort). Compliance is at **100% addressed** with 1 explicit ⚠️ partial declaration, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 4-heading JHP layout (Background / Methods / Results / Conclusion) and the missing TRIPOD+AI Abstract sub-items integrated.
+**Post-closure totals**: 52 sub-items addressed (33 pre-existing ✓ + 18 closed across this pass: 9 substantive closures, 8 N/A-with-declaration, 1 honest re-categorisation of Item 14 from N/A to ⚠️ partial-evaluable, and 1 honest re-categorisation of Item 19 from N/A to ✓ via explicit body-Declarations negative declaration). 0 sub-items remaining ✗; 1 sub-item ⚠️ partial (Item 14, since §3.6 within-cohort stratum disaggregation provides partial fairness evaluation while cross-demographic fairness remains genuinely untestable on a monodemographic cohort). Compliance is at **100% addressed** with 1 explicit ⚠️ partial declaration, up from 63.5% pre-closure. The 9th substantive closure (Item 2 abstract restructure) was completed by lifting the structured abstract into the public `abstract.md` manuscript-template file with the 4-heading JHP layout (Background / Methods / Results / Conclusion) and the missing TRIPOD+AI Abstract sub-items integrated.
 
 A note on the workplan-vs-checklist numbering: an earlier draft of the project workplan referred to the "parameter-JSON pointer" task as "Item 15a/b". TRIPOD+AI Item 15 is about *model output* (probabilities, classification, thresholds), whereas the parameter-JSON pointer falls under Item 22 (*Model specification*: full model details to enable third-party reproduction). The workplan label was incorrect; the canonical reference is Item 22.
 
