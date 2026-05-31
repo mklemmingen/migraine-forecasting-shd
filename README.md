@@ -87,12 +87,6 @@ Bootstrap confidence intervals reported throughout.
 
 Each Addition is self-contained under (*where applicable) `experiment/<NrAddition>/<headache/migraine>/<feature_set>/<architecture>/<*modelVersion>/<*dataSplit>/<*SplitType>/<*HyperparameterTuned>` with code, model, and results.
 
-## Baseline Model
-
-The stacked ensemble XGBoost with L1 with isotonic calib [sic] baseline (Addition 0) is based on the architecture conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University [2]. 
-The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. 
-See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding.
-
 ## Reproducibility
 
 Aggregated metrics in each sub-addition's `results/` directory are
@@ -126,6 +120,13 @@ This repository ships the engineered-feature parquets under
 redistributed beyond what Park et al. already made publicly available.
 The build pipeline that produces the engineered features from the raw
 supplementary file is in [`data/pipeline/`](data/pipeline/).
+
+## Prior Work on SHD
+
+The stacked ensemble XGBoost with L1 with isotonic calib [sic] baseline (Addition 0) (distinguishable from the headline model architecture, which is blended instead of stacked and does not run isotonic on an ensemble)
+is based on the architecture conceived and developed by Marco Samuel Spano as part of his bachelor thesis at Reutlingen University [2]. 
+The implementation in this repository was rebuilt from scratch following analysis of the original thesis and codebase, the latter of which required a full rework by hand prior to scientifically sound re-execution. 
+See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and the rationale for rebuilding it to compare.
 
 ## References
 
