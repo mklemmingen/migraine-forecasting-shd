@@ -33,7 +33,7 @@ Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; posit
 
 ## Keywords
 
-Migraine; Headache; Forecasting; Machine learning; Calibration; Decision support techniques; Mobile applications; Smartphone; Within-person evaluation
+Migraine; Headache; Forecasting; Machine learning; Calibration; Decision support techniques; Mobile applications; Smartphone; Within-person evaluation; Internal-external validation
 
 ## Funding
 
