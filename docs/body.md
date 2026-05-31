@@ -70,7 +70,28 @@ Every metric was reported as `mean [95% CI]` from 1,000-iteration bootstrap. The
 
 ### 3.1 Cohort flow and base rates
 
-The Park 2016 enrolment funnel started at 113 patients recruited at the two Korean neurology clinics, with 30 patients withdrawing before the end of the study and 21 patients excluded for diary adherence below 50%, leaving the 62-patient Park 2016 analytic cohort (Figure 1, upstream funnel). Those 62 enrolled patients yielded 63 unique processed `patient_id` values after diary deduplication (the 63rd patient_id is a disability-sheet-only reconciliation patient with 38 patient-days, excluded from the site-mapping analysis but retained in the patient-day total) and 4,516 patient-days at 7.2% pooled migraine positive rate (Uijeongbu 8.6% vs Dongtan 5.7%); the 4,516 patient-day total is 63 days lower than the 4,579 diary days Park 2016 reports for the same n = 62 cohort because the next-day target `migraine_today.shift(-1)` is undefined on each patient's last observed day and so those 63 final-day rows are dropped from the analysis sample (one per processed `patient_id`). Forty-nine patients had estimable per-patient lag-1 autocorrelation for the migraine target; 62 patients had estimable autocorrelation for the headache target.
+The Park 2016 enrolment funnel started at 113 patients recruited at the two Korean neurology clinics, with 30 patients withdrawing before the end of the study and 21 patients excluded for diary adherence below 50%, leaving the 62-patient Park 2016 analytic cohort (Figure 1, upstream funnel). Those 62 enrolled patients yielded 63 unique processed `patient_id` values after diary deduplication (the 63rd patient_id is a disability-sheet-only reconciliation patient with 38 patient-days, excluded from the site-mapping analysis but retained in the patient-day total) and 4,516 patient-days at 7.2% pooled migraine positive rate (Uijeongbu 8.6% vs Dongtan 5.7%); the 4,516 patient-day total is 63 days lower than the 4,579 diary days Park 2016 reports for the same n = 62 cohort because the next-day target `migraine_today.shift(-1)` is undefined on each patient's last observed day and so those 63 final-day rows are dropped from the analysis sample (one per processed `patient_id`). Forty-nine patients had estimable per-patient lag-1 autocorrelation for the migraine target; 62 patients had estimable autocorrelation for the headache target. Baseline demographic and headache characteristics of the n = 62 Park-analytic cohort are summarised in Table 1.
+
+**Table 1.** Baseline demographic and headache characteristics of the n = 62 Park 2016 analytic cohort. Values transcribed from Park 2016 Table 1 (page 5) and the page-5 prose paragraph, retaining the source's mean ± standard deviation notation; percentages are as reported by Park 2016 [2].
+
+| Characteristic | Value (n = 62) |
+|---|---|
+| Age, years | 37.7 ± 8.6 |
+| Female | 82.3% |
+| Migraine without aura | 60 of 62 |
+| Migraine with aura | 2 of 62 |
+| Duration of illness, years | 9.7 ± 8.2 |
+| Pain intensity, VAS (0-10) | 7.5 ± 1.3 |
+| Monthly headache days | 6.4 ± 5.1 |
+| Headache duration, hours | 31.1 ± 26.3 |
+| Frequency of abortive treatment per month | 4.6 ± 3.6 |
+| Current prophylactic medication | 40.3% |
+| HIT-6 | 62.4 ± 9.7 |
+| MIDAS | 22.0 ± 24.5 |
+| HADS-D | 9.5 ± 13.9 |
+| HADS-A | 6.5 ± 3.1 |
+
+VAS = visual analogue scale (0 = no pain, 10 = worst imaginable pain); HIT-6 = Headache Impact Test-6 (range 36-78, higher = greater impact); MIDAS = Migraine Disability Assessment Scale (higher = greater disability); HADS-D = Hospital Anxiety and Depression Scale depression subscale; HADS-A = Hospital Anxiety and Depression Scale anxiety subscale. The n = 62 Park-analytic cohort excludes the disability-sheet reconciliation patient_id (62 to 63 processed patient_ids in our pipeline; the 63rd patient has no Park Table 1 demographic record), the 30 patients who withdrew before the end of the study, and the 21 patients excluded for diary adherence below 50% (Figure 1, upstream funnel).
 
 ### 3.2 Headline discrimination per Addition
 
