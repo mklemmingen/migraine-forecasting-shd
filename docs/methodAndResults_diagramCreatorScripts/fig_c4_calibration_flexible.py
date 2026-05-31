@@ -4,8 +4,10 @@ Adds the moderate-calibration-level diagnostic of the Van Calster 2016
 calibration hierarchy on top of the weak-calibration (slope + CITL) reporting
 already in body §3.4 and the discrete-bin reliability diagram in fig_c3. The
 loess smooth is fit to the per-leaf out-of-sample (y, p) pairs at the
-composite-tracked migraine and headache headline cells; the patient-day
-bootstrap 95% band is drawn around the smooth so a reader can see at which
+composite-tracked migraine and headache headline cells; the patient-cluster
+bootstrap 95% band is drawn around the smooth (resampling unit = patient,
+matching the body §2.8 discipline for the headline-cell metrics under the
+§3.5 within-patient serial-dependence finding) so a reader can see at which
 predicted-probability regions the calibration is supported by data.
 
 The predicted-probability density is overlaid on a twinned y-axis per the
@@ -78,23 +80,33 @@ def _predict(leaf: Path):
             print(f"  SKIP {leaf.name}: {tail}")
             return None
         z = np.load(out, allow_pickle=True)
-        return z["y"].astype(float), z["p"].astype(float)
+        return z["y"].astype(float), z["p"].astype(float), z["pid"]
     finally:
         out.unlink(missing_ok=True)
 
 
-def _loess_with_band(y: np.ndarray, p: np.ndarray, grid: np.ndarray) -> dict:
-    """Return the loess point-estimate fit on grid + the patient-day bootstrap
-    2.5/97.5 band evaluated at the same grid points."""
+def _loess_with_band(y: np.ndarray, p: np.ndarray, grid: np.ndarray,
+                     patient_ids: np.ndarray) -> dict:
+    """Return the loess point-estimate fit on grid + the patient-cluster
+    bootstrap 2.5/97.5 band evaluated at the same grid points.
+
+    Patient-cluster resampling: sample unique patient_id values with
+    replacement, concatenate every row belonging to each sampled patient,
+    refit loess on the bootstrap sample. Matches the body §2.8 discipline
+    for the headline-cell metrics under the §3.5 within-patient serial
+    dependence."""
     smoothed = lowess(y, p, frac=LOWESS_FRAC, it=LOWESS_IT, return_sorted=True)
     smooth_grid = np.interp(grid, smoothed[:, 0], smoothed[:, 1])
 
-    n = len(p)
+    pid = np.asarray(patient_ids)
+    unique = np.unique(pid)
+    groups = {u: np.where(pid == u)[0] for u in unique}
     rng = np.random.default_rng(42)
     boot_curves = np.empty((N_BOOT, len(grid)))
     valid = 0
     for k in range(N_BOOT):
-        idx = rng.integers(0, n, size=n)
+        sampled = rng.choice(unique, size=len(unique), replace=True)
+        idx = np.concatenate([groups[u] for u in sampled])
         ys = y[idx]
         ps = p[idx]
         if ys.sum() == 0:
@@ -168,11 +180,11 @@ def main() -> None:
             r = _predict(leaf)
             if r is None:
                 continue
-            y, p = r
+            y, p, pid = r
             cached.append((label, y, p))
             p_max = float(p.max())
             grid = np.linspace(0.0, p_max, GRID_POINTS)
-            band = _loess_with_band(y, p, grid)
+            band = _loess_with_band(y, p, grid, patient_ids=pid)
             col = S.arch_color(label)
             ax.fill_between(grid, band["lo"], band["hi"], color=col, alpha=0.18, linewidth=0)
             ax.plot(grid, band["smooth"], color=col, lw=1.5, marker=mark.get(label, "o"),
@@ -214,7 +226,7 @@ def main() -> None:
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
     fig.suptitle("Flexible (loess) calibration - Park 2016 SHD, n=62\n"
-                 "patient-day bootstrap 95% band; per-architecture predicted-probability rug at the bottom of each panel",
+                 "patient-cluster bootstrap 95% band; per-architecture predicted-probability rug at the bottom of each panel",
                  y=1.04, fontsize=10)
     print("saved", S.save(fig, HERE / "figures" / "fig_c4_calibration_flexible"))
 
