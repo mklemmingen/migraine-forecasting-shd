@@ -350,7 +350,8 @@ sequences at gaps > N days.
 
 **Per-predictor missing-values count.** Each predictor's null count after
 the engineering pipeline is logged in
-`data/processed/dataset_characterization.pdf` and is zero for the
+`data/processed/headache/dataset_analysis.pdf` and
+`data/processed/migraine/dataset_analysis.pdf` (per-target), and is zero for the
 diary-trigger predictors and the engineered rolling/lag features used
 in this benchmark, by construction: gap days are absent rows rather
 than null cells, and rolling features fall back to `min_periods=1`
@@ -361,7 +362,15 @@ exercise-minute columns (filled with 0 for non-recorded days,
 i.e. no-exercise rather than missing-data). No predictor was omitted
 due to missingness; no imputation step is applied beyond these two
 documented null-fill defaults, so training- vs test-set leakage via
-imputation is structurally not possible.
+imputation is structurally not possible. The TRIPOD+AI Item 11
+sub-bullet "for each predictor being considered, the number of
+missing values" is therefore zero for every predictor in the
+n = 4,516 patient-day analysis sample by construction: after the
+gap-aware reindexer drops missing diary days at engineering, every
+retained day has all predictor values observed, and the two
+documented null-fill defaults named above (`days_since_last_migraine`
+and the exercise-minute columns) are filled with named constants
+rather than recorded as missing values.
 
 **Train/Val/Test Split (Chronological 70/15/15):**
 
@@ -620,7 +629,7 @@ EPV concern is migraine-specific.
 ### Row provenance
 
 Upstream counts are stable facts about the source file. Split counts vary by
-ratio and strategy - authoritative figures are in `data/processed/dataset_characterization.pdf`
+ratio and strategy - authoritative figures are in the per-target `data/processed/headache/dataset_analysis.pdf` and `data/processed/migraine/dataset_analysis.pdf`
 and the per-package `package_report.pdf` files.
 
 | Step | Source | Rows | Delta | Cause |

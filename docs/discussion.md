@@ -99,7 +99,7 @@ the recoverable signal sits in a short window the engineered lag/rolling
 features already encode.
 
 Addition 4 tests that prediction directly. Across three sequence
-variants (window-MLP, GRU, TCN) on the full_features chronological
+variants (window-MLP, GRU, 1D-CNN) on the full_features chronological
 cells, no sequence variant beats the XGBoost stack headline AUROC; on
 migraine the window-MLP narrowly beats the vanilla TabPFN runner-up
 (0.771 vs 0.761) but does not unseat the XGB-HP020 0.793 headline. The

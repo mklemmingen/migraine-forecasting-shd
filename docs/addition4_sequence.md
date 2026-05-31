@@ -76,9 +76,11 @@ development sets [martin2025samplesize, p. 2].
 
 - **GRU/LSTM** with a single small hidden layer (8-32 units), dropout, and heavy
   weight decay. The default recurrent baseline.
-- **Temporal convolutional network (TCN)** with a receptive field capped at the
-  look-back window. A 1D-convolutional alternative that is cheaper and often more
-  stable than recurrence on short sequences.
+- **1D-CNN** (project-internal module name `tcn`) with a receptive field capped at the
+  look-back window via same-padded 1D convolutions, not a Bai-Kolter-Koltun
+  Temporal Convolutional Network (no dilation stack, no causal padding, no
+  residual connections). A convolutional alternative that is cheaper and often
+  more stable than recurrence on short sequences.
 - **N-day-window MLP**: the last N days of features were flattened and passed to a small
   dense network. This is the bridge model: it is a sequence model only in that
   it sees N days at once, and it is the cleanest test of RQ2 (does seeing the raw
@@ -197,7 +199,7 @@ experiment/4/
     dataread.py                  # load_seq: keeps patient_id + date on X
   _model_architecture/
     gru/model.py                 # build_gru        (+ _GRUNet)
-    tcn/model.py                 # build_tcn        (+ _TCNNet)
+    tcn/model.py                 # build_tcn        (+ _1D-CNNNet)
     window_mlp/model.py          # build_window_mlp (+ _WindowMLPNet)
   <target>/<feature_set>/sequence/version_<arch>/<ratio>/<split>/
     train.py  evaluate.py        # generated (all cells)
@@ -221,7 +223,7 @@ cells fold into the existing `comparison_*.html` without aggregator changes.
 The full chain is implemented and runs end-to-end. All three sequence variants
 are trained on the `full_features` chronological cells for both targets (val+test
 AUROC via the shared prediction worker, supplementary Figure B7): window-MLP 0.60 / GRU 0.64 /
-TCN 0.63 on headache, and 0.77 / 0.74 / 0.73 on migraine. No sequence variant
+1D-CNN 0.63 on headache, and 0.77 / 0.74 / 0.73 on migraine. No sequence variant
 beats the XGBoost stack on the headline AUROC; on migraine the window-MLP
 narrowly beats the vanilla TabPFN baseline (0.77 vs 0.76), so the verdict is
 "competitive but not dominant" rather than uniformly behind (supplementary Figure B7). The
@@ -311,7 +313,7 @@ The four implementation decisions, each source-grounded:
   predictor of day-2 [houle2005timeseries, p. 445]. Treated as a sensitivity
   parameter, not a silent constant, and the sweep confirms robustness: on the
   migraine/full_features chronological cell the 5-fold CV AUROC is flat across
-  {3, 7, 14} (window-MLP 0.65, GRU 0.67-0.69, TCN 0.70-0.71; within-architecture
+  {3, 7, 14} (window-MLP 0.65, GRU 0.67-0.69, 1D-CNN 0.70-0.71; within-architecture
   spread <= 0.02, far inside the +/-0.05-0.10 fold-to-fold noise), so the default
   of 7 stands and the conclusion does not depend on the threshold. Reproduce with
   `experiment/4/_gap_sensitivity.py`.

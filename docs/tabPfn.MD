@@ -105,6 +105,11 @@ The asymmetry is noted in the methodology section of the paper. Because AUROC an
 
 ## §5 - Variants benchmarked in parallel
 
+### Final-model parameters per leaf (TRIPOD+AI Item 22)
+
+The full prediction-model specification per TabPFN leaf is stored at `<leaf>/model.joblib`, the serialised TabPFN classifier (variant-specific: v2.6 stock, v3-default, v3-binary, Real-TabPFN-v2.5, or AutoTabPFN-v2.5) ready to call via `bundle.predict_proba(X)[:, 1]`. TabPFN variants do not carry a per-leaf hyperparameter JSON because the TabPFN family is used at meta-trained defaults under the no-per-variant-HPO discipline of §1.3 (the only fitted artefact per leaf is the `model.joblib` itself); the AutoTabPFN variant additionally co-locates its AutoGluon predictor at `<leaf>/autogluon_predictor/` per the §5.2 path-pinning configuration. Together with the variant-pinned `tabpfn>=8.0.1` package version and the `tabpfn-extensions` commit pin documented in the manuscript Declarations, the per-leaf `model.joblib` permits re-instantiation of any cell's calibrated probability emitter for a third-party replicator.
+
+
 Addition 1 evaluates five members of the TabPFN family side-by-side as parallel comparators (each a separate `version_<label>/` branch under `experiment/1/<target>/<feature_set>/tabpfn/`). They never combine outputs - each variant fits independently per leaf and contributes its own column to the comparison table.
 
 | Folder | Variant | Citation status |
@@ -155,9 +160,9 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
 
 **Citation, disclosed up front:** no dedicated peer-reviewed paper documents AutoTabPFN as a named classifier. We state this explicitly when introducing AutoTabPFN rather than implying a peer-reviewed citation exists. Software citation: [PriorLabs/tabpfn-extensions](https://github.com/PriorLabs/tabpfn-extensions). The underlying TabPFN architecture is cited via Hollmann et al. [1]. Optional methodological backing for post-hoc ensemble selection in AutoML: Purucker & Beel [9].
 
-### §5.3 Fine-tuned TabPFN-v2.6
+### §5.3 Fine-tuned TabPFN-v2.5
 
-**What's different:** unlike the other three variants (which use pure in-context learning), this variant performs gradient updates on the training data before inference, specialising the base v2.6 model to the downstream dataset.
+**What's different:** unlike the other three variants (which use pure in-context learning), this variant performs gradient updates on the training data before inference, specialising the base v2.5 model to the downstream dataset (the `FinetunedTabPFNClassifier` library entry point pins the base to `ModelVersion.V2_5`, which is why the leaf folder reads `version_2-5-finetuned`).
 
 **Two-pass training design:** `build_finetunedtabpfn` runs two passes to satisfy both the empirical-rigour constraint (no overfitting) and a methodological transparency requirement (proof that early-stopping was the right choice):
 

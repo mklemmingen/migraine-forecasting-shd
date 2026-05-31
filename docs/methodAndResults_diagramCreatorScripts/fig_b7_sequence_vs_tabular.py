@@ -1,7 +1,7 @@
 """Figure 3 (working-notes ID: B7) - sequence vs tabular discrimination (Addition 4).
 
 Hold-out (val+test) AUROC of the three sequence architectures (window-MLP,
-GRU, TCN over gap-aware temporal windows) against the tabular architectures
+GRU, 1D-CNN over gap-aware temporal windows) against the tabular architectures
 (XGBoost stack, TabPFN), per target, full_features chronological. Computed
 via the Addition 5 prediction worker so every architecture is scored on the
 same horizon (the internal Addition 4 cells were not emitted to the
@@ -60,7 +60,7 @@ from sklearn.metrics import roc_auc_score
 HERE = Path(__file__).resolve().parent
 EXP = HERE.parents[1] / "experiment"
 WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
-ORDER = ["XGBoost stack", "TabPFN", "window-MLP", "GRU", "TCN"]
+ORDER = ["XGBoost stack", "TabPFN", "window-MLP", "GRU", "1D-CNN"]
 TABULAR = {"XGBoost stack", "TabPFN"}
 
 
@@ -132,7 +132,7 @@ def _leaves(tgt, headlines):
     d1 = _resolve_leaf(headlines, tgt, "tabpfn")
     if d1 is not None and (d1 / "model.joblib").exists():
         out["TabPFN"] = d1
-    for name, var in (("window-MLP", "window-mlp"), ("GRU", "gru"), ("TCN", "tcn")):
+    for name, var in (("window-MLP", "window-mlp"), ("GRU", "gru"), ("1D-CNN", "tcn")):
         d = seqbase / f"version_{var}/70_15_15/chrono"
         if (d / "model.joblib").exists():
             out[name] = d
@@ -184,7 +184,7 @@ def main():
             transform=ax.get_xaxis_transform())
     # Slug-bearing tick labels: every reported AUROC must name the model+cell
     # that produced it. Where the headache and migraine bars use the same
-    # ARCH-VAR (e.g. window-MLP, GRU, TCN), one slug suffices; where they
+    # ARCH-VAR (e.g. window-MLP, GRU, 1D-CNN), one slug suffices; where they
     # diverge (TabPFN-v2.6 on headache vs TabPFN-v2.5f on migraine via the
     # composite-tracked headline), both are disclosed.
     def _slug_arch(s):
