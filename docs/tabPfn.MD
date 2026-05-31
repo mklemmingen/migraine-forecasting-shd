@@ -105,6 +105,11 @@ The asymmetry is noted in the methodology section of the paper. Because AUROC an
 
 ## §5 - Variants benchmarked in parallel
 
+### Final-model parameters per leaf (TRIPOD+AI Item 22)
+
+The full prediction-model specification per TabPFN leaf is stored at `<leaf>/model.joblib`, the serialised TabPFN classifier (variant-specific: v2.6 stock, v3-default, v3-binary, Real-TabPFN-v2.5, or AutoTabPFN-v2.5) ready to call via `bundle.predict_proba(X)[:, 1]`. TabPFN variants do not carry a per-leaf hyperparameter JSON because the TabPFN family is used at meta-trained defaults under the no-per-variant-HPO discipline of §1.3 (the only fitted artefact per leaf is the `model.joblib` itself); the AutoTabPFN variant additionally co-locates its AutoGluon predictor at `<leaf>/autogluon_predictor/` per the §5.2 path-pinning configuration. Together with the variant-pinned `tabpfn>=8.0.1` package version and the `tabpfn-extensions` commit pin documented in the manuscript Declarations, the per-leaf `model.joblib` permits re-instantiation of any cell's calibrated probability emitter for a third-party replicator.
+
+
 Addition 1 evaluates five members of the TabPFN family side-by-side as parallel comparators (each a separate `version_<label>/` branch under `experiment/1/<target>/<feature_set>/tabpfn/`). They never combine outputs - each variant fits independently per leaf and contributes its own column to the comparison table.
 
 | Folder | Variant | Citation status |
