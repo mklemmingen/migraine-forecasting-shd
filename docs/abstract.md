@@ -42,6 +42,8 @@ This work received no external funding.
 
 ---
 
+**Graphical abstract.** Submitted alongside as a supplementary file (`docs/methodAndResults_diagramCreatorScripts/figures/graphical_abstract.png`, 920 x 300 px, 59.5 KB, PNG; rendered by `graphical_abstract.py`). Visualises the pooled-vs-within-person discrimination gap (the four headline anchor numbers from §3.2 + §3.6, against a chance reference at 0.5) with the load-bearing takeaway sentence along the bottom. Per JHP submission guidelines.
+
 **Word count.** Title 18 words. Abstract 350 words (at the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
