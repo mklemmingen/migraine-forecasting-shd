@@ -72,7 +72,7 @@ def _predict(leaf):
                     print(f"    {line}")
             return None
         z = np.load(out)
-        return z["y"].astype(float), z["p"].astype(float)
+        return z["y"].astype(float), z["p"].astype(float), z["pid"]
     finally:
         out.unlink(missing_ok=True)
 
@@ -113,7 +113,9 @@ def main():
             r = _predict(leaf)
             if r is None:
                 continue
-            dc = DC.decision_curve_ci(*r)
+            y, p, pid = r
+            dc = DC.decision_curve_ci(y, p, patient_ids=pid,
+                                      bootstrap_unit="patient_cluster")
             ref = dc
             col = S.arch_color(label)
             ax.fill_between(dc["thresholds"], dc["model_ci_low"], dc["model_ci_high"],
@@ -123,7 +125,13 @@ def main():
                     label=f"{label}")
             ymin = min(ymin, float(np.nanmin(dc["model_ci_low"])))
             ymax = max(ymax, float(np.nanmax(dc["model_ci_high"])))
-            print(f"  {tgt:<9} {label:<13} max net benefit {np.max(dc['model']):.3f}")
+            ts = dc['thresholds']
+            def _at(t):
+                k = int(np.argmin(np.abs(ts - t)))
+                return dc['model'][k], dc['model_ci_low'][k], dc['model_ci_high'][k]
+            for t in (0.05, 0.10, 0.20, 0.30, 0.50):
+                m, lo, hi = _at(t)
+                print(f"  {tgt:<9} {label:<13} t={t:.2f} NB={m:+.3f} CI=[{lo:+.3f}, {hi:+.3f}]")
         if ref is not None:
             ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.REF_COLOR, lw=1, label="treat all")
             ax.plot(ref["thresholds"], ref["treat_none"], ":", color=S.REF_COLOR, lw=1, label="treat none")
@@ -135,7 +143,7 @@ def main():
         ax.legend(fontsize=8, loc="upper right")
         S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
     fig.suptitle("Decision-curve analysis (Park 2016 SHD, n=62)\n"
-                 "Net benefit per architecture with patient-day bootstrap 95% CI band",
+                 "Net benefit per architecture with patient-cluster bootstrap 95% CI band",
                  y=1.04, fontsize=10)
     S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
