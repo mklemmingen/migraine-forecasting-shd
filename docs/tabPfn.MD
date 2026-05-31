@@ -160,9 +160,9 @@ Addition 1 evaluates five members of the TabPFN family side-by-side as parallel 
 
 **Citation, disclosed up front:** no dedicated peer-reviewed paper documents AutoTabPFN as a named classifier. We state this explicitly when introducing AutoTabPFN rather than implying a peer-reviewed citation exists. Software citation: [PriorLabs/tabpfn-extensions](https://github.com/PriorLabs/tabpfn-extensions). The underlying TabPFN architecture is cited via Hollmann et al. [1]. Optional methodological backing for post-hoc ensemble selection in AutoML: Purucker & Beel [9].
 
-### §5.3 Fine-tuned TabPFN-v2.6
+### §5.3 Fine-tuned TabPFN-v2.5
 
-**What's different:** unlike the other three variants (which use pure in-context learning), this variant performs gradient updates on the training data before inference, specialising the base v2.6 model to the downstream dataset.
+**What's different:** unlike the other three variants (which use pure in-context learning), this variant performs gradient updates on the training data before inference, specialising the base v2.5 model to the downstream dataset (the `FinetunedTabPFNClassifier` library entry point pins the base to `ModelVersion.V2_5`, which is why the leaf folder reads `version_2-5-finetuned`).
 
 **Two-pass training design:** `build_finetunedtabpfn` runs two passes to satisfy both the empirical-rigour constraint (no overfitting) and a methodological transparency requirement (proof that early-stopping was the right choice):
 
