@@ -365,7 +365,7 @@ so the grid is complete and reproducible from the committed code.
    anti-predictive-XGBoost-cells pattern predicts the robustness gap.
 7. **Explicit sequence modelling does not dominate the tabular
    baselines** on the honest chronological cells (Addition 4). All
-   three sequence variants (window-MLP, GRU, TCN) trail the XGBoost
+   three sequence variants (window-MLP, GRU, 1D-CNN) trail the XGBoost
    stack headline AUROC; on migraine the window-MLP narrowly beats
    the vanilla TabPFN baseline (0.77 vs 0.76) but does not unseat
    the XGB-HP020 0.793 headline. This is the falsification result the
