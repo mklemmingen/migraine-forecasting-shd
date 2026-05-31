@@ -48,11 +48,13 @@ tabpfn>=8.0.1           # Prior Labs release. 8.0.1 is the floor: build_tabpfn_v
                         # CPU-only is fine for smoke tests but full sweeps will be
                         # impractically slow without GPU.
 # AutoTabPFN (post_hoc_ensembles extra) - installed from a pinned git commit
-# rather than the latest PyPI release (0.3.0) because that release pins
-# `autogluon.tabular==1.4.0` which is not on PyPI (only `1.4.1bXXX` betas
-# and the stable `1.5.0` exist). The fix landed in PR #274 (2026-04-30,
-# "Bump AutoGluon to 1.5"), is in main, but no PyPI release ships it yet.
-# The pinned SHA below is the head of main as of 2026-05-10. Bump when
+# rather than the latest PyPI release (0.3.0) because that release exact-pins
+# `autogluon.tabular==1.4.0` (no `>=1.4.0` flexibility), constraining the
+# install off the 1.5.0 stable line that the post-hoc-ensemble routing
+# expects. The fix landed in PR #274 (2026-04-30, "Bump AutoGluon to 1.5
+# and route per-version to RealTabPFNv2/v25 classes"), is in main, but no
+# PyPI release ships it yet. The pinned SHA below is the head of main as
+# of 2026-05-10 and descends from PR #274's merge commit. Bump when
 # PriorLabs publishes a 0.4.x release. AutoGluon's Python constraint
 # (`<3.14, >=3.10`) is the reason this project's venv runs on Python 3.13.
 # The [interpretability] extra adds the model-matched explainability path
