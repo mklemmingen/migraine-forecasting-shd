@@ -1,4 +1,4 @@
-# Within-person versus pooled discrimination in next-day migraine and headache prediction models on the Park 2016 Korean SHD cohort
+# Within-person vs pooled discrimination, next-day migraine/headache prediction: Park 2016 Korean SHD
 
 > Position: **JHP body**. ~4000-word submission body synthesising the long-form record under `docs/`. The per-Addition methods, results, and TRIPOD+AI compliance trail live in the long-form docs and are referenced from here; nothing in the body is novel relative to those records.
 
