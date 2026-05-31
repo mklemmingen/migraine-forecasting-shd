@@ -67,7 +67,7 @@ migraine chronological leaf, formerly the open follow-up for Claim 3,
 completed and is the AutoTabPFN-vs-XGBoost-stack pair the headline
 question called for; the headache cross-architecture pair sits on the
 matching chronological cell (v2.6) rather than the previously cited
-v2-5-finetuned stratified leaf, because Section 1 documents the
+v2.5-finetuned stratified leaf, because Section 1 documents the
 feature-channel leak that confounds attribution on stratified
 full_features cells.
 
@@ -215,7 +215,7 @@ the migraine chronological full_features cell: AutoTabPFN
 probability). On the same data slice, AutoTabPFN reached AUROC 0.745
 [0.656, 0.825], calibration slope 0.992 [0.642, 1.346] (the best
 slope in the migraine family; XGBoost-HP020 is 1.386 [0.401, 2.067]
-patient-cluster primary and TabPFN-v2-5-finetuned is 0.964
+patient-cluster primary and TabPFN-v2.5-finetuned is 0.964
 [0.604, 1.346] per §3.4), and the two architectures'
 top-10 rankings overlap on six features:
 
