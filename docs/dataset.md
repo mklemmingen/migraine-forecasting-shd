@@ -350,7 +350,8 @@ sequences at gaps > N days.
 
 **Per-predictor missing-values count.** Each predictor's null count after
 the engineering pipeline is logged in
-`data/processed/dataset_characterization.pdf` and is zero for the
+`data/processed/headache/dataset_analysis.pdf` and
+`data/processed/migraine/dataset_analysis.pdf` (per-target), and is zero for the
 diary-trigger predictors and the engineered rolling/lag features used
 in this benchmark, by construction: gap days are absent rows rather
 than null cells, and rolling features fall back to `min_periods=1`
@@ -628,7 +629,7 @@ EPV concern is migraine-specific.
 ### Row provenance
 
 Upstream counts are stable facts about the source file. Split counts vary by
-ratio and strategy - authoritative figures are in `data/processed/dataset_characterization.pdf`
+ratio and strategy - authoritative figures are in the per-target `data/processed/headache/dataset_analysis.pdf` and `data/processed/migraine/dataset_analysis.pdf`
 and the per-package `package_report.pdf` files.
 
 | Step | Source | Rows | Delta | Cause |

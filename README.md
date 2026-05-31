@@ -49,7 +49,7 @@ four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`).
 
 62 adult patients · 2 Korean neurology clinics · September 2014 – January 2015  
 Source: Park et al. [1] supplementary file S1. Column inventory, row provenance, and transformation notes are documented in `docs/dataset.md`.
-Current row counts, positive rate, and split statistics are reported in `data/processed/dataset_characterization.pdf`.
+Current row counts, positive rate, and split statistics are reported in `data/processed/headache/dataset_analysis.pdf` and `data/processed/migraine/dataset_analysis.pdf`.
 
 ## Task
 
