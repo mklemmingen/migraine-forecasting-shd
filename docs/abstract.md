@@ -21,7 +21,7 @@ Pooled AUROC for daily migraine forecasting conflates within-person day-to-day r
 
 ### Methods
 
-Next-day migraine and headache forecasting were evaluated on the Park 2016 SHD cohort (62 patients; 4,516 patient-days; 7.2% positive; two Korean clinics; 19-55 y; 82.3% female; single ethnicity). Three architectures (XGBoost stacking ±500-trial Optuna HPO; TabPFN, six variants, no per-variant HPO; window-MLP sequence baseline) × three feature sets × three split types (chronological/stratified/patient hold-out) × two ratios (70/30, 70/15/15) were evaluated. Missing days were structural; no imputation. Headline cells used a composite rule gating on calibration slope; the migraine `full_features` cell carries EPV 5.5 (high-risk, pre-declared under-powered). Leave-one-site-out across both clinics (geographic internal-external). Discrimination, calibration, and bootstrap 95% CIs (patient-cluster primary, patient-day sensitivity throughout); cross-architecture paired DeLong + BH-FDR across 18 documented contrasts, with a 166-pair all-pairs Bonferroni sensitivity at headline cells (0 of 166 significant). Not registered.
+Next-day migraine and headache forecasting were developed and internally evaluated on the Park 2016 SHD cohort (62 patients; 4,516 patient-days; 7.2% positive; two Korean clinics; 19-55 y; 82.3% female; single ethnicity). Three architectures (XGBoost stack, TabPFN six variants, window-MLP) × three feature sets × three split types × two ratios were evaluated. Predictors: eighteen Park 2016 same-day trigger flags plus engineered history features (52-feature headline cell). Missing days structural, no imputation. Headline cells: composite rule gating on calibration slope; migraine full-features carries EPV 5.5 (pre-declared under-powered). Leave-one-site-out external check (geographic internal-external). Discrimination, calibration, bootstrap 95% CIs (patient-cluster primary, patient-day sensitivity throughout); cross-architecture paired DeLong + BH-FDR across 18 documented contrasts, plus a 166-pair all-pairs Bonferroni sensitivity (0 of 166 significant). Not registered.
 
 ### Results
 
@@ -29,11 +29,11 @@ The within-person C-statistic clustered at 0.53-0.57 across architectures and ta
 
 ### Conclusion
 
-Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; positive Brier skill survived only for headache at the TabPFN-v2.6 headline cell, and no architecture achieved positive Brier skill for migraine. Development and internal validation on a single 62-patient Korean cohort; no clinical deployment recommended.
+Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; positive Brier skill survived only for headache at the TabPFN-v2.6 headline cell, and no architecture achieved positive Brier skill for migraine. Development and internal validation on a single 62-patient Korean cohort; we do not recommend clinical deployment.
 
 ## Keywords
 
-Migraine; Headache; Forecasting; Machine learning; Calibration; Decision support techniques; Mobile applications; Smartphone; Within-person evaluation
+Migraine; Headache; Forecasting; Machine learning; Calibration; Decision support techniques; Mobile applications; Smartphone; Within-person evaluation; Internal-external validation
 
 ## Funding
 
@@ -43,7 +43,7 @@ This work received no external funding.
 
 **Graphical abstract.** Submitted alongside as a supplementary file (`docs/methodAndResults_diagramCreatorScripts/figures/graphical_abstract.png`, 920 x 300 px, 59.5 KB, PNG; rendered by `graphical_abstract.py`). Visualises the pooled-vs-within-person discrimination gap (the four headline anchor numbers from §3.2 + §3.6, against a chance reference at 0.5) with the load-bearing takeaway sentence along the bottom. Per JHP submission guidelines.
 
-**Word count.** Title 11 words, 99 characters (under the JHP ≤ 100-character title soft-cap). Abstract 347 words (under the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
+**Word count.** Title 11 words, 99 characters (under the JHP ≤ 100-character title soft-cap). Abstract 345 words (under the JHP 350-word research-article cap; CI-density + demographic-narrowness disclosures per writing_guide §10.1 and §10.11, with patient-cluster bootstrap as the primary CI unit on AUROC / slope / Brier skill, the headache-vs-migraine target-asymmetry sentence in the Conclusion, and a decision-curve net-benefit summary line in Results so the TRIPOD+AI coverage map at the foot of the file accurately reflects what the Results paragraph reports).
 
 **TRIPOD+AI for Abstracts sub-items covered.** Title (Item 1), Objective
 (Background paragraph), Setting and participants (Methods; cohort, sites,
