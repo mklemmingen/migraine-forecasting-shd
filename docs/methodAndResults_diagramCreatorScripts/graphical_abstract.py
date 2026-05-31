@@ -61,10 +61,11 @@ def main() -> None:
                 color=S.INK, fontweight="bold")
 
     # Chance reference at 0.5 (the load-bearing comparison anchor); label
-    # offset right of the dashed line so the "chance" word does not visually
-    # merge with the dashed strokes at thumbnail size.
+    # placed below the bottom bar and offset right of the dashed line so the
+    # "chance" word does not visually merge with the dashed strokes or with
+    # the x-axis tick at thumbnail size.
     ax.axvline(x=0.5, color=S.INK, linestyle="--", linewidth=0.9, alpha=0.55)
-    ax.text(0.53, -0.55, "chance 0.5", ha="left", va="bottom",
+    ax.text(0.53, len(rows) - 0.35, "chance 0.5", ha="left", va="top",
             fontsize=9, color=S.INK, alpha=0.85, fontweight="bold")
 
     # Y axis: discrimination metric labels, top-down
