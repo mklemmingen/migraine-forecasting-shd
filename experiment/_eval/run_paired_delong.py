@@ -11,6 +11,9 @@ algorithm [sun2014fast]. BH-FDR [benjamini1995controlling] controls the
 expected proportion of false positives among rejections across the
 multi-cell test family.
 
+The contrast list defined below contains 18 paired tests and is the
+frozen analysis-plan scope referenced at body section 2.8.
+
 Per-instance test predictions are not persisted by the leaf evaluate.py
 templates, so this script reloads each leaf's `model.joblib`,
 reconstructs the deterministic test split via the same loader the leaf
@@ -143,13 +146,21 @@ class PairedTest:
     leaf_b: Path
 
 
-# 12 paired tests:
-#   9 cross-family (headline vs runner-up at same ratio), per Explore agent's
-#     enumeration of same-ratio-pairs from experiment/2/select.py output;
-#   3 within-family-tie tests at the headache full chrono 70_30 cell, where
-#     the composite_sorted rule places v2.6 / v3-default / v3-binary in a
-#     0.02-AUROC tie -- the within-family DeLong tests whether the tie is
-#     statistically defensible.
+# 18 paired tests across five categories:
+#   6 cross-family pairs at 70_30 canonical headline cells (headache
+#     full/chrono, headache no_rolling/chrono, migraine full/chrono,
+#     migraine park/chrono, migraine park/patient, migraine no_rolling
+#     /patient);
+#   3 within-family-tie pairs at headache full/chrono/70_30 where the
+#     composite_sorted rule places v2.6, v3-default, and v3-binary in a
+#     0.02-AUROC tie, with DeLong testing whether the tie is statistically
+#     defensible;
+#   3 cross-family pairs at 70_15_15 ratio (headache no_rolling/stratified,
+#     migraine full/patient, migraine full/stratified);
+#   4 HP-ladder pairs at migraine full/chrono/70_30 testing HP020 against
+#     HP050, HP100, HP200, and HP500;
+#   2 AutoTabPFN load-bearing pairs at migraine full/chrono/70_30 against
+#     XGB-HP020 and XGB-NonHP.
 ALL_PAIRS: list[PairedTest] = [
     # --- Cross-family pairs (same ratio, different architecture family) ---
     PairedTest(
