@@ -11,7 +11,7 @@
 
 ## Title
 
-Within-person vs pooled discrimination, next-day migraine/headache prediction: Park 2016 Korean SHD
+Within-person vs pooled discrimination, next-day migraine-headache prediction: Park 2016 Korean SHD
 
 ## Abstract
 
