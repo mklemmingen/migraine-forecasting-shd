@@ -91,12 +91,10 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
             colour = S.arch_color(arch)
             n_est = int(r["n_estimable"])
             if bool(r["below_floor"]):
-                # Quantitative surfacing without CI: render the architecture
-                # marker open + small at the chance line, annotate n + floor.
-                ax.scatter([0.5], [y], marker=ARCH_MARKER[arch], facecolor="white",
-                           edgecolor=colour, s=22, lw=0.7, zorder=3)
-                ax.text(0.72, y, f"n = {n_est} (below 5-patient floor)",
-                        va="center", fontsize=7, color=S.MUTED)
+                # Text annotation only: a plotted symbol would read as an
+                # estimate, but C is not estimable when n_estimable < 5.
+                ax.text(0.50, y, f"n = {n_est}, not estimable (below 5-patient floor)",
+                        va="center", ha="left", fontsize=7, color=S.MUTED)
                 continue
             wc = float(r["within_c"])
             lo = float(r["ci_low"])
@@ -115,7 +113,6 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
     ax.invert_yaxis()
     ax.set_xlim(0.35, 0.95)
     ax.set_xlabel("within-person C-statistic (95% CI)", fontsize=9)
-    ax.set_title(target, fontsize=10)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
@@ -143,11 +140,6 @@ def main() -> None:
                               alpha=0.6, label="chance 0.5"))
     fig.legend(handles=handles, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.03), frameon=False)
-
-    fig.suptitle("Within-person C-statistic stratum disaggregation - Park 2016 SHD\n"
-                 "by site, sex, and per-patient base-rate stratum; "
-                 "five-patient reporting floor surfaced quantitatively",
-                 fontsize=10, y=1.02)
 
     out = HERE / "figures" / "fig_g2_fairness_strata"
     print("saved", S.save(fig, out))

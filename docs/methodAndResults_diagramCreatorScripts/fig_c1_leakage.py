@@ -13,7 +13,6 @@ Usage: python fig_c1_leakage.py   (reads the latest experiment/comparison_*.csv)
 # §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
 #   §11.1 CIs on headline metric:        error bars show across-ratio range
 #   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine full
 #   §11.10 no "substantial"/"large":     verified in captions
 #   §11.11 self-check:                   this block
@@ -106,7 +105,6 @@ def main():
     ax.legend(title="target")
     # §11.7 EPV annotation: the migraine `full_features` point sits at x=17
     S.epv_annotation(ax, "migraine", cell="full_features", loc="upper right")
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_c1_leakage"))
 
 

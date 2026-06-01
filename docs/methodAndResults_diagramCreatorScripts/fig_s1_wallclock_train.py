@@ -34,7 +34,6 @@ Usage: python fig_s1_wallclock_train.py
 # §11 compliance: training wall-clock per architecture class.
 #   §11.1 CIs: distributions per class; no point-estimate CI applicable
 #   §11.3 caption: cohort+n in rendered title; per-class N on y-tick labels
-#   §11.6 CC BY footer via S.cc_by_footer
 #   §11.7 N/A (this figure does not depend on the migraine full_features cell)
 #   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
@@ -310,7 +309,6 @@ def main():
     S.panel_label(ax_top, "a")
     S.panel_label(ax_bot, "b")
     fig.subplots_adjust(right=0.78)  # reserve right margin for direct labels
-    S.cc_by_footer(fig)
     out = HERE / "figures" / "fig_s1_wallclock_train"
     print("saved", S.save(fig, out))
     for cls in order:

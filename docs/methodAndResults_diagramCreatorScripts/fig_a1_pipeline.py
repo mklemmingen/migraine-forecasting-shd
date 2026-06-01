@@ -12,7 +12,6 @@ Usage: python fig_a1_pipeline.py
 """
 # §11 compliance: schematic only (no headline metric).
 #   §11.3 self-contained caption:        cohort name + n in suptitle
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
 #   §11.1, §11.2, §11.5, §11.7:          N/A (no metric, no cell-specific cohort panel)
 #   §11.10 no "substantial"/"large":     verified
 #   §11.11 self-check:                   this block
@@ -186,7 +185,6 @@ def main():
     fig.suptitle("Benchmark pipeline: source → features → splits → architectures → evaluation\n"
                  "Park 2016 SHD, n=62 patients, 4,516 patient-days",
                  y=0.99)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a1_pipeline"))
 
 

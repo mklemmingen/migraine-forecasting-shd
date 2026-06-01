@@ -12,7 +12,6 @@ Usage: python fig_e2_within_person_sites.py
 # §11 compliance:
 #   §11.1 CIs: errorbar whiskers from within_ci_low/high in external_site_summary csv
 #   §11.2 estimability: "k=X estimable" annotation per panel (bottom-left)
-#   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
 import csv
 from pathlib import Path
 
@@ -91,7 +90,6 @@ def main():
     axes[0].legend(fontsize=8, loc="upper center", ncol=2)
     fig.suptitle("Within-person discrimination stays near chance off-site\n"
                  "Park 2016 SHD, n=62; leave-one-site-out", y=1.04, fontsize=10)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_e2_within_person_sites"))
 
 

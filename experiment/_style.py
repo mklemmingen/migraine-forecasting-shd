@@ -72,9 +72,12 @@ are listed at the bottom of this docstring.
      dashed/dotted, 0.8-1.2 pt. CI bands as light grey shading (alpha ~0.18).
 
 8. EXPORT & REPRODUCIBILITY.
-   - Always emit vector PDF (LaTeX asset) + 300 dpi PNG (preview), white background,
-     via save(). Recompute every number from data/CSVs in the figure script - never
-     transcribe results into a plot.
+   - Always emit vector PDF (LaTeX asset) + 600 dpi PNG (preview), white background,
+     via save(). The PDF is the publication-bound asset and is resolution-independent;
+     the 600 dpi PNG is a high-quality preview that also meets Springer's 600 dpi
+     combination-artwork minimum if it is ever submitted as a raster source.
+     Recompute every number from data/CSVs in the figure script - never transcribe
+     results into a plot.
 
 ------------------------------- PROGRAMMATIC API -----------------------------
 Everything above is enforced/contracted in code, so figure scripts never re-type a
@@ -280,13 +283,27 @@ def figsize(cols="double", h=4.0):
     return (width, h)
 
 
-def save(fig, out, dpi=300) -> str:
+def _strip_publication_titles(fig) -> None:
+    """Clear ``fig.suptitle`` and every ``ax.set_title``. Panel-letter labels
+    set via ``ax.text(...)`` are not affected because they do not go through
+    the title API. Use this when the manuscript ``\\caption{}`` is the single
+    source of figure titling."""
+    fig.suptitle("")
+    for ax in fig.axes:
+        ax.set_title("")
+
+
+def save(fig, out, dpi=600) -> str:
     """Write ``out`` as PDF (vector) + PNG (raster). ``out`` may be a stem or a
-    path with any suffix; both siblings are written next to it. The CC BY 4.0
-    licence footer is auto-applied here (idempotent: skipped if the script
-    already called ``cc_by_footer`` directly), so every figure rendered via
-    ``save`` carries the licence affordance per design-guide §11.6."""
-    cc_by_footer(fig)
+    path with any suffix; both siblings are written next to it. ``fig.suptitle``
+    and every ``ax.set_title`` are cleared before save - BMC house style places
+    figure titles in the manuscript text, not in the graphic file. The vector
+    PDF is the publication asset (resolution-independent); the 600 dpi PNG is a
+    high-quality preview that also satisfies Springer's 600 dpi combination-
+    artwork minimum if used as a raster source. Pure line art (no fills, no
+    text shading) would need 1200 dpi to fully satisfy Springer's line-art
+    minimum, but the figures in this repo are all combination art."""
+    _strip_publication_titles(fig)
     stem = Path(out).with_suffix("")
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(f"{stem}.png", dpi=dpi, bbox_inches="tight")
@@ -433,12 +450,11 @@ def epv_annotation(ax, target: str, *, cell: str = "full_features",
 
 
 def cc_by_footer(fig, fontsize: float = 6.5) -> None:
-    """No-op: per-figure CC BY 4.0 stamps were removed for JHP submission.
-    The licence declaration lives once in the manuscript Declarations
-    (Manuscript licence subhead) rather than burned into every figure.
-    Multi-reviewer fan-out panel verdict (visual designer + accessibility):
-    per-figure stamps add visual clutter at 5-6pt and replicate metadata
-    already carried at the manuscript level.
+    """No-op. The CC BY 4.0 licence is declared once at the manuscript level
+    (Manuscript licence subhead under Declarations) rather than stamped on
+    each figure. The function signature is retained so existing scripts that
+    call it continue to work; the flag is set so any guard that checks
+    ``_shd_cc_by_footer_added`` still reads True.
     """
     fig._shd_cc_by_footer_added = True
     return

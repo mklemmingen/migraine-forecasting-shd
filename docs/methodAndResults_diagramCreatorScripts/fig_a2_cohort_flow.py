@@ -8,12 +8,6 @@ identical across targets.
 
 Usage: python fig_a2_cohort_flow.py
 """
-# §11 compliance: cohort-flow schematic (no headline metric).
-#   §11.3 self-contained caption:        title carries cohort name + n
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
-#   §11.1, §11.2, §11.5, §11.7:          N/A
-#   §11.10 no "substantial"/"large":     verified
-#   §11.11 self-check:                   this block
 from pathlib import Path
 
 import sys as _sys
@@ -100,13 +94,9 @@ def main():
     S.arrow(ax, (b2[0], b2[1] - b2[3] / 2), (bmg[0], bmg[1] + bmg[3] / 2))
     S.arrow(ax, (bh[0], bh[1] - bh[3] / 2), (b4[0] - 1.5, b4[1] + b4[3] / 2))
     S.arrow(ax, (bmg[0], bmg[1] - bmg[3] / 2), (b4[0] + 1.5, b4[1] + b4[3] / 2))
-    ax.set_title("Cohort flow - Park 2016 SHD: enrolment funnel (113 recruited -> 62 analytic)\n"
-                 f"and processed pipeline ({n_pt} patient_ids, {n_rows:,} patient-days)",
-                 fontsize=11.5)
     print(f"  Park funnel: 113 recruited -> 83 finished (-30 withdrew) -> 62 >=50% adherence (-21)")
     print(f"  Processed: {n_pt} patient_ids (62 Park + 1 reconciliation), {n_rows} days; "
           f"headache {hea_r:.1%}, migraine {mig_r:.1%}; split {sizes}")
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a2_cohort_flow"))
 
 
