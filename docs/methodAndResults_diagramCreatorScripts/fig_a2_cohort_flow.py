@@ -75,10 +75,12 @@ def main():
                fc=S.PALE_FILL, ec=S.TARGET["headache"])
     bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} of all days",
                 fc=S.PALE_FILL, ec=S.TARGET["migraine"])
-    b4 = S.box(ax, (5, 2.0), 7.6, 1.6,
-               f"Chronological 70/15/15 split (illustrative; A5 shows stratified / patient / site)\n"
-               f"train {sizes['train']:,}  -  val {sizes['val']:,}  -  test {sizes['test']:,}\n"
-               f"identical row partitioning across both targets",
+    b4 = S.box(ax, (5, 2.15), 7.8, 1.95,
+               f"Evaluation grid: 4 split types x multiple ratios (488-cell sensitivity sweep)\n"
+               f"Headline cell: chronological 70/15/15 - "
+               f"train {sizes['train']:,} / val {sizes['val']:,} / test {sizes['test']:,}\n"
+               f"Sensitivity split types: stratified, patient hold-out, leave-one-site-out\n"
+               f"Identical row partitioning across both targets",
                role="output")
     # Upstream-funnel arrows
     S.arrow(ax, (bup1[0], bup1[1] - bup1[3] / 2), (bup2[0], bup2[1] + bup2[3] / 2))
