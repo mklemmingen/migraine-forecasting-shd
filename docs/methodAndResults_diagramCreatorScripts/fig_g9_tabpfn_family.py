@@ -156,7 +156,6 @@ def main():
                bbox_to_anchor=(0.5, -0.04), fontsize=8)
     fig.suptitle("Within-family AUROC across all TabPFN variants "
                  "(Park 2016 SHD, n=62; full / chrono / 70-30)", y=1.02)
-    S.cc_by_footer(fig)
     print(f"  saved {S.save(fig, HERE / 'figures' / 'fig_g9_tabpfn_family')}")
 
 

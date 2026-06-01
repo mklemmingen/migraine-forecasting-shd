@@ -240,7 +240,6 @@ def main() -> None:
         ax.set_xlim(0, lim); ax.set_ylim(0, lim)
         ax.set_xlabel("pooled mean predicted (per-patient quartile)")
         ax.set_ylabel("pooled mean observed (per-patient quartile)")
-        ax.set_title(tgt)
         S.epv_annotation(ax, tgt, cell="full_features", loc="upper left")
         if n_pat_by_arch:
             uniq = sorted(set(n for _, n in n_pat_by_arch))
@@ -252,9 +251,6 @@ def main() -> None:
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
-    fig.suptitle("Within-person calibration - Park 2016 SHD, n=62\n"
-                 f"per-patient quartiles by predicted probability, patient-bootstrap 95% CI on observed",
-                 y=1.04, fontsize=10)
     print("saved", S.save(fig, HERE / "figures" / "fig_c5_within_person_calibration"))
 
 

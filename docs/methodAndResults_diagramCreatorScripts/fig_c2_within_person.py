@@ -18,7 +18,6 @@ Usage: python fig_c2_within_person.py   (refits per CV fold; minutes, GPU for Ta
 #                                        within-person C-stat ref line
 #   §11.2 estimability denominators:     k=len(est) annotated in xlabel + on panel
 #   §11.3 self-contained caption:        S.caption_block() composed for suptitle
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine panel
 #   §11.10 no "substantial"/"large":     verified in captions
 #   §11.11 self-check:                   this block
@@ -136,7 +135,6 @@ def _panel(ax, tgt, y, p, pid):
     ax.set_ylim(0, 1)
     ax.set_xlabel(f"patient, sorted by AUROC ({len(est)} of 63 estimable)")
     ax.set_ylabel("per-patient AUROC")
-    ax.set_title(f"{tgt} - TabPFN, CV out-of-fold")
     ax.legend(loc="upper left")
     S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
     print(f"  {tgt:<9} pooled {pooled:.3f} [{pooled_lo:.3f}-{pooled_hi:.3f}] "
@@ -164,14 +162,6 @@ def main():
         r = _cv_predict(leaf)
         if r is not None:
             _panel(ax, tgt, *r)
-            # Two-line title so the bold panel-label (a / b) at the top-left
-            # does not collide with the long 4-token slug stem.
-            ax.set_title(f"{tgt}\n{S.leaf_slug(leaf)}", fontsize=10)
-    fig.suptitle("Per-patient discrimination vs pooled AUROC\n"
-                 "Park 2016 SHD cohort, n=62; CV out-of-fold; "
-                 "Hanley-McNeil 95% CI per patient; bootstrap CI on pooled",
-                 y=1.04, fontsize=10)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_c2_within_person"))
 
 

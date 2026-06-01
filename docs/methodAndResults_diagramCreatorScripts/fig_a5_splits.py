@@ -10,7 +10,6 @@ patient holds out whole patients; site holds out a whole recruitment site
 Usage: python fig_a5_splits.py
 """
 # §11 compliance: split-strategy schematic (no metric).
-#   §11.3 caption + §11.6 footer + §11.11 self-check this block
 from pathlib import Path
 
 import sys as _sys
@@ -76,7 +75,6 @@ def main():
                loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.06))
     fig.supxlabel("days → (ratios illustrative; paper uses 70/15/15, 70/30, 80/20)", fontsize=9)
     fig.suptitle("Split strategies over patient-days (Park 2016 SHD, n=62)", y=1.02)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a5_splits"))
 
 

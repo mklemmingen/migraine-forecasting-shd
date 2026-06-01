@@ -28,6 +28,7 @@ _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "experiment"))
 import _style as S
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MultipleLocator
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -106,6 +107,11 @@ def main():
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
     mark = {"XGBoost stack": "o", "TabPFN": "s", "window-MLP": "^"}  # CVD/grayscale reinforcement
+    # Shared y-range across panels so the low-prevalence migraine NB band reads
+    # faithfully against headache; ticks every 0.05 for consistent gridding.
+    Y_LIM = (-0.05, 0.25)
+    Y_TICK = 0.05
+    refs = []
     for ax, tgt in zip(axes, ("headache", "migraine")):
         ref = None
         ymin = ymax = 0.0
@@ -135,17 +141,23 @@ def main():
         if ref is not None:
             ax.plot(ref["thresholds"], ref["treat_all"], "--", color=S.REF_COLOR, lw=1, label="treat all")
             ax.plot(ref["thresholds"], ref["treat_none"], ":", color=S.REF_COLOR, lw=1, label="treat none")
-            # scale to the model curves (the message); treat-all may clip below
-            ax.set_ylim(ymin - 0.03, ymax + 0.03)
+            refs.append((ax, ymin, ymax))
+        ax.set_ylim(*Y_LIM)
+        ax.yaxis.set_major_locator(MultipleLocator(Y_TICK))
         ax.set_xlabel("threshold probability")
         ax.set_ylabel("net benefit")
-        ax.set_title(tgt)
         ax.legend(fontsize=8, loc="upper right")
         S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
-    fig.suptitle("Decision-curve analysis (Park 2016 SHD, n=62)\n"
-                 "Net benefit per architecture with patient-cluster bootstrap 95% CI band",
-                 y=1.04, fontsize=10)
-    S.cc_by_footer(fig)
+    # If any data fell outside the shared (-0.05, 0.25) band, widen the shared
+    # range so no curve is clipped (rare; treat-all on low-prevalence migraine
+    # can sit below -0.05 at high thresholds).
+    for ax, ymn, ymx in refs:
+        cur_lo, cur_hi = Y_LIM
+        new_lo = min(cur_lo, ymn - 0.02)
+        new_hi = max(cur_hi, ymx + 0.02)
+        if (new_lo, new_hi) != (cur_lo, cur_hi):
+            for ax_i in axes:
+                ax_i.set_ylim(new_lo, new_hi)
     print("saved", S.save(fig, HERE / "figures" / "fig_d3_decision_curve"))
 
 

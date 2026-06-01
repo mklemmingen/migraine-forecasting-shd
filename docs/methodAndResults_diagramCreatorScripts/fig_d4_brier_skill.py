@@ -17,7 +17,6 @@ Usage: python fig_d4_brier_skill.py
 # §11 compliance:
 #   §11.1 PASS: per-architecture Brier-skill bootstrap 95% CI rendered as whiskers
 #               (SK.brier_skill_ci, n_boot=1000, patient-day resampling unit)
-#   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
 import os
 import subprocess
 import sys
@@ -180,7 +179,6 @@ def main():
     S.epv_annotation(ax, "migraine", cell="full_features", loc="lower right")
     ax.set_ylabel("Brier skill vs per-patient climatology\n(below 0 = worse than patient base rate)")
     ax.legend(title="target", loc="upper right")
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d4_brier_skill"))
 
 

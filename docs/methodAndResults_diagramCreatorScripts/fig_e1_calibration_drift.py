@@ -79,16 +79,11 @@ def main():
         ax.text(0.99, 0.18, "over-predicts", transform=ax.transAxes, ha="right",
                 va="center", fontsize=7, color=S.GREY, style="italic")
         ax.set_xticks(range(len(SITES))); ax.set_xticklabels(xticklab, fontsize=8)
-        ax.set_title(f"{tgt}  (bars from O:E = 1)")
         S.epv_annotation(ax, tgt, cell="full_features", loc="upper right")
     axes[0].set_ylabel("observed / expected (O:E)")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
-    fig.suptitle("Calibration drift on the held-out site tracks the base-rate gap\n"
-                 "Park 2016 SHD, n=62; per-direction O:E (fell to 0.50 / rose to 1.54 for migraine)",
-                 y=1.02)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_e1_calibration_drift"))
 
 

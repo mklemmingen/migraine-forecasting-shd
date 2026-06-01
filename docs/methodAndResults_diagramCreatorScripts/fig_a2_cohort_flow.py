@@ -8,12 +8,6 @@ identical across targets.
 
 Usage: python fig_a2_cohort_flow.py
 """
-# §11 compliance: cohort-flow schematic (no headline metric).
-#   §11.3 self-contained caption:        title carries cohort name + n
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
-#   §11.1, §11.2, §11.5, §11.7:          N/A
-#   §11.10 no "substantial"/"large":     verified
-#   §11.11 self-check:                   this block
 from pathlib import Path
 
 import sys as _sys
@@ -39,7 +33,11 @@ def main():
              for sp in ("train", "val", "test")}
 
     fig, ax = plt.subplots(figsize=S.figsize("double", 9.0))
-    ax.set_xlim(0, 10); ax.set_ylim(0, 14.5); ax.axis("off")
+    # Limits hug the funnel (lowest box bottom 1.2, top box top 14.1) so
+    # bbox="tight" leaves no dead band below the final split box. The right edge
+    # runs to 10.4 (not 10.0) so the exclusion boxes at x=9..10 keep their right
+    # border inside the axes clip region instead of being shaved off.
+    ax.set_xlim(0, 10.4); ax.set_ylim(1.0, 14.4); ax.axis("off")
 
     # Park 2016 upstream enrolment funnel transcribed from the PLOS ONE article
     # page 4 prose paragraph: "Initially, 113 patients were recruited from two
@@ -63,23 +61,26 @@ def main():
 
     b1 = S.box(ax, (5, 9.1), 7.2, 1.3,
                f"SHD smartphone headache diary - Park et al. 2016 (CC BY)\n"
-               f"{n_pt} patient_ids (62 Park analytic + 1 disability-sheet reconciliation),"
+               f"{n_pt} patient_ids (62 Park analytic + 1 reconciliation),"
                f" {n_rows:,} patient-days\n"
-               f"{d0:%Y-%m-%d} to {d1:%Y-%m-%d}", fc=S.PALE_FILL, weight="bold")
+               f"{d0:%Y-%m-%d} to {d1:%Y-%m-%d}",
+               fc=S.PALE_FILL, weight="bold", fontsize=8)
     b2 = S.box(ax, (5, 6.8), 7.2, 1.3,
                "Recruitment site recovered from Sheet 1\n"
                "62 patients mapped: Uijeongbu 32 - Dongtan 30")
     bex = S.box(ax, (9.0, 7.95), 2.0, 0.85,
-                "- 1 reconciliation patient\n(- 38 days), excluded\nfrom site analysis",
+                "- 1 reconciliation pt\n(- 38 days), excluded\nfrom site analysis",
                 role="exclude", fontsize=7.5)
     bh = S.box(ax, (2.7, 4.6), 3.4, 1.15, f"Headache target\n{hea_r:.1%} of all days",
                fc=S.PALE_FILL, ec=S.TARGET["headache"])
     bmg = S.box(ax, (7.3, 4.6), 3.4, 1.15, f"Migraine target\n{mig_r:.1%} of all days",
                 fc=S.PALE_FILL, ec=S.TARGET["migraine"])
-    b4 = S.box(ax, (5, 2.0), 7.6, 1.6,
-               f"Chronological 70/15/15 split (illustrative; A5 shows stratified / patient / site)\n"
-               f"train {sizes['train']:,}  -  val {sizes['val']:,}  -  test {sizes['test']:,}\n"
-               f"identical row partitioning across both targets",
+    b4 = S.box(ax, (5, 2.15), 7.8, 1.95,
+               f"Evaluation grid: 4 split types x multiple ratios (488-cell sensitivity sweep)\n"
+               f"Headline cell: chronological 70/15/15 - "
+               f"train {sizes['train']:,} / val {sizes['val']:,} / test {sizes['test']:,}\n"
+               f"Sensitivity split types: stratified, patient hold-out, leave-one-site-out\n"
+               f"Identical row partitioning across both targets",
                role="output")
     # Upstream-funnel arrows
     S.arrow(ax, (bup1[0], bup1[1] - bup1[3] / 2), (bup2[0], bup2[1] + bup2[3] / 2))
@@ -95,12 +96,9 @@ def main():
     S.arrow(ax, (b2[0], b2[1] - b2[3] / 2), (bmg[0], bmg[1] + bmg[3] / 2))
     S.arrow(ax, (bh[0], bh[1] - bh[3] / 2), (b4[0] - 1.5, b4[1] + b4[3] / 2))
     S.arrow(ax, (bmg[0], bmg[1] - bmg[3] / 2), (b4[0] + 1.5, b4[1] + b4[3] / 2))
-    ax.set_title("Cohort flow - Park 2016 SHD: enrolment funnel (113 recruited -> 62 analytic) "
-                 f"and processed pipeline ({n_pt} patient_ids, {n_rows} patient-days)")
     print(f"  Park funnel: 113 recruited -> 83 finished (-30 withdrew) -> 62 >=50% adherence (-21)")
     print(f"  Processed: {n_pt} patient_ids (62 Park + 1 reconciliation), {n_rows} days; "
           f"headache {hea_r:.1%}, migraine {mig_r:.1%}; split {sizes}")
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a2_cohort_flow"))
 
 

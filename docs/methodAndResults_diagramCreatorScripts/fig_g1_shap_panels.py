@@ -45,22 +45,24 @@ def main() -> None:
     im_a = Image.open(PANEL_A).convert("RGB")
     im_b = Image.open(PANEL_B).convert("RGB")
 
-    # Both per-target beeswarms render at 2387 x 1804 px from the shared
-    # _plots.plot_beeswarm primitive; if either ever drifts, normalise to the
-    # smaller of the two heights so the side-by-side paste does not crop.
-    h = min(im_a.height, im_b.height)
-    if im_a.height != h:
+    # Two-row layout: normalise the panels to a common width so the vertical
+    # stack does not gap on one side. Both per-target beeswarms render at
+    # 2387 x 1804 px from the shared _plots.plot_beeswarm primitive; if either
+    # drifts, the narrower one is scaled up to the wider one's width to keep
+    # the row widths flush.
+    w = max(im_a.width, im_b.width)
+    if im_a.width != w:
         im_a = im_a.resize(
-            (int(im_a.width * h / im_a.height), h), Image.LANCZOS,
+            (w, int(im_a.height * w / im_a.width)), Image.LANCZOS,
         )
-    if im_b.height != h:
+    if im_b.width != w:
         im_b = im_b.resize(
-            (int(im_b.width * h / im_b.height), h), Image.LANCZOS,
+            (w, int(im_b.height * w / im_b.width)), Image.LANCZOS,
         )
 
-    combined = Image.new("RGB", (im_a.width + im_b.width, h), "white")
+    combined = Image.new("RGB", (w, im_a.height + im_b.height), "white")
     combined.paste(im_a, (0, 0))
-    combined.paste(im_b, (im_a.width, 0))
+    combined.paste(im_b, (0, im_a.height))
     combined.save(OUT, optimize=True)
 
     import os

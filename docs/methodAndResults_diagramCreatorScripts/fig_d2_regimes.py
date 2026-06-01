@@ -13,7 +13,6 @@ Usage: python fig_d2_regimes.py
 # §11 compliance:
 #   §11.1 PASS: regime within-person C carries [ci_low, ci_high] errorbars from the wp summary
 #   §11.2 add estimability denominator on plot; §11.3 caption cohort+n
-#   §11.6 footer; §11.7 EPV migraine; §11.11 self-check this block
 import sys
 from pathlib import Path
 
@@ -83,7 +82,6 @@ def main():
     fig.suptitle(f"Personalisation regimes ({FEATURE_SET}): pooled gain is between-patient\n"
                  "Park 2016 SHD, n=62; within-person C with Hanley-McNeil 95% CI",
                  y=1.02)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d2_regimes"))
 
 

@@ -72,9 +72,12 @@ are listed at the bottom of this docstring.
      dashed/dotted, 0.8-1.2 pt. CI bands as light grey shading (alpha ~0.18).
 
 8. EXPORT & REPRODUCIBILITY.
-   - Always emit vector PDF (LaTeX asset) + 300 dpi PNG (preview), white background,
-     via save(). Recompute every number from data/CSVs in the figure script - never
-     transcribe results into a plot.
+   - Always emit vector PDF (LaTeX asset) + 600 dpi PNG (preview), white background,
+     via save(). The PDF is the publication-bound asset and is resolution-independent;
+     the 600 dpi PNG is a high-quality preview that also meets Springer's 600 dpi
+     combination-artwork minimum if it is ever submitted as a raster source.
+     Recompute every number from data/CSVs in the figure script - never transcribe
+     results into a plot.
 
 ------------------------------- PROGRAMMATIC API -----------------------------
 Everything above is enforced/contracted in code, so figure scripts never re-type a
@@ -130,6 +133,12 @@ REF_COLOR = OI["black"]             # reference lines: chance, perfect, treat-no
 REF_LW = 0.9                        # reference-line width (guide Section 1.3: 0.8-1.2)
 CI_ALPHA = 0.18                     # CI-band shading alpha (guide: 0.15-0.20)
 COL_SINGLE, COL_DOUBLE = 3.5, 7.2   # final figure widths (in): ~89 mm / ~183 mm
+# Full-width landscape width for a content-dense single-panel schematic (e.g. the
+# horizontal benchmark-pipeline flowchart) placed as a sideways/landscape figure.
+# A column-width canvas cannot hold such a schematic at the guideline point sizes
+# (9 pt body / 8 pt labels) without text overflowing its boxes, so the guide's
+# Section 5 allowance for wider single-panel figures applies here.
+COL_WIDE = 9.6                      # ~244 mm: landscape / sideways schematic
 
 TARGET = {"headache": OI["blue"], "migraine": OI["vermillion"]}
 
@@ -213,7 +222,7 @@ def apply():
         "lines.linewidth": 1.5, "lines.markersize": 5,
         "legend.fontsize": 8, "legend.frameon": False, "legend.title_fontsize": 8.5,
         "figure.facecolor": "white", "savefig.facecolor": "white",
-        "figure.dpi": 110, "savefig.dpi": 300, "savefig.bbox": "tight",
+        "figure.dpi": 110, "savefig.dpi": 600, "savefig.bbox": "tight",
         "pdf.fonttype": 42, "ps.fonttype": 42, "svg.fonttype": "none",
     })
 
@@ -267,17 +276,34 @@ def framed_legend(ax, **kw):
 
 
 def figsize(cols="double", h=4.0):
-    """Final-size figure width by column count: 'single' ~89 mm, 'double' ~183 mm."""
-    return (COL_DOUBLE if cols == "double" else COL_SINGLE, h)
+    """Final-size figure width by column count: 'single' ~89 mm, 'double' ~183 mm,
+    'wide' ~244 mm (a landscape single-panel schematic; see ``COL_WIDE``)."""
+    width = {"single": COL_SINGLE, "double": COL_DOUBLE, "wide": COL_WIDE}.get(
+        cols, COL_DOUBLE)
+    return (width, h)
 
 
-def save(fig, out, dpi=300) -> str:
+def _strip_publication_titles(fig) -> None:
+    """Clear ``fig.suptitle`` and every ``ax.set_title``. Panel-letter labels
+    set via ``ax.text(...)`` are not affected because they do not go through
+    the title API. Use this when the manuscript ``\\caption{}`` is the single
+    source of figure titling."""
+    fig.suptitle("")
+    for ax in fig.axes:
+        ax.set_title("")
+
+
+def save(fig, out, dpi=600) -> str:
     """Write ``out`` as PDF (vector) + PNG (raster). ``out`` may be a stem or a
-    path with any suffix; both siblings are written next to it. The CC BY 4.0
-    licence footer is auto-applied here (idempotent: skipped if the script
-    already called ``cc_by_footer`` directly), so every figure rendered via
-    ``save`` carries the licence affordance per design-guide §11.6."""
-    cc_by_footer(fig)
+    path with any suffix; both siblings are written next to it. ``fig.suptitle``
+    and every ``ax.set_title`` are cleared before save - BMC house style places
+    figure titles in the manuscript text, not in the graphic file. The vector
+    PDF is the publication asset (resolution-independent); the 600 dpi PNG is a
+    high-quality preview that also satisfies Springer's 600 dpi combination-
+    artwork minimum if used as a raster source. Pure line art (no fills, no
+    text shading) would need 1200 dpi to fully satisfy Springer's line-art
+    minimum, but the figures in this repo are all combination art."""
+    _strip_publication_titles(fig)
     stem = Path(out).with_suffix("")
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(f"{stem}.png", dpi=dpi, bbox_inches="tight")
@@ -424,21 +450,14 @@ def epv_annotation(ax, target: str, *, cell: str = "full_features",
 
 
 def cc_by_footer(fig, fontsize: float = 6.5) -> None:
-    """Add a CC BY 4.0 licence footer at the bottom-right of the figure.
-    Per `figure_design_requirements.md` §11.6: figures intended for
-    publication carry an explicit licence affordance.
-
-    Idempotent: calling twice on the same figure is a no-op on the second
-    call, so the helper can be called both explicitly by a wrapper script
-    AND implicitly by ``save`` without producing a double footer.
+    """No-op. The CC BY 4.0 licence is declared once at the manuscript level
+    (Manuscript licence subhead under Declarations) rather than stamped on
+    each figure. The function signature is retained so existing scripts that
+    call it continue to work; the flag is set so any guard that checks
+    ``_shd_cc_by_footer_added`` still reads True.
     """
-    if getattr(fig, "_shd_cc_by_footer_added", False):
-        return
-    fig.text(0.99, 0.005, "CC BY 4.0",
-             ha="right", va="bottom",
-             fontsize=fontsize, color=GREY, alpha=0.7,
-             transform=fig.transFigure)
     fig._shd_cc_by_footer_added = True
+    return
 
 
 # §11.11 self-check comment block. Each figure script imports this string

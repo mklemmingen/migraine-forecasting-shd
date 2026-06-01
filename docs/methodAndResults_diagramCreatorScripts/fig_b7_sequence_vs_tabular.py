@@ -41,7 +41,6 @@ Usage: python fig_b7_sequence_vs_tabular.py
 #   §11.1 CIs: per-bar patient-day bootstrap (n_boot=1000) 95% CI whiskers from the
 #       worker's (y, p) test arrays; renders the wider sequence CIs the disclosure cites
 #   §11.3 caption: cohort+n in title
-#   §11.6 footer + §11.7 EPV (migraine bars) + §11.11 self-check
 import os
 import subprocess
 import sys
@@ -213,7 +212,6 @@ def main():
             "sequence bars: 70/15/15 / NonHP / wider bootstrap CI",
             transform=ax.transAxes, ha="center", va="top",
             fontsize=6.5, color=S.SOFT, style="italic")
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_b7_sequence_vs_tabular"))
 
 

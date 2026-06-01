@@ -12,7 +12,6 @@ Usage: python fig_d1_cold_start.py
 # §11 compliance:
 #   §11.1 PASS: patient-cluster bootstrap 95% CI envelope per curve (population +
 #               personalised); n_boot=500
-#   §11.3 caption: cohort+n in suptitle; §11.6 footer; §11.7 EPV migraine; §11.11 self-check
 import sys
 from pathlib import Path
 
@@ -58,7 +57,6 @@ def main():
     fig.suptitle("Cold start: own running rate overtakes the cohort rate within days\n"
                  "Park 2016 SHD, n=62; patient-cluster bootstrap 95% CI envelope",
                  y=1.04, fontsize=10)
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_d1_cold_start"))
 
 

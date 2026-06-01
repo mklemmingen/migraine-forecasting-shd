@@ -201,7 +201,6 @@ def main() -> None:
         ax.set_xlim(0, lim); ax.set_ylim(0, lim)
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency (loess)")
-        ax.set_title(tgt)
         S.epv_annotation(ax, tgt, cell="full_features", loc="upper left")
 
         # Predicted-probability rug at the bottom of the panel (pmcalplot
@@ -225,9 +224,6 @@ def main() -> None:
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
-    fig.suptitle("Flexible (loess) calibration - Park 2016 SHD, n=62\n"
-                 "patient-cluster bootstrap 95% band; per-architecture predicted-probability rug at the bottom of each panel",
-                 y=1.04, fontsize=10)
     print("saved", S.save(fig, HERE / "figures" / "fig_c4_calibration_flexible"))
 
 

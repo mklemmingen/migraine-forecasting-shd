@@ -11,7 +11,6 @@ Usage: python fig_a4_base_rates.py
 # §11 compliance: per-patient base-rate distribution.
 #   §11.1 cohort mean: patient-cluster bootstrap 95% CI (n_boot=1000) rendered as
 #       a horizontal whisker through the mean tick and annotated alongside the mean label
-#   §11.3 caption + §11.6 footer + §11.11 self-check this block
 #   §11.7 N/A (this is the *cohort* base-rate, not a per-cell metric)
 from pathlib import Path
 
@@ -65,7 +64,6 @@ def main():
     ax.set_title("Between-patient variation in base rate\n"
                  "Park 2016 SHD, n=63 patients (62 enrolled + 1 disability-sheet only)")
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.0%}"))
-    S.cc_by_footer(fig)
     print("saved", S.save(fig, HERE / "figures" / "fig_a4_base_rates"))
 
 
