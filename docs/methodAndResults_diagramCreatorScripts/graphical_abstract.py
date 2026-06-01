@@ -29,6 +29,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
@@ -74,10 +75,9 @@ def _draw_slopegraph(ax) -> None:
     hea_col = S.target_color("headache")
     # x positions: pooled at 0, within at 1
     x = [0, 1]
-    # Chance band; label in the empty left margin so it does not collide with CI whiskers
+    # Dashed reference at 0.5 (chance); the y-axis tick at 0.5 carries the
+    # numeric and the dashed line carries the semantic, no inline label needed.
     ax.axhline(0.5, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
-    ax.text(-0.22, 0.5, "chance", fontsize=7, va="center", ha="right",
-            color=S.INK, alpha=0.7)
     # Migraine slope
     mig_y = [MIGRAINE["pooled"], MIGRAINE["within"]]
     ax.plot(x, mig_y, color=mig_col, lw=2.2, zorder=4,
@@ -94,16 +94,23 @@ def _draw_slopegraph(ax) -> None:
                        (1, HEADACHE["within"], HEADACHE["within_ci"])]:
         ax.plot([xi, xi], [ci[0], ci[1]], color=hea_col, lw=1.2, alpha=0.7, zorder=3)
     # Endpoint value labels
+    # Endpoint value labels — white bbox so the labels read clean against the
+    # crossing slope of the other target.
+    label_box = dict(fc="white", ec="none", pad=0.8)
     ax.text(-0.05, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
-            va="center", fontsize=8.5, color=mig_col, fontweight="bold")
+            va="center", fontsize=8.5, color=mig_col, fontweight="bold",
+            bbox=label_box)
     # Within-person endpoints sit 0.016 apart; offset vertically so the
     # 0.56 / 0.54 labels do not stack on top of each other.
     ax.text(1.05, MIGRAINE["within"] + 0.025, f"{MIGRAINE['within']:.2f}",
-            ha="left", va="bottom", fontsize=8.5, color=mig_col, fontweight="bold")
+            ha="left", va="bottom", fontsize=8.5, color=mig_col, fontweight="bold",
+            bbox=label_box)
     ax.text(-0.05, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
-            va="center", fontsize=8.5, color=hea_col, fontweight="bold")
+            va="center", fontsize=8.5, color=hea_col, fontweight="bold",
+            bbox=label_box)
     ax.text(1.05, HEADACHE["within"] - 0.025, f"{HEADACHE['within']:.2f}",
-            ha="left", va="top", fontsize=8.5, color=hea_col, fontweight="bold")
+            ha="left", va="top", fontsize=8.5, color=hea_col, fontweight="bold",
+            bbox=label_box)
     # Delta annotations at midpoint
     mig_delta = MIGRAINE["pooled"] - MIGRAINE["within"]
     hea_delta = HEADACHE["pooled"] - HEADACHE["within"]
@@ -131,10 +138,9 @@ def _draw_slopegraph(ax) -> None:
 def _draw_calibration(ax) -> None:
     mig_col = S.target_color("migraine")
     hea_col = S.target_color("headache")
-    # Reference line at unity
+    # Dashed reference at 1.0; the y-axis tick already carries the numeric
+    # and "calibration slope" axis label tells the reader 1.0 is the ideal.
     ax.axhline(1.0, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
-    ax.text(0.96, 1.0, "perfect", fontsize=7, va="bottom", ha="right",
-            color=S.INK, alpha=0.7)
     # Dots with CIs
     for i, (name, d, col) in enumerate(
         [("migraine", MIGRAINE, mig_col), ("headache", HEADACHE, hea_col)]
@@ -181,13 +187,15 @@ def _draw_dca_sparkline(ax) -> None:
             markersize=6, mfc=hea_col, mec=S.INK, mew=0.7, zorder=4)
     ax.plot(t[0], migraine_nb[0], "o", color=mig_col,
             markersize=6, mfc=mig_col, mec=S.INK, mew=0.7, zorder=4)
-    # White bbox lifts the endpoint labels off the curves.
-    ax.text(0.48, headache_nb[-1] + 0.005, "hea.", color=hea_col,
+    # Lift the endpoint labels well above the curves with a white bbox so the
+    # curve strokes are not visually broken.
+    label_box = dict(fc="white", ec="none", pad=0.8)
+    ax.text(0.48, headache_nb[-1] + 0.025, "hea.", color=hea_col,
             fontsize=7.5, fontweight="bold", ha="right", va="bottom",
-            bbox=dict(fc="white", ec="none", pad=0.5))
-    ax.text(0.48, migraine_nb[-1] - 0.005, "mig.", color=mig_col,
+            bbox=label_box)
+    ax.text(0.48, migraine_nb[-1] - 0.025, "mig.", color=mig_col,
             fontsize=7.5, fontweight="bold", ha="right", va="top",
-            bbox=dict(fc="white", ec="none", pad=0.5))
+            bbox=label_box)
     ax.set_xlim(0.01, 0.50)
     ax.set_ylim(-0.03, 0.20)
     ax.set_xticks([0.10, 0.50])
@@ -206,22 +214,37 @@ def main() -> None:
 
     fig, (ax_cohort, ax_gap, ax_cal, ax_dca) = plt.subplots(
         1, 4, figsize=(9.21, 3.00), dpi=100,
-        gridspec_kw={"width_ratios": [0.9, 2.6, 1.0, 1.0]},
+        gridspec_kw={"width_ratios": [0.7, 1.6, 1.4, 1.4]},
     )
     _draw_cohort(ax_cohort)
     _draw_slopegraph(ax_gap)
     _draw_calibration(ax_cal)
     _draw_dca_sparkline(ax_dca)
 
-    # Bottom-strip claim sentence (TRIPOD+AI for Abstracts Items 1 + 12)
-    fig.text(
-        0.5, 0.025,
-        "Pooled AUROC overstates within-person discrimination by 0.23 (migraine) "
-        "and 0.11 (headache) on next-day forecasting in Park 2016 Korean SHD (n = 62).",
-        ha="center", fontsize=8, color=S.INK, fontweight="bold",
-    )
+    # Bottom-strip claim sentence (TRIPOD+AI for Abstracts Items 1 + 12).
+    # The target words carry their data colour so the sentence itself serves
+    # as the colour legend; HPacker keeps the colored segments baseline-aligned.
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    segments = [
+        ("Pooled AUROC overstates within-person discrimination by 0.23 ",
+         S.INK, "bold"),
+        ("(migraine)", mig_col, "bold"),
+        (" and 0.11 ", S.INK, "bold"),
+        ("(headache)", hea_col, "bold"),
+        (" on next-day forecasting in Park 2016 Korean SHD (n = 62).",
+         S.INK, "bold"),
+    ]
+    text_areas = [
+        TextArea(s, textprops=dict(color=c, fontsize=8, fontweight=w))
+        for s, c, w in segments
+    ]
+    hpacker = HPacker(children=text_areas, align="baseline", pad=0, sep=0)
+    ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
+                        frameon=False, box_alignment=(0.5, 0))
+    fig.add_artist(ab)
     fig.subplots_adjust(left=0.02, right=0.99, top=0.95, bottom=0.20,
-                        wspace=0.55)
+                        wspace=0.65)
 
     out_png = HERE / "figures" / "graphical_abstract.png"
     fig.savefig(out_png, dpi=100, bbox_inches=None,
