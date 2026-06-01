@@ -13,6 +13,10 @@
 
 Within-person vs pooled discrimination, next-day migraine-headache prediction: Park 2016 Korean SHD
 
+## Plain language summary
+
+People with migraine often use smartphone diaries hoping the app can predict tomorrow's attack. We tested whether published accuracy numbers from such diaries actually tell you which of your days will be a migraine day, using a public Korean diary dataset of 62 people. We found that the popular accuracy score (pooled AUROC) mostly reflects differences *between* patients rather than *within* one patient day-to-day, so a diary-only prediction is not yet accurate enough to guide an individual medication decision. Better forecasts will likely need wearable sensors and larger cohorts.
+
 ## Abstract
 
 ### Background
