@@ -82,7 +82,7 @@ def main() -> None:
 
     # Title (the load-bearing claim + cohort context)
     ax.set_title(
-        "Within-person versus pooled discrimination on next-day migraine / headache forecasting\n"
+        "Within-person versus pooled discrimination on next-day migraine-headache forecasting\n"
         "Park 2016 Korean SHD cohort  -  n = 62 patients, 4,516 patient-days, diary-only",
         fontsize=10, loc="left", pad=8,
     )
