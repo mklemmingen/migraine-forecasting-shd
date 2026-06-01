@@ -66,8 +66,17 @@ def _draw_cohort(ax) -> None:
     ax.set_xticks([]); ax.set_yticks([])
     for spine in ax.spines.values():
         spine.set_visible(False)
-    ax.set_xlabel("n = 62 patients\n4,516 patient-days\nPark 2016 SHD\n2 Korean clinics",
-                  fontsize=8, color=S.INK, labelpad=4)
+    # Caption carries TRIPOD+AI Items 5 (setting), 7 (model type), and 9
+    # (participants + outcome events). Center-aligned within the label block
+    # so the multi-line stack reads as a single anchored caption rather than
+    # a ragged-left matplotlib-default.
+    ax.set_xlabel(
+        "n = 62, 4,516 patient-days\n"
+        "migraine 7.2% / headache 24% of days\n"
+        "Park 2016 SHD, 2 Korean clinics\n"
+        "TabPFN, XGBoost, window-MLP",
+        fontsize=8.5, color=S.INK, labelpad=4, multialignment="center",
+    )
 
 
 def _draw_slopegraph(ax) -> None:
@@ -94,23 +103,25 @@ def _draw_slopegraph(ax) -> None:
                        (1, HEADACHE["within"], HEADACHE["within_ci"])]:
         ax.plot([xi, xi], [ci[0], ci[1]], color=hea_col, lw=1.2, alpha=0.7, zorder=3)
     # Endpoint value labels
-    # Endpoint value labels — white bbox so the labels read clean against the
-    # crossing slope of the other target.
+    # Endpoint value labels — white bbox lifts the text off crossing slopes.
+    # Within-person endpoints sit only 0.016 apart in y (migraine 0.558,
+    # headache 0.542), which is below the 8.5pt label line-height at this
+    # axes scale; the labels therefore need a small vertical offset (±0.04)
+    # to avoid stacking on top of each other. clip_on=False lets labels
+    # render into the inter-panel wspace if they exceed the data area.
     label_box = dict(fc="white", ec="none", pad=0.8)
-    ax.text(-0.05, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
+    ax.text(-0.08, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
             va="center", fontsize=8.5, color=mig_col, fontweight="bold",
-            bbox=label_box)
-    # Within-person endpoints sit 0.016 apart; offset vertically so the
-    # 0.56 / 0.54 labels do not stack on top of each other.
-    ax.text(1.05, MIGRAINE["within"] + 0.025, f"{MIGRAINE['within']:.2f}",
+            bbox=label_box, clip_on=False)
+    ax.text(1.06, MIGRAINE["within"] + 0.04, f"{MIGRAINE['within']:.2f}",
             ha="left", va="bottom", fontsize=8.5, color=mig_col, fontweight="bold",
-            bbox=label_box)
-    ax.text(-0.05, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
+            bbox=label_box, clip_on=False)
+    ax.text(-0.08, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
             va="center", fontsize=8.5, color=hea_col, fontweight="bold",
-            bbox=label_box)
-    ax.text(1.05, HEADACHE["within"] - 0.025, f"{HEADACHE['within']:.2f}",
+            bbox=label_box, clip_on=False)
+    ax.text(1.06, HEADACHE["within"] - 0.04, f"{HEADACHE['within']:.2f}",
             ha="left", va="top", fontsize=8.5, color=hea_col, fontweight="bold",
-            bbox=label_box)
+            bbox=label_box, clip_on=False)
     # Delta annotations at midpoint
     mig_delta = MIGRAINE["pooled"] - MIGRAINE["within"]
     hea_delta = HEADACHE["pooled"] - HEADACHE["within"]
@@ -170,11 +181,17 @@ def _draw_calibration(ax) -> None:
 def _draw_dca_sparkline(ax) -> None:
     mig_col = S.target_color("migraine")
     hea_col = S.target_color("headache")
+    # Anchor values traced from fig_d3_decision_curve.py headline-cell output
+    # at the canonical (full_features, chrono, 70/30, TabPFN) cells; the
+    # sparkline is a linear interpolation between these anchors so the curve
+    # shape is data-bound rather than fabricated. Source: fig_d3 run log,
+    # bodysect 3.7.
+    t_anchor = np.array([0.01, 0.05, 0.10, 0.20, 0.30, 0.50])
+    headache_anchor = np.array([0.18, 0.152, 0.102, 0.052, 0.031, 0.016])
+    migraine_anchor = np.array([0.045, 0.033, 0.020, 0.015, 0.007, -0.002])
     t = np.linspace(0.01, 0.50, 50)
-    # Headache: positive NB at low thresholds, descending to zero
-    headache_nb = 0.15 * np.exp(-7 * t) + 0.01
-    # Migraine: near zero across the band
-    migraine_nb = 0.03 * np.exp(-3 * t) - 0.005
+    headache_nb = np.interp(t, t_anchor, headache_anchor)
+    migraine_nb = np.interp(t, t_anchor, migraine_anchor)
     # Zero reference (treat none)
     ax.axhline(0.0, color=S.REF_COLOR, lw=0.6, ls=":", alpha=0.6, zorder=1)
     # Highlight clinically plausible sub-band t in [0.01, 0.10]
@@ -214,7 +231,7 @@ def main() -> None:
 
     fig, (ax_cohort, ax_gap, ax_cal, ax_dca) = plt.subplots(
         1, 4, figsize=(9.21, 3.00), dpi=100,
-        gridspec_kw={"width_ratios": [0.7, 1.6, 1.4, 1.4]},
+        gridspec_kw={"width_ratios": [1.0, 1.5, 1.3, 1.3]},
     )
     _draw_cohort(ax_cohort)
     _draw_slopegraph(ax_gap)
@@ -243,8 +260,8 @@ def main() -> None:
     ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
-    fig.subplots_adjust(left=0.02, right=0.99, top=0.95, bottom=0.20,
-                        wspace=0.65)
+    fig.subplots_adjust(left=0.06, right=0.97, top=0.95, bottom=0.22,
+                        wspace=0.55)
 
     out_png = HERE / "figures" / "graphical_abstract.png"
     fig.savefig(out_png, dpi=100, bbox_inches=None,
