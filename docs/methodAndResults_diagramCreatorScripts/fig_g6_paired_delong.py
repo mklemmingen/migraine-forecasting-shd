@@ -125,18 +125,20 @@ def main():
     for i in range(n):
         c = sig_color if sig[i] else nonsig_color
         ax.text(x_anno, y_pos[i], f"q={qvals[i]:.3f}",
-                va="center", ha="left", fontsize=7.5, color=c)
+                va="center", ha="left", fontsize=8, color=c)
 
     ax.set_xlabel("ΔAUC (arch A − arch B), 95% DeLong CI")
     n_sig = int(sig.sum())
-    ax.set_title(
-        f"Paired DeLong + BH-FDR (q ≤ 0.05) across {n} cross-architecture tests; "
-        f"{n_sig} significant after multiplicity correction"
-    )
 
     x_lo = min(ci_lo.min(), -0.02) - 0.012
-    x_hi = x_anno + 0.06
+    # Reserve a right gutter wide enough for the "q=0.xxx" annotation column so
+    # the rightmost (significant, vermillion) label is never clipped by the
+    # tight bounding box.
+    x_hi = x_anno + 0.085
     ax.set_xlim(x_lo, x_hi)
+    # Tight vertical margin (~half a row above/below the end rows) so the title
+    # sits close to the plot instead of over a blank band of auto-margin.
+    ax.set_ylim(-0.6, n - 0.4)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
@@ -157,7 +159,16 @@ def main():
               bbox_to_anchor=(0.5, -0.10), ncol=3,
               frameon=False, fontsize=8)
 
-    fig.tight_layout()
+    # Title set as a figure-level suptitle (centred on the whole image, x=0.5)
+    # rather than an axes title: the long y-tick labels push the axes far to the
+    # right, so an axes-centred title would read off-centre relative to the page.
+    # suptitle size inherits the 11.5 pt rcParam; placed just above the axes so
+    # the title-to-plot gap matches the other figures.
+    fig.suptitle(
+        f"Paired DeLong + BH-FDR across {n} cross-architecture tests\n"
+        f"{n_sig} of {n} significant at q ≤ 0.05 (BH-FDR, multiplicity-corrected)",
+        y=0.98)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
 
     out_stem = _FIG_DIR / "fig_g6_paired_delong"
     S.save(fig, out_stem)

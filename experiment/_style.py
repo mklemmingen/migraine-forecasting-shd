@@ -130,6 +130,12 @@ REF_COLOR = OI["black"]             # reference lines: chance, perfect, treat-no
 REF_LW = 0.9                        # reference-line width (guide Section 1.3: 0.8-1.2)
 CI_ALPHA = 0.18                     # CI-band shading alpha (guide: 0.15-0.20)
 COL_SINGLE, COL_DOUBLE = 3.5, 7.2   # final figure widths (in): ~89 mm / ~183 mm
+# Full-width landscape width for a content-dense single-panel schematic (e.g. the
+# horizontal benchmark-pipeline flowchart) placed as a sideways/landscape figure.
+# A column-width canvas cannot hold such a schematic at the guideline point sizes
+# (9 pt body / 8 pt labels) without text overflowing its boxes, so the guide's
+# Section 5 allowance for wider single-panel figures applies here.
+COL_WIDE = 9.6                      # ~244 mm: landscape / sideways schematic
 
 TARGET = {"headache": OI["blue"], "migraine": OI["vermillion"]}
 
@@ -213,7 +219,7 @@ def apply():
         "lines.linewidth": 1.5, "lines.markersize": 5,
         "legend.fontsize": 8, "legend.frameon": False, "legend.title_fontsize": 8.5,
         "figure.facecolor": "white", "savefig.facecolor": "white",
-        "figure.dpi": 110, "savefig.dpi": 300, "savefig.bbox": "tight",
+        "figure.dpi": 110, "savefig.dpi": 600, "savefig.bbox": "tight",
         "pdf.fonttype": 42, "ps.fonttype": 42, "svg.fonttype": "none",
     })
 
@@ -267,8 +273,11 @@ def framed_legend(ax, **kw):
 
 
 def figsize(cols="double", h=4.0):
-    """Final-size figure width by column count: 'single' ~89 mm, 'double' ~183 mm."""
-    return (COL_DOUBLE if cols == "double" else COL_SINGLE, h)
+    """Final-size figure width by column count: 'single' ~89 mm, 'double' ~183 mm,
+    'wide' ~244 mm (a landscape single-panel schematic; see ``COL_WIDE``)."""
+    width = {"single": COL_SINGLE, "double": COL_DOUBLE, "wide": COL_WIDE}.get(
+        cols, COL_DOUBLE)
+    return (width, h)
 
 
 def save(fig, out, dpi=300) -> str:
@@ -424,21 +433,15 @@ def epv_annotation(ax, target: str, *, cell: str = "full_features",
 
 
 def cc_by_footer(fig, fontsize: float = 6.5) -> None:
-    """Add a CC BY 4.0 licence footer at the bottom-right of the figure.
-    Per `figure_design_requirements.md` §11.6: figures intended for
-    publication carry an explicit licence affordance.
-
-    Idempotent: calling twice on the same figure is a no-op on the second
-    call, so the helper can be called both explicitly by a wrapper script
-    AND implicitly by ``save`` without producing a double footer.
+    """No-op: per-figure CC BY 4.0 stamps were removed for JHP submission.
+    The licence declaration lives once in the manuscript Declarations
+    (Manuscript licence subhead) rather than burned into every figure.
+    Multi-reviewer fan-out panel verdict (visual designer + accessibility):
+    per-figure stamps add visual clutter at 5-6pt and replicate metadata
+    already carried at the manuscript level.
     """
-    if getattr(fig, "_shd_cc_by_footer_added", False):
-        return
-    fig.text(0.99, 0.005, "CC BY 4.0",
-             ha="right", va="bottom",
-             fontsize=fontsize, color=GREY, alpha=0.7,
-             transform=fig.transFigure)
     fig._shd_cc_by_footer_added = True
+    return
 
 
 # §11.11 self-check comment block. Each figure script imports this string
