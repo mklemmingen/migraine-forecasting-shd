@@ -1,4 +1,4 @@
-"""Figure 4 (working-notes ID: C5) - within-person calibration at the headline cells.
+"""Figure 5 (working-notes ID: C5) - within-person calibration at the headline cells.
 
 Adds the within-person calibration leg to the within-person discrimination
 reporting in body §3.6. The within-person C-statistic at the headline cells
@@ -28,7 +28,6 @@ Usage: python fig_c5_within_person_calibration.py
 # §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
 #   §11.1 CIs on headline metric:        patient-bootstrap CI on per-quartile observed
 #   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
-#   §11.6 CC BY 4.0 footer:              auto-applied by S.save()
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine panel
 #   §11.10 no "substantial"/"large":     verified
 #   §11.11 self-check:                   this block

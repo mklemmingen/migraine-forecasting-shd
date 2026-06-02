@@ -16,7 +16,6 @@ Usage: python fig_h1_feature_attribution.py
 # §11 compliance: SHAP feature attribution bars for the headline cells.
 #   §11.1 CIs: per-bar row-bootstrap 95% CI from the leaf's frozen shap_matrix npz
 #   §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7 via renderer (migraine `full_features` cell explicit)
 #   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
 #   Mean |SHAP| feature attribution of the headline model on the deployable cell

@@ -15,7 +15,6 @@ Usage: python fig_f4_feature_venn.py
 """
 # §11 compliance: feature-set membership Venn diagram (set-theoretic; no metric).
 #   §11.1 N/A; §11.3 caption: feature-set names self-contained
-#   §11.6 via renderer; §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
 #   Feature-set inclusion as a nested Euler diagram. spano and no_rolling are strict
 #   subsets of full (no feature lies outside full), so each is drawn wholly inside the

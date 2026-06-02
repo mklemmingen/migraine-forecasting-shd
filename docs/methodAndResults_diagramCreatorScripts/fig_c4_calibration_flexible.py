@@ -1,4 +1,4 @@
-"""Figure 2 (working-notes ID: C4) - flexible (loess) calibration curves at the headline cells.
+"""Figure 3 (working-notes ID: C4) - flexible (loess) calibration curves at the headline cells.
 
 Adds the moderate-calibration-level diagnostic of the Van Calster 2016
 calibration hierarchy on top of the weak-calibration (slope + CITL) reporting
@@ -25,7 +25,6 @@ Usage: python fig_c4_calibration_flexible.py
 # §11 compliance (figure_design_requirements.md, reviewer-derived 2026-05-28):
 #   §11.1 CIs on headline metric:        bootstrap CI band on smooth
 #   §11.3 self-contained caption:        cohort name + n + CI method in suptitle
-#   §11.6 CC BY 4.0 footer:              auto-applied by S.save()
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() on migraine panel
 #   §11.10 no "substantial"/"large":     verified
 #   §11.11 self-check:                   this block

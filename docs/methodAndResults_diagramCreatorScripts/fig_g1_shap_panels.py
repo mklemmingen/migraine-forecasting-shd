@@ -1,9 +1,9 @@
-"""Figure 7 (working-notes ID: G1) - SHAP beeswarm panels for both targets.
+"""Figure 2 (working-notes ID: G1) - SHAP beeswarm panels for both targets.
 
 Body-facing wrapper that combines the per-target SHAP beeswarm renderings
 emitted by fig_h2_shap_beeswarm.py (which in turn uses the shared
 experiment/_explain/_plots.plot_beeswarm primitive) into a single side-by-side
-two-panel figure for the body Figure 7 slot. The per-target PNGs are reused
+two-panel figure for the body Figure 2 slot. The per-target PNGs are reused
 as-is via PIL so the underlying _explain._plots.plot_beeswarm contract stays
 unchanged for the leaf-level insight pass.
 

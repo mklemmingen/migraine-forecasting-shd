@@ -1,4 +1,4 @@
-"""Figure 3 (working-notes ID: B7) - sequence vs tabular discrimination (Addition 4).
+"""Supplementary Figure S3 (working-notes ID: B7) - sequence vs tabular discrimination (Addition 4).
 
 Hold-out (val+test) AUROC of the three sequence architectures (window-MLP,
 GRU, 1D-CNN over gap-aware temporal windows) against the tabular architectures

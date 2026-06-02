@@ -13,7 +13,7 @@ Usage: python fig_e1_calibration_drift.py
 # §11 compliance:
 #   §11.1 CIs: yerr whiskers from oe_ratio_ci_low/high in external_site_summary csv
 #   §11.5 per-direction: numeric per-direction values (0.50/1.54) in suptitle
-#   §11.3 caption + §11.6 footer + §11.7 EPV migraine + §11.11 self-check
+#   §11.3 caption + §11.7 EPV migraine + §11.11 self-check
 import csv
 from pathlib import Path
 

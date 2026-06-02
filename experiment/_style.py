@@ -468,7 +468,6 @@ COMPLIANCE_BLOCK = """\
 #   §11.1 CIs on headline metric:        see error bars / shaded bands
 #   §11.2 estimability denominators:     where applicable (within-person)
 #   §11.3 self-contained caption:        S.caption_block() invoked
-#   §11.6 CC BY 4.0 footer:              S.cc_by_footer() invoked
 #   §11.7 EPV-5.5 annotation:            S.epv_annotation() invoked on
 #                                        migraine full_features panels
 #   §11.10 no "substantial"/"large":     verified in captions
