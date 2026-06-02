@@ -13,7 +13,6 @@ Usage: python fig_g4_cross_arch.py
 # §11 compliance: SHAP attribution shares (single-fit caveat noted in renderer).
 #   §11.1 N/A (no probabilistic CI on attribution shares from one fit)
 #   §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7 via renderer; §11.10 no banned adjectives; §11.11 self-check
 # Paper caption (for LaTeX):
 #   Cross-architecture feature attribution for one cell: the headline model vs a
 #   near-tied runner-up of a different family (XGBoost stack green, TabPFN purple).

@@ -19,7 +19,6 @@ Usage: python fig_f2_performance_profile.py
 # §11 compliance: rank-based Dolan-More profile (no per-method CI applicable).
 #   §11.1 N/A (rank metric)
 #   §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7: applied via renderer helper where present
 #   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX):
 #   Dolan-More performance profile [dolanmore2002profile, p. 201]. For each

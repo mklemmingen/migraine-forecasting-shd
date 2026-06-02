@@ -14,7 +14,7 @@ Usage: python fig_d3_decision_curve.py
 # §11 compliance:
 #   §11.1 PASS: net-benefit patient-day bootstrap 95% CI band per architecture
 #               (DC.decision_curve_ci, n_boot=500)
-#   §11.3 caption: cohort+n in suptitle; §11.6 footer; §11.7 EPV migraine; §11.11 self-check
+#   §11.3 caption: cohort+n in suptitle; §11.7 EPV migraine; §11.11 self-check
 import os
 import subprocess
 import sys

@@ -23,7 +23,6 @@ Usage: python fig_g1_split_auroc.py
 """
 # §11 compliance: AUROC bars per cell with 95% CI whiskers (already present).
 #   §11.1 PASS (CI whiskers); §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7 via renderer helper (g-series shares experiment/2 plot infra)
 #   §11.10 no banned adjectives; §11.11 self-check this block
 # Paper caption (for LaTeX; the reference-line and hatch keys were moved off the
 # axis label, which duplicated the legend):

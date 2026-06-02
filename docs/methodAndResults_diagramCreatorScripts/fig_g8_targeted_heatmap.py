@@ -25,7 +25,6 @@ Usage: python fig_g8_targeted_heatmap.py
 # §11 compliance: targeted-hypothesis heatmap.
 #   §11.1 CIs: per-cell two-line text renders "mean\n[lo-hi]" from comparison_*.csv holdout_AUROC
 #   §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7 via renderer (migraine `full_features` rows present)
 #   §11.10 no banned adjectives; §11.11 self-check this block
 import csv
 import json

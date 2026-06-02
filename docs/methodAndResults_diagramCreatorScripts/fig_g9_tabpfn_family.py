@@ -24,7 +24,6 @@ Usage: python fig_g9_tabpfn_family.py
 #   §11.3 caption: cohort+n + within-family-tie note in rendered title
 #   §11.7 CRITICAL: this IS the migraine `full_features` cell; renderer
 #       must overlay the EPV-5.5 marker per §11 -- helper enhancement pending
-#   §11.6 via renderer; §11.10 no banned adjectives; §11.11 self-check this block
 import re
 import sys
 from pathlib import Path

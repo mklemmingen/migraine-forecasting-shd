@@ -13,7 +13,6 @@ Usage: python fig_g3_calib_slope.py
 # §11 compliance: calibration slope markers per cell.
 #   §11.1 CIs: whiskers from calib_slope_lo/hi (figdata) via F.calib_slope_figure()
 #   §11.3 caption: cohort+n in rendered title
-#   §11.6, §11.7 via renderer; §11.10 no banned adjectives; §11.11 self-check
 # Paper caption (for LaTeX):
 #   Calibration slope of the headline model per (target, feature-set) cell, one marker
 #   per split, against the perfect-calibration line at 1.0. The shaded zones (<= 0
