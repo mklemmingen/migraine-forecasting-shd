@@ -1,4 +1,4 @@
-"""Figure 4 (working-notes ID: C5) - within-person calibration at the headline cells.
+"""Figure 5 (working-notes ID: C5) - within-person calibration at the headline cells.
 
 Adds the within-person calibration leg to the within-person discrimination
 reporting in body §3.6. The within-person C-statistic at the headline cells

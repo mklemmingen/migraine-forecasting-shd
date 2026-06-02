@@ -1,4 +1,4 @@
-"""Figure 8 (working-notes ID: G2) - fairness stratum disaggregation of the
+"""Figure 6 (working-notes ID: G2) - fairness stratum disaggregation of the
 within-person C-statistic.
 
 Body-facing forest plot of the §3.6 stratum disaggregation that body §3.6
