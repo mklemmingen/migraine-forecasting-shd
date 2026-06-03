@@ -19,9 +19,13 @@ People with migraine often use smartphone diaries hoping the app can predict tom
 
 ## Abstract
 
+### Objective
+
+To develop and internally validate a multivariable next-day forecasting benchmark for episodic migraine and headache on a publicly available Korean smartphone diary cohort, contrasting pooled with within-person discrimination as the load-bearing endpoint.
+
 ### Background
 
-Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. Diary-only literature reaches AUROC 0.56-0.65 within-person, below wearable-augmented time-series work (up to 0.84) on inputs the diary lacks.
+Pooled AUROC for daily migraine forecasting conflates within-person day-to-day ranking with between-patient base-rate separation, leaving clinical utility unresolved. The diary-only literature reaches AUROC 0.56-0.65 within-person, below the wearable-augmented high-water mark (up to 0.84) on inputs the diary lacks.
 
 ### Methods
 
@@ -29,7 +33,7 @@ Next-day migraine and headache forecasting were developed and internally evaluat
 
 ### Results
 
-The within-person C-statistic clustered at 0.53-0.57 across architectures and both targets (headache 0.542 [0.509, 0.575]; migraine 0.565 [0.508, 0.622]); per-patient AUROC centred near chance. Pooled headline AUROC reached 0.793 (95% CI 0.544-0.890) for migraine and 0.652 (0.556-0.740) for headache, so pooled discrimination on this cohort likely reflected between-patient base-rate separation rather than within-person day-to-day ranking. Brier skill against per-patient TRAIN-set climatology was positive for headache only on the TabPFN-v2.6 headline cell (+0.215 [+0.017, +0.396]); migraine Brier skill CIs included or fell below zero across architectures. Headache decision-curve net benefit was positive at clinically plausible low thresholds; migraine net benefit sat near zero. Leave-one-site-out calibration drift was observed across the two clinics.
+The within-person C-statistic clustered at 0.53-0.57 across architectures and both targets (headache 0.542 [0.509, 0.575]; migraine 0.565 [0.508, 0.622]); per-patient AUROC centred near chance. Pooled AUROC exceeded within-person C by 0.23 (migraine) and 0.11 (headache), reaching 0.793 (95% CI 0.544-0.890) and 0.652 (0.556-0.740) respectively on the chronological split, which is patient-overlapping by design and tests within-patient temporal generalisation rather than held-out-patient transport; the pooled migraine CI lower bound (0.544) sits barely above chance, so pooled discrimination reflected between-patient base-rate separation rather than within-person day-to-day ranking. Under conservative Bonferroni FWER correction across 166 architecture pairs at the canonical chronological headline cells, 0 contrasts achieved significance; under less-conservative BH-FDR correction across 18 documented contrasts, 1 survived (q ≤ 0.05) at a non-canonical small-cohort patient-hold-out cell. Brier skill against per-patient TRAIN-set climatology was positive for headache only on the TabPFN-v2.6 headline cell (+0.215 [+0.017, +0.396]); migraine Brier skill CIs included or fell below zero across architectures. Headache decision-curve net benefit was positive at clinically plausible low thresholds; migraine net benefit sat near zero. Leave-one-site-out calibration drift was observed across the two clinics.
 
 ### Conclusion
 
