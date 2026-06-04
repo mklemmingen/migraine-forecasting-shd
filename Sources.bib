@@ -280,6 +280,34 @@
   note    = {Open access (CC-BY 4.0) via BMC. 146 individuals, 21\,550 headache days, BioCer randomized clinical trial (NCT05616741). Best time-series model: next-day test-set AUC 0.84 (95\% CI 0.82-0.85); 3-day window AUC 0.76. Most predictive features: headache intensity, duration, heart-rate scores. Current high-water-mark migraine-forecasting benchmark; their diary+wearable modality differs from our diary-only modality - cite carefully. BMC/JHP convention: article-number serves as locator; pages and number fields both carry the article number 91 (J Headache Pain 27, Article 91).},
 }
 
+@article{stubberud2024aiheadache,
+  author  = {Stubberud, Anker and Langseth, Helge and Nachev, Parashkev and Matharu, Manjit S. and Tronvik, Erling},
+  title   = {Artificial intelligence and headache},
+  journal = {Cephalalgia},
+  volume  = {44},
+  number  = {8},
+  pages   = {03331024241268290},
+  year    = {2024},
+  month   = aug,
+  doi     = {10.1177/03331024241268290},
+  url     = {https://doi.org/10.1177/03331024241268290},
+  note    = {Narrative review of AI/ML in headache research; PubMed + Embase + IEEExplore literature search, 44 publications categorized into six topics (NLP, classification/phenotyping, disease-trajectory prediction, forecasting, treatment-effect prediction, machine prescription). Concludes that ``many studies suffer from poor reporting and lack out-of-sample evaluation, and most models are not validated in a clinical setting'' (Abstract). Forecasting-section forward-look (p.\ 10) explicitly identifies ``the utility of between-person and within-person models'' as an open research direction, which directly motivates the pooled-vs-within-person reframe used as our load-bearing endpoint. SAGE/Cephalalgia convention: e-locator (article number) serves as page citation.},
+}
+
+@article{lee2025aiheadachekorean,
+  author  = {Lee, Wonwoo and Chu, Min Kyung},
+  title   = {The Current Role of Artificial Intelligence in the Field of Headache Disorders, with a Focus on Migraine: A Systemic Review},
+  journal = {Headache and Pain Research},
+  volume  = {26},
+  number  = {1},
+  pages   = {48--65},
+  year    = {2025},
+  month   = feb,
+  doi     = {10.62087/hpr.2024.0024},
+  url     = {https://doi.org/10.62087/hpr.2024.0024},
+  note    = {Open access (CC BY-NC 4.0) via the Korean Headache Society journal Headache and Pain Research (pISSN 3022-9057, eISSN 3022-4764). PRISMA-style literature search of PubMed for migraine + AI/ML between 2000 and 31 July 2024; 61 articles included after screening. Table 3 enumerates the AI-based migraine-attack-prediction literature and lists only Siirtola 2018, Stubberud 2023, and Katsuki 2023; Park et al. 2016 is absent from the enumeration. As a Korean systematic review by Korean Headache Society authors that nonetheless does not surface the Park 2016 SHD cohort in its forecasting enumeration, this is the strongest empirical support for the claim that the Park 2016 SHD dataset remains under-exploited for machine learning. Title typo ``Systemic Review'' is verbatim from the article and Crossref record.},
+}
+
 @misc{mcdermott2024aurocAuprc,
   author       = {McDermott, Matthew B. A. and Hansen, Lasse Hyldig and Zhang, Haoran and Angelotti, Giovanni and Gallifant, Jack},
   title        = {A Closer Look at {AUROC} and {AUPRC} under Class Imbalance},
@@ -940,5 +968,46 @@
   doi     = {10.1177/0333102417738202},
   pmid    = {29368949},
   note    = {Authoritative diagnostic framework for headache classification, published as the entirety of Cephalalgia 38(1). Park 2016 SHD recruited under the precursor ICHD-3 beta version (Cephalalgia 2013;33(9):629-808; PMID 23771276); migraine diagnostic criteria B-D for migraine without aura are operationally unchanged between the 2013 beta and the 2018 finalised editions, so the 2018 entry is the standard reference for the framework in body \S 2.1 with the prose explicitly naming the beta version Park 2016 used. Page references verified against the published PDF: p. 19 carries the diagnostic criteria for 1.1 Migraine without aura (criterion B: attack duration 4-72 hours; criterion C: at least two of unilateral / pulsating / moderate-or-severe / aggravation-by-physical-activity; criterion D: nausea/vomiting and/or photophobia+phonophobia during headache). Bibliographic data independently triangulated from (a) the Petru{\v s}i{\'c} et al. 2024 J Headache Pain reference list entry [5], (b) PubMed record PMID 29368949, and (c) the cover page of the ICHD-3 PDF itself which carries the SAGE journal-line "Cephalalgia 2018, Vol. 38(1) 1-211, \copyright\ International Headache Society 2018, DOI: 10.1177/0333102417738202".},
+}
+
+@article{hanley1982roc,
+  author  = {Hanley, James A. and McNeil, Barbara J.},
+  title   = {The meaning and use of the area under a receiver operating characteristic (ROC) curve},
+  journal = {Radiology},
+  volume  = {143},
+  number  = {1},
+  pages   = {29--36},
+  year    = {1982},
+  month   = apr,
+  doi     = {10.1148/radiology.143.1.7063747},
+  pmid    = {7063747},
+  note    = {Foundational reference for the AUROC / C-statistic interpretation as the probability that a randomly chosen positive case is ranked higher than a randomly chosen negative case, and for the AUROC-Wilcoxon equivalence. The within-person C-statistic our paper computes per patient and pools by Paule-Mandel random effects is the per-patient instantiation of this exact quantity, so the citation anchors the load-bearing endpoint of our paper at its primary source. Bibliographic details verified directly against the open-access PDF hosted by Hanley at jhanley.biostat.mcgill.ca (8-page typeset PDF, McGill Department of Epidemiology and Health + Harvard Medical School / Brigham and Women's Hospital affiliations on page 1). Cited at body \S 2.4 (Validation design) where the within-person C is defined.},
+}
+
+@article{sacco2012hormones,
+  author  = {Sacco, Simona and Ricci, Silvia and Degan, Diana and Carolei, Antonio},
+  title   = {Migraine in women: the role of hormones and their impact on vascular diseases},
+  journal = {The Journal of Headache and Pain},
+  volume  = {13},
+  number  = {3},
+  pages   = {177--189},
+  year    = {2012},
+  month   = apr,
+  doi     = {10.1007/s10194-012-0424-y},
+  pmid    = {22367631},
+  pmcid   = {PMC3311830},
+  note    = {Authoritative JHP-published review of hormonal mechanisms in migraine. Cited at body \S 4.3 to anchor the "biologically privileged" hormonal-change claim against a primary-source mechanism review in our target venue. The paper's abstract states verbatim "Migraine is a predominantly female disorder. Menarche, menstruation, pregnancy, and menopause, and also the use of hormonal contraceptives and hormone replacement treatment may influence migraine occurrence. Those variations are mediated by fluctuation of estrogen levels through their influence on cellular excitability or cerebral vasculature." The paper's "Mechanisms linking sex hormones and migraine" section (page 5 of the open-access PDF) is the specific anchor for our hormonal-trigger paragraph. Tables 1+2 (pages 3-4) carry the ICHD-II diagnostic criteria for A1.1.2 menstrually related migraine without aura, the criterion our \S 4.3 prose names. Bibliographic details verified against the open-access PDF from Springer (6-page extract of the full 13-page article; first 6 pages cover the mechanism content we cite). Authors: Sacco, Ricci, Degan, Carolei, all from Department of Neurology and Regional Referral Center for Headache Disorders, University of L'Aquila, Italy.},
+}
+
+@article{fox2025disability,
+  author  = {Fox, Janosch and Gaul, Charly and Ohse, Julia and Peperkorn, Nicolina and Krutzki, Joshua and Shiban, Youssef},
+  title   = {Psychological transdiagnostic factors and migraine characteristics as predictors of migraine-related disability},
+  journal = {The Journal of Headache and Pain},
+  volume  = {26},
+  pages   = {167},
+  year    = {2025},
+  month   = jul,
+  doi     = {10.1186/s10194-025-02101-4},
+  note    = {JHP-published research article from the PFH Goettingen Department of Psychology group (first author Janosch Fox at affiliation 1: Department of Psychology, PFH Goettingen and affiliation 2: Department of Psychiatry and Psychotherapy, University Medical Center Goettingen; corresponding author Charly Gaul at Medical Faculty University of Duisburg-Essen + Headache Center Frankfurt). Cited at body \S 4.5 (iv) disability-driven future-work direction to anchor two substantive claims: (1) attack frequency alone explains only a moderate fraction of migraine-related disability; (2) psychological transdiagnostic factors contribute substantially beyond migraine symptoms. Both claims supported by direct PDF reading: page 1 abstract reports hierarchical regression on N=158 episodic migraineurs (≥4 migraine days/month) with sociodemographic + migraine symptoms accounting for 49\% of HIT-6 disability variance and adding FAM (Fear Avoidance Model) factors lifting explained variance to 62\% ($\Delta R^2_{adj}=0.13, p<0.001$). Page 2 verbatim quote: "the association between attack frequency and disability ranges from none to only moderate [refs 15-17]. This suggests that higher attack rates do not necessarily correspond to greater disability." Bibliographic details verified against the full 18-page open-access PDF curled from \texttt{thejournalofheadacheandpain.biomedcentral.com/counter/pdf/10.1186/s10194-025-02101-4.pdf}. License: CC BY 4.0. The HIT-6 disability outcome in Fox 2025 matches the HIT-6 baseline characteristic our Table 1 reports for the Park 2016 cohort (62.4 $\pm$ 9.7), providing direct measurement-overlap with our cohort.},
 }
 
