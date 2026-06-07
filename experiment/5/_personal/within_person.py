@@ -184,6 +184,56 @@ def within_person_cstatistic(scores: pd.DataFrame, method: str = "PM") -> dict:
             "ci_high_pm": est_pm + 1.96 * se_pm}
 
 
+def hksj_within_person_ci(scores: pd.DataFrame, alpha: float = 0.05) -> dict:
+    """Hartung-Knapp-Sidik-Jonkman t-interval for the precision-weighted
+    within-person C-statistic, with the Roever-Knapp-Friede 2015 modified
+    variant (mKH) for small k with imbalanced precisions.
+
+    Computes the standard PM random-effects weights ``w_i = 1/(v_i + tau2)``,
+    the pooled estimate ``mu_w = sum(w_i a_i) / sum(w_i)``, and the HKSJ
+    variance correction ``q = sum(w_i (a_i - mu_w)^2) / ((k-1) * sum(w_i))``.
+    The modified mKH variant uses ``q* = max(q, 1)`` to avoid the failure
+    mode Roever et al. 2015 name explicitly: ``q may in fact also turn
+    out arbitrarily small`` producing narrower-than-normal-approximation
+    CIs in imbalanced precision regimes. Uses a Student-t quantile with
+    df = k - 1 rather than the normal-approximation 1.96.
+
+    Args:
+        scores: per_patient_scores output.
+        alpha: two-sided confidence level (default 0.05 for 95% CI).
+
+    Returns: estimate (PM-weighted point estimate, unchanged), ci_low,
+    ci_high (mKH t-interval), q (raw HKSJ correction), q_mod (max(q, 1)),
+    df (k - 1), t_crit (Student-t two-sided quantile), k_estimable.
+    """
+    from scipy.stats import t as student_t
+    est = scores[scores["estimable"]].dropna(subset=["auroc"])
+    k = len(est)
+    nan = float("nan")
+    if k < 2:
+        return {"k_estimable": int(k), "estimate": nan,
+                "ci_low": nan, "ci_high": nan,
+                "q": nan, "q_mod": nan, "df": int(max(k - 1, 0)),
+                "t_crit": nan}
+    a = est["auroc"].to_numpy(dtype=float)
+    n_pos = est["n_pos"].to_numpy(dtype=int)
+    n_neg = (est["n"] - est["n_pos"]).to_numpy(dtype=int)
+    v = np.array([_hanley_mcneil_var(ai, p, q) for ai, p, q in zip(a, n_pos, n_neg)])
+    v = np.clip(v, 1e-6, None)
+    tau2 = _pm_tau2(a, v)
+    w = 1.0 / (v + tau2)
+    mu_w = float(np.sum(w * a) / np.sum(w))
+    q = float(np.sum(w * (a - mu_w) ** 2) / ((k - 1) * np.sum(w)))
+    q_mod = max(q, 1.0)
+    df = k - 1
+    t_crit = float(student_t.ppf(1 - alpha / 2.0, df=df))
+    se_mkh = float(np.sqrt(q_mod / np.sum(w)))
+    return {"k_estimable": int(k), "estimate": mu_w,
+            "ci_low": mu_w - t_crit * se_mkh,
+            "ci_high": mu_w + t_crit * se_mkh,
+            "q": q, "q_mod": q_mod, "df": int(df), "t_crit": t_crit}
+
+
 def pooled_vs_within(pooled_auroc: float, within: dict) -> dict:
     """RQ2: the gap between the pooled headline AUROC (from comparison_*.html)
     and the within-person C-statistic. A large positive gap means the pooled

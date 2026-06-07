@@ -80,6 +80,21 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
         # Light grey horizontal divider between adjacent stratum groups
         if stratum_idx > 0:
             ax.axhline(stratum_idx - 0.5, color=S.FAINT, lw=0.5, zorder=0)
+
+        # A below-floor stratum is below_floor across all three architectures
+        # (within_c/ci_low/ci_high are NaN by construction), so a single
+        # centred annotation at the stratum y-coord carries the n count
+        # without the per-architecture jitter that would otherwise push the
+        # bottom copy onto the x-axis. A plotted symbol would mis-read as an
+        # estimate, but C is not estimable when n_estimable < 5.
+        stratum_rows = sub[(sub["stratum_dim"] == dim) & (sub["stratum"] == val)]
+        if len(stratum_rows) and bool(stratum_rows.iloc[0]["below_floor"]):
+            n_est = int(stratum_rows.iloc[0]["n_estimable"])
+            ax.text(0.50, stratum_idx,
+                    f"n = {n_est}, not estimable (below 5-patient floor)",
+                    va="center", ha="left", fontsize=7, color=S.MUTED)
+            continue
+
         for arch in ARCH_ORDER:
             row = sub[(sub["architecture"] == arch) &
                       (sub["stratum_dim"] == dim) &
@@ -90,12 +105,6 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
             y = stratum_idx + arch_jitter[arch]
             colour = S.arch_color(arch)
             n_est = int(r["n_estimable"])
-            if bool(r["below_floor"]):
-                # Text annotation only: a plotted symbol would read as an
-                # estimate, but C is not estimable when n_estimable < 5.
-                ax.text(0.50, y, f"n = {n_est}, not estimable (below 5-patient floor)",
-                        va="center", ha="left", fontsize=7, color=S.MUTED)
-                continue
             wc = float(r["within_c"])
             lo = float(r["ci_low"])
             hi = float(r["ci_high"])
@@ -110,7 +119,11 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
 
     ax.set_yticks(range(n_strata))
     ax.set_yticklabels([r[0] for r in rows], fontsize=8)
-    ax.invert_yaxis()
+    # Explicit inverted limits with 0.7 padding past the first/last stratum so
+    # the jittered per-architecture markers (and any text) clear the panel
+    # edges and the x-axis rather than relying on matplotlib's data-only
+    # autoscale, which ignores text height.
+    ax.set_ylim(n_strata - 1 + 0.7, -0.7)
     ax.set_xlim(0.35, 0.95)
     ax.set_xlabel("within-person C-statistic (95% CI)", fontsize=9)
     for spine in ("top", "right"):
@@ -124,6 +137,11 @@ def main() -> None:
     print(f"  source {csv_path.name} ({len(df)} stratum rows)")
 
     fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 5.2), sharey=False)
+    # Wide inter-panel gutter: panel b carries its own y-tick labels (the
+    # base-rate threshold and the sex=male estimability differ between
+    # targets), and those labels grow leftward from panel b's left spine.
+    # A roomy wspace keeps them off panel a's right-hand value annotations.
+    fig.subplots_adjust(wspace=0.6)
     for ax, ltr in zip(axes.ravel(), "ab"):
         S.panel_label(ax, ltr)
     _draw_panel(axes[0], df, "headache")
