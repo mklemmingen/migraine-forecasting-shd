@@ -97,6 +97,40 @@ def calibration_intercept(y_true, y_prob) -> float:
     return float(lr.intercept_[0])
 
 
+def cox_intercept_citl(y_true, y_prob) -> float:
+    """Cox calibration-in-the-large alpha with slope fixed at 1 (Huang et al.
+    2020, JAMIA 27(4):621-633, equation 7: ``logit{P(O=1)} = alpha +
+    beta * logit(E)``, with beta constrained to 1).
+
+    Implementation: ``GLM(y, ones, family=Binomial(), offset=logit(p))``
+    via statsmodels. The offset term carries logit(p) into the linear
+    predictor with coefficient constrained to 1, so the sole estimated
+    parameter is the intercept alpha. Returns alpha; alpha = 0 indicates
+    good mean calibration; alpha > 0 indicates average under-estimation
+    of risk; alpha < 0 indicates average over-estimation. Predicted
+    probabilities are clipped to [1e-7, 1-1e-7] to avoid logit overflow.
+
+    Distinct from :func:`calibration_intercept` above, which fits both
+    alpha and beta jointly (Platt-style logistic recalibration) and
+    therefore reports the recalibration intercept rather than the
+    fixed-slope CITL alpha. Huang 2020 specifies Cox-form as the
+    canonical CITL definition.
+    """
+    import statsmodels.api as sm
+    p = np.clip(np.asarray(y_prob, dtype=float), 1e-7, 1 - 1e-7)
+    logit_p = np.log(p / (1.0 - p))
+    y = np.asarray(y_true, dtype=int)
+    if len(np.unique(y)) < 2:
+        return float('nan')
+    try:
+        model = sm.GLM(y, np.ones(len(y)), family=sm.families.Binomial(),
+                       offset=logit_p)
+        result = model.fit(disp=0)
+        return float(result.params[0])
+    except Exception:
+        return float('nan')
+
+
 def find_operating_thresholds(y_true, y_prob) -> tuple[float, float]:
     """Pick two operating thresholds from a 99-point sweep on [0.01, 0.99]:
     the MCC-optimal threshold, and the highest threshold whose recall is
