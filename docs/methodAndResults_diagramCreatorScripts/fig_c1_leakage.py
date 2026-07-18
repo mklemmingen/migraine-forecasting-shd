@@ -3,7 +3,7 @@
 Stratified-minus-chronological hold-out AUROC against the number of history
 (lag/rolling) features in each feature set, holding the architecture fixed
 (stacked_2xgb_meta_lr, NonHP) and averaging over the train/val/test ratios. The
-optimism appears only for feature sets that carry history features (full, spano)
+optimism appears only for the feature set that carries history features (full)
 and is absent - slightly negative - for the no-history sets (no_rolling, park),
 showing the stratified inflation is a feature-channel leak, not a model artefact.
 This reproduces the table in results_findings.md Section 1 as a figure.
@@ -31,9 +31,9 @@ REPO = HERE.parents[1]
 EXP = REPO / "experiment"
 
 # History (lag/rolling) feature count per set, verified in results_findings.md S1.
-LAG = {"full_features": 17, "spano_features": 14,
+LAG = {"full_features": 17,
        "no_rolling_features": 0, "park_features": 0}
-LABEL = {"full_features": "full", "spano_features": "spano",
+LABEL = {"full_features": "full",
          "no_rolling_features": "no_rolling", "park_features": "park"}
 
 
@@ -99,7 +99,8 @@ def main():
     ax.set_xlabel("history (lag / rolling) features in set")
     ax.set_ylabel("stratified - chronological AUROC")
     ax.set_title("Stratified-split optimism scales with history features\n"
-                 "(positive = stratified inflated; Park 2016 SHD, n=62; "
+                 "(positive = stratified inflated; Park 2016 SHD, "
+                 "62 analysed (63 patient_ids); "
                  "XGB-NonHP; mean ± across-ratio range)",
                  fontsize=9.5)
     ax.legend(title="target")

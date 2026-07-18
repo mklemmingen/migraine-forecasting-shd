@@ -72,14 +72,13 @@ def main():
     # ---- Stage 1: SHD diary source ------------------------------------------
     _stage_box(ax, stage_xs[0], stage_y, stage_w, stage_h, "Diary source")
     ax.text(stage_xs[0], stage_y - 0.25,
-            "Park 2016 SHD\n63 patients\n4,516 patient-days",
+            "Park 2016 SHD\n62 analysed (63 patient_ids)\n4,516 patient-days",
             ha="center", va="center", fontsize=9, color=S.INK)
 
     # ---- Stage 2: Feature sets (4 colour-keyed chips, 2x2 grid) -------------
     _stage_box(ax, stage_xs[1], stage_y, stage_w, stage_h, "Feature sets")
     fset_specs = [
         ("full", "full", 52),
-        ("spano", "spano", 31),
         ("no-roll", "no_rolling", 26),
         ("park", "park", 6),
     ]
@@ -183,7 +182,7 @@ def main():
 
     # suptitle size inherits the 11.5 pt rcParam (no hardcode).
     fig.suptitle("Benchmark pipeline: source → features → splits → architectures → evaluation\n"
-                 "Park 2016 SHD, n=62 patients, 4,516 patient-days",
+                 "Park 2016 SHD, 62 analysed (63 patient_ids), 4,516 patient-days",
                  y=0.99)
     print("saved", S.save(fig, HERE / "figures" / "fig_a1_pipeline"))
 

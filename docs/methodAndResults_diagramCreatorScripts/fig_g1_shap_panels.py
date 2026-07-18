@@ -24,7 +24,12 @@ Usage: python fig_g1_shap_panels.py
 """
 from pathlib import Path
 
-from PIL import Image
+import matplotlib
+from PIL import Image, ImageDraw, ImageFont
+
+# Bundled bold face used for the per-panel target titles; matches the DejaVu
+# Sans family matplotlib renders the rest of the figure text in.
+_BOLD_TTF = str(Path(matplotlib.get_data_path()) / "fonts" / "ttf" / "DejaVuSans-Bold.ttf")
 
 HERE = Path(__file__).resolve().parent
 FIGS = HERE / "figures"
@@ -60,9 +65,29 @@ def main() -> None:
             (w, int(im_b.height * w / im_b.width)), Image.LANCZOS,
         )
 
-    combined = Image.new("RGB", (w, im_a.height + im_b.height), "white")
-    combined.paste(im_a, (0, 0))
-    combined.paste(im_b, (0, im_a.height))
+    # Per-panel target titles. PANEL_A (headache) stacks on top, PANEL_B
+    # (migraine) below; a white band carrying a bold target name sits above
+    # each panel so the target is identifiable on the figure itself (the
+    # \caption gives the cell). Keeping the headache/migraine order matches
+    # the a=headache/b=migraine layout of the sibling within-person figures.
+    band = int(0.075 * im_a.height)
+    font = ImageFont.truetype(_BOLD_TTF, int(0.045 * im_a.height))
+
+    def _titled(panel, text):
+        out = Image.new("RGB", (w, band + panel.height), "white")
+        d = ImageDraw.Draw(out)
+        bb = d.textbbox((0, 0), text, font=font)
+        tw, th = bb[2] - bb[0], bb[3] - bb[1]
+        d.text(((w - tw) // 2, (band - th) // 2 - bb[1]), text,
+               fill=(0, 0, 0), font=font)
+        out.paste(panel, (0, band))
+        return out
+
+    top = _titled(im_a, "Headache")
+    bottom = _titled(im_b, "Migraine")
+    combined = Image.new("RGB", (w, top.height + bottom.height), "white")
+    combined.paste(top, (0, 0))
+    combined.paste(bottom, (0, top.height))
     combined.save(OUT, optimize=True)
 
     import os
