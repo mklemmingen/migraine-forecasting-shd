@@ -80,7 +80,17 @@ def _load_headline_rows(csv: Path) -> dict[str, pd.DataFrame]:
         ver = row.get("version", "") or ""
         hp_variant = row.get("hp_variant", "") or ""
         if arch == "stacked_2xgb_meta_lr":
-            label = f"XGB / {hp_variant}" if hp_variant else "XGB"
+            strat = str(row.get("hp_strategy", "") or "")
+            if hp_variant and "pareto" in strat:
+                # knee / slope_closest / *_max selection rules recur across the
+                # AUPRC- and AUROC-objective pareto fronts; tag the objective so
+                # the two fronts do not collapse to one y-axis label.
+                obj = "AUPRC" if "AUPRC" in strat else "AUROC"
+                label = f"XGB / {hp_variant} [{obj}]"
+            elif hp_variant:
+                label = f"XGB / {hp_variant}"
+            else:
+                label = "XGB"
             short = "xgb"
         elif arch == "tabpfn":
             label = f"TabPFN / {ver}".replace("version_", "v")
@@ -107,7 +117,7 @@ def _palette(short: str) -> str:
     return S.OI["green"]
 
 
-def _render_panel(ax, df: pd.DataFrame, target: str) -> None:
+def _render_panel(ax, df: pd.DataFrame, target: str, letter: str = "") -> None:
     if df.empty:
         ax.text(0.5, 0.5, f"no rows for {target}",
                 transform=ax.transAxes, ha="center", va="center")
@@ -131,7 +141,11 @@ def _render_panel(ax, df: pd.DataFrame, target: str) -> None:
     ax.set_yticks(y)
     ax.set_yticklabels(df["label"].tolist(), fontsize=7.5)
     ax.set_xlabel("pooled holdout AUROC (95% CI)")
-    ax.set_title(target.capitalize(), fontsize=10.5)
+    ax.set_title(f"{target.capitalize()} — full_features, chronological 70/30",
+                 fontsize=10.5, loc="left")
+    if letter:
+        ax.text(-0.02, 1.045, letter, transform=ax.transAxes,
+                fontsize=12, fontweight="bold", va="bottom", ha="right")
     ax.set_xlim(0.4, 1.0)
     ax.grid(axis="x", color=S.FAINT, lw=0.5, alpha=0.6)
     ax.set_axisbelow(True)
@@ -150,11 +164,9 @@ def main() -> None:
     S.apply()
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 4.0), sharex=False,
                              constrained_layout=True)
-    for ax, tgt in zip(axes, ("migraine", "headache")):
-        _render_panel(ax, panels[tgt], tgt)
+    for ax, tgt, letter in zip(axes, ("migraine", "headache"), ("a", "b")):
+        _render_panel(ax, panels[tgt], tgt, letter)
     S.epv_annotation(axes[0], "migraine", cell="full_features", loc="lower right")
-    fig.suptitle("Pooled AUROC across architectures, chronological 70/30 headline cell",
-                 fontsize=11.5)
     print("saved", S.save(fig, HERE / "figures" / "fig_g5_auroc_forest"))
 
 
