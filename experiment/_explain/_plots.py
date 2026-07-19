@@ -94,7 +94,7 @@ def attribution_row_bootstrap_ci(shap_matrix, feature_names, n_boot=500, seed=42
             for j in range(arr.shape[1])}
 
 
-def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=12):
+def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=12, stamp=None):
     """Per-row SHAP beeswarm for the top features, points coloured by the
     feature's own value (low = blue, high = vermillion), the standard SHAP
     encoding that shows the direction of each feature's effect.
@@ -133,6 +133,10 @@ def plot_beeswarm(feature_names, matrix, feature_values, title, out_path, top_n=
         cbar.set_ticks([0.0, 1.0])
         cbar.set_ticklabels(["low", "high"])
         cbar.set_label("feature value", fontsize=8)
+    if stamp:
+        # fig.text survives S.save's publication-title stripping (which only
+        # clears suptitle + ax titles), so this leaf/provenance label persists.
+        fig.text(0.5, 0.995, stamp, ha="center", va="top", fontsize=7, color=S.MUTED)
     S.save(fig, out_path)
     plt.close(fig)
 

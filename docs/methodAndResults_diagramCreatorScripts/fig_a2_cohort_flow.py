@@ -29,8 +29,14 @@ def main():
     n_pt, n_rows = mig["patient_id"].nunique(), len(mig)
     d0, d1 = pd.to_datetime(mig["date"]).min(), pd.to_datetime(mig["date"]).max()
     mig_r, hea_r = mig["migraine_target"].mean(), hea["migraine_target"].mean()
-    sizes = {sp: len(pd.read_parquet(BASE / f"migraine/70_15_15/chrono/diary_{sp}.parquet"))
-             for sp in ("train", "val", "test")}
+    # Headline discrimination (migraine XGB-HP020 AUROC 0.793) is reported on the
+    # chronological 70/30 cell (train / test), matching Fig 8 and the Results
+    # text; the 70/15/15 cell is the internal-validation configuration whose
+    # extra val fold is used for hyperparameter selection. The chronological cut
+    # is by DATE PERCENTILE (70% of the distinct-date span), so with staggered
+    # enrolment ~87% of patient-days fall in "train" despite the nominal "70".
+    sizes = {sp: len(pd.read_parquet(BASE / f"migraine/70_30/chrono/diary_{sp}.parquet"))
+             for sp in ("train", "test")}
 
     fig, ax = plt.subplots(figsize=S.figsize("double", 9.0))
     # Limits hug the funnel (lowest box bottom 1.2, top box top 14.1) so
@@ -77,10 +83,10 @@ def main():
                 fc=S.PALE_FILL, ec=S.TARGET["migraine"])
     b4 = S.box(ax, (5, 2.15), 7.8, 1.95,
                f"Evaluation grid: 4 split types x multiple ratios (488-cell sensitivity sweep)\n"
-               f"Headline cell: chronological 70/15/15 - "
-               f"train {sizes['train']:,} / val {sizes['val']:,} / test {sizes['test']:,}\n"
-               f"Sensitivity split types: stratified, patient hold-out, leave-one-site-out\n"
-               f"Identical row partitioning across both targets",
+               f"Headline cell: chronological 70/30 - "
+               f"train {sizes['train']:,} / test {sizes['test']:,}\n"
+               f"(70/30 = date-percentile cut; staggered enrolment -> ~87/13% of patient-days)\n"
+               f"Sensitivity split types: stratified, patient hold-out, leave-one-site-out",
                role="output")
     # Upstream-funnel arrows
     S.arrow(ax, (bup1[0], bup1[1] - bup1[3] / 2), (bup2[0], bup2[1] + bup2[3] / 2))

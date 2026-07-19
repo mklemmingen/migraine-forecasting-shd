@@ -130,11 +130,11 @@ See `data/cc_MarcoSpano-oldSet/dataset.md` for Mr. Spano's approach details and 
 
 ## References
 
-Citation keys resolve against [`Sources.bib`](Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
+Citation keys resolve against [`Sources.bib`](docs/Sources.bib) in the docs/ folder. Numbering is per-document by order of first appearance, IEEE style.
 
 [1] J.-W. Park, M. K. Chu, J.-M. Kim, S.-G. Park, and S.-J. Cho, "Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications," *PLOS ONE*, vol. 11, no. 2, p. e0149577, Feb. 2016. doi: [10.1371/journal.pone.0149577](https://doi.org/10.1371/journal.pone.0149577). BibTeX key: `park2016shd`.
 
-[2] M. S. Spano, [Stacked ensemble baselines for next-day migraine forecasting on the SHD cohort] (Name not specified yet), Bachelor's thesis, Reutlingen University, Reutlingen, Germany, 2026. BibTeX key: `spano2026thesis`.
+[2] M. S. Spano, [Stacked ensemble baselines for next-day migraine forecasting on the SHD cohort] (Name not specified), Bachelor's thesis, Reutlingen University, Reutlingen, Germany, 2026. BibTeX key: `spano2026thesis`.
 
 [3] G. S. Collins, K. G. M. Moons, P. Dhiman, R. D. Riley, A. L. Beam, B. Van Calster, M. Ghassemi, X. Liu, J. B. Reitsma, M. van Smeden, *et al.*, "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods," *BMJ*, vol. 385, p. e078378, Apr. 2024. doi: [10.1136/bmj-2023-078378](https://doi.org/10.1136/bmj-2023-078378). BibTeX key: `collins2024tripodAI`.
 

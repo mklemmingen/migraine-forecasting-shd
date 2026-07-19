@@ -64,5 +64,40 @@ def main():
         print("saved", out)
 
 
+def render_feature_set(feature_set):
+    """Render the SHAP beeswarm for a non-headline feature set (e.g.
+    no_rolling_features). Sources the leaf directly from experiment/1, preferring
+    the chronological 70/30 cell and falling back to the most recent matrix on any
+    split. Writes to a feature-set-suffixed PNG so the full_features headline
+    renders are never overwritten, and stamps the exact leaf into the title."""
+    base = _EXP / "1"
+    for tgt in ("migraine", "headache"):
+        chrono = sorted(base.glob(f"{tgt}/{feature_set}/**/70_30/chrono/insights/shap_matrix_*.npz"))
+        npzs = chrono or sorted(base.glob(f"{tgt}/{feature_set}/**/insights/shap_matrix_*.npz"))
+        if not npzs:
+            print(f"  skip {tgt}/{feature_set}: no stashed shap_matrix_*.npz found")
+            continue
+        npz = npzs[-1]
+        leaf_dir = npz.parent.parent
+        z = np.load(npz, allow_pickle=True)
+        feature_names = [str(f) for f in z["feature_names"]]
+        slug = leaf_slug(leaf_dir)
+        split_note = "" if chrono else "  [non-chronological split; closest available]"
+        stamp = f"{tgt} {feature_set} SHAP  -  leaf: {leaf_dir.relative_to(_EXP)}{split_note}"
+        out = HERE / "figures" / f"fig_h2_shap_beeswarm_{tgt}_{feature_set}"
+        _plots.plot_beeswarm(feature_names, z["shap"], z["values"], slug, out,
+                             top_n=18, stamp=stamp)
+        print(f"saved {out}.png  |  leaf: {leaf_dir.relative_to(_EXP)}")
+
+
 if __name__ == "__main__":
-    main()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--feature-set", default=None,
+                    help="render a non-headline feature set (e.g. no_rolling_features, "
+                         "park_features) to a suffixed PNG instead of the full_features headline")
+    args = ap.parse_args()
+    if args.feature_set:
+        render_feature_set(args.feature_set)
+    else:
+        main()
