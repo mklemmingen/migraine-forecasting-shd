@@ -224,7 +224,7 @@ Each TabPFN variant's final fitted model is serialised to `<leaf>/model.joblib` 
 
 ## References
 
-Citation keys resolve against [`Sources.bib`](../Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
+Citation keys resolve against [`Sources.bib`](Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
 
 [1] N. Hollmann, S. Müller, L. Purucker, A. Krishnakumar, M. Körfer, S. B. Hoo, R. T. Schirrmeister, and F. Hutter, "Accurate predictions on small data with a tabular foundation model," *Nature*, vol. 637, no. 8045, pp. 319–326, Jan. 2025. doi: [10.1038/s41586-024-08328-6](https://doi.org/10.1038/s41586-024-08328-6). BibTeX key: `hollmann2025tabpfn`.
 

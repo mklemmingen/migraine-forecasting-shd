@@ -41,8 +41,12 @@ def main():
         raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
     data = F.load_figdata(figdata_path)
     print(f"  source {figdata_path.name}")
+    # spano_features is the legacy 4th (Spano-2026 replication) set; it is cut
+    # from the manuscript (three named sets: full / no_rolling / park), so drop
+    # its rows here to keep the figure consistent with the text.
+    rows = [h for h in data["headlines"] if h.get("feature_set") != "spano_features"]
     out = HERE / "figures" / "fig_g3_calib_slope"
-    if F.calib_slope_figure(data["headlines"], out) is None:
+    if F.calib_slope_figure(rows, out) is None:
         print("  skip: no headline cells with a calibration slope in the figure data")
     else:
         print("saved", out)

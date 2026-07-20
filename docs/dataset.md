@@ -665,7 +665,7 @@ and the per-package `package_report.pdf` files.
 
 ## References
 
-Citation keys resolve against [`Sources.bib`](../Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
+Citation keys resolve against [`Sources.bib`](Sources.bib) at the repository root. Numbering is per-document by order of first appearance, IEEE style.
 
 [1] J.-W. Park, M. K. Chu, J.-M. Kim, S.-G. Park, and S.-J. Cho, "Analysis of trigger factors in episodic migraineurs using a smartphone headache diary applications," *PLOS ONE*, vol. 11, no. 2, p. e0149577, Feb. 2016. doi: [10.1371/journal.pone.0149577](https://doi.org/10.1371/journal.pone.0149577). BibTeX key: `park2016shd`.
 

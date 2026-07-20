@@ -424,7 +424,10 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     # de-emphasises the ladder and states this prominently (see below).
     omnibus_sig = (p_value is None) or (p_value < 0.05)
     clique_band_top = clique_base + clique_step * max(len(cliques), 1)
-    first_row_y = clique_band_top + (0.70 if single_full_clique else 0.40)
+    # Extra clearance below the not-significant banner (it is set in a larger,
+    # bold face) so its full-width text never collides with the first label row.
+    first_row_y = clique_band_top + (
+        1.05 if not omnibus_sig else (0.70 if single_full_clique else 0.40))
     bottom_y = first_row_y + (rows_per_side - 1) * pitch
 
     fig_h = 2.6 + 0.40 * (bottom_y - top_y)   # tracks rows AND the clique band
@@ -450,9 +453,9 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         ax.plot([tick, tick], [top_y, top_y - 0.13], "-",
                 color=text_dark, lw=1.2, zorder=3)
         ax.text(tick, top_y - 0.28, str(tick), ha="center", va="bottom",
-                fontsize=9, color=text_dark)
+                fontsize=12, color=text_dark)
     ax.text((1 + k) / 2.0, axis_top, "Mean rank (rightmost = best)",
-            ha="center", va="bottom", fontsize=10.5, color=text_dark)
+            ha="center", va="bottom", fontsize=13, color=text_dark)
 
     # x where each side's horizontal connector run terminates, just inside
     # the plot edge. Best-ranked architectures sit toward rank 1 on the
@@ -496,10 +499,10 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             # and the left column toward larger x.
             if side == "right":
                 ax.text(x_elbow - text_gap, y, label, va="center",
-                        ha="left", fontsize=9, color=lbl_color, zorder=4)
+                        ha="left", fontsize=13, color=lbl_color, zorder=4)
             else:
                 ax.text(x_elbow + text_gap, y, label, va="center",
-                        ha="right", fontsize=9, color=lbl_color, zorder=4)
+                        ha="right", fontsize=13, color=lbl_color, zorder=4)
 
     _draw_side(right_idx, "right")
     _draw_side(left_idx, "left")
@@ -520,12 +523,12 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         ax.text((1 + k) / 2.0, banner_y,
                 f"Friedman omnibus NOT significant (p = {p_value:.3f}) - mean-rank order "
                 "below is descriptive only; no pairwise difference is significant",
-                ha="center", va="top", fontsize=10.5, fontweight="bold",
+                ha="center", va="top", fontsize=12.5, fontweight="bold",
                 color=OI["vermillion"], zorder=6)
     elif single_full_clique:
         ax.text((1 + k) / 2.0, banner_y,
                 "no pair significantly different (Nemenyi, alpha=0.05)",
-                ha="center", va="top", fontsize=9.5, style="italic",
+                ha="center", va="top", fontsize=12, style="italic",
                 color=SOFT, zorder=4)
 
     # CD scale bar just above the rank numbers, anchored at rank 1, so the
@@ -538,7 +541,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
     ax.plot([1 + cd, 1 + cd], [cd_y - 0.09, cd_y + 0.09], "-",
             color=text_dark, lw=1.4, zorder=4)
     ax.text(1 + cd / 2.0, cd_y - 0.16, f"CD = {cd:.2f}", ha="center",
-            va="bottom", fontsize=9.5, color=text_dark, zorder=4)
+            va="bottom", fontsize=12, color=text_dark, zorder=4)
 
     if title:
         sub = []
@@ -547,7 +550,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
         if n_cells is not None:
             sub.append(f"n_cells = {n_cells}")
         suffix = (" (" + ", ".join(sub) + ")") if sub else ""
-        ax.set_title(title + suffix, fontsize=11, pad=14)
+        ax.set_title(title + suffix, fontsize=13, pad=14)
 
     # The how-to-read explanation (ranking method, what a connecting bar means)
     # belongs in the LaTeX caption, not burned into the image; the integrity
@@ -561,7 +564,7 @@ def render_cd_diagram(mean_ranks, cd, arch_labels, out_path,
             0.5, 0.075,
             "Excluded from Friedman (incomplete cell coverage): "
             + ", ".join(dropped_archs),
-            ha="center", va="bottom", fontsize=8.5,
+            ha="center", va="bottom", fontsize=11,
             style="italic", color=GREY,
         )
 
