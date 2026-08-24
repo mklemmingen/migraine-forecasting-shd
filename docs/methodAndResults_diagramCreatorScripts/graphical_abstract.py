@@ -40,10 +40,10 @@ import _style as S  # noqa: E402
 ICON_SVG = HERE / "Diary_Lauterbach.svg"
 
 # Numbers — single source of truth, traced to body sections.
-MIGRAINE = {"pooled": 0.793, "pooled_ci": (0.70, 0.87),
+MIGRAINE = {"pooled": 0.791, "pooled_ci": (0.544, 0.890),
             "within": 0.558,  "within_ci": (0.511, 0.604),
             "slope": 1.386,   "slope_ci": (0.40, 2.07)}
-HEADACHE = {"pooled": 0.652, "pooled_ci": (0.632, 0.675),
+HEADACHE = {"pooled": 0.653, "pooled_ci": (0.555, 0.740),
             "within": 0.542,  "within_ci": (0.509, 0.575),
             "slope": 1.094,   "slope_ci": (0.594, 1.429)}
 
