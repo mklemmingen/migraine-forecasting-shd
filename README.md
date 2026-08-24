@@ -6,10 +6,15 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ## Reading order
 
-**The paper** (`docs/body.md`) is the condensed ~4000-word JHP submission
-body: the entire narrative - abstract, methods, results, discussion,
-conclusion - in one self-contained file, with pointers down into the
-long-form record for detail. Read it first for the whole study end to end.
+**The paper and its supplementary files** are the authoritative write-up of this
+work: abstract, methods, results, discussion and conclusion, plus the
+Supplementary Information (Supplementary Methods S1.1--S1.12 and Supplementary
+Figures S1--S15) and the completed TRIPOD+AI and PROBAST+AI reporting checklists.
+Read those first for the study end to end.
+
+`docs/` in this repository is the **superseded long-form research record**, kept for
+provenance only. Its numbers predate the final analysis and should not be cited;
+where it disagrees with the paper, the paper is correct.
 
 **The long-form records** below expand each section of the body
 with per-Addition methods, results, and the TRIPOD+AI compliance trail;
