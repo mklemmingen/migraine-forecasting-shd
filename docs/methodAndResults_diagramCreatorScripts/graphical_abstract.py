@@ -251,8 +251,14 @@ def _draw_dca_sparkline(ax) -> None:
     migraine_nb = np.interp(t, t_anchor, migraine_anchor)
     # Zero reference (treat none)
     ax.axhline(0.0, color=S.REF_COLOR, lw=0.6, ls=":", alpha=0.6, zorder=1)
-    # Highlight clinically plausible sub-band t in [0.01, 0.10]
-    ax.axvspan(0.01, 0.10, color="grey", alpha=0.10, zorder=0)
+    # Treat-all reference. Without it a decision curve cannot be read: positive net
+    # benefit alone does not mean a model beats the trivial strategy. Prevalences
+    # are the headline-cell values from experiment/2/figdata_*.json.
+    for prev, col in ((0.1948, hea_col), (0.0661, mig_col)):
+        ax.plot(t, prev - (1 - prev) * t / (1 - t), color=col, lw=1.0,
+                ls=(0, (4, 2)), alpha=0.85, zorder=2)
+    ax.text(0.185, 0.128, "treat all", fontsize=7, color="#5f5f5f",
+            ha="left", va="center")
     # Lines
     ax.plot(t, headache_nb, color=hea_col, lw=2.0, zorder=3)
     ax.plot(t, migraine_nb, color=mig_col, lw=2.0, zorder=3)
@@ -309,9 +315,8 @@ def main() -> None:
         (" on next-day forecasting, Park 2016 Korean SHD.", S.INK, "bold"),
     ]
     line2 = [
-        ("Within-person forecasting is near chance. Treating whenever predicted "
-         "risk reaches 5 to 10% would medicate on 98 to 100% of days, above "
-         "ICHD-3 medication-overuse limits.",
+        ("Within-person forecasting is near chance for both outcomes, and net "
+         "benefit exceeds treating every day only at higher risk thresholds.",
          "#3d3d3d", "normal"),
     ]
     rows = []
