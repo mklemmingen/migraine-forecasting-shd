@@ -131,13 +131,8 @@ non-attack days outnumber attack days roughly 19:1. Sensitivity at
 FPR = 0.10 is reported per architecture per target on the held-out
 test split, with the same bootstrap CIs the benchmark uses.
 
-The operating-point-to-action mapping the paper assumes is explicit: at
-threshold t = 0.10-0.20 the recommended action is a low-cost behavioural
-trigger (a same-day hydration / sleep / caffeine self-check); at
-t = 0.20-0.35 the recommended action is a pre-emptive lifestyle
-modification (rescheduling exertion, advancing a planned analgesic
-window); at t > 0.35 the recommended action is a pre-emptive oral
-acute-medication dose (an NSAID or triptan within its on-label window).
+**Withdrawn.** This paragraph previously specified a three-band action escalation (behavioural check at t = 0.10-0.20, lifestyle modification at 0.20-0.35, pre-emptive medication only above t > 0.35). It contradicted Section 3.1 of this same document and the `decision_curve.py` docstring, both of which place the pre-emptive-medication action at LOW thresholds, and it was never implemented anywhere under `experiment/6/`. It also assigned no action at all to t = 0.01-0.10, the sub-band the decision-curve result actually sits in. Section 3.1 is load-bearing and stands; this banding does not.
+
 The threshold band over which the model shows non-negative net benefit
 against treat-all and treat-none is read as a recommendation surface,
 not a prescriptive cut-off. The escalation aligns the decision curve's
