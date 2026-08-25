@@ -22,7 +22,7 @@ discloses this. Matches the fig_f2 within-family performance-profile
 pattern.
 
 Scope and exclusions disclosed in the caption: training-phase only
-(no eval wrapper exists on disk per paper_rigor_checklist.md §6);
+(no eval wrapper exists on disk per the paper's TRIPOD+AI and PROBAST+AI checklists §6);
 Addition 4 sequence baselines absent (no _running_output/ or results/
 directories exist for them); AutoTabPFN-precise channel under-reports
 because the AutoGluon-internal `total runtime` excludes ~2.3x wrapper

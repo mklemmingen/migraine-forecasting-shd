@@ -1,6 +1,6 @@
 # Post-sweep insights: leaf-selection criteria
 
-> Position in the paper: **Supplementary (6.1)**. Reads after `addition3_results.md`; precedes `paper_rigor_checklist.md`. Composite_sorted selection rule, its parameters, and the within-family fragility sensitivity sweep results.
+> Position in the long-form record: **Supplementary**. Reads after `addition3_results.md`; precedes `the paper's TRIPOD+AI and PROBAST+AI checklists`. Composite_sorted selection rule, its parameters, and the within-family fragility sensitivity sweep results.
 
 
 This document records which leaves received model-interpretability attention (feature attribution, embedding visualisation, partial-dependence) after the Addition 1 sweep, and why.

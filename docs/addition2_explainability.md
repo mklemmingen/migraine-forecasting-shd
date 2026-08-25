@@ -1,6 +1,6 @@
 # Addition 2: model explainability (SHAP, ALE, ShapIQ)
 
-> Position in the paper: **Methods (4.1)**. Reads after `tabPfn.MD`; precedes `addition3_temporal.md`. The SHAP / ALE / ShapIQ pipeline this doc specifies produces the per-leaf insight artefacts whose findings are summarised in addition2_results.md.
+> Position in the long-form record: **Methods**. Reads after `tabPfn.MD`; precedes `addition3_temporal.md`. The SHAP / ALE / ShapIQ pipeline this doc specifies produces the per-leaf insight artefacts whose findings are summarised in addition2_results.md.
 
 The explainability layer trains no models. It computes feature-attribution
 and feature-effect artefacts on a small set of selected Addition-0 and

@@ -1,5 +1,0 @@
-target,leaf,threshold,pooled_trigger_rate,per_patient_median,per_patient_q25,per_patient_q75,per_patient_max,n_patients_over_triptan_ceiling,n_patients_over_nsaid_ceiling,n_patients_total,triptan_ceiling_fraction,nsaid_ceiling_fraction
-migraine,0/migraine/full_features/stacked_2xgb_meta_lr/70_30/chrono/HyperparameterTuned/single_AUROC/HP020,0.05,0.37217391304347824,0.20773809523809522,0.0,0.5288461538461539,1.0,7,5,20,0.3333333333333333,0.5
-migraine,0/migraine/full_features/stacked_2xgb_meta_lr/70_30/chrono/HyperparameterTuned/single_AUROC/HP020,0.1,0.1808695652173913,0.02230392156862745,0.0,0.1258741258741259,1.0,4,3,20,0.3333333333333333,0.5
-headache,1/headache/full_features/tabpfn/version_2-6/70_30/chrono,0.05,1.0,1.0,1.0,1.0,1.0,20,20,20,0.3333333333333333,0.5
-headache,1/headache/full_features/tabpfn/version_2-6/70_30/chrono,0.1,0.9791304347826087,1.0,1.0,1.0,1.0,20,20,20,0.3333333333333333,0.5

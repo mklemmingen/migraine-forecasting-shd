@@ -7,6 +7,13 @@ from tabpfn_extensions.post_hoc_ensembles import AutoTabPFNClassifier
 
 from ._persistence import AutoTabPFNHandle
 
+import torch as _torch
+
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
 # Per-leaf budget for AutoGluon's preset='best' search. The 'best' preset
 # triggers full HPO + larger bagging + meta-learner stacking, so a single
 # leaf can use the full ceiling on harder cells. AutoGluon respects the
@@ -38,7 +45,7 @@ _PRESETS = 'best'
 _EVAL_METRIC = 'roc_auc'
 
 
-def build_autotabpfn(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
+def build_autotabpfn(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """AutoTabPFN - post-hoc ensemble of TabPFN-v2.5 configurations
     stacked via AutoGluon as the meta-learner.
 

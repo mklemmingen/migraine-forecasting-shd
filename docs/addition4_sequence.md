@@ -1,6 +1,6 @@
 # Addition 4: sequence model for next-day forecasting
 
-> Position in the paper: **Methods (4.3)**. Reads after `addition3_temporal.md`; precedes `addition5_personalization.md`. Sequence-baseline result feeds back into Addition 3's IID-assumption verdict; cross-architecture comparison appears in results_findings.md.
+> Position in the long-form record: **Methods**. Reads after `addition3_temporal.md`; precedes `addition5_personalization.md`. Sequence-baseline result feeds back into Addition 3's IID-assumption verdict; cross-architecture comparison appears in results_findings.md.
 
 The sequence-model layer (`experiment/4/`) asks the question Additions 0
 (XGBoost stacking) and 1 (TabPFN) cannot: does an explicit sequence model,

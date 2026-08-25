@@ -52,6 +52,22 @@ CV_WORKER = EXP / "5" / "_personal" / "_cv_oof_worker.py"
 MIN_POS = 5
 
 
+def _rebase_leaf(leaf_dir: str) -> Path:
+    """Rebase a figdata ``leaf_dir`` onto this checkout.
+
+    figdata stores absolute paths captured at run time, so they break whenever
+    the repository is moved or cloned elsewhere. Everything from the
+    ``experiment/`` component onwards is stable, so re-root that suffix on the
+    current EXP parent and fall back to the literal path if the shape is
+    unexpected.
+    """
+    p = Path(leaf_dir)
+    parts = p.parts
+    if "experiment" in parts:
+        return EXP.parent.joinpath(*parts[parts.index("experiment"):])
+    return p
+
+
 def _resolve_tabpfn_leaf(headlines, target):
     """Return the figdata-tracked TabPFN leaf for the headline cell
     (full_features/chrono) of ``target``: prefer the headline if family=tabpfn,
@@ -62,7 +78,7 @@ def _resolve_tabpfn_leaf(headlines, target):
             if (e.get("target") == target and e.get("feature_set") == "full_features"
                     and e.get("splittype") == "chrono" and e.get("role") == role
                     and e.get("family") == "tabpfn" and e.get("leaf_dir")):
-                return Path(e["leaf_dir"])
+                return _rebase_leaf(e["leaf_dir"])
     return None
 
 
@@ -74,12 +90,38 @@ def _env(addition: str) -> dict:
     return e
 
 
+# The 3600 s default was sized for GPU runs. TabPFN's cost grows steeply with
+# context length on CPU, where a single 5-fold leaf can exceed an hour, so the
+# refit would time out and lose all of its work. Override with CV_TIMEOUT_S.
+CV_TIMEOUT_S = int(os.environ.get("CV_TIMEOUT_S", 6 * 3600))
+
+CV_CACHE = HERE / "figures" / "_cv_oof_cache"
+
+
+def _cache_path(leaf: Path) -> Path:
+    """Stable cache filename for a leaf's out-of-fold predictions."""
+    return CV_CACHE / (leaf.relative_to(EXP).as_posix().replace("/", "__") + ".npz")
+
+
 def _cv_predict(leaf: Path):
+    """Return (y, p, patient_id) out-of-fold predictions for ``leaf``.
+
+    The CV refit costs minutes per leaf on CPU, so the arrays are cached under
+    ``figures/_cv_oof_cache/``. Earlier revisions deleted the worker's npz in a
+    finally block, which meant every consumer paid the full refit again and the
+    per-patient values existed nowhere on disk. Delete the cache file to force a
+    recompute.
+    """
     add = leaf.relative_to(EXP).parts[0]
+    cached = _cache_path(leaf)
+    if cached.exists():
+        z = np.load(cached)
+        print(f"  cache hit {cached.name}")
+        return z["y"].astype(float), z["p"].astype(float), z["pid"].astype(str)
     out = Path(tempfile.gettempdir()) / f"c2_{uuid.uuid4().hex}.npz"
     try:
         r = subprocess.run([sys.executable, str(CV_WORKER), str(leaf), str(out)],
-                           capture_output=True, text=True, timeout=3600, env=_env(add))
+                           capture_output=True, text=True, timeout=CV_TIMEOUT_S, env=_env(add))
         if r.returncode != 0 or not out.exists():
             print(f"  FAIL {leaf.name} (returncode={r.returncode}, out_exists={out.exists()})")
             if r.stderr:
@@ -89,6 +131,9 @@ def _cv_predict(leaf: Path):
                 print("  --- end stderr ---")
             return None
         z = np.load(out)
+        CV_CACHE.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(cached, y=z["y"], p=z["p"], pid=z["pid"])
+        print(f"  cached {cached.name}")
         return z["y"].astype(float), z["p"].astype(float), z["pid"].astype(str)
     finally:
         out.unlink(missing_ok=True)

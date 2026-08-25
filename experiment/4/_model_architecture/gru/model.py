@@ -18,6 +18,13 @@ if str(_ADDITION_ROOT / "_seq") not in sys.path:
     sys.path.insert(0, str(_ADDITION_ROOT / "_seq"))
 from sklearn_wrapper import SequenceClassifier  # noqa: E402
 
+import torch as _torch
+
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
 
 class _GRUNet(nn.Module):
     def __init__(self, n_features: int, lookback: int, hidden: int, dropout: float):
@@ -37,7 +44,7 @@ class _GRUNet(nn.Module):
         return self.head(self.drop(h)).squeeze(-1)  # (B,) logits
 
 
-def build_gru(X_train, y_train, *, device="cuda", random_state=0, output_dir=None):
+def build_gru(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """Fit the GRU SequenceClassifier and return it (CPU-resident for joblib)."""
     del output_dir
     model = SequenceClassifier(

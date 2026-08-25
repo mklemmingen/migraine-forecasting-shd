@@ -1,6 +1,6 @@
 # Addition 3: temporal-dependence analysis of the SHD cohort
 
-> Position in the paper: **Methods (4.2)**. Reads after `addition2_explainability.md`; precedes `addition4_sequence.md`. The temporal-dependence verdict from this doc gates the sequence-modelling decision documented in addition4_sequence.md (the IID-row falsification test).
+> Position in the long-form record: **Methods**. Reads after `addition2_explainability.md`; precedes `addition4_sequence.md`. The temporal-dependence verdict from this doc gates the sequence-modelling decision documented in addition4_sequence.md (the IID-row falsification test).
 
 The temporal-dependence layer (`experiment/3/`) trained no models. It
 read the engineered diary parquets directly and characterised the

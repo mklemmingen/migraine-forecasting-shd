@@ -1,6 +1,6 @@
 # Addition 6: clinical-forecast value
 
-> Position in the paper: **Methods (4.6)**. Reads after `external_validation_site.md`; precedes `results_findings.md`. Decision-curve + Brier-skill methodology supports the clinical-value contribution reported in results_findings.md Headline takeaway 1.
+> Position in the long-form record: **Methods**. Reads after `external_validation_site.md`; precedes `results_findings.md`. Decision-curve + Brier-skill methodology supports the clinical-value contribution reported in results_findings.md Headline takeaway 1.
 
 The forecast-value layer (`experiment/6/`) addresses what Additions 0, 1, 4,
 and 5 do not: whether a forecast at a given operating point would actually
@@ -23,7 +23,7 @@ a model can beat the base rate on AUPRC yet provide no net clinical benefit, and
 AUPRC's baseline itself moves with prevalence so it cannot be read as value across
 the migraine (~7%) and headache (~24%) cells [mcdermott2024aurocAuprc, p. 1]. Accuracy is base-rate
 dominated and is already labelled as such in the comparison table
-(`docs/paper_rigor_checklist.md`, Section 4).
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 4).
 
 The discipline that converts a probability into a decision is decision curve
 analysis: net benefit is plotted against the threshold probability, where the
@@ -41,7 +41,7 @@ pathway. DECIDE-AI is the standard for the early-stage clinical evaluation of
 AI-driven decision-support systems and comprises 17 AI-specific reporting items
 [vasey2022decideAI, p. 1]; it is already named in the rigor checklist as the
 guideline a future clinical-evaluation follow-up should adopt
-(`docs/paper_rigor_checklist.md`, Section 1d). Addition 6 produces the
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 1d). Addition 6 produces the
 development-stage decision-analytic evidence that such a follow-up would build on,
 without claiming a clinical evaluation has occurred.
 
@@ -131,13 +131,8 @@ non-attack days outnumber attack days roughly 19:1. Sensitivity at
 FPR = 0.10 is reported per architecture per target on the held-out
 test split, with the same bootstrap CIs the benchmark uses.
 
-The operating-point-to-action mapping the paper assumes is explicit: at
-threshold t = 0.10-0.20 the recommended action is a low-cost behavioural
-trigger (a same-day hydration / sleep / caffeine self-check); at
-t = 0.20-0.35 the recommended action is a pre-emptive lifestyle
-modification (rescheduling exertion, advancing a planned analgesic
-window); at t > 0.35 the recommended action is a pre-emptive oral
-acute-medication dose (an NSAID or triptan within its on-label window).
+**Withdrawn.** This paragraph previously specified a three-band action escalation (behavioural check at t = 0.10-0.20, lifestyle modification at 0.20-0.35, pre-emptive medication only above t > 0.35). It contradicted Section 3.1 of this same document and the `decision_curve.py` docstring, both of which place the pre-emptive-medication action at LOW thresholds, and it was never implemented anywhere under `experiment/6/`. It also assigned no action at all to t = 0.01-0.10, the sub-band the decision-curve result actually sits in. Section 3.1 is load-bearing and stands; this banding does not.
+
 The threshold band over which the model shows non-negative net benefit
 against treat-all and treat-none is read as a recommendation surface,
 not a prescriptive cut-off. The escalation aligns the decision curve's

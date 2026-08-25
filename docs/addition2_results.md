@@ -1,6 +1,6 @@
 # Addition 2 results: model explainability (SHAP, ALE, ShapIQ)
 
-> Position in the paper: **Results (5.1)**. Reads after `results_findings.md`; precedes `addition3_results.md`. Per-Addition explainability findings; references the methods specified in addition2_explainability.md.
+> Position in the long-form record: **Results**. Reads after `results_findings.md`; precedes `addition3_results.md`. Per-Addition explainability findings; references the methods specified in addition2_explainability.md.
 
 
 Attribution and effect findings from the Addition-2 insight pass over the

@@ -1,8 +1,15 @@
 from tabpfn import TabPFNClassifier
 from tabpfn.constants import ModelVersion
 
+import torch as _torch
 
-def build_tabpfn_v3(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
+
+def build_tabpfn_v3(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """Fit TabPFN-v3 (the v3 default classifier checkpoint) and return
     the bare estimator.
 

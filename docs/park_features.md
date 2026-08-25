@@ -1,6 +1,6 @@
 # Park Feature Set
 
-> Position in the paper: **Data and features (2.2)**. Reads after
+> Position in the long-form record: **Data and features**. Reads after
 > `dataset.md`; precedes the architecture docs (`xgboost.md`,
 > `tabPfn.MD`). The six Park-trigger features defined here anchor the
 > SHAP-attribution recovery check in `addition2_results.md`.

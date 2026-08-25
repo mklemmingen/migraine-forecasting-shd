@@ -6,10 +6,15 @@ Benchmark comparing ML approaches for **next-day migraine forecasting** on the K
 
 ## Reading order
 
-**The paper** (`docs/body.md`) is the condensed ~4000-word JHP submission
-body: the entire narrative - abstract, methods, results, discussion,
-conclusion - in one self-contained file, with pointers down into the
-long-form record for detail. Read it first for the whole study end to end.
+**The paper and its supplementary files** are the authoritative write-up of this
+work: abstract, methods, results, discussion and conclusion, plus the
+Supplementary Information (Supplementary Methods S1.1--S1.12 and Supplementary
+Figures S1--S15) and the completed TRIPOD+AI and PROBAST+AI reporting checklists.
+Read those first for the study end to end.
+
+`docs/` in this repository is the **superseded long-form research record**, kept for
+provenance only. Its numbers predate the final analysis and should not be cited;
+where it disagrees with the paper, the paper is correct.
 
 **The long-form records** below expand each section of the body
 with per-Addition methods, results, and the TRIPOD+AI compliance trail;
@@ -37,10 +42,10 @@ chain.
    - `docs/addition3_results.md` - temporal-dependence findings (AG hazard, Goh-Barabasi B/M, weekly periodicity).
 6. **Supplementary**
    - `docs/insights_leaf_selection.md` - `composite_sorted` selection rule and its within-family fragility.
-   - `docs/paper_rigor_checklist.md` - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
+   - the paper's TRIPOD+AI and PROBAST+AI checklists - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
-referenced from `docs/body.md` as well as the long-form Methods and Results docs by name; every figure carries a
+referenced from the long-form Methods and Results docs by name; every figure carries a
 four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`).
 
 ---

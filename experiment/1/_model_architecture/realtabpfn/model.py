@@ -2,12 +2,19 @@ from tabpfn import TabPFNClassifier
 from tabpfn.constants import ModelVersion
 from tabpfn.model_loading import prepend_cache_path
 
+import torch as _torch
+
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
 # v2.5_real checkpoint filename in the Prior-Labs/tabpfn_2_5 HuggingFace
 # repo. Resolved by ModelSource.get_classifier_v2_5().filenames.
 _REAL_CHECKPOINT_FILENAME = "tabpfn-v2.5-classifier-v2.5_real.ckpt"
 
 
-def build_realtabpfn(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
+def build_realtabpfn(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """Real-TabPFN-2.5 - TabPFN-v2.5 architecture with the v2.5_real
     checkpoint (continued pre-training on a curated set of real-world
     tabular datasets, per Garg et al. 2025).
