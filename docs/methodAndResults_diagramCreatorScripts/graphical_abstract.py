@@ -268,20 +268,20 @@ def _draw_per_patient(ax) -> None:
         x = [i / (len(vals) - 1) for i in range(len(vals))] if len(vals) > 1 else [0.5]
         ax.plot(x, vals, "o", ms=3.4, color=col, alpha=0.85, mec="none", zorder=3)
 
-    # tie the panel to the hero: the same within-person C the slopegraph lands on
-    if series.get("migraine"):
-        ax.axhline(MIGRAINE["within"], color=mig_col, lw=1.2, alpha=0.85, zorder=2)
-        ax.text(1.05, MIGRAINE["within"], f"{MIGRAINE['within']:.2f}", fontsize=7.5,
-                color=MIG_TEXT, va="center", ha="left", fontweight="bold",
-                bbox=dict(fc="white", ec="none", pad=0.9))
-    ax.set_xlim(-0.06, 1.20)
-    ax.set_ylim(0.36, 0.84)
+    # tie the panel to the hero: the same within-person C values the slopegraph lands on
+    for tgt, d, col, txt in (("headache", HEADACHE, hea_col, hea_col),
+                             ("migraine", MIGRAINE, mig_col, MIG_TEXT)):
+        if not series.get(tgt):
+            continue
+        ax.axhline(d["within"], color=col, lw=1.2, alpha=0.85, zorder=2)
+    ax.set_xlim(-0.06, 1.06)
+    ax.set_ylim(0.28, 0.88)
     ax.set_xticks([])
-    ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8])
+    ax.set_yticks([0.3, 0.5, 0.7])
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("per-patient AUROC", fontsize=8)
-    n_mig = len(series.get("migraine", []))
-    ax.set_xlabel(f"one dot per patient\n(migraine, n = {n_mig})", fontsize=8)
+    n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
+    ax.set_xlabel(f"one dot per patient\n({n_hea} headache, {n_mig} migraine)", fontsize=8)
     ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
 
     for spine in ("top", "right"):
