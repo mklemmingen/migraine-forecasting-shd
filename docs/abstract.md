@@ -37,7 +37,7 @@ The within-person C-statistic clustered at 0.53-0.57 across architectures and bo
 
 ### Conclusion
 
-Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; positive Brier skill survived only for headache at the TabPFN-v2.6 headline cell, and no architecture achieved positive Brier skill for migraine. The headache decision-curve net-benefit positivity at low thresholds implies treating essentially every test patient-day at t = 0.05, breaching the ICHD-3 8.2 triptan and NSAID medication-overuse ceilings on 20 of 20 test patients, so the headache forecast quality does not translate into a deployable abortive-medication policy. Development and internal validation on a single 62-patient Korean cohort; we do not recommend clinical deployment.
+Pooled AUROC is not a sufficient endpoint for migraine on diary-only data; positive Brier skill survived only for headache at the TabPFN-v2.6 headline cell, and no architecture achieved positive Brier skill for migraine. The headache decision curve does not establish clinical utility: positive net benefit establishes superiority to treat-none alone, and at the low thresholds the model flags every test patient-day, so its net benefit equals treat-all's by construction (see the dual-comparator paragraph in the clinical-value section). The headache forecast quality therefore does not translate into a deployable abortive-medication policy. Development and internal validation on a single 62-patient Korean cohort; we do not recommend clinical deployment.
 
 ## Keywords
 
