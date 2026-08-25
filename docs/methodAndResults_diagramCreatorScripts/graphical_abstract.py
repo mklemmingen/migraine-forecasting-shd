@@ -246,10 +246,12 @@ def _draw_dca_sparkline(ax) -> None:
     # fig_d3_decision_curve.py prints t = 0.05, 0.10, 0.20, 0.30, 0.50 only. The
     # t = 0.01 values are NOT from that log: earlier revisions carried 0.18 and
     # 0.045, written at 2 dp where every traced value is 3 dp, and both were wrong.
-    # At t = 0.01 (and up to ~0.085 for headache) the model flags 100% of
-    # patient-days -- moh_trigger_rate CSV reports pooled_trigger_rate 1.000 at
-    # t = 0.05 -- so TP/n = prevalence and FP/n = 1 - prevalence, and model net
-    # benefit is IDENTICALLY treat-all's. The t = 0.01 entries below are therefore
+    # At the low thresholds the model flags every patient-day, so TP/n = prevalence
+    # and FP/n = 1 - prevalence, making model net benefit IDENTICALLY treat-all's.
+    # Verifiable from experiment/6/value_summary_20260529_002725.csv, where the
+    # headache rows report nb_optimal_threshold = 0.01 and
+    # nb_at_optimal = 0.18664909969257795, equal bit-for-bit to the closed form
+    # p - (1-p)*t/(1-t) at p = 112/575. The t = 0.01 entries below are therefore
     # the exact closed form, not an estimate. Vickers 2006 p.567-8 describes this
     # coincidence as expected whenever the threshold falls below the model's
     # minimum predicted probability.
