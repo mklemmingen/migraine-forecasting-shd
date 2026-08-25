@@ -243,9 +243,19 @@ def _draw_dca_sparkline(ax) -> None:
     # sparkline is a linear interpolation between these anchors so the curve
     # shape is data-bound rather than fabricated. Source: fig_d3 run log,
     # bodysect 3.7.
+    # fig_d3_decision_curve.py prints t = 0.05, 0.10, 0.20, 0.30, 0.50 only. The
+    # t = 0.01 values are NOT from that log: earlier revisions carried 0.18 and
+    # 0.045, written at 2 dp where every traced value is 3 dp, and both were wrong.
+    # At t = 0.01 (and up to ~0.085 for headache) the model flags 100% of
+    # patient-days -- moh_trigger_rate CSV reports pooled_trigger_rate 1.000 at
+    # t = 0.05 -- so TP/n = prevalence and FP/n = 1 - prevalence, and model net
+    # benefit is IDENTICALLY treat-all's. The t = 0.01 entries below are therefore
+    # the exact closed form, not an estimate. Vickers 2006 p.567-8 describes this
+    # coincidence as expected whenever the threshold falls below the model's
+    # minimum predicted probability.
     t_anchor = np.array([0.01, 0.05, 0.10, 0.20, 0.30, 0.50])
-    headache_anchor = np.array([0.18, 0.152, 0.102, 0.052, 0.031, 0.016])
-    migraine_anchor = np.array([0.045, 0.033, 0.020, 0.015, 0.007, -0.002])
+    headache_anchor = np.array([0.186649, 0.152, 0.102, 0.052, 0.031, 0.016])
+    migraine_anchor = np.array([0.056653, 0.033, 0.020, 0.015, 0.007, -0.002])
     t = np.linspace(0.01, 0.50, 50)
     headache_nb = np.interp(t, t_anchor, headache_anchor)
     migraine_nb = np.interp(t, t_anchor, migraine_anchor)
