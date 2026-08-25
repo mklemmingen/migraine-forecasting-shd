@@ -1,6 +1,6 @@
 # External validation: leave-one-site-out (Route A)
 
-> Position in the paper: **Methods (4.5)**. Reads after `addition5_personalization.md`; precedes `addition6_clinical_value.md`. Leave-one-site-out external validation completes the Addition 5 scope; calibration-drift numbers feed fig_e1.
+> Position in the long-form record: **Methods**. Reads after `addition5_personalization.md`; precedes `addition6_clinical_value.md`. Leave-one-site-out external validation completes the Addition 5 scope; calibration-drift numbers feed fig_e1.
 
 External validity is the benchmark's binding impact ceiling: it is developed
 on a single 62-patient cohort, and a truly independent external dataset is

@@ -1,6 +1,6 @@
 # Results findings (Additions 0-1, full grid incl. patient hold-out)
 
-> Position in the paper: **Results (5)**. Reads after `addition6_clinical_value.md`; precedes `addition2_results.md`. Cross-Addition synthesis; the canonical entry point for the paper's findings, ahead of the per-Addition results docs.
+> Position in the long-form record: **Results**. Reads after `addition6_clinical_value.md`; precedes `addition2_results.md`. Cross-Addition synthesis; the canonical entry point for the paper's findings, ahead of the per-Addition results docs.
 
 
 Data-verified findings from the aggregated sweep of 488 leaf cells

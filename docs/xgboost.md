@@ -1,6 +1,6 @@
 # XGBoost in this study: architecture, tuning protocol, and findings
 
-> Position in the paper: **Architectures (3.1)**. Reads after
+> Position in the long-form record: **Architectures**. Reads after
 > `park_features.md`; precedes `tabPfn.MD`. The composite migraine
 > headline cell that `results_findings.md` reports is one of the leaves
 > trained under the HP-search protocol documented here.

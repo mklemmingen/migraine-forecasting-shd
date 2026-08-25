@@ -163,7 +163,7 @@ FEATURE_SET = {"full": OI["blue"], "spano": OI["vermillion"],
                "no_rolling": OI["green"], "park": OI["orange"]}
 
 # Schematic box edge roles (guide Section 7): normal / output / exclusion.
-BOX_EDGE = {"normal": OI["blue"], "output": OI["green"], "exclude": OI["vermillion"]}
+BOX_EDGE = {"normal": GREY, "output": OI["green"], "exclude": "#8c6f6f"}
 
 # Discrete categorical ramps (single source, so A3 & A5 stop drifting). Ordered
 # light -> dark; the headache/val category is OI orange and migraine/test is the
@@ -237,7 +237,7 @@ def box(ax, xy, w, h, text, fc=PALE_FILL, ec=None, role="normal", fontsize=8.5,
     Edge colour comes from the schematic ``role`` (normal/output/exclude) unless an
     explicit ``ec`` is given - so flowcharts use palette colours, not inline hex."""
     x, y = xy
-    ec = ec or BOX_EDGE.get(role, OI["blue"])
+    ec = ec or BOX_EDGE.get(role, GREY)
     ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h, zorder=2, fc=fc, ec=ec,
                                 lw=1.2, boxstyle="round,pad=0.01,rounding_size=0.015"))
     ax.text(x, y, text, ha="center", va="center", fontsize=fontsize, zorder=3, weight=weight)

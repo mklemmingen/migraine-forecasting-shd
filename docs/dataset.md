@@ -1,6 +1,6 @@
 # Korean Smartphone Headache Diary - Source Dataset
 
-> Position in the paper: **Data and features (2.1)**. Reads after the
+> Position in the long-form record: **Data and features**. Reads after the
 > repository README; precedes `park_features.md`. The engineered-feature
 > EPV bands documented here are referenced from every per-Addition methods
 > doc.

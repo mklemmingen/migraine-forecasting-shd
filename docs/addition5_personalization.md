@@ -1,6 +1,6 @@
 # Addition 5: personalisation and within-person evaluation
 
-> Position in the paper: **Methods (4.4)**. Reads after `addition4_sequence.md`; precedes `external_validation_site.md`. Within-person C-statistic and the per-patient regime tables defined here carry the load-bearing finding restated in results_findings.md Headline takeaway 1.
+> Position in the long-form record: **Methods**. Reads after `addition4_sequence.md`; precedes `external_validation_site.md`. Within-person C-statistic and the per-patient regime tables defined here carry the load-bearing finding restated in results_findings.md Headline takeaway 1.
 
 The personalisation layer (`experiment/5/`) implements both the modelling and
 the evaluation side of the within-person migraine-forecasting consensus.

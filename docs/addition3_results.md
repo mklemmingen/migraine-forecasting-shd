@@ -1,6 +1,6 @@
 # Addition 3 results: temporal dependence of the SHD attack series
 
-> Position in the paper: **Results (5.2)**. Reads after `addition2_results.md`; precedes `insights_leaf_selection.md`. Per-Addition temporal-dependence findings; references the methods specified in addition3_temporal.md.
+> Position in the long-form record: **Results**. Reads after `addition2_results.md`; precedes `insights_leaf_selection.md`. Per-Addition temporal-dependence findings; references the methods specified in addition3_temporal.md.
 
 
 Data-verified findings from `experiment/3/run_temporal_analysis.py` on the

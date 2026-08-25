@@ -1,6 +1,6 @@
 # Addition 6: clinical-forecast value
 
-> Position in the paper: **Methods (4.6)**. Reads after `external_validation_site.md`; precedes `results_findings.md`. Decision-curve + Brier-skill methodology supports the clinical-value contribution reported in results_findings.md Headline takeaway 1.
+> Position in the long-form record: **Methods**. Reads after `external_validation_site.md`; precedes `results_findings.md`. Decision-curve + Brier-skill methodology supports the clinical-value contribution reported in results_findings.md Headline takeaway 1.
 
 The forecast-value layer (`experiment/6/`) addresses what Additions 0, 1, 4,
 and 5 do not: whether a forecast at a given operating point would actually
