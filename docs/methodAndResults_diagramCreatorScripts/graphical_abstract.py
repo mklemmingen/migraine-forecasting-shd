@@ -95,15 +95,15 @@ def _draw_cohort(ax) -> None:
     hea_col = S.target_color("headache")
     ax.axis("off")
 
-    iax = ax.inset_axes([0.0, 0.855, 0.185, 0.145])
-    iax.imshow(_load_diary_icon())
+    iax = ax.inset_axes([0.0, 0.735, 0.245, 0.265])
+    iax.imshow(_load_diary_icon(), aspect="equal")
     iax.axis("off")
-    ax.text(0.25, 0.925, "Headache diary", fontsize=8.8, fontweight="bold",
+    ax.text(0.30, 0.875, "Headache diary", fontsize=8.8, fontweight="bold",
             color=S.INK, transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.5, 0.775, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
+    ax.text(0.5, 0.700, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="center")
-    gax = ax.inset_axes([0.0, 0.295, 1.0, 0.45])
+    gax = ax.inset_axes([0.0, 0.290, 1.0, 0.38])
     gax.set_xlim(0, 10); gax.set_ylim(0, 10)
     gax.set_aspect("equal"); gax.axis("off")
     n_mig, n_hea = 7, 23                      # per 100 days: 7.2% and 23.5%
@@ -122,15 +122,15 @@ def _draw_cohort(ax) -> None:
               (hea_col, "16  other headache"),
               ("#e3e3e3", "77  headache free")]
     for i, (col, lab) in enumerate(legend):
-        yy = 0.240 - i * 0.072
+        yy = 0.205 - i * 0.070
         ax.add_patch(Rectangle((gx0, yy), 0.055, 0.045, fc=col, ec="none",
                                transform=ax.transAxes, clip_on=False))
-        ax.text(gx0 + 0.085, yy + 0.022, lab, fontsize=7.4, color="#3d3d3d",
+        ax.text(gx0 + 0.085, yy + 0.021, lab, fontsize=7.4, color="#3d3d3d",
                 transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.0, 0.020, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
+    ax.text(0.0, -0.010, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
             transform=ax.transAxes, va="center", ha="left")
-    ax.text(0.0, -0.058, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
+    ax.text(0.0, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="left")
 
 
@@ -276,7 +276,7 @@ def main() -> None:
     ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
-    fig.subplots_adjust(left=0.035, right=0.975, top=0.95, bottom=0.235,
+    fig.subplots_adjust(left=0.035, right=0.975, top=0.96, bottom=0.30,
                         wspace=0.55)
 
     out_png = HERE / "figures" / "graphical_abstract.png"
