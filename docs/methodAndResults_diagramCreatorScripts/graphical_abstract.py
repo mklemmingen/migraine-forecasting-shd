@@ -132,6 +132,11 @@ def _draw_cohort(ax) -> None:
             transform=ax.transAxes, va="center", ha="left")
     ax.text(0.0, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="left")
+    # provenance: which cell every number on this figure comes from
+    ax.text(0.0, -0.170, "full_features, chronological 70/30", fontsize=7.0,
+            color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
+    ax.text(0.0, -0.240, "migraine XGBoost stack, headache TabPFN", fontsize=7.0,
+            color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
 
 
 def _draw_slopegraph(ax) -> None:
@@ -268,14 +273,23 @@ def _draw_per_patient(ax) -> None:
         x = [i / (len(vals) - 1) for i in range(len(vals))] if len(vals) > 1 else [0.5]
         ax.plot(x, vals, "o", ms=3.4, color=col, alpha=0.85, mec="none", zorder=3)
 
-    ax.set_xlim(-0.06, 1.06)
-    ax.set_ylim(0.24, 0.92)
+    # tie the panel to the hero: the same within-person C the slopegraph lands on
+    if series.get("migraine"):
+        ax.axhline(MIGRAINE["within"], color=mig_col, lw=1.2, alpha=0.85, zorder=2)
+        ax.text(1.04, MIGRAINE["within"] + 0.012, f"{MIGRAINE['within']:.2f}", fontsize=7.5,
+                color=MIG_TEXT, va="bottom", ha="left", fontweight="bold")
+    ax.set_xlim(-0.06, 1.20)
+    ax.set_ylim(0.36, 0.84)
     ax.set_xticks([])
-    ax.set_yticks([0.3, 0.5, 0.7, 0.9])
+    ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8])
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("per-patient AUROC", fontsize=8)
-    ax.set_xlabel("each dot is one patient", fontsize=8)
+    n_mig = len(series.get("migraine", []))
+    below = sum(1 for v in series.get("migraine", []) if v < 0.5)
+    ax.set_xlabel(f"one dot per patient\n(migraine, n = {n_mig})", fontsize=8)
     ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
+    ax.text(0.5, 0.805, f"{below} of {n_mig} patients below chance", fontsize=7.8,
+            color="#3d3d3d", ha="center", va="center")
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
@@ -324,7 +338,7 @@ def main() -> None:
     ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
-    fig.subplots_adjust(left=0.035, right=0.975, top=0.96, bottom=0.30,
+    fig.subplots_adjust(left=0.028, right=0.955, top=0.96, bottom=0.30,
                         wspace=0.55)
 
     out_png = HERE / "figures" / "graphical_abstract.png"

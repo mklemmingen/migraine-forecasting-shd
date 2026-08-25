@@ -34,7 +34,11 @@ OUT = HERE / "figures" / "per_patient_auroc.csv"
 
 # Published within-person C per target (within_person_pooling_comparison CSV and
 # article.tex Table 2). The export is gated on reproducing these.
-PUBLISHED = {"headache": (0.5418, 57), "migraine": (0.5653, 19)}
+# Gate values are per (target, architecture): the graphical abstract's hero shows the
+# migraine XGB stack (within-person C 0.5576, Table 2 rounds to 0.558), NOT the
+# TabPFN-v2.5-finetuned cell (0.5653) that Supplementary Figure S2 panel b uses. The
+# per-patient panel must come from the same cell as the hero or the two disagree.
+PUBLISHED = {"headache": (0.5418, 57), "migraine": (0.5576, 19)}
 TOL = 0.002
 
 
