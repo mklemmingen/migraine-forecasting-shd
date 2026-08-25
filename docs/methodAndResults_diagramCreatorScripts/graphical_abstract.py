@@ -82,11 +82,15 @@ def _load_diary_icon():
 def _draw_cohort(ax) -> None:
     """Cohort panel: the diary itself, then 100 days as recorded.
 
-    The day grid replaces the old text-only event rates. The 7.2 / 24 percent
-    split is the base-rate imbalance that drives the pooled-versus-within-person
-    story, so it earns a visual rather than a line of prose. migraine days are a
-    strict subset of headache days (engineer.py joins migraine_flag from the
-    headache-diary sheet and fills non-headache days with 0).
+    The day grid replaces text-only event rates. The base-rate imbalance is what
+    drives the pooled-versus-within-person story, so it earns a visual.
+
+    Counts are measured from data/processed/{headache,migraine}/diary.parquet over
+    the 4,516-day analytic cohort, not taken from prose: headache 1,060 days
+    (23.5%), migraine 325 (7.2%). Per 100 days that is 7 migraine, 16 other
+    headache, 77 headache free. An earlier revision used 17/76 from a stated 24%
+    headache rate, which is the raw-diary figure (1,099/4,579), not the analytic
+    cohort's.
     """
     mig_col = S.target_color("migraine")
     hea_col = S.target_color("headache")
@@ -98,24 +102,31 @@ def _draw_cohort(ax) -> None:
     ax.text(0.25, 0.925, "Headache diary", fontsize=8.8, fontweight="bold",
             color=S.INK, transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.0, 0.775, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
-            transform=ax.transAxes, va="center", ha="left")
+    ax.text(0.5, 0.775, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
+            transform=ax.transAxes, va="center", ha="center")
     gax = ax.inset_axes([0.0, 0.295, 1.0, 0.45])
     gax.set_xlim(0, 10); gax.set_ylim(0, 10)
     gax.set_aspect("equal"); gax.axis("off")
-    n_mig, n_hea = 7, 24                      # per 100 days, from the paper
+    n_mig, n_hea = 7, 23                      # per 100 days: 7.2% and 23.5%
     for i in range(100):
         col = mig_col if i < n_mig else (hea_col if i < n_hea else "#e3e3e3")
         gax.add_patch(Rectangle((i % 10 + 0.08, 9 - i // 10 + 0.08), 0.84, 0.84,
                                 fc=col, ec="none"))
 
-    for i, (col, lab) in enumerate([(mig_col, "7 migraine"),
-                                    (hea_col, "17 other headache"),
-                                    ("#e3e3e3", "76 headache free")]):
+    # The grid is aspect-equal, so it sits centred inside its full-width inset;
+    # caption and legend are centred on it rather than flush to the panel edge.
+    ax.figure.canvas.draw()
+    pbox, gbox = ax.get_window_extent(), gax.get_window_extent()
+    gx0 = (gbox.x0 - pbox.x0) / pbox.width
+
+    legend = [(mig_col, "7  migraine"),
+              (hea_col, "16  other headache"),
+              ("#e3e3e3", "77  headache free")]
+    for i, (col, lab) in enumerate(legend):
         yy = 0.240 - i * 0.072
-        ax.add_patch(Rectangle((0.0, yy), 0.055, 0.045, fc=col, ec="none",
+        ax.add_patch(Rectangle((gx0, yy), 0.055, 0.045, fc=col, ec="none",
                                transform=ax.transAxes, clip_on=False))
-        ax.text(0.085, yy + 0.022, lab, fontsize=7.4, color="#3d3d3d",
+        ax.text(gx0 + 0.085, yy + 0.022, lab, fontsize=7.4, color="#3d3d3d",
                 transform=ax.transAxes, va="center", ha="left")
 
     ax.text(0.0, 0.020, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
@@ -265,7 +276,7 @@ def _draw_dca_sparkline(ax) -> None:
     ax.tick_params(axis="x", labelsize=7)
     ax.set_yticks([0.0, 0.10, 0.20])
     ax.tick_params(axis="y", labelsize=7)
-    ax.set_xlabel("threshold p", fontsize=8)
+    ax.set_xlabel("predicted-risk threshold", fontsize=8)
     ax.set_ylabel("net benefit", fontsize=8)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
@@ -298,8 +309,9 @@ def main() -> None:
         (" on next-day forecasting, Park 2016 Korean SHD.", S.INK, "bold"),
     ]
     line2 = [
-        ("Within-person forecasting is near chance; at plausible thresholds the "
-         "model alarms on 98 to 100% of days, above ICHD-3 overuse ceilings.",
+        ("Within-person forecasting is near chance. Treating whenever predicted "
+         "risk reaches 5 to 10% would medicate on 98 to 100% of days, above "
+         "ICHD-3 medication-overuse limits.",
          "#3d3d3d", "normal"),
     ]
     rows = []
