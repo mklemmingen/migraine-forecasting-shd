@@ -46,7 +46,7 @@ def main():
 
     cmap = ListedColormap(S.COVERAGE)        # absent, headache-free, headache, migraine
     norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
-    fig, ax = plt.subplots(figsize=S.figsize("double", 5.2))
+    fig, ax = plt.subplots(figsize=S.figsize("wide", 5.2))
     ax.imshow(grid, aspect="auto", cmap=cmap, norm=norm, interpolation="nearest")
     # Thin white minor gridlines on every cell boundary for cell-level
     # readability; spec rule for discrete heatmaps.

@@ -169,7 +169,11 @@ BOX_EDGE = {"normal": OI["blue"], "output": OI["green"], "exclude": OI["vermilli
 # light -> dark; the headache/val category is OI orange and migraine/test is the
 # canonical vermillion, so a named entity keeps its brand colour in the heatmaps.
 PALE_BLUE = "#d9e6f2"
-COVERAGE = ["#ffffff", PALE_BLUE, OI["orange"], OI["vermillion"]]   # absent, free, headache, migraine
+# "headache" must use TARGET["headache"], not OI["orange"]: the legend labels this
+# swatch "headache" while the next one is migraine, and orange-vs-vermillion is only
+# ~20 units apart under deuteranope simulation against ~90 for blue-vs-vermillion,
+# i.e. the two targets were near-indistinguishable for colour-blind readers.
+COVERAGE = ["#ffffff", PALE_BLUE, TARGET["headache"], TARGET["migraine"]]   # absent, free, headache, migraine
 SPLIT_GRID = [PALE_BLUE, OI["orange"], OI["vermillion"]]            # train, val, test
 
 # Registry so a colour can be resolved by (role, name) and FAIL LOUDLY - a silent
