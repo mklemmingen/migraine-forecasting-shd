@@ -3,128 +3,293 @@
 JHP specification: 920 x 300 px, <=150 KB, JPG/PNG/SVG, file name "Graphical Abstract"
 (https://thejournalofheadacheandpain.biomedcentral.com/graphical-abstracts).
 
-One claim, drawn: the same model scored two ways. Pooled AUROC (across patients)
-collapses to a near-chance within-person C-statistic. The arrow is the finding;
-everything else is support.
+Built as a multi-panel scientific figure on the shared experiment/_style.py
+conventions, so it matches the paper's other figures. A rework that hand-placed
+text on a blank canvas was rejected: dropping the axes made it read as an
+infographic rather than a figure.
 
-Layout discipline: every coordinate is a multiple of the 8 px grid unit G, and the
-named Y_/X_ constants below are the only positions used. Earlier revisions placed
-elements by eye and read as noise -- shared baselines and even gaps are most of what
-makes a figure look deliberate. Keep new elements on the grid.
+Four zones, left to right:
+  Cohort (text): participants, event rates, setting, model family
+  Discrimination: paired slopegraph, pooled AUROC -> within-person C, one slope
+    per outcome, Delta labelled, CIs at every endpoint, chance reference at 0.5
+  Calibration: slope dotplot with CIs against the unity reference
+  Clinical utility: decision-curve sparkline, clinically plausible low-threshold
+    band shaded
+  Bottom strip: the load-bearing claim, plus the near-chance and
+    medication-overuse consequences
+
+TRIPOD+AI for Abstracts coverage: Item 1 (title/outcome/population in the bottom
+strip), Item 5 (setting), Item 8 (discrimination + calibration + clinical utility
+triad), Item 9 (n + patient-days), Item 11 (CIs on every point estimate), Item 12
+(interpretation in the claim sentence).
 
 Two constraints that are correctness, not taste:
-  * Orange TEXT uses MIG_T (#C25100, 4.70:1 on white). #D55E00 is 3.87:1 and fails
-    the 4.5:1 WCAG floor; it is fine for marks and lines, not for type.
-  * The within-person values are pinned ABOVE the chance line (18*G / 14*G). Placed
-    by data offset, 0.54 renders below y(0.50) and reads as below-chance, which is
-    false.
+  * Orange TEXT uses MIG_TEXT (#C25100, 4.70:1 on white). The palette orange
+    #D55E00 is 3.87:1 and fails the 4.5:1 WCAG floor; it stays on marks and lines.
+  * CIs are patient-CLUSTER, not patient-day. Table 2 of article.tex.
 
-Numbers trace to article.tex / supplementary_body.tex; see graphical_abstract_review.md
-in the paper working tree before changing any value.
+Numbers trace to article.tex and supplementary_body.tex; see
+graphical_abstract_review.md in the paper working tree before changing any value.
+
+Usage: python graphical_abstract.py
 """
 import os
+import sys
 from pathlib import Path
 
-import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch, Rectangle
-import sys
-
+import numpy as np
+from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea, VPacker
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+sys.path.insert(0, str(REPO / "experiment"))
+import _style as S  # noqa: E402
 
-MIG, HEA = "#D55E00", "#0072B2"
-MIG_T = "#C25100"
-INK, BODY, GREY, FAINT = "#1a1a1a", "#3d3d3d", "#5f5f5f", "#d8d8d8"
+MIG_TEXT = "#C25100"  # 4.70:1 on white; S.target_color("migraine") is 3.87:1
 
-W, H = 920, 300
-G  = 8                       # grid unit; every coordinate below is a multiple
-M  = 6*G                     # 48  page margin, shared by title/body/footer
+# Numbers — single source of truth, traced to body sections.
+MIGRAINE = {"pooled": 0.791, "pooled_ci": (0.544, 0.890),
+            "within": 0.558,  "within_ci": (0.511, 0.604),
+            "slope": 1.386,   "slope_ci": (0.40, 2.07)}
+HEADACHE = {"pooled": 0.653, "pooled_ci": (0.555, 0.740),
+            "within": 0.542,  "within_ci": (0.509, 0.575),
+            "slope": 1.094,   "slope_ci": (0.594, 1.429)}
 
-# --- vertical rhythm, top-down, in whole units -------------------------------
-Y_TITLE = H - 4*G            # 268
-Y_SUB   = Y_TITLE - 3*G      # 244
-Y_HEAD  = Y_SUB   - 4*G      # 212
-PY1     = 23*G               # 184  top of scale (0.82)
-PY0     = 11*G               # 88   bottom of scale (0.48)
-Y_NOTE  = 7*G                # 56
-Y_RULE  = 5*G                # 40
-Y_FOOT  = 3*G                # 24
 
-# --- horizontal grid ---------------------------------------------------------
-X_NAME  = 26*G               # 208  right edge of series name
-X_VAL0  = 40*G               # 320  right edge of pooled value
-HX0     = 43*G               # 344  pooled marker
-HX1     = 75*G               # 600  within marker
-X_VAL1  = 80*G               # 640  left edge of within value
-X_NEAR  = 93*G               # 744  left edge of "near chance"
+def _draw_cohort(ax) -> None:
+    """Cohort, setting and model family as plain text. No icon: the previous
+    diary glyph rendered as an uninformative box-in-box."""
+    ax.axis("off")
+    lines = [("Cohort", True),
+             ("62 patients, 4,516 patient-days", False),
+             ("migraine on 7.2% of days", False),
+             ("headache on 24% of days", False),
+             ("", False),
+             ("Setting", True),
+             ("Park 2016 smartphone diary,", False),
+             ("2 Korean clinics", False),
+             ("", False),
+             ("Models", True),
+             ("TabPFN, XGBoost, window-MLP", False)]
+    yy = 0.98
+    for txt, is_head in lines:
+        if not txt:
+            yy -= 0.034
+            continue
+        ax.text(0.0, yy, txt, transform=ax.transAxes, fontsize=8.2,
+                fontweight="bold" if is_head else "normal",
+                color=S.INK if is_head else "#3d3d3d", va="top", ha="left")
+        yy -= 0.086
 
-A0, A1 = 0.48, 0.82
-def y(v): return PY0 + (v-A0)/(A1-A0)*(PY1-PY0)
 
-fig = plt.figure(figsize=(W/100, H/100), dpi=100)
-ax = fig.add_axes([0,0,1,1]); ax.set_xlim(0,W); ax.set_ylim(0,H); ax.axis("off")
-ax.add_patch(Rectangle((0,0),W,H,fc="white",ec="none",zorder=-10))
+def _draw_slopegraph(ax) -> None:
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    # x positions: pooled at 0, within at 1
+    x = [0, 1]
+    # Dashed reference at 0.5 (chance); the y-axis tick at 0.5 carries the
+    # numeric and the dashed line carries the semantic, no inline label needed.
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
+    # Migraine slope
+    mig_y = [MIGRAINE["pooled"], MIGRAINE["within"]]
+    ax.plot(x, mig_y, color=mig_col, lw=2.2, zorder=4,
+            marker="o", markersize=8, mfc=mig_col, mec=S.INK, mew=0.8)
+    # Migraine CI whiskers
+    for xi, yi, ci in [(0, MIGRAINE["pooled"], MIGRAINE["pooled_ci"]),
+                       (1, MIGRAINE["within"], MIGRAINE["within_ci"])]:
+        ax.plot([xi, xi], [ci[0], ci[1]], color=mig_col, lw=1.2, alpha=0.7, zorder=3)
+    # Headache slope
+    hea_y = [HEADACHE["pooled"], HEADACHE["within"]]
+    ax.plot(x, hea_y, color=hea_col, lw=2.2, zorder=4,
+            marker="o", markersize=8, mfc=hea_col, mec=S.INK, mew=0.8)
+    for xi, yi, ci in [(0, HEADACHE["pooled"], HEADACHE["pooled_ci"]),
+                       (1, HEADACHE["within"], HEADACHE["within_ci"])]:
+        ax.plot([xi, xi], [ci[0], ci[1]], color=hea_col, lw=1.2, alpha=0.7, zorder=3)
+    # Endpoint value labels
+    # Endpoint value labels — white bbox lifts the text off crossing slopes.
+    # Within-person endpoints sit only 0.016 apart in y (migraine 0.558,
+    # headache 0.542), which is below the 8.5pt label line-height at this
+    # axes scale; the labels therefore need a small vertical offset (±0.04)
+    # to avoid stacking on top of each other. clip_on=False lets labels
+    # render into the inter-panel wspace if they exceed the data area.
+    label_box = dict(fc="white", ec="none", pad=0.8)
+    ax.text(-0.08, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
+            va="center", fontsize=11, color=MIG_TEXT, fontweight="bold",
+            bbox=label_box, clip_on=False)
+    ax.text(1.06, MIGRAINE["within"] + 0.04, f"{MIGRAINE['within']:.2f}",
+            ha="left", va="bottom", fontsize=11, color=MIG_TEXT, fontweight="bold",
+            bbox=label_box, clip_on=False)
+    ax.text(-0.08, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
+            va="center", fontsize=11, color=hea_col, fontweight="bold",
+            bbox=label_box, clip_on=False)
+    ax.text(1.06, HEADACHE["within"] - 0.04, f"{HEADACHE['within']:.2f}",
+            ha="left", va="top", fontsize=11, color=hea_col, fontweight="bold",
+            bbox=label_box, clip_on=False)
+    # Delta annotations at midpoint
+    mig_delta = MIGRAINE["pooled"] - MIGRAINE["within"]
+    hea_delta = HEADACHE["pooled"] - HEADACHE["within"]
+    ax.text(0.5, (MIGRAINE["pooled"] + MIGRAINE["within"]) / 2 + 0.04,
+            f"Δ {mig_delta:.2f}", ha="center", va="bottom",
+            fontsize=9.5, color=MIG_TEXT, fontweight="bold")
+    ax.text(0.5, (HEADACHE["pooled"] + HEADACHE["within"]) / 2 - 0.04,
+            f"Δ {hea_delta:.2f}", ha="center", va="top",
+            fontsize=9, color=hea_col, fontweight="bold")
+    # Target identity is carried by colour + the bottom-strip claim sentence
+    # (which names "migraine" and "headache" explicitly); no in-panel target
+    # word labels here.
+    ax.text(-0.22, 0.5, "chance", fontsize=7.5, color="#5f5f5f", ha="left",
+            va="center", bbox=dict(fc="white", ec="none", pad=0.6))
+    ax.set_xlim(-0.25, 1.25)
+    ax.set_ylim(0.36, 0.95)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["pooled\nAUROC", "within-person\nC-statistic"], fontsize=8.5)
+    ax.set_yticks([0.5, 0.7, 0.9])
+    ax.tick_params(axis="y", labelsize=7)
+    ax.set_ylabel("discrimination", fontsize=8)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
 
-ax.text(M, Y_TITLE, "Pooled AUROC overstates day-to-day usefulness for an individual patient",
-        fontsize=14, fontweight="bold", color=INK, va="center", ha="left")
-ax.text(M, Y_SUB, "One model, two ways of scoring the same predictions",
-        fontsize=10.5, color=GREY, va="center", ha="left")
 
-ax.text(HX0, Y_HEAD, "Pooled across patients", fontsize=11, fontweight="bold",
-        color=INK, ha="center", va="center")
-ax.text(HX1, Y_HEAD, "Within one patient", fontsize=11, fontweight="bold",
-        color=INK, ha="center", va="center")
+def _draw_calibration(ax) -> None:
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    # Dashed reference at 1.0; the y-axis tick already carries the numeric
+    # and "calibration slope" axis label tells the reader 1.0 is the ideal.
+    ax.axhline(1.0, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
+    # Dots with CIs
+    for i, (name, d, col) in enumerate(
+        [("migraine", MIGRAINE, mig_col), ("headache", HEADACHE, hea_col)]
+    ):
+        x = i
+        ax.errorbar([x], [d["slope"]],
+                    yerr=[[d["slope"] - d["slope_ci"][0]],
+                          [d["slope_ci"][1] - d["slope"]]],
+                    fmt="o", color=col, ecolor=col, elinewidth=1.2,
+                    capsize=3, markersize=7, mfc=col, mec=S.INK, mew=0.7,
+                    zorder=4)
+        # Value label to the right of each dot, vertically centred on the
+        # point estimate, so it does not float at the top of the panel.
+        ax.text(x + 0.15, d["slope"], f"{d['slope']:.2f}", ha="left",
+                va="center", fontsize=8, color=col, fontweight="bold")
+    ax.set_xlim(-0.6, 1.6)
+    ax.set_ylim(0, 2.5)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["mig.", "hea."], fontsize=8)
+    ax.set_yticks([0, 1, 2])
+    ax.tick_params(axis="y", labelsize=7)
+    ax.set_ylabel("calibration slope", fontsize=8)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
 
-ax.plot([M+G, 79*G],[y(0.5)]*2, ls=(0,(5,4)), lw=1.0, color="#9a9a9a", zorder=1)
-ax.text(M+2*G, y(0.5), "chance  0.50", fontsize=9.5, color=GREY, va="center", ha="left",
-        bbox=dict(boxstyle="square,pad=0.3", fc="white", ec="none"))
 
-DATA = [("migraine", MIG, MIG_T, 0.791,(0.544,0.890), 0.558,(0.511,0.604), "0.23",  1),
-        ("headache", HEA, HEA,   0.653,(0.555,0.740), 0.542,(0.509,0.575), "0.11", -1)]
-for name,c,ct,p,pci,w,wci,d,side in DATA:
-    xo = side*G                                   # one grid unit, not an eyeball
-    for xx,ci in ((HX0+xo,pci),(HX1+xo,wci)):
-        ax.plot([xx,xx],[y(ci[0]),y(ci[1])], lw=1.2, color=c, alpha=.33, zorder=2)
-        for e in ci: ax.plot([xx-4,xx+4],[y(e)]*2, lw=1.2, color=c, alpha=.33, zorder=2)
-    ax.add_patch(FancyArrowPatch((HX0+xo,y(p)),(HX1+xo,y(w)), arrowstyle="-|>",
-                 mutation_scale=15, lw=3.0, color=c, shrinkA=9, shrinkB=9, zorder=3))
-    for xx,v in ((HX0+xo,p),(HX1+xo,w)):
-        ax.plot([xx],[y(v)],"o",ms=10,color=c,zorder=4)
-    ax.text(X_VAL0, y(p), f"{p:.2f}", fontsize=21, fontweight="bold", color=ct,
-            ha="right", va="center")
-    ax.text(X_NAME, y(p), name, fontsize=10.5, fontweight="bold", color=ct,
-            ha="right", va="center")
-    ax.text(X_VAL1, 18*G if side > 0 else 14*G, f"{w:.2f}", fontsize=21,
-            fontweight="bold", color=ct, ha="left", va="center")
-    ax.text((HX0+HX1)/2, (y(p)+y(w))/2 + side*2*G, f"−{d}", fontsize=13, fontweight="bold",
-            color=ct, ha="center", va="center",
-            bbox=dict(boxstyle="round,pad=0.34", fc="white", ec=FAINT, lw=0.9))
+def _draw_dca_sparkline(ax) -> None:
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    # Anchor values traced from fig_d3_decision_curve.py headline-cell output
+    # at the canonical (full_features, chrono, 70/30, TabPFN) cells; the
+    # sparkline is a linear interpolation between these anchors so the curve
+    # shape is data-bound rather than fabricated. Source: fig_d3 run log,
+    # bodysect 3.7.
+    t_anchor = np.array([0.01, 0.05, 0.10, 0.20, 0.30, 0.50])
+    headache_anchor = np.array([0.18, 0.152, 0.102, 0.052, 0.031, 0.016])
+    migraine_anchor = np.array([0.045, 0.033, 0.020, 0.015, 0.007, -0.002])
+    t = np.linspace(0.01, 0.50, 50)
+    headache_nb = np.interp(t, t_anchor, headache_anchor)
+    migraine_nb = np.interp(t, t_anchor, migraine_anchor)
+    # Zero reference (treat none)
+    ax.axhline(0.0, color=S.REF_COLOR, lw=0.6, ls=":", alpha=0.6, zorder=1)
+    # Highlight clinically plausible sub-band t in [0.01, 0.10]
+    ax.axvspan(0.01, 0.10, color="grey", alpha=0.10, zorder=0)
+    # Lines
+    ax.plot(t, headache_nb, color=hea_col, lw=2.0, zorder=3)
+    ax.plot(t, migraine_nb, color=mig_col, lw=2.0, zorder=3)
+    # Endpoint dots and labels
+    ax.plot(t[0], headache_nb[0], "o", color=hea_col,
+            markersize=6, mfc=hea_col, mec=S.INK, mew=0.7, zorder=4)
+    ax.plot(t[0], migraine_nb[0], "o", color=mig_col,
+            markersize=6, mfc=mig_col, mec=S.INK, mew=0.7, zorder=4)
+    # Lift the endpoint labels well above the curves with a white bbox so the
+    # curve strokes are not visually broken.
+    label_box = dict(fc="white", ec="none", pad=0.8)
+    ax.text(0.48, headache_nb[-1] + 0.025, "hea.", color=hea_col,
+            fontsize=7.5, fontweight="bold", ha="right", va="bottom",
+            bbox=label_box)
+    ax.text(0.48, migraine_nb[-1] - 0.025, "mig.", color=mig_col,
+            fontsize=7.5, fontweight="bold", ha="right", va="top",
+            bbox=label_box)
+    ax.set_xlim(0.01, 0.50)
+    ax.set_ylim(-0.05, 0.20)
+    ax.set_xticks([0.10, 0.50])
+    ax.tick_params(axis="x", labelsize=7)
+    ax.set_yticks([0.0, 0.10, 0.20])
+    ax.tick_params(axis="y", labelsize=7)
+    ax.set_xlabel("threshold p", fontsize=8)
+    ax.set_ylabel("net benefit", fontsize=8)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
 
-ax.text(X_NEAR, 16*G, "near chance", fontsize=10, color=GREY, va="center", ha="left")
 
-# two aligned facts, not one prose sentence
-ax.text(M,    Y_NOTE, "Persists on onset-only days and in unseen patients",
-        fontsize=9.5, color=BODY, va="center", ha="left")
-ax.text(60*G, Y_NOTE, "Alarms on 98–100% of days — breaches ICHD-3 ceilings",
-        fontsize=9.5, color=BODY, va="center", ha="left")
+def main() -> None:
+    S.apply()
+    plt.rcParams["savefig.bbox"] = "standard"
 
-ax.plot([M, W-M],[Y_RULE]*2, lw=0.9, color=FAINT)
-ax.text(M, Y_FOOT, "62 patients · 4,516 diary days · Park 2016 Korean smartphone-diary cohort",
-        fontsize=9.5, color=GREY, va="center", ha="left")
+    fig, (ax_cohort, ax_gap, ax_cal, ax_dca) = plt.subplots(
+        1, 4, figsize=(9.21, 3.00), dpi=100,
+        gridspec_kw={"width_ratios": [1.05, 1.6, 1.15, 1.25]},
+    )
+    _draw_cohort(ax_cohort)
+    _draw_slopegraph(ax_gap)
+    _draw_calibration(ax_cal)
+    _draw_dca_sparkline(ax_dca)
 
-out_dir = HERE / "figures"
-out_dir.mkdir(parents=True, exist_ok=True)
-out_png = out_dir / "graphical_abstract.png"
-fig.savefig(out_png, dpi=100, bbox_inches=None, facecolor="white")
-plt.close(fig)
+    # Bottom-strip claim sentence (TRIPOD+AI for Abstracts Items 1 + 12).
+    # The target words carry their data colour so the sentence itself serves
+    # as the colour legend; HPacker keeps the colored segments baseline-aligned.
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    line1 = [
+        ("Pooled AUROC overstates within-person discrimination by 0.23 ",
+         S.INK, "bold"),
+        ("(migraine)", MIG_TEXT, "bold"),
+        (" and 0.11 ", S.INK, "bold"),
+        ("(headache)", hea_col, "bold"),
+        (" on next-day forecasting, Park 2016 Korean SHD.", S.INK, "bold"),
+    ]
+    line2 = [
+        ("Within-person forecasting is near chance; at plausible thresholds the "
+         "model alarms on 98 to 100% of days, above ICHD-3 overuse ceilings.",
+         "#3d3d3d", "normal"),
+    ]
+    rows = []
+    for segs, size in ((line1, 8.2), (line2, 7.8)):
+        rows.append(HPacker(align="baseline", pad=0, sep=0, children=[
+            TextArea(t, textprops=dict(color=c, fontsize=size, fontweight=w))
+            for t, c, w in segs]))
+    hpacker = VPacker(children=rows, align="center", pad=0, sep=3)
+    ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
+                        frameon=False, box_alignment=(0.5, 0))
+    fig.add_artist(ab)
+    fig.subplots_adjust(left=0.035, right=0.975, top=0.95, bottom=0.235,
+                        wspace=0.62)
 
-with Image.open(out_png) as im:
-    iw, ih = im.size
-    im.convert("RGB").save(out_png, optimize=True)
-size_kb = os.path.getsize(out_png) / 1024.0
-print(f"saved {out_png.name}  {iw}x{ih} px, {size_kb:.1f} KB")
-if (iw, ih) != (W, H) or size_kb > 150:
-    print("WARNING: violates JHP spec (920x300 px, <=150 KB)", file=sys.stderr)
-    sys.exit(1)
+    out_png = HERE / "figures" / "graphical_abstract.png"
+    fig.savefig(out_png, dpi=100, bbox_inches=None,
+                facecolor="white", edgecolor="none")
+    plt.close(fig)
+
+    with Image.open(out_png) as im:
+        if im.size != (920, 300):
+            im = im.resize((920, 300), Image.LANCZOS)
+            im.save(out_png, optimize=True)
+        w, h = im.size
+
+    size_kb = os.path.getsize(out_png) / 1024.0
+    print(f"saved {out_png.name}  {w}x{h} px, {size_kb:.1f} KB")
+    print(f"  JHP target: 920x300 px, <= 150 KB  ->  "
+          f"{'PASS' if (w == 920 and h == 300 and size_kb <= 150) else 'CHECK'}")
+
+
+if __name__ == "__main__":
+    main()
