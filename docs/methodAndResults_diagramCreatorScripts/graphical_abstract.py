@@ -194,7 +194,9 @@ def _draw_slopegraph(ax) -> None:
     ax.set_xlim(-0.25, 1.25)
     ax.set_ylim(0.36, 0.95)
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(["pooled\nAUROC", "within-person\nC-statistic"], fontsize=8.5)
+    ax.set_xticklabels(["pooled AUROC\n(all patients' days together)",
+                        "within-person C-statistic\n(one patient's own days)"],
+                       fontsize=8.5)
     ax.set_yticks([0.5, 0.7, 0.9])
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("discrimination", fontsize=8)
