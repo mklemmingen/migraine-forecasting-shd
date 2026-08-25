@@ -103,7 +103,7 @@ def _draw_cohort(ax) -> None:
 
     ax.text(0.5, 0.700, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="center")
-    gax = ax.inset_axes([0.0, 0.290, 1.0, 0.38])
+    gax = ax.inset_axes([0.06, 0.290, 1.0, 0.38])
     gax.set_xlim(0, 10); gax.set_ylim(0, 10)
     gax.set_aspect("equal"); gax.axis("off")
     n_mig, n_hea = 7, 23                      # per 100 days: 7.2% and 23.5%
@@ -128,14 +128,14 @@ def _draw_cohort(ax) -> None:
         ax.text(gx0 + 0.085, yy + 0.021, lab, fontsize=7.4, color="#3d3d3d",
                 transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.0, -0.010, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
+    ax.text(0.045, -0.010, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
             transform=ax.transAxes, va="center", ha="left")
-    ax.text(0.0, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
+    ax.text(0.045, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="left")
     # provenance: which cell every number on this figure comes from
-    ax.text(0.0, -0.170, "full_features, chronological 70/30", fontsize=7.0,
+    ax.text(0.06, -0.170, "full_features, chronological 70/30", fontsize=7.0,
             color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
-    ax.text(0.0, -0.240, "migraine XGBoost stack, headache TabPFN", fontsize=7.0,
+    ax.text(0.06, -0.240, "migraine XGBoost stack, headache TabPFN", fontsize=7.0,
             color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
 
 
@@ -276,8 +276,9 @@ def _draw_per_patient(ax) -> None:
     # tie the panel to the hero: the same within-person C the slopegraph lands on
     if series.get("migraine"):
         ax.axhline(MIGRAINE["within"], color=mig_col, lw=1.2, alpha=0.85, zorder=2)
-        ax.text(1.04, MIGRAINE["within"] + 0.012, f"{MIGRAINE['within']:.2f}", fontsize=7.5,
-                color=MIG_TEXT, va="bottom", ha="left", fontweight="bold")
+        ax.text(1.05, MIGRAINE["within"], f"{MIGRAINE['within']:.2f}", fontsize=7.5,
+                color=MIG_TEXT, va="center", ha="left", fontweight="bold",
+                bbox=dict(fc="white", ec="none", pad=0.9))
     ax.set_xlim(-0.06, 1.20)
     ax.set_ylim(0.36, 0.84)
     ax.set_xticks([])
@@ -285,11 +286,9 @@ def _draw_per_patient(ax) -> None:
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("per-patient AUROC", fontsize=8)
     n_mig = len(series.get("migraine", []))
-    below = sum(1 for v in series.get("migraine", []) if v < 0.5)
     ax.set_xlabel(f"one dot per patient\n(migraine, n = {n_mig})", fontsize=8)
     ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
-    ax.text(0.5, 0.805, f"{below} of {n_mig} patients below chance", fontsize=7.8,
-            color="#3d3d3d", ha="center", va="center")
+
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
@@ -338,8 +337,12 @@ def main() -> None:
     ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
-    fig.subplots_adjust(left=0.028, right=0.955, top=0.96, bottom=0.30,
+    fig.subplots_adjust(left=0.035, right=0.975, top=0.96, bottom=0.30,
                         wspace=0.55)
+
+    # only the per-patient panel moves left; the hero keeps its width
+    _b = ax_cal.get_position()
+    ax_cal.set_position([_b.x0 - 0.022, _b.y0, _b.width, _b.height])
 
     out_png = HERE / "figures" / "graphical_abstract.png"
     fig.savefig(out_png, dpi=100, bbox_inches=None,
