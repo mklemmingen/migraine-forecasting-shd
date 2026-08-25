@@ -257,11 +257,12 @@ def main() -> None:
         ("(migraine)", MIG_TEXT, "bold"),
         (" and 0.11 ", S.INK, "bold"),
         ("(headache)", hea_col, "bold"),
-        (" on next-day forecasting, Park 2016 Korean SHD.", S.INK, "bold"),
+        (" on next-day forecasting.", S.INK, "bold"),
     ]
     line2 = [
-        ("Within-person forecasting is near chance for both outcomes. The gap reflects "
-         "between-patient base-rate separation, not day-to-day ranking within a patient.",
+        ("Within-person forecasting is near chance for migraine and headache. The "
+         "all-patient versus single-patient gap reflects how much patients differ in "
+         "attack frequency.",
          "#3d3d3d", "normal"),
     ]
     rows = []

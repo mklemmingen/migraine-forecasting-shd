@@ -45,7 +45,7 @@ chain.
    - the paper's TRIPOD+AI and PROBAST+AI checklists - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
-referenced from `docs/body.md` as well as the long-form Methods and Results docs by name; every figure carries a
+referenced from the long-form Methods and Results docs by name; every figure carries a
 four-token cell slug (`<ARCH-VAR> / <FEATURE> / <SPLIT> / <RATIO>`).
 
 ---
