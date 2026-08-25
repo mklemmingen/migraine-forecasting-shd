@@ -132,11 +132,6 @@ def _draw_cohort(ax) -> None:
             transform=ax.transAxes, va="center", ha="left")
     ax.text(0.045, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="left")
-    # provenance: which cell every number on this figure comes from
-    ax.text(0.06, -0.170, "full_features, chronological 70/30", fontsize=7.0,
-            color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
-    ax.text(0.06, -0.240, "migraine XGBoost stack, headache TabPFN", fontsize=7.0,
-            color="#7a7a7a", transform=ax.transAxes, va="center", ha="left")
 
 
 def _draw_slopegraph(ax) -> None:
@@ -328,8 +323,17 @@ def main() -> None:
          "attack frequency.",
          "#3d3d3d", "normal"),
     ]
+    line3 = [
+        ("Benchmarked: XGBoost stack, TabPFN, and sequence baselines "
+         "(window-MLP, GRU, 1D-CNN).", "#7a7a7a", "normal"),
+    ]
+    line4 = [
+        ("Headline cell: same-day diary plus engineered history features, "
+         "chronological 70/30 split; migraine XGBoost, headache TabPFN.",
+         "#7a7a7a", "normal"),
+    ]
     rows = []
-    for segs, size in ((line1, 8.2), (line2, 7.8)):
+    for segs, size in ((line1, 8.2), (line2, 7.8), (line3, 6.8), (line4, 6.8)):
         rows.append(HPacker(align="baseline", pad=0, sep=0, children=[
             TextArea(t, textprops=dict(color=c, fontsize=size, fontweight=w))
             for t, c, w in segs]))
@@ -337,7 +341,7 @@ def main() -> None:
     ab = AnnotationBbox(hpacker, (0.5, 0.025), xycoords="figure fraction",
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
-    fig.subplots_adjust(left=0.035, right=0.975, top=0.96, bottom=0.30,
+    fig.subplots_adjust(left=0.035, right=0.975, top=0.965, bottom=0.355,
                         wspace=0.55)
 
     # only the per-patient panel moves left; the hero keeps its width
