@@ -5,6 +5,13 @@ from typing import Any
 
 from tabpfn.finetuning import FinetunedTabPFNClassifier
 
+import torch as _torch
+
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
 # Pass 1 epoch budget - large enough that the validation curve clearly
 # crosses (or hits a long plateau past) the early-stopping point of the
 # library default (epochs=30, patience=8). Visualises convergence and
@@ -93,7 +100,7 @@ def _emit_convergence_table(out_dir: Path, capture: _ConvergenceCapture,
             f.write('\t'.join(row) + '\n')
 
 
-def build_finetunedtabpfn(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
+def build_finetunedtabpfn(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """Fine-tuned TabPFN-v2.5 - two-pass design.
 
     Base model version: ``FinetunedTabPFNClassifier`` in

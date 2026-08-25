@@ -2,6 +2,13 @@ from tabpfn import TabPFNClassifier
 from tabpfn.constants import ModelVersion
 from tabpfn.model_loading import prepend_cache_path
 
+import torch as _torch
+
+# Prefer a GPU when one is actually usable; fall back to CPU otherwise. The
+# previous hardcoded 'cuda' default made every builder raise
+# "Torch not compiled with CUDA enabled" on CPU-only machines.
+_DEFAULT_DEVICE = "cuda" if _torch.cuda.is_available() else "cpu"
+
 # Binary-specialised v3 classifier checkpoint shipped at
 # https://huggingface.co/Prior-Labs/tabpfn_3 . The v3 model card
 # describes it verbatim as: "Specialized for binary classification for
@@ -13,7 +20,7 @@ from tabpfn.model_loading import prepend_cache_path
 _BINARY_CHECKPOINT_FILENAME = "tabpfn-v3-classifier-v3_20260417_binary.ckpt"
 
 
-def build_tabpfn_v3_binary(X_train, y_train, *, device='cuda', random_state=0, output_dir=None):
+def build_tabpfn_v3_binary(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0, output_dir=None):
     """Fit TabPFN-v3 binary-specialised classifier and return the bare
     estimator.
 

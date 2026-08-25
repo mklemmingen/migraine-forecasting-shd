@@ -236,6 +236,50 @@ def _draw_calibration(ax) -> None:
         ax.spines[spine].set_visible(False)
 
 
+PER_PATIENT_CSV = HERE / "figures" / "per_patient_auroc.csv"
+
+
+def _draw_per_patient(ax) -> None:
+    """Per-patient within-person AUROC, one dot per patient.
+
+    This is the paper's finding shown at the level the clinical claim is made:
+    individual patients scattered across the chance line, with the pooled value
+    far above nearly all of them. It replaces the calibration panel, whose
+    interval (0.401-2.067 for migraine) is too wide to support any reading.
+
+    Values come from figures/per_patient_auroc.csv, written by
+    export_per_patient_auroc.py, which refuses to emit unless the recomputed
+    within-person C reproduces the published one.
+    """
+    import csv
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
+    series = {}
+    with open(PER_PATIENT_CSV, newline="") as fh:
+        for row in csv.DictReader(fh):
+            series.setdefault(row["target"], []).append(float(row["auroc"]))
+
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.9, ls="--", alpha=0.7, zorder=1)
+    for tgt, col in (("headache", hea_col), ("migraine", mig_col)):
+        vals = sorted(series.get(tgt, []))
+        if not vals:
+            continue
+        # normalise rank so the two targets (different k) share one axis
+        x = [i / (len(vals) - 1) for i in range(len(vals))] if len(vals) > 1 else [0.5]
+        ax.plot(x, vals, "o", ms=3.4, color=col, alpha=0.85, mec="none", zorder=3)
+
+    ax.set_xlim(-0.06, 1.06)
+    ax.set_ylim(0.24, 0.92)
+    ax.set_xticks([])
+    ax.set_yticks([0.3, 0.5, 0.7, 0.9])
+    ax.tick_params(axis="y", labelsize=7)
+    ax.set_ylabel("per-patient AUROC", fontsize=8)
+    ax.set_xlabel("each dot is one patient", fontsize=8)
+    ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+
+
 def main() -> None:
     S.apply()
     plt.rcParams["savefig.bbox"] = "standard"
@@ -246,7 +290,11 @@ def main() -> None:
     )
     _draw_cohort(ax_cohort)
     _draw_slopegraph(ax_gap)
-    _draw_calibration(ax_cal)
+    if PER_PATIENT_CSV.exists():
+        _draw_per_patient(ax_cal)
+    else:
+        print('  per_patient_auroc.csv absent; keeping the calibration panel')
+        _draw_calibration(ax_cal)
 
     # Bottom-strip claim sentence (TRIPOD+AI for Abstracts Items 1 + 12).
     # The target words carry their data colour so the sentence itself serves
