@@ -168,7 +168,7 @@ because generalising to an unseen patient with few positive days is hard
 patient"; Addition 5 answers the complementary and more deployment-relevant
 "forecast for a *returning* patient whose history we already have." Reporting both
 keeps the two scientific questions separate, as the methodology section already
-commits to (`docs/paper_rigor_checklist.md`, Section 5).
+commits to (the paper's TRIPOD+AI and PROBAST+AI checklists, Section 5).
 
 ## 4. Multiple-comparisons discipline
 

@@ -23,7 +23,7 @@ a model can beat the base rate on AUPRC yet provide no net clinical benefit, and
 AUPRC's baseline itself moves with prevalence so it cannot be read as value across
 the migraine (~7%) and headache (~24%) cells [mcdermott2024aurocAuprc, p. 1]. Accuracy is base-rate
 dominated and is already labelled as such in the comparison table
-(`docs/paper_rigor_checklist.md`, Section 4).
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 4).
 
 The discipline that converts a probability into a decision is decision curve
 analysis: net benefit is plotted against the threshold probability, where the
@@ -41,7 +41,7 @@ pathway. DECIDE-AI is the standard for the early-stage clinical evaluation of
 AI-driven decision-support systems and comprises 17 AI-specific reporting items
 [vasey2022decideAI, p. 1]; it is already named in the rigor checklist as the
 guideline a future clinical-evaluation follow-up should adopt
-(`docs/paper_rigor_checklist.md`, Section 1d). Addition 6 produces the
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 1d). Addition 6 produces the
 development-stage decision-analytic evidence that such a follow-up would build on,
 without claiming a clinical evaluation has occurred.
 

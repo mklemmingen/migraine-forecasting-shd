@@ -42,7 +42,7 @@ chain.
    - `docs/addition3_results.md` - temporal-dependence findings (AG hazard, Goh-Barabasi B/M, weekly periodicity).
 6. **Supplementary**
    - `docs/insights_leaf_selection.md` - `composite_sorted` selection rule and its within-family fragility.
-   - `docs/paper_rigor_checklist.md` - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
+   - the paper's TRIPOD+AI and PROBAST+AI checklists - TRIPOD+AI compliance trail, EPV bands, calibration policy, and honest-comparison discipline.
 
 The figure pack (`docs/methodAndResults_diagramCreatorScripts/figures/`) is
 referenced from `docs/body.md` as well as the long-form Methods and Results docs by name; every figure carries a

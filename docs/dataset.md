@@ -35,7 +35,7 @@ properties (Houle 2005, 132 patients) uses a different diary instrument
 and lacks the published trigger-OR table that anchors the Addition 2
 Park-rank comparison.
 
-**Related document:** For prior work on the intermediate and engineered representations of this data as produced by Marco Samuel Spano [2], see [`cc_MarcoSpano-oldSet/dataset.md`](data/cc_MarcoSpano-oldSet/dataset.md).
+**Related document:** For prior work on the intermediate and engineered representations of this data as produced by Marco Samuel Spano [2], see [`cc_MarcoSpano-oldSet/dataset.md`](data/raw/cc_MarcoSpano-oldSet/dataset.md).
 
 ---
 
@@ -630,7 +630,7 @@ EPV concern is migraine-specific.
 
 Upstream counts are stable facts about the source file. Split counts vary by
 ratio and strategy - authoritative figures are in the per-target `data/processed/headache/dataset_analysis.pdf` and `data/processed/migraine/dataset_analysis.pdf`
-and the per-package `package_report.pdf` files.
+.
 
 | Step | Source | Rows | Delta | Cause |
 |------|--------|------|-------|-------|
