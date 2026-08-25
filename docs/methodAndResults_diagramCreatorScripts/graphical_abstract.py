@@ -36,13 +36,16 @@ Usage: python graphical_abstract.py
 import os
 import sys
 from pathlib import Path
+import io
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea, VPacker
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
+ICON_SVG = HERE / "Diary_Lauterbach.svg"
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "experiment"))
 import _style as S  # noqa: E402
@@ -58,30 +61,67 @@ HEADACHE = {"pooled": 0.653, "pooled_ci": (0.555, 0.740),
             "slope": 1.094,   "slope_ci": (0.594, 1.429)}
 
 
+def _load_diary_icon():
+    """Rasterise Diary_Lauterbach.svg and crop to its ink bounding box.
+
+    The SVG carries a wide white margin; drawn uncropped at panel scale it
+    shrinks to an unreadable box-in-box. Cropping lets it read as a notebook.
+    """
+    from svglib.svglib import svg2rlg
+    from reportlab.graphics import renderPM
+    drawing = svg2rlg(str(ICON_SVG))
+    drawing.scale(3.0, 3.0)
+    drawing.width *= 3.0
+    drawing.height *= 3.0
+    im = Image.open(io.BytesIO(renderPM.drawToString(drawing, fmt="PNG"))).convert("RGB")
+    grey = im.convert("L")
+    bbox = grey.point(lambda v: 255 if v < 250 else 0).getbbox()
+    return im.crop(bbox) if bbox else im
+
+
 def _draw_cohort(ax) -> None:
-    """Cohort, setting and model family as plain text. No icon: the previous
-    diary glyph rendered as an uninformative box-in-box."""
+    """Cohort panel: the diary itself, then 100 days as recorded.
+
+    The day grid replaces the old text-only event rates. The 7.2 / 24 percent
+    split is the base-rate imbalance that drives the pooled-versus-within-person
+    story, so it earns a visual rather than a line of prose. migraine days are a
+    strict subset of headache days (engineer.py joins migraine_flag from the
+    headache-diary sheet and fills non-headache days with 0).
+    """
+    mig_col = S.target_color("migraine")
+    hea_col = S.target_color("headache")
     ax.axis("off")
-    lines = [("Cohort", True),
-             ("62 patients, 4,516 patient-days", False),
-             ("migraine on 7.2% of days", False),
-             ("headache on 24% of days", False),
-             ("", False),
-             ("Setting", True),
-             ("Park 2016 smartphone diary,", False),
-             ("2 Korean clinics", False),
-             ("", False),
-             ("Models", True),
-             ("TabPFN, XGBoost, window-MLP", False)]
-    yy = 0.98
-    for txt, is_head in lines:
-        if not txt:
-            yy -= 0.034
-            continue
-        ax.text(0.0, yy, txt, transform=ax.transAxes, fontsize=8.2,
-                fontweight="bold" if is_head else "normal",
-                color=S.INK if is_head else "#3d3d3d", va="top", ha="left")
-        yy -= 0.086
+
+    iax = ax.inset_axes([0.0, 0.855, 0.185, 0.145])
+    iax.imshow(_load_diary_icon())
+    iax.axis("off")
+    ax.text(0.25, 0.925, "Headache diary", fontsize=8.8, fontweight="bold",
+            color=S.INK, transform=ax.transAxes, va="center", ha="left")
+
+    ax.text(0.0, 0.775, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
+            transform=ax.transAxes, va="center", ha="left")
+    gax = ax.inset_axes([0.0, 0.295, 1.0, 0.45])
+    gax.set_xlim(0, 10); gax.set_ylim(0, 10)
+    gax.set_aspect("equal"); gax.axis("off")
+    n_mig, n_hea = 7, 24                      # per 100 days, from the paper
+    for i in range(100):
+        col = mig_col if i < n_mig else (hea_col if i < n_hea else "#e3e3e3")
+        gax.add_patch(Rectangle((i % 10 + 0.08, 9 - i // 10 + 0.08), 0.84, 0.84,
+                                fc=col, ec="none"))
+
+    for i, (col, lab) in enumerate([(mig_col, "7 migraine"),
+                                    (hea_col, "17 other headache"),
+                                    ("#e3e3e3", "76 headache free")]):
+        yy = 0.240 - i * 0.072
+        ax.add_patch(Rectangle((0.0, yy), 0.055, 0.045, fc=col, ec="none",
+                               transform=ax.transAxes, clip_on=False))
+        ax.text(0.085, yy + 0.022, lab, fontsize=7.4, color="#3d3d3d",
+                transform=ax.transAxes, va="center", ha="left")
+
+    ax.text(0.0, 0.020, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
+            transform=ax.transAxes, va="center", ha="left")
+    ax.text(0.0, -0.058, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
+            transform=ax.transAxes, va="center", ha="left")
 
 
 def _draw_slopegraph(ax) -> None:

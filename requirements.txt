@@ -117,3 +117,10 @@ lifelines>=0.27         # Andersen-Gill / PWP-gap-time recurrent-event models on
 # Not used at evaluation time; safe to skip for a pure-inference install.
 pytest>=8.0             # Test runner. Used by tests/test_delong.py and
                         # tests/test_metrics_lib.py.
+
+# ---- Graphical abstract figure (optional) ----------------------------------------------------------------
+# Only needed to regenerate docs/methodAndResults_diagramCreatorScripts/graphical_abstract.py,
+# which rasterises Diary_Lauterbach.svg. Not used by the pipeline or evaluation.
+svglib>=1.5             # SVG -> reportlab drawing.
+rlPyCairo>=0.3          # renderPM backend svglib needs to emit PNG; without it
+                        # reportlab raises RenderPMError at import of the backend.
