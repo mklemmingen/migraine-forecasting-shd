@@ -8,20 +8,20 @@ conventions, so it matches the paper's other figures. A rework that hand-placed
 text on a blank canvas was rejected: dropping the axes made it read as an
 infographic rather than a figure.
 
-Four zones, left to right:
+Three zones, left to right:
   Cohort (text): participants, event rates, setting, model family
   Discrimination: paired slopegraph, pooled AUROC -> within-person C, one slope
     per outcome, Delta labelled, CIs at every endpoint, chance reference at 0.5
   Calibration: slope dotplot with CIs against the unity reference
-  Clinical utility: decision-curve sparkline, clinically plausible low-threshold
-    band shaded
   Bottom strip: the load-bearing claim, plus the near-chance and
     medication-overuse consequences
 
-TRIPOD+AI for Abstracts coverage: Item 1 (title/outcome/population in the bottom
-strip), Item 5 (setting), Item 8 (discrimination + calibration + clinical utility
-triad), Item 9 (n + patient-days), Item 11 (CIs on every point estimate), Item 12
-(interpretation in the claim sentence).
+The decision-curve panel was removed: its curve was interpolated between six anchor
+values rather than plotted from the real arrays, and after the medication-overuse
+argument was retracted its message became a conditional ("net benefit exceeds
+treat-all only at higher thresholds") that cannot be read at panel width. That
+conclusion is carried in the bottom strip as text instead. TRIPOD+AI Item 8 is
+satisfied by the paper's own figures, not by this submission asset.
 
 Two constraints that are correctness, not taste:
   * Orange TEXT uses MIG_TEXT (#C25100, 4.70:1 on white). The palette orange
@@ -40,7 +40,6 @@ import io
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-import numpy as np
 from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea, VPacker
 from PIL import Image
 
@@ -235,83 +234,17 @@ def _draw_calibration(ax) -> None:
         ax.spines[spine].set_visible(False)
 
 
-def _draw_dca_sparkline(ax) -> None:
-    mig_col = S.target_color("migraine")
-    hea_col = S.target_color("headache")
-    # Anchor values traced from fig_d3_decision_curve.py headline-cell output
-    # at the canonical (full_features, chrono, 70/30, TabPFN) cells; the
-    # sparkline is a linear interpolation between these anchors so the curve
-    # shape is data-bound rather than fabricated. Source: fig_d3 run log,
-    # bodysect 3.7.
-    # fig_d3_decision_curve.py prints t = 0.05, 0.10, 0.20, 0.30, 0.50 only. The
-    # t = 0.01 values are NOT from that log: earlier revisions carried 0.18 and
-    # 0.045, written at 2 dp where every traced value is 3 dp, and both were wrong.
-    # At the low thresholds the model flags every patient-day, so TP/n = prevalence
-    # and FP/n = 1 - prevalence, making model net benefit IDENTICALLY treat-all's.
-    # Verifiable from experiment/6/value_summary_20260529_002725.csv, where the
-    # headache rows report nb_optimal_threshold = 0.01 and
-    # nb_at_optimal = 0.18664909969257795, equal bit-for-bit to the closed form
-    # p - (1-p)*t/(1-t) at p = 112/575. The t = 0.01 entries below are therefore
-    # the exact closed form, not an estimate. Vickers 2006 p.567-8 describes this
-    # coincidence as expected whenever the threshold falls below the model's
-    # minimum predicted probability.
-    t_anchor = np.array([0.01, 0.05, 0.10, 0.20, 0.30, 0.50])
-    headache_anchor = np.array([0.186649, 0.152, 0.102, 0.052, 0.031, 0.016])
-    migraine_anchor = np.array([0.056653, 0.033, 0.020, 0.015, 0.007, -0.002])
-    t = np.linspace(0.01, 0.50, 50)
-    headache_nb = np.interp(t, t_anchor, headache_anchor)
-    migraine_nb = np.interp(t, t_anchor, migraine_anchor)
-    # Zero reference (treat none)
-    ax.axhline(0.0, color=S.REF_COLOR, lw=0.6, ls=":", alpha=0.6, zorder=1)
-    # Treat-all reference. Without it a decision curve cannot be read: positive net
-    # benefit alone does not mean a model beats the trivial strategy. Prevalences
-    # are the headline-cell values from experiment/2/figdata_*.json.
-    for prev, col in ((0.1948, hea_col), (0.0661, mig_col)):
-        ax.plot(t, prev - (1 - prev) * t / (1 - t), color=col, lw=1.0,
-                ls=(0, (4, 2)), alpha=0.85, zorder=2)
-    ax.text(0.185, 0.128, "treat all", fontsize=7, color="#5f5f5f",
-            ha="left", va="center")
-    # Lines
-    ax.plot(t, headache_nb, color=hea_col, lw=2.0, zorder=3)
-    ax.plot(t, migraine_nb, color=mig_col, lw=2.0, zorder=3)
-    # Endpoint dots and labels
-    ax.plot(t[0], headache_nb[0], "o", color=hea_col,
-            markersize=6, mfc=hea_col, mec=S.INK, mew=0.7, zorder=4)
-    ax.plot(t[0], migraine_nb[0], "o", color=mig_col,
-            markersize=6, mfc=mig_col, mec=S.INK, mew=0.7, zorder=4)
-    # Lift the endpoint labels well above the curves with a white bbox so the
-    # curve strokes are not visually broken.
-    label_box = dict(fc="white", ec="none", pad=0.8)
-    ax.text(0.48, headache_nb[-1] + 0.025, "hea.", color=hea_col,
-            fontsize=7.5, fontweight="bold", ha="right", va="bottom",
-            bbox=label_box)
-    ax.text(0.48, migraine_nb[-1] - 0.025, "mig.", color=mig_col,
-            fontsize=7.5, fontweight="bold", ha="right", va="top",
-            bbox=label_box)
-    ax.set_xlim(0.01, 0.50)
-    ax.set_ylim(-0.05, 0.20)
-    ax.set_xticks([0.10, 0.50])
-    ax.tick_params(axis="x", labelsize=7)
-    ax.set_yticks([0.0, 0.10, 0.20])
-    ax.tick_params(axis="y", labelsize=7)
-    ax.set_xlabel("predicted-risk threshold", fontsize=8)
-    ax.set_ylabel("net benefit", fontsize=8)
-    for spine in ("top", "right"):
-        ax.spines[spine].set_visible(False)
-
-
 def main() -> None:
     S.apply()
     plt.rcParams["savefig.bbox"] = "standard"
 
-    fig, (ax_cohort, ax_gap, ax_cal, ax_dca) = plt.subplots(
-        1, 4, figsize=(9.21, 3.00), dpi=100,
-        gridspec_kw={"width_ratios": [1.05, 1.6, 1.15, 1.25]},
+    fig, (ax_cohort, ax_gap, ax_cal) = plt.subplots(
+        1, 3, figsize=(9.21, 3.00), dpi=100,
+        gridspec_kw={"width_ratios": [1.0, 1.85, 1.15]},
     )
     _draw_cohort(ax_cohort)
     _draw_slopegraph(ax_gap)
     _draw_calibration(ax_cal)
-    _draw_dca_sparkline(ax_dca)
 
     # Bottom-strip claim sentence (TRIPOD+AI for Abstracts Items 1 + 12).
     # The target words carry their data colour so the sentence itself serves
@@ -327,8 +260,8 @@ def main() -> None:
         (" on next-day forecasting, Park 2016 Korean SHD.", S.INK, "bold"),
     ]
     line2 = [
-        ("Within-person forecasting is near chance for both outcomes, and net "
-         "benefit exceeds treating every day only at higher risk thresholds.",
+        ("Within-person forecasting is near chance for both outcomes. The gap reflects "
+         "between-patient base-rate separation, not day-to-day ranking within a patient.",
          "#3d3d3d", "normal"),
     ]
     rows = []
@@ -341,7 +274,7 @@ def main() -> None:
                         frameon=False, box_alignment=(0.5, 0))
     fig.add_artist(ab)
     fig.subplots_adjust(left=0.035, right=0.975, top=0.95, bottom=0.235,
-                        wspace=0.62)
+                        wspace=0.55)
 
     out_png = HERE / "figures" / "graphical_abstract.png"
     fig.savefig(out_png, dpi=100, bbox_inches=None,
