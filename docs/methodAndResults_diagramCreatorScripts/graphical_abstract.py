@@ -101,9 +101,9 @@ def _draw_cohort(ax) -> None:
     ax.text(0.30, 0.875, "Headache diary", fontsize=8.8, fontweight="bold",
             color=S.INK, transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.5, 0.700, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
+    ax.text(0.80, 0.735, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="center")
-    gax = ax.inset_axes([0.06, 0.290, 1.0, 0.38])
+    gax = ax.inset_axes([0.30, 0.295, 1.0, 0.38])
     gax.set_xlim(0, 10); gax.set_ylim(0, 10)
     gax.set_aspect("equal"); gax.axis("off")
     n_mig, n_hea = 7, 23                      # per 100 days: 7.2% and 23.5%
@@ -122,16 +122,16 @@ def _draw_cohort(ax) -> None:
               (hea_col, "16  other headache"),
               ("#e3e3e3", "77  headache free")]
     for i, (col, lab) in enumerate(legend):
-        yy = 0.205 - i * 0.070
+        yy = 0.195 - i * 0.070
         ax.add_patch(Rectangle((gx0, yy), 0.055, 0.045, fc=col, ec="none",
                                transform=ax.transAxes, clip_on=False))
         ax.text(gx0 + 0.085, yy + 0.021, lab, fontsize=7.4, color="#3d3d3d",
                 transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.045, -0.010, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
-            transform=ax.transAxes, va="center", ha="left")
-    ax.text(0.045, -0.090, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
-            transform=ax.transAxes, va="center", ha="left")
+    ax.text(0.80, -0.030, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
+            transform=ax.transAxes, va="center", ha="center")
+    ax.text(0.80, -0.105, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
+            transform=ax.transAxes, va="center", ha="center")
 
 
 def _draw_slopegraph(ax) -> None:
