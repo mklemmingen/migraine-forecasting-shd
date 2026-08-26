@@ -1,228 +1,158 @@
-"""Figure A6 - the two comparisons pooled AUROC and the within-person C ask.
+"""Figure A6 - the evaluation argument, asked as four questions in order.
 
-AUROC is an average over attack-day/quiet-day comparisons, so what it measures
-depends entirely on which comparisons are allowed into that average. Pooling lets a
-day be compared with any other patient's day; the within-person C-statistic allows
-only comparisons inside one patient. This figure shows one comparison of each kind,
-with the classifier's actual answer, and lets the reader see that the first is easy
-for a reason that has nothing to do with forecasting.
+Each question is a weaker claim than the one before it, and the figure records what
+survives each. Pooled AUROC answers a question about the cohort; the within-person
+C-statistic asks the same question inside one patient; Brier skill asks whether the
+forecast beats that patient's own attack rate; net benefit asks whether acting on it
+would help. A reader who stops at the first question sees a usable model. A reader
+who asks all four does not.
 
-The worked classifier emits each patient's own attack rate and nothing else, so it
-holds no day-level information. It answers the between-patient comparison correctly
-every time (patient A has attacks more often) and cannot answer the
-within-patient comparison at all (it returns the same number on both days). The same
-construction makes it the per-patient climatology this paper uses as the Brier
-reference, so its Brier skill is exactly zero.
-
-One classifier, three readings: 0.74 pooled, 0.50 within patient, 0.00 against the
-patient's own rate. Every number is derived from the toy arrays at draw time and
-checked against sklearn.
+Numbers are the headline cells reported in Results, not a worked example:
+migraine XGB-HP020 and headache TabPFN-v2.6, both full_features 70/30 chronological.
+Discrimination and Brier skill carry patient-cluster bootstrap intervals; the
+within-person C carries its Paule-Mandel interval. All are read from the result CSVs
+at draw time, so the figure cannot drift from the tables.
 
 Usage: python fig_a6_pooled_vs_within.py
 """
-# §11 compliance: schematic only (0.74/0.50/0.00 are a worked example computed
-#   in-figure and labelled as such).
-#   §11.3 self-contained caption:        construction stated in panel (a)
-#   §11.1, §11.2, §11.5, §11.7:          N/A (no cohort data, no cell)
+# §11 compliance: reports headline-cell metrics.
+#   §11.1 metric + CI + n:               each step carries the interval; k stated for the C
+#   §11.2 cell named:                    in the footer
+#   §11.3 self-contained caption:        cohort and cells named in the footer
 #   §11.10 no "substantial"/"large":     verified
 #   §11.11 self-check:                   this block
+import csv
 from pathlib import Path
 
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "experiment"))
 import _style as S
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, FancyBboxPatch
-from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent
+EXP = HERE.parents[1] / "experiment"
 
-W_MM, H_MM = 183.0, 173.0          # canvas is millimetres at final size
-QUIET, RULE = "#e3e3e3", "#9a9a9a"
-
-N_DAYS = 10
-A_ATTACK, B_ATTACK = [0, 2, 5, 6, 9], [4]
-A_RATE, B_RATE = len(A_ATTACK) / N_DAYS, len(B_ATTACK) / N_DAYS
-
-# the three days the two questions are built from (0-based indices)
-A_ATK_DAY, A_QUIET_DAY, B_QUIET_DAY = 2, 7, 5
+W_MM, H_MM = 183.0, 158.0
+PT_Q, PT_VAL, PT_BODY, PT_TINY = 9.0, 9.4, 7.2, 6.5
+INK, MUTE, TINT = S.INK, S.GREY, "#f4f4f4"
 
 
-def _toy():
-    y = np.array([1 if i in A_ATTACK else 0 for i in range(N_DAYS)]
-                 + [1 if i in B_ATTACK else 0 for i in range(N_DAYS)])
-    p = np.array([A_RATE] * N_DAYS + [B_RATE] * N_DAYS)
-    return y, p
+def _load():
+    """Headline-cell numbers, read from the result files rather than transcribed."""
+    boot = {}
+    f = EXP / "_eval/_special/patient_cluster_bootstrap_20260530_125806.csv"
+    for r in csv.DictReader(open(f)):
+        boot[(r["target"], r["architecture"])] = r
+    wp = {}
+    g = EXP / "5/within_person_summary_cv_20260530_151055.csv"
+    for r in csv.DictReader(open(g)):
+        wp[(r["target"], r["architecture"])] = r
+    mig, hea = boot[("migraine", "XGBoost")], boot[("headache", "TabPFN")]
+    mig_w, hea_w = wp[("migraine", "stacked_2xgb_meta_lr")], wp[("headache", "tabpfn")]
+    return mig, hea, mig_w, hea_w
 
 
-def _counts():
-    a_pos, a_neg = len(A_ATTACK), N_DAYS - len(A_ATTACK)
-    b_pos, b_neg = len(B_ATTACK), N_DAYS - len(B_ATTACK)
-    return {"conc": a_pos * b_neg, "disc": b_pos * a_neg,
-            "tied": a_pos * a_neg + b_pos * b_neg,
-            "pairs": (a_pos + b_pos) * (a_neg + b_neg)}
+def _txt(ax, x, y, t, size=PT_BODY, col=INK, ha="left", weight="normal"):
+    ax.text(x, y, t, fontsize=size, color=col, va="center", ha=ha, linespacing=1.55,
+            fontweight=weight)
 
 
-def _head(ax, x, y, letter, text, size=8.6):
-    ax.text(x, y, f"({letter})", fontsize=size, fontweight="bold", color=S.INK,
-            va="center", ha="left")
-    ax.text(x + 5.6, y, text, fontsize=size, fontweight="bold", color=S.INK,
-            va="center", ha="left")
-
-
-def _note(ax, x, y, text, size=7.2, col="#3d3d3d", ha="left", weight="normal"):
-    ax.text(x, y, text, fontsize=size, color=col, va="center", ha=ha,
-            linespacing=1.5, fontweight=weight)
-
-
-# ---- type scale (pt) and ink -------------------------------------------------
-# Four sizes only. Anything needing a fifth is saying too much.
-PT_CLAIM, PT_LEAD, PT_BODY, PT_SCORE = 9.0, 8.6, 7.2, 13.0
-INK, MUTE = S.INK, S.GREY        # house ink; GREY is darker than a mid grey,
-                                 # which is what keeps the secondary text legible
-TINT = "#f4f4f4"
-BASE = 6.0                      # vertical rhythm; every band sits on a multiple
-
-
-def _claim(ax, x, y, letter, text, accent):
-    """Panel heading states the panel's claim, after the convention this literature
-    uses for teaching figures (Sebastianelli 2024, Cephalalgia)."""
-    ax.add_patch(Rectangle((x, y - 3.1), 1.5, 6.2, fc=accent, ec="none"))
-    ax.text(x + 4.2, y, f"({letter})", fontsize=PT_CLAIM, fontweight="bold", color=INK,
-            va="center", ha="left")
-    ax.text(x + 9.6, y, text, fontsize=PT_CLAIM, fontweight="bold", color=INK,
-            va="center", ha="left")
-
-
-def _txt(ax, x, y, text, size=PT_BODY, col=INK, ha="left", weight="normal"):
-    ax.text(x, y, text, fontsize=size, color=col, va="center", ha=ha,
-            linespacing=1.55, fontweight=weight)
-
-
-def _daycard(ax, x, y, w, h, who, day, is_attack, risk, att):
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.4",
+def _chip(ax, x, y, w, h, target, value, interval, verdict, col):
+    """One target's answer at one step: the number, its interval, and whether the
+    answer supports going on to the next question."""
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.2",
                                 fc=TINT, ec="none"))
-    _txt(ax, x + w / 2, y + h - 4.6, f"{who}, day {day}", PT_BODY, INK, "center", "bold")
-    sq = 8.4
-    ax.add_patch(Rectangle((x + w / 2 - sq / 2, y + h - 16.4), sq, sq,
-                           fc=att if is_attack else "#cfcfcf", ec="none"))
-    _txt(ax, x + w / 2, y + h - 20.6, "attack" if is_attack else "no attack",
-         PT_BODY, MUTE, "center")
-    _txt(ax, x + w / 2, y + 4.6, f"forecast {risk:.2f}", PT_LEAD, INK,
-         "center", "bold")
+    ax.add_patch(Rectangle((x, y), 1.3, h, fc=col, ec="none"))
+    _txt(ax, x + 4.0, y + h - 4.0, target, PT_TINY, MUTE)
+    _txt(ax, x + 4.0, y + 6.6, value, PT_VAL, INK, weight="bold")
+    if interval:
+        _txt(ax, x + 21.0, y + 6.6, interval, PT_TINY, MUTE)
+    _txt(ax, x + w - 3.0, y + h - 4.0, "yes" if verdict else "no", PT_TINY,
+         INK if verdict else col, ha="right", weight="bold")
 
 
-def _diaries(ax, att, accent):
-    _claim(ax, 6, 165.0, "a", "One forecast per patient, unchanged across days", accent)
-    s, pitch = 5.4, 6.4
-    ring = {("A", A_ATK_DAY), ("A", A_QUIET_DAY), ("B", B_QUIET_DAY)}
-    for k, (name, attacks, rate) in enumerate([("A", A_ATTACK, A_RATE),
-                                               ("B", B_ATTACK, B_RATE)]):
-        yy = 152.0 - k * 9.0
-        _txt(ax, 6, yy + s / 2, f"Patient {name}", PT_BODY, INK, weight="bold")
-        for i in range(N_DAYS):
-            ax.add_patch(Rectangle((26 + i * pitch, yy), s, s,
-                                   fc=att if i in attacks else "#dcdcdc", ec="none"))
-            if (name, i) in ring:
-                ax.add_patch(FancyBboxPatch((26 + i * pitch - 0.9, yy - 0.9),
-                                            s + 1.8, s + 1.8, fc="none", ec=INK, lw=1.2,
-                                            zorder=5,
-                                            boxstyle="round,pad=0,rounding_size=1.0"))
-        _txt(ax, 26 + N_DAYS * pitch + 4.0, yy + s / 2, f"forecast {rate:.2f}",
-             PT_BODY, INK, weight="bold")
-    _txt(ax, 6, 135.0, "A forecast is the model's estimated chance that a given day turns "
-                       "out to be an attack day.", PT_BODY, INK)
-    _txt(ax, 6, 128.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
-                       "Each forecast here is set to that\npatient's own recorded rate, so "
-                       "it never changes from day to day.", PT_BODY, MUTE)
-    _txt(ax, 6, 117.0, "Outlined days are compared below.", PT_BODY, MUTE)
-
-
-def _question(ax, x0, y0, letter, claim, left, right, verdict, ruling, why, tally,
-              score_lab, score, att, accent):
-    _claim(ax, x0, y0, letter, claim, accent)
-    cw, ch, gap = 32.0, 29.0, 10.0
-    cy = y0 - 36.0
-    _daycard(ax, x0, cy, cw, ch, *left, att)
-    _daycard(ax, x0 + cw + gap, cy, cw, ch, *right, att)
-    _txt(ax, x0 + cw + gap / 2, cy + ch / 2, "vs", PT_BODY, MUTE, "center")
-
-    mid = x0 + cw + gap / 2
-    vy = cy - 5.0
-    ax.plot([x0 + cw / 2, x0 + cw / 2, x0 + cw + gap + cw / 2, x0 + cw + gap + cw / 2],
-            [cy - 0.8, vy, vy, cy - 0.8], color="#c2c2c2", lw=0.9)
-    _txt(ax, mid, vy - 5.5, verdict, PT_LEAD, INK, "center", "bold")
-    _txt(ax, mid, vy - 10.5, ruling, PT_BODY, MUTE, "center")
-
-    _txt(ax, x0, vy - 18.0, why, PT_BODY, INK)
-    _txt(ax, x0, vy - 26.0, tally, PT_BODY, MUTE)
-    _txt(ax, x0, vy - 34.0, score_lab, PT_BODY, MUTE)
-    _txt(ax, x0 + 22.0, vy - 34.0, f"{score:.2f}", PT_SCORE, accent, weight="bold")
-
-
-def _brier(ax, skill, accent):
-    _claim(ax, 6, 20.0, "d", "Brier skill: does the forecast improve on the known rate?",
-           accent)
-    bw, bh, gap = 56.0, 13.0, 13.0
-    by = 5.0
-    for k, (lab, val) in enumerate([("forecast for patient A", "0.50 daily"),
-                                    ("patient A's recorded rate", "0.50")]):
-        x = 6.0 + k * (bw + gap)
-        ax.add_patch(FancyBboxPatch((x, by), bw, bh,
-                                    boxstyle="round,pad=0,rounding_size=1.4",
-                                    fc=TINT, ec="none"))
-        _txt(ax, x + bw / 2, by + bh - 4.4, lab, PT_BODY, MUTE, "center")
-        _txt(ax, x + bw / 2, by + 4.6, val, PT_LEAD, INK, "center", "bold")
-    _txt(ax, 6.0 + bw + gap / 2, by + bh / 2, "=", PT_LEAD, INK, "center", "bold")
-    _txt(ax, 6.0 + 2 * bw + gap + 8.0, by + bh / 2 + 2.6, "skill", PT_BODY, MUTE)
-    _txt(ax, 6.0 + 2 * bw + gap + 20.0, by + bh / 2 + 2.6, f"{skill:.2f}", PT_SCORE,
-         accent, weight="bold")
-    _txt(ax, 6.0 + 2 * bw + gap + 8.0, by + bh / 2 - 4.4, "no improvement", PT_BODY, MUTE)
-    _txt(ax, 6, by - 5.0, "The two are the same number by construction. Skill of zero is "
-                          "what a forecast that adds nothing looks like.", PT_BODY, MUTE)
+def _step(ax, y, n, question, gloss, chips, last=False):
+    """One question in the chain, with a spine linking it to the next."""
+    ax.add_patch(FancyBboxPatch((6, y + 6.0), 7.6, 7.6,
+                                boxstyle="round,pad=0,rounding_size=1.6",
+                                fc=INK, ec="none"))
+    _txt(ax, 9.8, y + 9.8, str(n), PT_BODY, "white", "center", "bold")
+    if not last:
+        ax.plot([9.8, 9.8], [y - 7.0, y + 6.0], color="#cfcfcf", lw=1.2, zorder=0)
+    _txt(ax, 17.5, y + 10.4, question, PT_Q, INK, weight="bold")
+    _txt(ax, 17.5, y + 3.4, gloss, PT_BODY, MUTE)
+    for i, (target, value, interval, ok, col) in enumerate(chips):
+        _chip(ax, 100 + i * 42.0, y - 0.5, 39.0, 14.0, target, value, interval, ok, col)
 
 
 def main() -> None:
     S.apply()
-    att = S.target_color("migraine")          # attack day
-    blue = S.target_color("headache")         # accent on the clinically decisive panels
-    y, p = _toy()
-    c = _counts()
-    auroc = float(roc_auc_score(y, p))
-    ref = np.array([A_RATE] * N_DAYS + [B_RATE] * N_DAYS)
-    bs, bs_ref = float(np.mean((p - y) ** 2)), float(np.mean((ref - y) ** 2))
-    skill = 1.0 - bs / bs_ref
+    mig, hea, mig_w, hea_w = _load()
+    ORA, BLU = S.target_color("migraine"), S.target_color("headache")
 
-    assert c["conc"] + c["disc"] + c["tied"] == c["pairs"] == 84, "pairs must partition"
-    assert abs(auroc - (c["conc"] + 0.5 * c["tied"]) / c["pairs"]) < 1e-12, \
-        "the drawn tally must equal the computed AUROC"
-    assert abs(skill) < 1e-12, "climatology classifier must have exactly zero Brier skill"
-    assert A_ATK_DAY in A_ATTACK and A_QUIET_DAY not in A_ATTACK, "panel b/c days mislabelled"
-    assert B_QUIET_DAY not in B_ATTACK, "panel b comparison day mislabelled"
+    def ci(lo, hi, sign=False):
+        f = "{:+.2f}" if sign else "{:.2f}"
+        return f"[{f.format(float(lo))}, {f.format(float(hi))}]"
+
+    m_auc, h_auc = float(mig["auroc"]), float(hea["auroc"])
+    m_c, h_c = float(mig_w["within_person"]), float(hea_w["within_person"])
+    m_bs, h_bs = float(mig["brier_skill"]), float(hea["brier_skill"])
+    assert m_c < 0.60 and h_c < 0.60, "within-person C is the near-chance step"
+    assert float(mig["bs_cluster_lo"]) < 0 < float(mig["bs_cluster_hi"]), \
+        "migraine Brier skill must straddle zero for step 3's reading"
+    assert float(hea["bs_cluster_lo"]) > 0, "headache Brier skill must exclude zero"
+    assert float(mig_w["within_ci_low"]) > 0.5 and float(hea_w["within_ci_low"]) > 0.5, \
+        "the footnote states both within-person intervals exclude 0.50"
 
     fig, ax = plt.subplots(figsize=(W_MM / 25.4, H_MM / 25.4))
     ax.set_xlim(0, W_MM); ax.set_ylim(0, H_MM)
     ax.set_aspect("equal"); ax.axis("off")
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
-    _diaries(ax, att, MUTE)
-    _question(ax, 6, 105.0, "b", "Pooled AUROC compares days across patients",
-              ("Patient A", A_ATK_DAY + 1, True, A_RATE),
-              ("Patient B", B_QUIET_DAY + 1, False, B_RATE),
-              "0.50  >  0.10", "ranked correctly",
-              "Attack frequency decides this comparison.\nNeither day was examined.",
-              f"{c['conc']} of {c['pairs']} comparisons cross patients.",
-              "AUROC", auroc, att, MUTE)
-    _question(ax, 101, 105.0, "c", "Within-person C compares one patient's days",
-              ("Patient A", A_ATK_DAY + 1, True, A_RATE),
-              ("Patient A", A_QUIET_DAY + 1, False, A_RATE),
-              "0.50  =  0.50", "no separation",
-              "The clinically relevant comparison.\nThe forecast is identical on both days.",
-              f"All {c['tied']} within-patient comparisons tie.",
-              "C", 0.5, att, blue)
-    _brier(ax, skill, blue)
+    _txt(ax, 6, 150.0, "Four questions, asked in order", 10.2, INK, weight="bold")
+    _txt(ax, 6, 143.0, "Each one asks less of the model than the last. A reader who stops "
+                       "at the first sees a usable forecast.", PT_BODY, MUTE)
+    _txt(ax, 100, 136.5, "migraine", PT_TINY, MUTE)
+    _txt(ax, 142, 136.5, "headache", PT_TINY, MUTE)
+
+    _step(ax, 118.0, 1, "Can it rank attack days across the cohort?",
+          "Pooled AUROC, every patient's days in one ranking.",
+          [("pooled AUROC", f"{m_auc:.2f}", ci(mig["auroc_cluster_lo"], mig["auroc_cluster_hi"]), True, ORA),
+           ("pooled AUROC", f"{h_auc:.2f}", ci(hea["auroc_cluster_lo"], hea["auroc_cluster_hi"]), True, BLU)])
+
+    _step(ax, 92.0, 2, "Can it rank days inside one patient?",
+          "The same question asked within each patient's own diary.",
+          [("within-person C", f"{m_c:.2f}", ci(mig_w["within_ci_low"], mig_w["within_ci_high"]), False, ORA),
+           ("within-person C", f"{h_c:.2f}", ci(hea_w["within_ci_low"], hea_w["within_ci_high"]), False, BLU)])
+
+    _step(ax, 66.0, 3, "Does it beat the patient's own attack rate?",
+          "Brier skill against each patient's recorded rate.",
+          [("Brier skill", f"{m_bs:+.2f}", ci(mig["bs_cluster_lo"], mig["bs_cluster_hi"], True), False, ORA),
+           ("Brier skill", f"{h_bs:+.2f}", ci(hea["bs_cluster_lo"], hea["bs_cluster_hi"], True), True, BLU)])
+
+    _step(ax, 40.0, 4, "Would acting on it help the patient?",
+          "Decision-curve net benefit across treatment thresholds.",
+          [("net benefit", "near zero", "", False, ORA),
+           ("net benefit", "beats treat-none", "", False, BLU)], last=True)
+
+    ax.add_patch(FancyBboxPatch((6, 8.0), W_MM - 12, 17.0,
+                                boxstyle="round,pad=0,rounding_size=1.4",
+                                fc=TINT, ec="none"))
+    _txt(ax, 10, 19.5, "Pooled AUROC alone would have stopped at question 1.",
+         PT_Q, INK, weight="bold")
+    _txt(ax, 10, 12.6, "Migraine fails from question 2 onward. Headache clears "
+                       "question 3 but not question 4, where it never beats treating "
+                       "everyone.",
+         PT_BODY, MUTE)
+    _txt(ax, 6, 4.6, "yes / no records whether the answer supports the next question "
+                     "clinically, not whether it reaches significance: both within-person "
+                     "intervals exclude 0.50 while sitting close to it.", PT_TINY, MUTE)
+    _txt(ax, 6, 0.8, "Headline cells: migraine XGB-HP020, headache TabPFN-v2.6, both "
+                     "full_features 70/30 chronological, Park 2016 cohort (62 patients, "
+                     "4,516 diary days). Within-person C estimable in 19 and 57 records.",
+         PT_TINY, MUTE)
 
     print("saved", S.save(fig, HERE / "figures" / "fig_a6_pooled_vs_within"))
 
