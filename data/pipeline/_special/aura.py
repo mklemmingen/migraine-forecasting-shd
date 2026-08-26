@@ -62,8 +62,9 @@ def extract_aura_status(raw_xls_path: str | Path) -> pd.DataFrame:
     # ``header=[1, 2]`` two-row read introduced (it consumed CMC-0001's data as
     # a stale second header, yielding 61 rows + 59 no-aura instead of 62 + 60).
     # The Park 2016 enrolment is fixed at 62 patients, 60 without aura, 2 with
-    # aura per body §2.1 and dataset.md §"Cohort"; any deviation here means the
-    # raw read shifted under us and the downstream sensitivity will be off.
+    # aura per the Methods dataset description and dataset.md §"Cohort"; any
+    # deviation here means the raw read shifted under us and the downstream
+    # sensitivity will be off.
     assert len(out) == 62, f"Expected 62 patient rows, got {len(out)}"
     assert out["has_aura"].sum() == 2, f"Expected 2 aura patients, got {out['has_aura'].sum()}"
     assert (~out["has_aura"]).sum() == 60, f"Expected 60 no-aura patients, got {(~out['has_aura']).sum()}"

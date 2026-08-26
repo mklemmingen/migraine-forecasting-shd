@@ -12,7 +12,7 @@ expected proportion of false positives among rejections across the
 multi-cell test family.
 
 The contrast list defined below contains 18 paired tests and is the
-frozen analysis-plan scope referenced at body section 2.8.
+frozen analysis-plan scope referenced in the Methods section.
 
 Per-instance test predictions are not persisted by the leaf evaluate.py
 templates, so this script reloads each leaf's `model.joblib`,
@@ -298,9 +298,9 @@ ALL_PAIRS: list[PairedTest] = [
         leaf_b=_EXP_ROOT / "0/migraine/full_features/stacked_2xgb_meta_lr/70_30/chrono/HyperparameterTuned/single_AUROC/HP500",
     ),
     # --- AutoTabPFN load-bearing tests at migraine/full/chrono/70_30: the
-    #     paper's §3 claim "AutoTabPFN is the migraine leader" needs paired
+    #     paper's Results-section claim "AutoTabPFN is the migraine leader" needs paired
     #     tests against both XGB-HP020 (composite winner) and XGB-NonHP
-    #     (the §3 numeric comparison anchor at 0.745 vs 0.660).
+    #     (the Results section's numeric comparison anchor at 0.745 vs 0.660).
     PairedTest(
         cell="migraine/full/chrono",
         ratio="70_30",

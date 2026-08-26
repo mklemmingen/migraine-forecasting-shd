@@ -3,18 +3,18 @@ on the canonical migraine and headache headline cells (Huang et al. 2020,
 JAMIA 27(4):621-633, equation 7: ``logit{P(O=1)} = alpha + beta * logit(E)``
 with beta constrained to 1).
 
-The body §3.4 calibration paragraph reports the O:E ratio (mean(y) / mean(p))
+The Results section's calibration paragraph reports the O:E ratio (mean(y) / mean(p))
 under the name "CITL", but Huang 2020 specifies CITL as the Cox-form
 alpha with the slope constrained at 1. The two quantities are distinct:
 the O:E ratio is the ratio of mean outcome to mean prediction on the
 probability scale, while the Cox alpha is the logit-scale shift required
 to recover mean calibration with the model's discrimination intact.
 This runner produces the Cox alpha + patient-cluster bootstrap 95% CI
-so the body can either rename O:E or report Cox alpha alongside.
+so the manuscript can either rename O:E or report Cox alpha alongside.
 
 Uses the same predict-worker path as run_no_aura_sensitivity so the
 headline-cell test-set predictions are the canonical composite-tracked
-ones the §3.2 numbers cite. Output: one summary CSV per run under
+ones the Results section's numbers cite. Output: one summary CSV per run under
 ``experiment/_eval/_special/cox_intercept_citl_<ts>.csv``.
 
 Usage: ``python experiment/_eval/_special/run_cox_intercept_citl.py``

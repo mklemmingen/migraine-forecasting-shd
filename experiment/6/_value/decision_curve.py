@@ -63,8 +63,8 @@ def decision_curve_ci(y_true, y_prob, patient_ids=None,
     ``model_ci_high`` arrays. ``bootstrap_unit="patient_day"`` (default) resamples
     rows uniformly with replacement; ``bootstrap_unit="patient_cluster"`` resamples
     patient_id values with replacement and concatenates every row belonging to each
-    sampled patient, matching the body §2.8 resampling discipline for the headline
-    cells under the §3.5 within-patient serial-dependence finding. Patient-cluster
+    sampled patient, matching the Methods section's resampling discipline for the headline
+    cells under the Results section's within-patient serial-dependence finding. Patient-cluster
     requires ``patient_ids`` to be supplied (a 1-D array aligned with y_true)."""
     base = decision_curve(y_true, y_prob, thresholds)
     y = np.asarray(y_true, dtype=int)

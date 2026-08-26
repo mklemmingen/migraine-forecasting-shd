@@ -140,9 +140,9 @@ def _cv_predict(leaf: Path):
 
 
 def _bootstrap_pooled_auroc_ci(y, p, n_boot=1000, seed=42):
-    """Patient-day bootstrap CI on pooled AUROC. Matches body §2.8
-    methods (patient-day resampling; the under-coverage caveat against
-    patient-cluster bootstrap is disclosed in the body Methods)."""
+    """Patient-day bootstrap CI on pooled AUROC. Matches the Methods
+    section's patient-day resampling discipline (the under-coverage caveat
+    against patient-cluster bootstrap is disclosed there)."""
     rng = np.random.default_rng(seed)
     n = len(y)
     aucs = []

@@ -5,7 +5,7 @@ addition-1 leaves (TabPFN family).
 Run: `.venv/bin/python experiment/1/_scaffold_leaves.py [--force]`
 
 Lives inside the addition it scaffolds for, so it can be copied into a new
-addition (2, 3, …) and adapted there without path-rewiring. The addition
+addition (2, 3, etc.) and adapted there without path-rewiring. The addition
 number is derived from the script's parent directory name.
 
 Layout
@@ -171,7 +171,7 @@ def enumerate_leaves() -> list[Leaf]:
 # ---------------------------------------------------------------------------
 
 class LoaderCfg(NamedTuple):
-    extra_import: Optional[str]   # additional `from … import …` line, or None
+    extra_import: Optional[str]   # additional `from X import Y` line, or None
     wrapper: Optional[str]        # local def load_and_prep_data wrapper, or None
     raw_loader_call: str          # how to load+filter the parquet directly
 

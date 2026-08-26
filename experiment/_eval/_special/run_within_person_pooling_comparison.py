@@ -5,13 +5,13 @@ for the canonical TabPFN headline cells.
 DerSimonian-Laird underestimates τ² at k < 20 per Veroniki 2016, which is
 the regime this cohort sits in (k=19 estimable patients on migraine,
 k=57 on headache); Paule-Mandel τ² is robust in that regime. This script
-delivers the comparison values used in body §3.6 + abstract: PM as primary,
+delivers the comparison values used in the Results section and abstract: PM as primary,
 DL retained as side-by-side sensitivity so the literature-comparability
 baseline is preserved.
 
 Uses the same CV-OOF prediction path as fig_c5 + the within-person stratum
-runner so the per-patient AUROC distribution is the same one body §3.6
-cites; only the pooling step changes between DL and PM. Output CSV is
+runner so the per-patient AUROC distribution is the same one the Results
+section cites; only the pooling step changes between DL and PM. Output CSV is
 timestamped to preserve prior runs per the never-overwrite convention LOSO
 summary CSVs established.
 
@@ -68,8 +68,8 @@ def _predict(leaf: Path):
 
 
 def _resolve_tabpfn_headlines() -> dict[str, Path]:
-    """Resolve TabPFN headline cells for both targets (the §3.6-cited
-    architecture). Mirrors fig_c5 / within-person stratum runner."""
+    """Resolve TabPFN headline cells for both targets (the architecture cited
+    in the Results section). Mirrors fig_c5 / within-person stratum runner."""
     spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
     mod = _ilu.module_from_spec(spec); spec.loader.exec_module(mod)
     fp = mod.latest_figdata(EXP / "2")

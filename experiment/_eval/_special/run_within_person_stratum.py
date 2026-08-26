@@ -3,12 +3,12 @@
 Computes the within-person C-statistic separately for each of the three
 demographic / cohort strata:
 
-- site: Uijeongbu vs Dongtan (the leave-one-site-out frame from §3.8)
-- sex: female vs male (the §2.1 / §4.4 demographic-narrowness frame)
+- site: Uijeongbu vs Dongtan (the leave-one-site-out frame from the Results section)
+- sex: female vs male (the demographic-narrowness frame from the Methods and Discussion sections)
 - per-patient base-rate stratum: above vs below the cohort base rate
   (migraine 7.2%, headache 25%)
 
-The point is to surface whether the §3.6 pooled within-person C ≈ 0.55 result
+The point is to surface whether the Results section's pooled within-person C ≈ 0.55 result
 masks within-group degradation - if (say) the male stratum gives a noticeably
 lower or higher C, the pooled number hides equity-relevant variation that the
 panel agent argued is load-bearing for any "this is a general population
@@ -21,7 +21,7 @@ quantitatively as "n_estimable = X (below the 5-patient reporting floor)"
 rather than collapsed silently into the pooled view.
 
 Uses the same CV-OOF predict path as fig_c5_within_person_calibration.py so
-the estimable-patient count matches body §3.6's 57 / 19 framework.
+the estimable-patient count matches the Results section's 57 / 19 framework.
 
 Usage: ``python experiment/_eval/_special/run_within_person_stratum.py``
 """
@@ -53,7 +53,7 @@ COHORT = REPO / "data" / "processed" / "special" / "cohort_metadata.parquet"
 # to compute a within-person C and instead report the count honestly.
 STRATUM_REPORTING_FLOOR = 5
 
-# Per-target cohort base rate (body §3.1) used to split patients into
+# Per-target cohort base rate (from the Results section) used to split patients into
 # above/below base-rate strata.
 COHORT_BASE_RATE = {"migraine": 0.072, "headache": 0.25}
 
@@ -193,7 +193,7 @@ def main() -> None:
             br = br.merge(cohort, on="patient_id", how="left")
             br["br_stratum"] = np.where(br["base_rate"] >= base, "above", "below")
 
-            # All-patient pooled (matches §3.6 reporting)
+            # All-patient pooled (matches the Results section's reporting)
             all_pids = br["patient_id"].tolist()
             rows.append({
                 "target": tgt, "architecture": label, "stratum_dim": "(pooled)",

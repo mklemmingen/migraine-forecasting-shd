@@ -51,7 +51,7 @@ import _style as S  # noqa: E402
 
 MIG_TEXT = "#C25100"  # 4.70:1 on white; S.target_color("migraine") is 3.87:1
 
-# Numbers — single source of truth, traced to body sections.
+# Numbers: single source of truth, traced to article.tex.
 MIGRAINE = {"pooled": 0.791, "pooled_ci": (0.544, 0.890),
             "within": 0.558,  "within_ci": (0.511, 0.604),
             "slope": 1.386,   "slope_ci": (0.40, 2.07)}
@@ -157,8 +157,7 @@ def _draw_slopegraph(ax) -> None:
     for xi, yi, ci in [(0, HEADACHE["pooled"], HEADACHE["pooled_ci"]),
                        (1, HEADACHE["within"], HEADACHE["within_ci"])]:
         ax.plot([xi, xi], [ci[0], ci[1]], color=hea_col, lw=1.2, alpha=0.7, zorder=3)
-    # Endpoint value labels
-    # Endpoint value labels — white bbox lifts the text off crossing slopes.
+    # Endpoint value labels: white bbox lifts the text off crossing slopes.
     # Within-person endpoints sit only 0.016 apart in y (migraine 0.558,
     # headache 0.542), which is below the 8.5pt label line-height at this
     # axes scale; the labels therefore need a small vertical offset (±0.04)

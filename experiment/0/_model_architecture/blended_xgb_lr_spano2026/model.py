@@ -40,7 +40,7 @@ from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
 
 
-ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0, 0.05, …, 1.00 (Spano config.py)
+ALPHA_GRID = np.linspace(0.0, 1.0, 21)   # 0, 0.05, ..., 1.00 (Spano config.py)
 
 
 # ---------------------------------------------------------------------------

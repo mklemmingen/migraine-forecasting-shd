@@ -6,7 +6,7 @@ addition-0 leaves: stacked_2xgb_meta_lr (full grid) and blended_xgb_lr_spano2026
 Run: `.venv/bin/python experiment/0/_scaffold_leaves.py [--force]`
 
 Lives inside the addition it scaffolds for, so it can be copied into a new
-addition (1, 2, …) and adapted there without path-rewiring. The addition
+addition (1, 2, etc.) and adapted there without path-rewiring. The addition
 number is derived from the script's parent directory name.
 
 Architecture coverage
@@ -201,7 +201,7 @@ def enumerate_leaves() -> list[Leaf]:
 # ---------------------------------------------------------------------------
 
 class LoaderCfg(NamedTuple):
-    extra_import: Optional[str]   # additional `from … import …` line, or None
+    extra_import: Optional[str]   # additional `from X import Y` line, or None
     wrapper: Optional[str]        # local def load_and_prep_data wrapper, or None
     raw_loader_call: str          # how to load+filter the parquet directly
 

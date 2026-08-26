@@ -13,7 +13,7 @@ right. Each panel is a per-row SHAP beeswarm with points coloured by feature
 value (low blue, high vermillion), the standard SHAP encoding showing direction
 and magnitude of each feature's effect on next-day positive-class probability.
 
-The body §3.3 claim that history features carry 77 to 85% of mean absolute
+The Results section's claim that history features carry 77 to 85% of mean absolute
 attribution on the full_features cells is visually evident in both panels as
 the top rows (migraine_rate_last3 / last7, headache_free_streak,
 days_since_last_migraine, migraine_yesterday) for headache and the parallel

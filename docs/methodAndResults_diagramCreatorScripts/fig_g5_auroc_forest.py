@@ -1,6 +1,6 @@
 """Figure G5 - Pooled holdout AUROC forest across all architecture variants.
 
-Body §3.2 reports four anchor AUROC numbers in prose
+The Results section reports four anchor AUROC numbers in prose
 (migraine 0.793 [0.544-0.890]; headache 0.653 [0.556-0.740]), but no body
 figure shows the per-architecture spread the composite headline-cell selection
 operates over. This forest plot fills that gap: one panel per target, one row

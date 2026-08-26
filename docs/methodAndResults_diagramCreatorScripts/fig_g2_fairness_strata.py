@@ -1,8 +1,8 @@
 """Figure 6 (working-notes ID: G2) - fairness stratum disaggregation of the
 within-person C-statistic.
 
-Body-facing forest plot of the §3.6 stratum disaggregation that body §3.6
-currently cites in text + CSV form only (the canonical CSV at
+Body-facing forest plot of the Results section's stratum disaggregation that
+the manuscript currently cites in text + CSV form only (the canonical CSV at
 experiment/_eval/_special/within_person_stratum_*.csv). Two panels: panel a
 headache target, panel b migraine target. Per panel, each stratum row carries
 the three within-architecture point estimates (XGBoost stack, TabPFN,

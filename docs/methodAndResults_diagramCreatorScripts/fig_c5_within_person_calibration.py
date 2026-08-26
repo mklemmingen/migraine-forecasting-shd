@@ -1,9 +1,9 @@
 """Figure 5 (working-notes ID: C5) - within-person calibration at the headline cells.
 
 Adds the within-person calibration leg to the within-person discrimination
-reporting in body §3.6. The within-person C-statistic at the headline cells
-clusters at 0.53-0.57 (near chance) per §3.6; this figure asks the calibration
-analogue: when a model ranks a given patient's days into within-patient
+reporting in the Results section, where the within-person C-statistic at the
+headline cells clusters at 0.53-0.57 (near chance); this figure asks the
+calibration analogue: when a model ranks a given patient's days into within-patient
 quartiles by predicted probability, do the highest-quartile days actually carry
 the patient's observed positives?
 
@@ -20,8 +20,8 @@ observed-rate point estimate of each quartile.
 Reads as a sibling of fig_c4: fig_c4 carries pooled-level moderate calibration
 (loess across all patient-days at once); fig_c5 carries within-person
 calibration (within-patient quartiles, then pooled). The two together extend
-body §3.4 (slope + CITL weak calibration at the pooled level) into the
-moderate-calibration level at both pooling layers.
+the Results section's slope + CITL weak-calibration reporting at the pooled
+level into the moderate-calibration level at both pooling layers.
 
 Usage: python fig_c5_within_person_calibration.py
 """
@@ -51,13 +51,13 @@ sys.path[0:0] = [str(EXP), str(EXP / "5" / "_personal")]
 import _style as S  # noqa: E402
 from within_person import MIN_POS, per_patient_scores  # noqa: E402
 
-# Use the CV-OOF worker, NOT the hold-out predict worker - body §3.6 cites
-# OOF-CV predictions ("Under out-of-fold cross-validation on the
+# Use the CV-OOF worker, NOT the hold-out predict worker: the Results section
+# cites OOF-CV predictions ("Under out-of-fold cross-validation on the
 # non-hyperparameter-tuned 70/30 chronological leaves...") because the
 # hold-out test partition on 70/30 chrono is too late-enrolment-limited to
 # give 5 positives per patient for most patients on the migraine target;
 # the 5-fold expanding-window OOF predictions cover the full date range and
-# produce the 57 / 19 estimable patient counts named in §3.6.
+# produce the 57 / 19 estimable patient counts named there.
 WORKER = EXP / "5" / "_personal" / "_cv_oof_worker.py"
 
 N_QUARTILES = 4
@@ -99,7 +99,7 @@ def _per_patient_quartile_means(y: np.ndarray, p: np.ndarray, pid: np.ndarray) -
 
     Estimable patients are filtered to the same ``MIN_POS = 5`` floor that the
     within-person C-statistic uses, so the figure's denominator matches the
-    19 / 57 estimable counts already reported in body §3.6. Patients whose
+    19 / 57 estimable counts already reported in the Results section. Patients whose
     per-patient predictions cannot be cut into 4 distinct quantile bins (too
     many ties or fewer than 4 unique predicted values) are dropped from the
     quartile aggregation only.
@@ -136,7 +136,7 @@ def _pool_with_patient_bootstrap_ci(df: pd.DataFrame) -> pd.DataFrame:
 
     Patient-bootstrap (resample whole patients with replacement) rather than
     row-bootstrap because the unit being aggregated is the patient - the same
-    discipline body §2.8 acknowledges is the appropriate resampling unit for
+    discipline the Methods section documents as the appropriate resampling unit for
     within-person quantities."""
     pooled = (df.groupby("quartile")[["mean_p", "mean_y"]]
               .mean()

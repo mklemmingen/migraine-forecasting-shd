@@ -38,9 +38,9 @@ def brier_skill_score(y_true, y_prob, reference) -> float:
 
 
 def brier_skill_ci(y_true, y_prob, reference, n_boot: int = 1000, seed: int = 42):
-    """Patient-day bootstrap 95% CI on Brier skill. Matches body §2.8 patient-day
-    resampling unit; the under-coverage caveat against a patient-cluster bootstrap
-    is disclosed in the body Methods.
+    """Patient-day bootstrap 95% CI on Brier skill. Matches the Methods section's
+    patient-day resampling unit; the under-coverage caveat against a patient-cluster
+    bootstrap is disclosed in the Methods section.
 
     Returns a dict with keys: ``estimate``, ``ci_low``, ``ci_high``, ``n_boot``,
     ``n_valid`` (resamples where bs_ref > 0)."""

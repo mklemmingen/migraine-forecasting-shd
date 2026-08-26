@@ -1,8 +1,8 @@
-"""Patient-cluster bootstrap CIs on the headline-cell metrics cited in body
-§3.2 (AUROC) / §3.4 (calibration slope + CITL) / §3.7 (Brier skill against
+"""Patient-cluster bootstrap CIs on the headline-cell metrics cited in the
+Results section (AUROC, calibration slope + CITL, Brier skill against
 per-patient TRAIN climatology), side-by-side with the patient-day-iid CIs
-also in the body. Patient-cluster is primary on the headline cells per the
-body §2.8 reporting convention; patient-day-iid is sensitivity.
+also reported there. Patient-cluster is primary on the headline cells per the
+Methods section's reporting convention; patient-day-iid is sensitivity.
 
 Resamples whole PATIENTS with replacement (the resampling unit is the
 patient, not the patient-day row), then concatenates the resampled patients'
@@ -14,13 +14,14 @@ direction-of-effect rather than equivalence.
 
 The existing patient-day CIs from `experiment/_eval/metrics_lib.py` +
 `experiment/6/_value/skill.py` are preserved as side-by-side sensitivity
-values per the §2.8 reporting convention: primary = patient-cluster,
+values per the Methods section's reporting convention: primary = patient-cluster,
 sensitivity = patient-day for literature comparability.
 
 Uses the hold-out test predict worker (NOT the cv_oof worker fig_c5 or the
-within-person stratum / pooling-comparison runners use) because §3.2 / §3.4 /
-§3.7 cite TEST-SET metrics not OOF metrics; the within-person C-statistic in
-§3.6 is the only metric that uses OOF predictions and that estimator is
+within-person stratum / pooling-comparison runners use) because the Results
+section cites TEST-SET metrics for AUROC, calibration slope + CITL, and Brier
+skill, not OOF metrics; the within-person C-statistic reported there is the
+only metric that uses OOF predictions and that estimator is
 already patient-level via Hanley-McNeil + Paule-Mandel pooling rather than a
 row bootstrap, so the within-person C is not retouched by this script.
 
@@ -123,7 +124,8 @@ def _brier_skill(y, p, ref) -> float:
 
 def _bootstrap(metric_fn, y, p, n_boot: int, seed: int,
                pid: np.ndarray | None = None, ref: np.ndarray | None = None):
-    """If pid is None: row bootstrap (patient-day-iid; current §2.8 default).
+    """If pid is None: row bootstrap (patient-day-iid; current default per the
+    Methods section).
     If pid is given: patient-cluster bootstrap (sample patient_ids with
     replacement, concat their rows). When ref is given, metric_fn takes
     (y, p, ref); otherwise (y, p)."""
@@ -163,7 +165,8 @@ def _bootstrap(metric_fn, y, p, n_boot: int, seed: int,
 
 
 def _resolve_cells() -> list[tuple[str, str, Path]]:
-    """Resolve the 6 cells cited in §3.7 (3 architectures × 2 targets) via the
+    """Resolve the 6 cells cited for Brier skill in the Results section
+    (3 architectures × 2 targets) via the
     composite-tracked figdata (XGBoost + TabPFN) plus pinned window-MLP."""
     spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
     mod = _ilu.module_from_spec(spec); spec.loader.exec_module(mod)
@@ -224,7 +227,7 @@ def main() -> None:
         est_citl = _citl(y, p)
         est_brier_skill = _brier_skill(y, p, ref)
 
-        # Bootstrap CIs: patient-day (sensitivity) AND patient-cluster (primary per §2.8)
+        # Bootstrap CIs: patient-day (sensitivity) AND patient-cluster (primary per the Methods section)
         auroc_day = _bootstrap(_auroc, y, p, N_BOOT, 42)
         auroc_cluster = _bootstrap(_auroc, y, p, N_BOOT, 42, pid=pid)
         slope_day = _bootstrap(lambda yy, pp: float(calibration_slope(yy, pp)), y, p, N_BOOT, 42)

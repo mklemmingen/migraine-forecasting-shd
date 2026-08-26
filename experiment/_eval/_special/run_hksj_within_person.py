@@ -3,7 +3,7 @@ within-person C-statistic at the canonical TabPFN headline cells, with
 the Roever-Knapp-Friede 2015 modified variant (mKH) applied to the
 small-k imbalanced-precision regime the migraine cell sits in.
 
-The body §3.6 within-person C-statistic CIs are PM random-effects with
+The Results section's within-person C-statistic CIs are PM random-effects with
 the normal-approximation 1.96 * SE interval. Roever et al. 2015 (BMC
 Med Res Methodol 15:99, PMC4647507) recommend the modified mKH
 procedure for ``few studies + imbalanced precisions``, the regime the
@@ -13,7 +13,7 @@ side-by-side coverage check rather than a regime correction.
 
 This runner produces both targets' HKSJ-corrected CIs alongside the PM
 normal-approximation CIs already in
-``within_person_pooling_comparison_<ts>.csv``, so body §3.6 can either
+``within_person_pooling_comparison_<ts>.csv``, so the Results section can either
 swap the migraine cell's primary CI to mKH or report both side-by-side.
 
 Output: one summary CSV per run under
