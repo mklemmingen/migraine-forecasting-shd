@@ -39,7 +39,7 @@ from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent
 
-W_MM, H_MM = 183.0, 158.0          # canvas is millimetres at final size
+W_MM, H_MM = 183.0, 166.0          # canvas is millimetres at final size
 QUIET, RULE = "#e3e3e3", "#9a9a9a"
 
 N_DAYS = 10
@@ -114,12 +114,12 @@ def _daycard(ax, x, y, w, h, who, day, is_attack, risk, att):
 
 
 def _diaries(ax, att, accent):
-    _claim(ax, 6, 150.0, "a", "One forecast per patient, unchanged across days", accent)
+    _claim(ax, 6, 158.0, "a", "One forecast per patient, unchanged across days", accent)
     s, pitch = 5.4, 6.4
     ring = {("A", A_ATK_DAY), ("A", A_QUIET_DAY), ("B", B_QUIET_DAY)}
     for k, (name, attacks, rate) in enumerate([("A", A_ATTACK, A_RATE),
                                                ("B", B_ATTACK, B_RATE)]):
-        yy = 137.0 - k * 9.0
+        yy = 145.0 - k * 9.0
         _txt(ax, 6, yy + s / 2, f"Patient {name}", PT_BODY, INK, weight="bold")
         for i in range(N_DAYS):
             ax.add_patch(Rectangle((26 + i * pitch, yy), s, s,
@@ -131,10 +131,10 @@ def _diaries(ax, att, accent):
                                             boxstyle="round,pad=0,rounding_size=1.0"))
         _txt(ax, 26 + N_DAYS * pitch + 4.0, yy + s / 2, f"forecast {rate:.2f}",
              PT_BODY, INK, weight="bold")
-    _txt(ax, 6, 119.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
-                       "The forecast states each rate and does not vary within a patient.",
-         PT_BODY, MUTE)
-    _txt(ax, 6, 112.0, "Outlined days are compared below.", PT_BODY, MUTE)
+    _txt(ax, 6, 126.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
+                       "Each forecast is set to that patient's own\nrecorded rate, so it "
+                       "never changes from day to day.", PT_BODY, MUTE)
+    _txt(ax, 6, 115.0, "Outlined days are compared below.", PT_BODY, MUTE)
 
 
 def _question(ax, x0, y0, letter, claim, left, right, verdict, ruling, why, tally,
@@ -160,10 +160,10 @@ def _question(ax, x0, y0, letter, claim, left, right, verdict, ruling, why, tall
 
 
 def _brier(ax, skill, accent):
-    _claim(ax, 6, 17.0, "d", "Brier skill: does the forecast improve on the known rate?",
+    _claim(ax, 6, 20.0, "d", "Brier skill: does the forecast improve on the known rate?",
            accent)
     bw, bh, gap = 56.0, 13.0, 13.0
-    by = 1.5
+    by = 5.0
     for k, (lab, val) in enumerate([("forecast for patient A", "0.50 daily"),
                                     ("patient A's recorded rate", "0.50")]):
         x = 6.0 + k * (bw + gap)
@@ -177,6 +177,8 @@ def _brier(ax, skill, accent):
     _txt(ax, 6.0 + 2 * bw + gap + 20.0, by + bh / 2 + 2.6, f"{skill:.2f}", PT_SCORE,
          accent, weight="bold")
     _txt(ax, 6.0 + 2 * bw + gap + 8.0, by + bh / 2 - 4.4, "no improvement", PT_BODY, MUTE)
+    _txt(ax, 6, by - 5.0, "The two are the same number by construction. Skill of zero is "
+                          "what a forecast that adds nothing looks like.", PT_BODY, MUTE)
 
 
 def main() -> None:
@@ -203,14 +205,14 @@ def main() -> None:
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     _diaries(ax, att, MUTE)
-    _question(ax, 6, 100.0, "b", "Pooled AUROC compares days across patients",
+    _question(ax, 6, 105.0, "b", "Pooled AUROC compares days across patients",
               ("Patient A", A_ATK_DAY + 1, True, A_RATE),
               ("Patient B", B_QUIET_DAY + 1, False, B_RATE),
               "0.50  >  0.10", "ranked correctly",
               "Attack frequency decides this comparison.\nNeither day was examined.",
               f"{c['conc']} of {c['pairs']} comparisons cross patients.",
               "AUROC", auroc, att, MUTE)
-    _question(ax, 101, 100.0, "c", "Within-person C compares one patient's days",
+    _question(ax, 101, 105.0, "c", "Within-person C compares one patient's days",
               ("Patient A", A_ATK_DAY + 1, True, A_RATE),
               ("Patient A", A_QUIET_DAY + 1, False, A_RATE),
               "0.50  =  0.50", "no separation",
