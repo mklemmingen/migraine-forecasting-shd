@@ -39,7 +39,7 @@ from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent
 
-W_MM, H_MM = 183.0, 166.0          # canvas is millimetres at final size
+W_MM, H_MM = 183.0, 173.0          # canvas is millimetres at final size
 QUIET, RULE = "#e3e3e3", "#9a9a9a"
 
 N_DAYS = 10
@@ -110,16 +110,17 @@ def _daycard(ax, x, y, w, h, who, day, is_attack, risk, att):
                            fc=att if is_attack else "#cfcfcf", ec="none"))
     _txt(ax, x + w / 2, y + h - 20.6, "attack" if is_attack else "no attack",
          PT_BODY, MUTE, "center")
-    _txt(ax, x + w / 2, y + 4.6, f"{risk:.2f}", PT_LEAD, INK, "center", "bold")
+    _txt(ax, x + w / 2, y + 4.6, f"forecast {risk:.2f}", PT_LEAD, INK,
+         "center", "bold")
 
 
 def _diaries(ax, att, accent):
-    _claim(ax, 6, 158.0, "a", "One forecast per patient, unchanged across days", accent)
+    _claim(ax, 6, 165.0, "a", "One forecast per patient, unchanged across days", accent)
     s, pitch = 5.4, 6.4
     ring = {("A", A_ATK_DAY), ("A", A_QUIET_DAY), ("B", B_QUIET_DAY)}
     for k, (name, attacks, rate) in enumerate([("A", A_ATTACK, A_RATE),
                                                ("B", B_ATTACK, B_RATE)]):
-        yy = 145.0 - k * 9.0
+        yy = 152.0 - k * 9.0
         _txt(ax, 6, yy + s / 2, f"Patient {name}", PT_BODY, INK, weight="bold")
         for i in range(N_DAYS):
             ax.add_patch(Rectangle((26 + i * pitch, yy), s, s,
@@ -131,10 +132,12 @@ def _diaries(ax, att, accent):
                                             boxstyle="round,pad=0,rounding_size=1.0"))
         _txt(ax, 26 + N_DAYS * pitch + 4.0, yy + s / 2, f"forecast {rate:.2f}",
              PT_BODY, INK, weight="bold")
-    _txt(ax, 6, 126.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
-                       "Each forecast is set to that patient's own\nrecorded rate, so it "
-                       "never changes from day to day.", PT_BODY, MUTE)
-    _txt(ax, 6, 115.0, "Outlined days are compared below.", PT_BODY, MUTE)
+    _txt(ax, 6, 135.0, "A forecast is the model's estimated chance that a given day turns "
+                       "out to be an attack day.", PT_BODY, INK)
+    _txt(ax, 6, 128.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
+                       "Each forecast here is set to that\npatient's own recorded rate, so "
+                       "it never changes from day to day.", PT_BODY, MUTE)
+    _txt(ax, 6, 117.0, "Outlined days are compared below.", PT_BODY, MUTE)
 
 
 def _question(ax, x0, y0, letter, claim, left, right, verdict, ruling, why, tally,
