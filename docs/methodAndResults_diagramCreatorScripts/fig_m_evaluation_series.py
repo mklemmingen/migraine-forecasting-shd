@@ -81,9 +81,10 @@ PT_HEAD, PT_VALUE, PT_AXIS, PT_TICK, PT_BODY, PT_FINE = 8.8, 11.0, 8.0, 7.0, 7.4
 BODY, SECOND, THIRD = "#3d3d3d", "#5f5f5f", "#7a7a7a"
 
 
-def _lab(ax, x, y, t, size=PT_BODY, col=None, ha="left", weight="normal"):
+def _lab(ax, x, y, t, size=PT_BODY, col=None, ha="left", weight="normal",
+         rot=0):
     ax.text(x, y, t, fontsize=size, color=col or SECOND, ha=ha, va="center",
-            fontweight=weight, linespacing=1.5)
+            fontweight=weight, linespacing=1.5, rotation=rot)
 
 
 def _sq(ax, x, y, side, col, alpha=1.0, anchor="center"):
@@ -109,29 +110,29 @@ def _how_auroc(ax, att, hea):
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
     ax.annotate("", xy=(14, 92), xytext=(14, 18),
                 arrowprops=dict(arrowstyle="-|>", color=S.GREY, lw=1.0))
-    _lab(ax, 6, 55, "forecast risk", PT_FINE, SECOND, ha="center")
+    _lab(ax, 6, 55, "forecast risk", PT_FINE, SECOND, ha="center", rot=90)
     for yy, col, lab in ((74, att, "attack day"), (34, "#cfcfcf", "quiet day")):
         _sq(ax, 26, yy, 11, col)
         _lab(ax, 42, yy, lab, PT_BODY, BODY)
     ax.annotate("", xy=(32, 66), xytext=(32, 42),
                 arrowprops=dict(arrowstyle="-|>", color=S.INK, lw=1.2))
-    _lab(ax, 50, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    _lab(ax, 44, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
 
 
 def _how_within(ax, att):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 40), 50, 48, fc="#f4f4f4", ec="none"))
-    _lab(ax, 8, 82, "one patient's diary", PT_FINE, SECOND)
-    for yy, col in ((68, att), (50, "#cfcfcf")):
-        _sq(ax, 26, yy, 11, col)
-    ax.annotate("", xy=(20, 70), xytext=(20, 48),
+    ax.add_patch(Rectangle((4, 32), 62, 52, fc="#f4f4f4", ec="none"))
+    _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
+    for yy, col in ((64, att), (44, "#cfcfcf")):
+        _sq(ax, 24, yy, 11, col)
+    ax.annotate("", xy=(18, 66), xytext=(18, 42),
                 arrowprops=dict(arrowstyle="<|-|>", color=S.INK, lw=1.1,
                                 mutation_scale=8))
-    _lab(ax, 29, 32, "compared", PT_FINE, BODY, ha="center")
-    _sq(ax, 74, 62, 11, "#cfcfcf", alpha=0.5)
-    ax.plot([73, 86], [69, 55], color=S.INK, lw=1.2)
-    _lab(ax, 79, 44, "another patient's day,\nnever compared", PT_FINE, SECOND,
+    _lab(ax, 52, 54, "compared", PT_BODY, BODY, ha="center")
+    _sq(ax, 76, 58, 11, "#cfcfcf", alpha=0.5)
+    ax.plot([77, 86], [63, 53], color=S.INK, lw=1.2)
+    _lab(ax, 81, 38, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
 
 

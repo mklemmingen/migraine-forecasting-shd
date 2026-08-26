@@ -232,6 +232,19 @@ def _ci_density(ax, xi, est, ci, color, side, zorder, reps=None):
     ax.plot([xi, xi], [lo, hi], color=color, lw=0.9, alpha=0.55, zorder=zorder + 0.1)
 
 
+def _chance_label(ax):
+    """Label the 0.5 reference line identically in both discrimination panels.
+
+    The blended transform fixes x as a fraction of the axes and y in data units, so
+    the label sits at the same relative spot in the slopegraph and the per-patient
+    panel even though their x-limits differ. Below the line rather than on it: the
+    two within-person rules sit only 0.04 above chance, so the space overhead is
+    crowded and the space beneath is clear.
+    """
+    ax.text(0.02, 0.5, "chance", fontsize=7.5, color="#5f5f5f", ha="left", va="top",
+            transform=ax.get_yaxis_transform())
+
+
 def _draw_slopegraph(ax) -> None:
     mig_col = S.target_color("migraine")
     hea_col = S.target_color("headache")
@@ -301,8 +314,7 @@ def _draw_slopegraph(ax) -> None:
     # Target identity is carried by colour + the bottom-strip claim sentence
     # (which names "migraine" and "headache" explicitly); no in-panel target
     # word labels here.
-    ax.text(-0.22, 0.5, "chance", fontsize=7.5, color="#5f5f5f", ha="left",
-            va="center", bbox=dict(fc="white", ec="none", pad=0.6))
+    _chance_label(ax)
     ax.set_xlim(-0.25, 1.25)
     ax.set_ylim(SHARED_YLIM)
     ax.set_xticks([0, 1])
@@ -394,10 +406,7 @@ def _draw_per_patient(ax) -> None:
     ax.set_ylabel("per-patient AUROC", fontsize=8)
     n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
     ax.set_xlabel(f"one dot per patient\n({n_hea} headache patients, {n_mig} migraine)", fontsize=8)
-    # Below the line, not above: the two within-person rules sit only 0.04 above
-    # chance, so the space overhead is crowded and the space beneath is clear.
-    ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="top",
-            ha="left")
+    _chance_label(ax)
 
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
