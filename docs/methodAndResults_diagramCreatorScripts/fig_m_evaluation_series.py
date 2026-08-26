@@ -139,19 +139,21 @@ def _how_within(ax, att):
 def _how_brier(ax, hea):
     """Brier compares the squared miss of the forecast with that of the patient's rate."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.plot([8, 92], [70, 70], color=S.GREY, lw=1.0)
-    for x, t in ((8, "0"), (92, "1")):
+    ax.plot([8, 84], [70, 70], color=S.GREY, lw=1.0)
+    for x, t in ((8, "0"), (84, "1")):
         ax.plot([x, x], [68, 72], color=S.GREY, lw=1.0)
         _lab(ax, x, 63, t, PT_FINE, SECOND, ha="center")
-    ax.plot([92], [70], "o", ms=6, mfc=S.INK, mec="none")
-    _lab(ax, 92, 81, "what happened", PT_BODY, BODY, ha="right")
-    for x, col, lab, side in ((66, hea, "forecast", 1), (36, "#9a9a9a", "own rate", -1)):
+    ax.plot([84], [70], "o", ms=6, mfc=S.INK, mec="none")
+    # centred over the outcome dot, so it cannot be read as labelling the forecast
+    _lab(ax, 84, 81, "what happened", PT_BODY, BODY, ha="center")
+    for x, col, lab in ((60, hea, "forecast"), (34, "#9a9a9a", "own rate")):
         ax.plot([x], [70], "o", ms=6, mfc="white", mec=col, mew=1.6)
-        ax.plot([x, 92], [70, 70], color=col, lw=2.2, alpha=0.55,
+        ax.plot([x, 84], [70, 70], color=col, lw=2.2, alpha=0.55,
                 solid_capstyle="butt")
-        sq = (92 - x) * 0.17
+        sq = (84 - x) * 0.19
         h = _sq(ax, x, 34, sq, col, alpha=0.35, anchor="bottom")
-        ax.plot([x + sq / 2, x + sq / 2], [34 + h, 68], color=col, lw=0.7, alpha=0.45,
+        # from the marker itself to the top of its square, so the pairing is explicit
+        ax.plot([x, x + sq / 2], [68, 34 + h], color=col, lw=0.7, alpha=0.45,
                 zorder=0)
         _lab(ax, x + sq / 2, 28, lab, PT_BODY, BODY, ha="center")
 
@@ -160,12 +162,14 @@ def _how_dca(ax, att):
     """Net benefit trades attacks caught against unnecessary treatment."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
     for i in range(6):
-        _sq(ax, 10 + i * 8.5, 62, 7, att, anchor="bottom")
-    _lab(ax, 10, 82, "attacks caught", PT_BODY, BODY)
+        _sq(ax, 12 + i * 8.5, 66, 7, att, anchor="bottom")
+    _lab(ax, 12, 80, "attacks caught", PT_BODY, BODY)
+    # the operator, so the panel shows a subtraction rather than two unrelated rows
+    ax.text(4, 50, "\u2212", fontsize=13, color=S.INK, ha="center", va="center")
     for i in range(4):
-        _sq(ax, 10 + i * 8.5, 34, 7, "#cfcfcf", anchor="bottom")
-    _lab(ax, 10, 46, "days treated for nothing", PT_BODY, BODY)
-    _lab(ax, 58, 32, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
+        _sq(ax, 12 + i * 8.5, 26, 7, "#cfcfcf", anchor="bottom")
+    _lab(ax, 12, 40, "days treated for nothing", PT_BODY, BODY)
+    _lab(ax, 64, 28, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
 
 
 def _skill_panel(ax, rows, cols):
