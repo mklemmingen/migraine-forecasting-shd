@@ -9,7 +9,7 @@ for a reason that has nothing to do with forecasting.
 
 The worked classifier emits each patient's own attack rate and nothing else, so it
 holds no day-level information. It answers the between-patient comparison correctly
-every time (patient A simply has attacks more often) and cannot answer the
+every time (patient A has attacks more often) and cannot answer the
 within-patient comparison at all (it returns the same number on both days). The same
 construction makes it the per-patient climatology this paper uses as the Brier
 reference, so its Brier skill is exactly zero.
@@ -39,7 +39,7 @@ from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent
 
-W_MM, H_MM = 183.0, 150.0          # canvas is millimetres at final size
+W_MM, H_MM = 183.0, 158.0          # canvas is millimetres at final size
 QUIET, RULE = "#e3e3e3", "#9a9a9a"
 
 N_DAYS = 10
@@ -77,108 +77,112 @@ def _note(ax, x, y, text, size=7.2, col="#3d3d3d", ha="left", weight="normal"):
             linespacing=1.5, fontweight=weight)
 
 
-def _claim(ax, x, y, letter, text):
-    """Panel heading as a sentence stating that panel's claim, after the convention
-    this literature uses for teaching figures (e.g. Sebastianelli 2024, Cephalalgia)."""
-    ax.text(x, y, f"({letter})", fontsize=8.6, fontweight="bold", color=S.INK,
+# ---- type scale (pt) and ink -------------------------------------------------
+# Four sizes only. Anything needing a fifth is saying too much.
+PT_CLAIM, PT_LEAD, PT_BODY, PT_SCORE = 9.0, 8.6, 7.2, 13.0
+INK, MUTE = S.INK, S.GREY        # house ink; GREY is darker than a mid grey,
+                                 # which is what keeps the secondary text legible
+TINT = "#f4f4f4"
+BASE = 6.0                      # vertical rhythm; every band sits on a multiple
+
+
+def _claim(ax, x, y, letter, text, accent):
+    """Panel heading states the panel's claim, after the convention this literature
+    uses for teaching figures (Sebastianelli 2024, Cephalalgia)."""
+    ax.add_patch(Rectangle((x, y - 3.1), 1.5, 6.2, fc=accent, ec="none"))
+    ax.text(x + 4.2, y, f"({letter})", fontsize=PT_CLAIM, fontweight="bold", color=INK,
             va="center", ha="left")
-    ax.text(x + 5.6, y, text, fontsize=8.6, fontweight="bold", color=S.INK,
+    ax.text(x + 9.6, y, text, fontsize=PT_CLAIM, fontweight="bold", color=INK,
             va="center", ha="left")
+
+
+def _txt(ax, x, y, text, size=PT_BODY, col=INK, ha="left", weight="normal"):
+    ax.text(x, y, text, fontsize=size, color=col, va="center", ha=ha,
+            linespacing=1.55, fontweight=weight)
 
 
 def _daycard(ax, x, y, w, h, who, day, is_attack, risk, att):
-    """One diary day, drawn big enough to read: whose it is, what happened, and the
-    single number the forecast gave it."""
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.6",
-                                fc="white", ec=RULE, lw=0.8))
-    _note(ax, x + w / 2, y + h - 4.0, f"{who}, day {day}", size=7.0, col=S.INK,
-          ha="center", weight="bold")
-    sq = 7.0
-    ax.add_patch(Rectangle((x + w / 2 - sq / 2, y + h - 14.5), sq, sq,
-                           fc=att if is_attack else QUIET, ec="none"))
-    _note(ax, x + w / 2, y + h - 18.6, "attack day" if is_attack else "quiet day",
-          size=6.8, col="#5f5f5f", ha="center")
-    _note(ax, x + w / 2, y + 4.2, f"forecast {risk:.2f}", size=8.6, col=S.INK,
-          ha="center", weight="bold")
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.4",
+                                fc=TINT, ec="none"))
+    _txt(ax, x + w / 2, y + h - 4.6, f"{who}, day {day}", PT_BODY, INK, "center", "bold")
+    sq = 8.4
+    ax.add_patch(Rectangle((x + w / 2 - sq / 2, y + h - 16.4), sq, sq,
+                           fc=att if is_attack else "#cfcfcf", ec="none"))
+    _txt(ax, x + w / 2, y + h - 20.6, "attack" if is_attack else "no attack",
+         PT_BODY, MUTE, "center")
+    _txt(ax, x + w / 2, y + 4.6, f"{risk:.2f}", PT_LEAD, INK, "center", "bold")
 
 
-def _diaries(ax, att):
-    _claim(ax, 4, 145.0, "a", "The forecast is one number per patient, the same on every day")
-    s, pitch = 5.2, 6.1
+def _diaries(ax, att, accent):
+    _claim(ax, 6, 150.0, "a", "One forecast per patient, unchanged across days", accent)
+    s, pitch = 5.4, 6.4
     ring = {("A", A_ATK_DAY), ("A", A_QUIET_DAY), ("B", B_QUIET_DAY)}
     for k, (name, attacks, rate) in enumerate([("A", A_ATTACK, A_RATE),
                                                ("B", B_ATTACK, B_RATE)]):
-        yy = 134.0 - k * 8.4
-        _note(ax, 4, yy + s / 2, f"Patient {name}", size=7.4, col=S.INK, weight="bold")
+        yy = 137.0 - k * 9.0
+        _txt(ax, 6, yy + s / 2, f"Patient {name}", PT_BODY, INK, weight="bold")
         for i in range(N_DAYS):
-            ax.add_patch(Rectangle((22 + i * pitch, yy), s, s,
-                                   fc=att if i in attacks else QUIET, ec="none"))
+            ax.add_patch(Rectangle((26 + i * pitch, yy), s, s,
+                                   fc=att if i in attacks else "#dcdcdc", ec="none"))
             if (name, i) in ring:
-                ax.add_patch(FancyBboxPatch((22 + i * pitch - 0.7, yy - 0.7),
-                                           s + 1.4, s + 1.4, fc="none", ec=S.INK,
-                                           lw=1.1, zorder=5,
-                                           boxstyle="round,pad=0,rounding_size=1.2"))
-        _note(ax, 22 + N_DAYS * pitch + 3.0, yy + s / 2,
-              f"every day forecast {rate:.2f}", size=7.0, col="#5f5f5f")
-    _note(ax, 4, 119.0, "Patient A has attacks on half her days, patient B on one day in ten. "
-                       "The forecast reports exactly that, and nothing about which day.",
-          size=7.2, col="#5f5f5f")
-    _note(ax, 22, 112.5, "The three outlined days are the ones compared below.", size=7.0,
-          col="#5f5f5f")
+                ax.add_patch(FancyBboxPatch((26 + i * pitch - 0.9, yy - 0.9),
+                                            s + 1.8, s + 1.8, fc="none", ec=INK, lw=1.2,
+                                            zorder=5,
+                                            boxstyle="round,pad=0,rounding_size=1.0"))
+        _txt(ax, 26 + N_DAYS * pitch + 4.0, yy + s / 2, f"forecast {rate:.2f}",
+             PT_BODY, INK, weight="bold")
+    _txt(ax, 6, 119.0, "Patient A records attacks on 5 of 10 days, patient B on 1 of 10. "
+                       "The forecast states each rate and does not vary within a patient.",
+         PT_BODY, MUTE)
+    _txt(ax, 6, 112.0, "Outlined days are compared below.", PT_BODY, MUTE)
 
 
-def _question(ax, x0, y0, claim, letter, left, right, verdict, ok, why, tally, score,
-              score_lab, att):
-    """One comparison, drawn at a size a reader can take in: the two days, the two
-    numbers, and what the forecast concluded from them."""
-    _claim(ax, x0, y0, letter, claim)
-    cw, ch, gap = 30.0, 26.0, 13.0
-    cy = y0 - 33.0
+def _question(ax, x0, y0, letter, claim, left, right, verdict, ruling, why, tally,
+              score_lab, score, att, accent):
+    _claim(ax, x0, y0, letter, claim, accent)
+    cw, ch, gap = 32.0, 29.0, 10.0
+    cy = y0 - 36.0
     _daycard(ax, x0, cy, cw, ch, *left, att)
     _daycard(ax, x0 + cw + gap, cy, cw, ch, *right, att)
-    _note(ax, x0 + cw + gap / 2, cy + ch / 2, "vs", size=8.6, col="#5f5f5f", ha="center")
+    _txt(ax, x0 + cw + gap / 2, cy + ch / 2, "vs", PT_BODY, MUTE, "center")
 
-    # the verdict, drawn between the two cards
-    vy = cy - 6.0
+    mid = x0 + cw + gap / 2
+    vy = cy - 5.0
     ax.plot([x0 + cw / 2, x0 + cw / 2, x0 + cw + gap + cw / 2, x0 + cw + gap + cw / 2],
-            [cy - 1.0, vy, vy, cy - 1.0], color=RULE, lw=0.8)
-    _note(ax, x0 + cw + gap / 2, vy - 5.0, verdict, size=9.0, col=S.INK, ha="center",
-          weight="bold")
-    _note(ax, x0 + cw + gap / 2, vy - 10.6,
-          "the forecast ranks them correctly" if ok else "the forecast cannot separate them",
-          size=7.2, col=S.INK if ok else "#5f5f5f", ha="center")
-    _note(ax, x0, vy - 17.5, why, size=7.2, col="#5f5f5f")
-    _note(ax, x0, vy - 25.5, tally, size=7.2, col="#3d3d3d")
-    _note(ax, x0, vy - 32.5, f"{score_lab} {score:.2f}", size=11.5, col=S.INK,
-          weight="bold")
+            [cy - 0.8, vy, vy, cy - 0.8], color="#c2c2c2", lw=0.9)
+    _txt(ax, mid, vy - 5.5, verdict, PT_LEAD, INK, "center", "bold")
+    _txt(ax, mid, vy - 10.5, ruling, PT_BODY, MUTE, "center")
+
+    _txt(ax, x0, vy - 18.0, why, PT_BODY, INK)
+    _txt(ax, x0, vy - 26.0, tally, PT_BODY, MUTE)
+    _txt(ax, x0, vy - 34.0, score_lab, PT_BODY, MUTE)
+    _txt(ax, x0 + 22.0, vy - 34.0, f"{score:.2f}", PT_SCORE, accent, weight="bold")
 
 
-def _brier(ax, bs, bs_ref, skill):
-    """Brier skill is not a comparison between two days, so it gets the question a
-    clinician would actually put to a forecast: does it beat what we already knew?"""
-    _claim(ax, 4, 24.0, "d", "Brier skill asks whether the forecast beats what we "
-                             "already knew about that patient")
-    bw, bh, gap = 52.0, 12.0, 16.0
-    by = 6.5
-    for k, (lab, val) in enumerate([("what the forecast says for patient A", "0.50 every day"),
-                                    ("what her own attack rate already said", "0.50")]):
-        x = 22.0 + k * (bw + gap)
+def _brier(ax, skill, accent):
+    _claim(ax, 6, 17.0, "d", "Brier skill: does the forecast improve on the known rate?",
+           accent)
+    bw, bh, gap = 56.0, 13.0, 13.0
+    by = 1.5
+    for k, (lab, val) in enumerate([("forecast for patient A", "0.50 daily"),
+                                    ("patient A's recorded rate", "0.50")]):
+        x = 6.0 + k * (bw + gap)
         ax.add_patch(FancyBboxPatch((x, by), bw, bh,
-                                    boxstyle="round,pad=0,rounding_size=1.6",
-                                    fc="white", ec=RULE, lw=0.8))
-        _note(ax, x + bw / 2, by + bh - 4.2, lab, size=6.8, col="#5f5f5f", ha="center")
-        _note(ax, x + bw / 2, by + 4.0, val, size=8.4, col=S.INK, ha="center",
-              weight="bold")
-    _note(ax, 22.0 + bw + gap / 2, by + bh / 2, "=", size=11.0, col=S.INK, ha="center",
-          weight="bold")
-    _note(ax, 22.0 + 2 * bw + gap + 5.0, by + bh / 2,
-          f"skill {skill:.2f}\nthe forecast adds nothing", size=8.0, col=S.INK,
-          weight="bold")
+                                    boxstyle="round,pad=0,rounding_size=1.4",
+                                    fc=TINT, ec="none"))
+        _txt(ax, x + bw / 2, by + bh - 4.4, lab, PT_BODY, MUTE, "center")
+        _txt(ax, x + bw / 2, by + 4.6, val, PT_LEAD, INK, "center", "bold")
+    _txt(ax, 6.0 + bw + gap / 2, by + bh / 2, "=", PT_LEAD, INK, "center", "bold")
+    _txt(ax, 6.0 + 2 * bw + gap + 8.0, by + bh / 2 + 2.6, "skill", PT_BODY, MUTE)
+    _txt(ax, 6.0 + 2 * bw + gap + 20.0, by + bh / 2 + 2.6, f"{skill:.2f}", PT_SCORE,
+         accent, weight="bold")
+    _txt(ax, 6.0 + 2 * bw + gap + 8.0, by + bh / 2 - 4.4, "no improvement", PT_BODY, MUTE)
 
 
 def main() -> None:
     S.apply()
-    att = S.target_color("migraine")
+    att = S.target_color("migraine")          # attack day
+    blue = S.target_color("headache")         # accent on the clinically decisive panels
     y, p = _toy()
     c = _counts()
     auroc = float(roc_auc_score(y, p))
@@ -198,27 +202,23 @@ def main() -> None:
     ax.set_aspect("equal"); ax.axis("off")
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
-    _diaries(ax, att)
-    _question(ax, 4, 103.0,
-              "Pooled AUROC mostly compares different patients", "b",
+    _diaries(ax, att, MUTE)
+    _question(ax, 6, 100.0, "b", "Pooled AUROC compares days across patients",
               ("Patient A", A_ATK_DAY + 1, True, A_RATE),
               ("Patient B", B_QUIET_DAY + 1, False, B_RATE),
-              "0.50  >  0.10", True,
-              "Easy, and for the wrong reason: patient A simply has\nattacks more often "
-              "than patient B. No day was read.",
-              f"{c['conc']} of the {c['pairs']} comparisons are this between-patient kind.",
-              auroc, "AUROC", att)
-    _question(ax, 97, 103.0,
-              "The within-person C compares a patient with herself", "c",
+              "0.50  >  0.10", "ranked correctly",
+              "Attack frequency decides this comparison.\nNeither day was examined.",
+              f"{c['conc']} of {c['pairs']} comparisons cross patients.",
+              "AUROC", auroc, att, MUTE)
+    _question(ax, 101, 100.0, "c", "Within-person C compares one patient's days",
               ("Patient A", A_ATK_DAY + 1, True, A_RATE),
               ("Patient A", A_QUIET_DAY + 1, False, A_RATE),
-              "0.50  =  0.50", False,
-              "This is the comparison a patient actually needs, and\nthe forecast is "
-              "identical on both days.",
-              f"All {c['tied']} within-patient comparisons are ties.",
-              0.5, "C", att)
+              "0.50  =  0.50", "no separation",
+              "The clinically relevant comparison.\nThe forecast is identical on both days.",
+              f"All {c['tied']} within-patient comparisons tie.",
+              "C", 0.5, att, blue)
+    _brier(ax, skill, blue)
 
-    _brier(ax, bs, bs_ref, skill)
     print("saved", S.save(fig, HERE / "figures" / "fig_a6_pooled_vs_within"))
 
 
