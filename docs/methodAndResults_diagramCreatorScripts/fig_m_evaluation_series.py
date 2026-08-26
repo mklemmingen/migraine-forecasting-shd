@@ -1,7 +1,13 @@
-"""Figure A6 - the evaluation argument in three forms.
+"""Figures M1-M4 - one per evaluation question, schematic beside measured result.
 
-Each panel is the canonical plot for the question it answers, drawn from the headline
-cells' own predictions rather than from summary numbers.
+Four short full-width figures rather than one composite: each row of the earlier
+composite was already at the 2:1-3:1 aspect this literature uses for a full-width
+explanatory figure, so stacking four of them was what compressed them. Split, each
+sits in Methods where its metric is defined.
+
+Panel (a) of each is schematic. Panel (b) is the canonical plot for that question,
+drawn from the headline cells' own predictions rather than from summary numbers.
+The prose explaining each schematic lives in the manuscript caption.
 
 (a, b) Discrimination. The bold curve is the pooled ROC, its area the pooled AUROC.
 The thin curves behind it are the same model scored inside each patient separately.
@@ -16,7 +22,7 @@ added nothing to what the patient's own rate already said.
 (d) Clinical value. Decision-curve net benefit against the two default policies. A
 model earns a decision only where its curve sits above both treat-all and treat-none.
 
-Usage: python fig_a6_pooled_vs_within.py   (needs figures/headline_predictions.npz)
+Usage: python fig_m_evaluation_series.py   (needs figures/headline_predictions.npz)
 """
 # §11 compliance: reports headline-cell metrics.
 #   §11.1 metric + CI + n:               AUROC and skill carry intervals; n in the caption
