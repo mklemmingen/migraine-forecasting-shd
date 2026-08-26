@@ -141,20 +141,20 @@ def _how_brier(ax, hea):
     """Brier compares the squared miss of the forecast with that of the patient's rate."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
     _lab(ax, 0, 95, "how it is counted", PT_BODY, BODY, weight="bold")
-    ax.plot([8, 92], [88, 88], color=S.GREY, lw=1.0)
+    ax.plot([8, 92], [78, 78], color=S.GREY, lw=1.0)
     for x, t in ((8, "0"), (92, "1")):
-        ax.plot([x, x], [86, 90], color=S.GREY, lw=1.0)
-        _lab(ax, x, 81, t, PT_FINE, SECOND, ha="center")
-    ax.plot([92], [88], "o", ms=6, mfc=S.INK, mec="none")
-    _lab(ax, 92, 97, "what happened", PT_BODY, BODY, ha="right")
+        ax.plot([x, x], [76, 80], color=S.GREY, lw=1.0)
+        _lab(ax, x, 71, t, PT_FINE, SECOND, ha="center")
+    ax.plot([92], [78], "o", ms=6, mfc=S.INK, mec="none")
+    _lab(ax, 92, 89, "what happened", PT_BODY, BODY, ha="right")
     for x, col, lab, side in ((66, hea, "forecast", 1), (36, "#9a9a9a", "own rate", -1)):
-        ax.plot([x], [88], "o", ms=6, mfc="white", mec=col, mew=1.6)
-        ax.plot([x, 92], [88, 88], color=col, lw=2.2, alpha=0.55,
+        ax.plot([x], [78], "o", ms=6, mfc="white", mec=col, mew=1.6)
+        ax.plot([x, 92], [78, 78], color=col, lw=2.2, alpha=0.55,
                 solid_capstyle="butt")
         sq = (92 - x) * 0.17
-        _sq(ax, x, 54, sq, col, alpha=0.35, anchor="bottom")
-        _lab(ax, x, 47, lab, PT_BODY, BODY)
-    _lab(ax, 0, 22, "Each miss is squared so that the two areas can be compared"
+        _sq(ax, x, 48, sq, col, alpha=0.35, anchor="bottom")
+        _lab(ax, x, 41, lab, PT_BODY, BODY)
+    _lab(ax, 0, 18, "Each miss is squared so that the two areas can be compared"
                     "\ndirectly, and skill reports how much smaller the model's area is"
                     "\nthan the comparator's, with 0.00 indicating no difference.",
          PT_FINE, THIRD)
@@ -169,8 +169,8 @@ def _how_dca(ax, att):
     _lab(ax, 10, 82, "attacks caught", PT_BODY, BODY)
     for i in range(4):
         _sq(ax, 10 + i * 8.5, 34, 7, "#cfcfcf", anchor="bottom")
-    _lab(ax, 10, 48, "days treated for nothing", PT_BODY, BODY)
-    _lab(ax, 46, 40, "weighted by how\nreluctant to treat", PT_FINE, SECOND)
+    _lab(ax, 10, 46, "days treated for nothing", PT_BODY, BODY)
+    _lab(ax, 58, 32, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
     _lab(ax, 0, 14, "Net benefit subtracts the second quantity from the first, so a"
                     "\nmodel supports a decision only over the range of thresholds where"
                     "\nits curve lies above both default policies.", PT_FINE, THIRD)
@@ -254,7 +254,7 @@ def main() -> None:
     gs = fig.add_gridspec(9, 2, width_ratios=[0.72, 1.0],
                           height_ratios=[0.34, 1.00, 0.34, 0.86, 0.34, 0.74, 0.34, 0.90, 0.44],
                           left=0.055, right=0.985, top=0.972, bottom=0.018,
-                          wspace=0.55, hspace=0.34)
+                          wspace=0.55, hspace=0.42)
 
     # Create every axes first, then draw once: the schematics size their squares from
     # the rendered box, so the boxes have to exist before anything is placed in them.
