@@ -101,25 +101,20 @@ def _sq(ax, x, y, side, col, alpha=1.0, anchor="center"):
 def _how_auroc(ax, att, hea):
     """AUROC counts ordered pairs: one attack day against one quiet day."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    _lab(ax, 0, 95, "how it is counted", PT_BODY, BODY, weight="bold")
-    ax.annotate("", xy=(14, 88), xytext=(14, 22),
+    ax.annotate("", xy=(14, 92), xytext=(14, 18),
                 arrowprops=dict(arrowstyle="-|>", color=S.GREY, lw=1.0))
-    _lab(ax, 8, 55, "forecast risk", PT_FINE, SECOND, ha="center")
+    _lab(ax, 6, 55, "forecast risk", PT_FINE, SECOND, ha="center")
     for yy, col, lab in ((74, att, "attack day"), (34, "#cfcfcf", "quiet day")):
         _sq(ax, 26, yy, 11, col)
         _lab(ax, 42, yy, lab, PT_BODY, BODY)
     ax.annotate("", xy=(32, 66), xytext=(32, 42),
                 arrowprops=dict(arrowstyle="-|>", color=S.INK, lw=1.2))
     _lab(ax, 62, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
-    _lab(ax, 0, 10, "AUROC is the proportion of all attack-day and quiet-day pairs that"
-                    "\nthe model orders this way, with 0.50 the value expected from"
-                    "\nranking at random.", PT_FINE, THIRD)
 
 
 def _how_within(ax, att):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    _lab(ax, 0, 95, "how it is counted", PT_BODY, BODY, weight="bold")
     ax.add_patch(Rectangle((4, 34), 52, 50, fc="#f4f4f4", ec="none"))
     _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
     for yy, col in ((64, att), (42, "#cfcfcf")):
@@ -132,38 +127,29 @@ def _how_within(ax, att):
     _sq(ax, 72, 58, 11, "#cfcfcf", alpha=0.5)
     ax.plot([70, 86], [66, 50], color=S.INK, lw=1.2)
     _lab(ax, 64, 40, "another patient's day:\nnever compared", PT_FINE, SECOND)
-    _lab(ax, 0, 14, "Because only comparisons drawn from inside a patient are admitted,"
-                    "\ndifferences between patients in how often they record attacks can"
-                    "\nno longer contribute to the score.", PT_FINE, THIRD)
 
 
 def _how_brier(ax, hea):
     """Brier compares the squared miss of the forecast with that of the patient's rate."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    _lab(ax, 0, 95, "how it is counted", PT_BODY, BODY, weight="bold")
-    ax.plot([8, 92], [78, 78], color=S.GREY, lw=1.0)
+    ax.plot([8, 92], [70, 70], color=S.GREY, lw=1.0)
     for x, t in ((8, "0"), (92, "1")):
-        ax.plot([x, x], [76, 80], color=S.GREY, lw=1.0)
-        _lab(ax, x, 71, t, PT_FINE, SECOND, ha="center")
-    ax.plot([92], [78], "o", ms=6, mfc=S.INK, mec="none")
-    _lab(ax, 92, 89, "what happened", PT_BODY, BODY, ha="right")
+        ax.plot([x, x], [68, 72], color=S.GREY, lw=1.0)
+        _lab(ax, x, 63, t, PT_FINE, SECOND, ha="center")
+    ax.plot([92], [70], "o", ms=6, mfc=S.INK, mec="none")
+    _lab(ax, 92, 81, "what happened", PT_BODY, BODY, ha="right")
     for x, col, lab, side in ((66, hea, "forecast", 1), (36, "#9a9a9a", "own rate", -1)):
-        ax.plot([x], [78], "o", ms=6, mfc="white", mec=col, mew=1.6)
-        ax.plot([x, 92], [78, 78], color=col, lw=2.2, alpha=0.55,
+        ax.plot([x], [70], "o", ms=6, mfc="white", mec=col, mew=1.6)
+        ax.plot([x, 92], [70, 70], color=col, lw=2.2, alpha=0.55,
                 solid_capstyle="butt")
         sq = (92 - x) * 0.17
-        _sq(ax, x, 48, sq, col, alpha=0.35, anchor="bottom")
-        _lab(ax, x, 41, lab, PT_BODY, BODY)
-    _lab(ax, 0, 18, "Each miss is squared so that the two areas can be compared"
-                    "\ndirectly, and skill reports how much smaller the model's area is"
-                    "\nthan the comparator's, with 0.00 indicating no difference.",
-         PT_FINE, THIRD)
+        _sq(ax, x, 34, sq, col, alpha=0.35, anchor="bottom")
+        _lab(ax, x, 27, lab, PT_BODY, BODY)
 
 
 def _how_dca(ax, att):
     """Net benefit trades attacks caught against unnecessary treatment."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    _lab(ax, 0, 95, "how it is counted", PT_BODY, BODY, weight="bold")
     for i in range(6):
         _sq(ax, 10 + i * 8.5, 62, 7, att, anchor="bottom")
     _lab(ax, 10, 82, "attacks caught", PT_BODY, BODY)
@@ -171,9 +157,6 @@ def _how_dca(ax, att):
         _sq(ax, 10 + i * 8.5, 34, 7, "#cfcfcf", anchor="bottom")
     _lab(ax, 10, 46, "days treated for nothing", PT_BODY, BODY)
     _lab(ax, 58, 32, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
-    _lab(ax, 0, 14, "Net benefit subtracts the second quantity from the first, so a"
-                    "\nmodel supports a decision only over the range of thresholds where"
-                    "\nits curve lies above both default policies.", PT_FINE, THIRD)
 
 
 def _skill_panel(ax, rows, cols):
@@ -185,9 +168,8 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt, PT_BODY, BODY)
-    ax.annotate("adds nothing beyond\nthe patient's own rate", xy=(0.0, 1.62),
-            xytext=(0.075, 1.70), fontsize=PT_FINE, color=SECOND,
-            va="center", ha="left",
+    ax.annotate("no improvement", xy=(0.0, 1.62), xytext=(0.055, 1.70),
+            fontsize=PT_FINE, color=SECOND, va="center", ha="left",
             arrowprops=dict(arrowstyle="-", color=SECOND, lw=0.8))
     ax.set_ylim(-0.8, 1.9); ax.set_xlim(-0.32, 0.55)
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
@@ -216,8 +198,6 @@ def _dca_panel(ax, preds, col):
     _lab(ax, ts[j], nb[j] + 0.007, "migraine", PT_BODY, col, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
     _lab(ax, 0.20, -0.055, "dashed: treat everyone", PT_FINE, SECOND)
-    _lab(ax, 0.20, -0.041, "headache, reported: above treat-none, below treat-everyone",
-         PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
     ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
     ax.set_ylabel("net benefit", fontsize=PT_AXIS)
@@ -238,6 +218,32 @@ def _question(fig, gs, row, n, question, gloss):
     ax.text(6.5, 8, gloss, fontsize=PT_BODY, color=SECOND, ha="left", va="center")
 
 
+def _panel_letter(ax, letter):
+    ax.text(-0.02, 1.06, f"({letter})", fontsize=PT_HEAD, fontweight="bold",
+            color=S.INK, transform=ax.transAxes, ha="left", va="bottom")
+
+
+def _one(name, how, how_args, draw_right, right_args):
+    """One figure in the series: the schematic beside the quantity it explains.
+
+    Each is full column width and short, the shape this literature uses for a
+    full-width explanatory figure. The prose that used to sit under each schematic
+    now lives in the manuscript caption, which is where a journal expects it.
+    """
+    fig = plt.figure(figsize=(183 / 25.4, 62 / 25.4))
+    gs = fig.add_gridspec(1, 2, width_ratios=[0.62, 1.0],
+                          left=0.055, right=0.985, top=0.88, bottom=0.185,
+                          wspace=0.30)
+    axl, axr = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    axl.set_xlim(0, 100); axl.set_ylim(0, 100); axl.axis("off")
+    fig.canvas.draw()
+    _panel_letter(axl, "a"); _panel_letter(axr, "b")
+    how(axl, *how_args)
+    draw_right(axr, *right_args)
+    out = S.save(fig, HERE / "figures" / name)
+    print("saved", Path(out).name)
+
+
 def main() -> None:
     S.apply()
     import graphical_abstract as GA        # the abstract's own diagrams, reused as drawn
@@ -250,55 +256,11 @@ def main() -> None:
     assert abs(roc_auc_score(y, p) - float(mig_row["auroc"])) < 5e-4, \
         "migraine cached predictions disagree with the published AUROC"
 
-    fig = plt.figure(figsize=(183 / 25.4, 234 / 25.4))
-    gs = fig.add_gridspec(9, 2, width_ratios=[0.72, 1.0],
-                          height_ratios=[0.34, 1.00, 0.34, 0.86, 0.34, 0.74, 0.34, 0.90, 0.44],
-                          left=0.055, right=0.985, top=0.972, bottom=0.018,
-                          wspace=0.55, hspace=0.42)
-
-    # Create every axes first, then draw once: the schematics size their squares from
-    # the rendered box, so the boxes have to exist before anything is placed in them.
-    ax_m1, ax_r1 = fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
-    ax_m2, ax_r2 = fig.add_subplot(gs[3, 0]), fig.add_subplot(gs[3, 1])
-    ax_m3, ax_r3 = fig.add_subplot(gs[5, 0]), fig.add_subplot(gs[5, 1])
-    ax_m4, ax_r4 = fig.add_subplot(gs[7, 0]), fig.add_subplot(gs[7, 1])
-    for a in (ax_m1, ax_m2, ax_m3, ax_m4):
-        a.set_xlim(0, 100); a.set_ylim(0, 100); a.axis("off")
-    fig.canvas.draw()
-
-    _question(fig, gs, 0, 1, "Can it rank attack days across the cohort?",
-              "Pooled AUROC: every patient's days placed in one ranking.")
-    _how_auroc(ax_m1, ORA, BLU)
-    GA._draw_slopegraph(ax_r1)
-
-    _question(fig, gs, 2, 2, "Can it rank days inside one patient?",
-              "Within-person C-statistic: the same test, run inside each diary.")
-    _how_within(ax_m2, ORA)
-    GA._draw_per_patient(ax_r2)
-
-    _question(fig, gs, 4, 3, "Does it beat the patient's own attack rate?",
-              "Brier skill against each patient's recorded rate.")
-    _how_brier(ax_m3, BLU)
-    _skill_panel(ax_r3, [("migraine", mig_row), ("headache", hea_row)], [ORA, BLU])
-
-    _question(fig, gs, 6, 4, "Would acting on it help the patient?",
-              "Decision-curve net benefit against the two default policies.")
-    _how_dca(ax_m4, ORA)
-    _dca_panel(ax_r4, preds, ORA)
-
-    axf = fig.add_subplot(gs[8, :]); axf.axis("off")
-    axf.set_xlim(0, 100); axf.set_ylim(0, 100)
-    axf.text(0, 84, "Pooled AUROC is the endpoint most often reported for this task. Read on its own it supports a usable forecast;",
-             fontsize=8.2, fontweight="bold", color=S.INK, va="center")
-    axf.text(0, 60, "read alongside the three questions that follow it does not, and neither target retains that support as far as a clinical",
-             fontsize=8.2, fontweight="bold", color=S.INK, va="center")
-    axf.text(0, 36, "decision on diary-only data from this cohort.", fontsize=8.2,
-             fontweight="bold", color=S.INK, va="center")
-    axf.text(0, 8, "Headline cells: migraine XGB-HP020, headache TabPFN-v2.6, "
-                    "full_features 70/30 chronological. Left column is schematic; "
-                    "right column is measured.", fontsize=PT_FINE, color=THIRD, va="center")
-
-    print("saved", S.save(fig, HERE / "figures" / "fig_a6_pooled_vs_within"))
+    _one("fig_m1_pooled_auroc", _how_auroc, (ORA, BLU), GA._draw_slopegraph, ())
+    _one("fig_m2_within_person", _how_within, (ORA,), GA._draw_per_patient, ())
+    _one("fig_m3_brier_skill", _how_brier, (BLU,), _skill_panel,
+         ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
+    _one("fig_m4_net_benefit", _how_dca, (ORA,), _dca_panel, (preds, ORA))
 
 
 if __name__ == "__main__":
