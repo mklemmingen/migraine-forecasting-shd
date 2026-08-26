@@ -87,7 +87,7 @@ def _lab(ax, x, y, t, size=PT_BODY, col=None, ha="left", weight="normal",
             fontweight=weight, linespacing=1.5, rotation=rot)
 
 
-def _sq(ax, x, y, side, col, alpha=1.0, anchor="center"):
+def _sq(ax, x, y, side, col, alpha=1.0, anchor="center", outline=False):
     """A true square on a 0-100 box whose axes are not square.
 
     Every schematic here shares one coordinate space, but the four rows have
@@ -101,7 +101,11 @@ def _sq(ax, x, y, side, col, alpha=1.0, anchor="center"):
     yr = ax.get_ylim()[1] - ax.get_ylim()[0]
     h = side * (bb.width / xr) * (yr / bb.height)
     y0 = y if anchor == "bottom" else y - h / 2
-    ax.add_patch(Rectangle((x, y0), side, h, fc=col, ec="none", alpha=alpha))
+    if outline:
+        ax.add_patch(Rectangle((x, y0), side, h, fc="none", ec=col, lw=1.0,
+                               ls=(0, (2.5, 1.8)), alpha=alpha))
+    else:
+        ax.add_patch(Rectangle((x, y0), side, h, fc=col, ec="none", alpha=alpha))
     return h
 
 
@@ -125,13 +129,12 @@ def _how_within(ax, att):
     ax.add_patch(Rectangle((4, 32), 62, 52, fc="#f4f4f4", ec="none"))
     _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
     for yy, col in ((64, att), (44, "#cfcfcf")):
-        _sq(ax, 24, yy, 11, col)
-    ax.annotate("", xy=(18, 66), xytext=(18, 42),
+        _sq(ax, 14, yy, 11, col)
+    ax.annotate("", xy=(32, 66), xytext=(32, 42),
                 arrowprops=dict(arrowstyle="<|-|>", color=S.INK, lw=1.1,
                                 mutation_scale=8))
-    _lab(ax, 52, 54, "compared", PT_BODY, BODY, ha="center")
-    _sq(ax, 76, 58, 11, "#cfcfcf", alpha=0.5)
-    ax.plot([77, 86], [63, 53], color=S.INK, lw=1.2)
+    _lab(ax, 38, 54, "compared", PT_BODY, BODY)
+    _sq(ax, 76, 58, 11, "#9a9a9a", outline=True)
     _lab(ax, 81, 38, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
 
@@ -146,16 +149,15 @@ def _how_brier(ax, hea):
     ax.plot([84], [70], "o", ms=6, mfc=S.INK, mec="none")
     # centred over the outcome dot, so it cannot be read as labelling the forecast
     _lab(ax, 84, 81, "what happened", PT_BODY, BODY, ha="center")
-    for x, col, lab in ((60, hea, "forecast"), (34, "#9a9a9a", "own rate")):
+    for x, col, lab in ((60, hea, "forecast\nerror"),
+                        (34, "#9a9a9a", "own-rate\nerror")):
         ax.plot([x], [70], "o", ms=6, mfc="white", mec=col, mew=1.6)
         ax.plot([x, 84], [70, 70], color=col, lw=2.2, alpha=0.55,
                 solid_capstyle="butt")
         sq = (84 - x) * 0.19
-        h = _sq(ax, x, 34, sq, col, alpha=0.35, anchor="bottom")
-        # from the marker itself to the top of its square, so the pairing is explicit
-        ax.plot([x, x + sq / 2], [68, 34 + h], color=col, lw=0.7, alpha=0.45,
-                zorder=0)
-        _lab(ax, x + sq / 2, 28, lab, PT_BODY, BODY, ha="center")
+        h = _sq(ax, x - sq / 2, 34, sq, col, alpha=0.35, anchor="bottom")
+        ax.plot([x, x], [68, 34 + h], color=col, lw=0.7, alpha=0.45, zorder=0)
+        _lab(ax, x, 24, lab, PT_BODY, BODY, ha="center")
 
 
 def _how_dca(ax, att):
@@ -181,9 +183,7 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt, PT_BODY, BODY)
-    ax.annotate("no improvement", xy=(0.0, 1.34), xytext=(0.045, 1.50),
-            fontsize=PT_FINE, color=SECOND, va="center", ha="left",
-            arrowprops=dict(arrowstyle="-", color=SECOND, lw=0.8))
+    _lab(ax, 0.0, 1.46, "no improvement", PT_FINE, SECOND, ha="center")
     ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.55)
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
@@ -210,7 +210,7 @@ def _dca_panel(ax, preds, col):
     j = int(len(ts) * 0.34)
     _lab(ax, ts[j], nb[j] + 0.007, "migraine", PT_BODY, col, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
-    _lab(ax, 0.20, -0.055, "dashed: treat everyone", PT_FINE, SECOND)
+    _lab(ax, 0.145, -0.041, "treat everyone", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
     ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
     ax.set_ylabel("net benefit", fontsize=PT_AXIS)
