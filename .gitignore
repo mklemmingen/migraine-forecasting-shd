@@ -253,3 +253,4 @@ experiment/**/finetune_checkpoints_pass1/
 # intermediates are regenerable by re-running the personalisation pipeline.
 experiment/**/within_person_cv_add*.csv
 experiment/**/within_person_holdout_add*.csv
+.venv311

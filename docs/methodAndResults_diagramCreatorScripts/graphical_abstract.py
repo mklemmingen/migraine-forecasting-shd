@@ -33,6 +33,7 @@ graphical_abstract_review.md in the paper working tree before changing any value
 
 Usage: python graphical_abstract.py
 """
+import csv
 import os
 import sys
 from pathlib import Path
@@ -151,15 +152,41 @@ def _draw_cohort(ax) -> None:
     return gax
 
 
-def _ci_density(ax, xi, est, ci, color, side, zorder):
+def _load_pooled_replicates() -> dict:
+    """Load the patient-cluster bootstrap AUROC replicates, if they are on disk.
+
+    run_patient_cluster_bootstrap.py writes every resampled AUROC alongside the
+    summary CSV, so the pooled bands can be drawn from the actual resampling
+    distribution instead of a curve inferred from its two percentiles. Returns an
+    empty dict when the file is absent, which drops the pooled bands back to the
+    analytic shape.
+    """
+    d = REPO / "experiment" / "_eval" / "_special"
+    files = sorted(d.glob("patient_cluster_auroc_replicates_*.csv"))
+    if not files:
+        return {}
+    out: dict[tuple[str, str], list[float]] = {}
+    with open(files[-1], newline="") as fh:
+        for row in csv.DictReader(fh):
+            out.setdefault((row["target"], row["architecture"]), []).append(
+                float(row["auroc"]))
+    return {k: np.asarray(v) for k, v in out.items()}
+
+
+def _ci_density(ax, xi, est, ci, color, side, zorder, reps=None):
     """Draw a confidence interval as a 90-degree-rotated density on the AUROC axis.
 
     The thin spine spans exactly the interval, so the CI is still read off the
-    y-axis directly; the filled curve beside it shows where the mass sits. Both
-    published intervals are asymmetric about the estimate (migraine pooled runs
-    0.544 to 0.890 around 0.791), so a single Gaussian would misplace the peak.
-    Each half instead takes its own sigma from its own half-width, which is the
-    split-normal the interval already implies.
+    y-axis directly; the filled curve beside it shows where the mass sits.
+
+    Where the replicates exist (the two pooled AUROCs, resampled by patient
+    cluster) the curve is a kernel density over those replicates -- the actual
+    resampling distribution the published interval was cut from, not a stand-in.
+    The within-person C-statistics have no such distribution to plot: they are
+    Hanley-McNeil variances pooled by Paule-Mandel random effects, and that
+    estimator's interval is normal for the pooled mean by construction, so the
+    normal is drawn there rather than implied. Both intervals are asymmetric
+    about the estimate, so each half takes its own sigma from its own half-width.
 
     Migraine and headache are drawn on opposite sides because at the within-person
     end the two estimates differ by 0.016 and the intervals sit almost on top of
@@ -167,11 +194,19 @@ def _ci_density(ax, xi, est, ci, color, side, zorder):
     maximum width, so the widths stay comparable between the two targets.
     """
     lo, hi = ci
-    sd_lo = max((est - lo) / 1.96, 1e-6)
-    sd_hi = max((hi - est) / 1.96, 1e-6)
     yy = np.linspace(lo, hi, 240)
-    sd = np.where(yy < est, sd_lo, sd_hi)
-    dens = np.exp(-0.5 * ((yy - est) / sd) ** 2) * CI_BAND_WIDTH * side
+    if reps is not None and len(reps) > 50:
+        # Silverman bandwidth on the replicates
+        sd = float(np.std(reps, ddof=1))
+        iqr = float(np.subtract(*np.percentile(reps, [75, 25])))
+        h = 0.9 * min(sd, iqr / 1.34 if iqr > 0 else sd) * len(reps) ** (-0.2)
+        dens = np.exp(-0.5 * ((yy[:, None] - reps[None, :]) / h) ** 2).sum(1)
+    else:
+        sd_lo = max((est - lo) / 1.96, 1e-6)
+        sd_hi = max((hi - est) / 1.96, 1e-6)
+        sd = np.where(yy < est, sd_lo, sd_hi)
+        dens = np.exp(-0.5 * ((yy - est) / sd) ** 2)
+    dens = dens / dens.max() * CI_BAND_WIDTH * side
     ax.fill_betweenx(yy, xi, xi + dens, fc=color, ec="none", alpha=0.28,
                      zorder=zorder)
     ax.plot(xi + dens, yy, color=color, lw=0.7, alpha=0.9, zorder=zorder + 0.1)
@@ -181,6 +216,13 @@ def _ci_density(ax, xi, est, ci, color, side, zorder):
 def _draw_slopegraph(ax) -> None:
     mig_col = S.target_color("migraine")
     hea_col = S.target_color("headache")
+    # Both pooled bands must come from the same kind of object: an empirical curve
+    # beside an analytic one would read as a difference between the targets rather
+    # than a difference in what could be re-run. If either cell's replicates are
+    # missing, both fall back to the analytic shape.
+    reps = _load_pooled_replicates()
+    if not {("migraine", "XGBoost"), ("headache", "TabPFN")} <= set(reps):
+        reps = {}
     # x positions: pooled at 0, within at 1
     x = [0, 1]
     # Dashed reference at 0.5 (chance); the y-axis tick at 0.5 carries the
@@ -192,14 +234,16 @@ def _draw_slopegraph(ax) -> None:
             marker="o", markersize=6.5, mfc=mig_col, mec="white", mew=1.0)
     for xi, yi, ci in [(0, MIGRAINE["pooled"], MIGRAINE["pooled_ci"]),
                        (1, MIGRAINE["within"], MIGRAINE["within_ci"])]:
-        _ci_density(ax, xi, yi, ci, mig_col, -1, 2.0)
+        _ci_density(ax, xi, yi, ci, mig_col, -1, 2.0,
+                    reps=reps.get(("migraine", "XGBoost")) if xi == 0 else None)
     # Headache slope
     hea_y = [HEADACHE["pooled"], HEADACHE["within"]]
     ax.plot(x, hea_y, color=hea_col, lw=2.2, zorder=4,
             marker="o", markersize=6.5, mfc=hea_col, mec="white", mew=1.0)
     for xi, yi, ci in [(0, HEADACHE["pooled"], HEADACHE["pooled_ci"]),
                        (1, HEADACHE["within"], HEADACHE["within_ci"])]:
-        _ci_density(ax, xi, yi, ci, hea_col, +1, 2.0)
+        _ci_density(ax, xi, yi, ci, hea_col, +1, 2.0,
+                    reps=reps.get(("headache", "TabPFN")) if xi == 0 else None)
     # Endpoint value labels: white bbox lifts the text off crossing slopes.
     # Within-person endpoints sit only 0.016 apart in y (migraine 0.558,
     # headache 0.542), which is below the 8.5pt label line-height at this

@@ -123,7 +123,8 @@ def _brier_skill(y, p, ref) -> float:
 
 
 def _bootstrap(metric_fn, y, p, n_boot: int, seed: int,
-               pid: np.ndarray | None = None, ref: np.ndarray | None = None):
+               pid: np.ndarray | None = None, ref: np.ndarray | None = None,
+               store: dict | None = None, tag: str = ""):
     """If pid is None: row bootstrap (patient-day-iid; current default per the
     Methods section).
     If pid is given: patient-cluster bootstrap (sample patient_ids with
@@ -161,6 +162,10 @@ def _bootstrap(metric_fn, y, p, n_boot: int, seed: int,
     if not vals:
         return float("nan"), float("nan"), 0
     arr = np.array(vals)
+    if store is not None:
+        # The percentiles alone cannot reconstruct the shape of the resampling
+        # distribution, which the graphical abstract draws; keep the replicates.
+        store[tag] = arr
     return float(np.percentile(arr, 2.5)), float(np.percentile(arr, 97.5)), len(arr)
 
 
@@ -206,6 +211,7 @@ def main() -> None:
     print()
 
     rows: list[dict] = []
+    auroc_reps: dict[str, np.ndarray] = {}
     for tgt, label, leaf in cells:
         t0 = time.time()
         print(f"=== {tgt} / {label} ===")
@@ -229,7 +235,8 @@ def main() -> None:
 
         # Bootstrap CIs: patient-day (sensitivity) AND patient-cluster (primary per the Methods section)
         auroc_day = _bootstrap(_auroc, y, p, N_BOOT, 42)
-        auroc_cluster = _bootstrap(_auroc, y, p, N_BOOT, 42, pid=pid)
+        auroc_cluster = _bootstrap(_auroc, y, p, N_BOOT, 42, pid=pid,
+                                   store=auroc_reps, tag=f"{tgt}|{label}")
         slope_day = _bootstrap(lambda yy, pp: float(calibration_slope(yy, pp)), y, p, N_BOOT, 42)
         slope_cluster = _bootstrap(lambda yy, pp: float(calibration_slope(yy, pp)), y, p, N_BOOT, 42, pid=pid)
         citl_day = _bootstrap(_citl, y, p, N_BOOT, 42)
@@ -267,6 +274,16 @@ def main() -> None:
         out_csv = HERE / f"patient_cluster_bootstrap_{ts}.csv"
         df.to_csv(out_csv, index=False)
         print(f"Saved: {out_csv.relative_to(REPO)}")
+
+    if auroc_reps:
+        rep = pd.DataFrame([
+            {"target": k.split("|")[0], "architecture": k.split("|")[1],
+             "replicate": i, "auroc": float(v)}
+            for k, arr in auroc_reps.items() for i, v in enumerate(arr)
+        ])
+        rep_csv = HERE / f"patient_cluster_auroc_replicates_{ts}.csv"
+        rep.to_csv(rep_csv, index=False)
+        print(f"Saved: {rep_csv.relative_to(REPO)}  ({len(rep)} replicates)")
 
 
 if __name__ == "__main__":
