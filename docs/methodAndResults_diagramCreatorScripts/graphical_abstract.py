@@ -38,6 +38,7 @@ import sys
 from pathlib import Path
 import io
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea, VPacker
@@ -55,7 +56,13 @@ import _style as S  # noqa: E402
 SHARED_YLIM = (0.30, 0.95)
 SHARED_YTICKS = [0.3, 0.5, 0.7, 0.9]
 
+CI_BAND_WIDTH = 0.085               # widest point of a CI density, in x units
 MIG_TEXT = "#C25100"  # 4.70:1 on white; S.target_color("migraine") is 3.87:1
+GRID_X_FRAC = 0.588                 # grid origin as a fraction of the cohort panel,
+GRID_Y_FRAC = 0.287                 # chosen so the snapped box keeps its old position
+GRID_MID_FRAC = 0.810               # horizontal centre of the snapped grid
+GRID_PITCH_PX = 7                   # day-grid cell-to-cell distance, whole pixels
+GRID_CELL_PX = 6                    # filled square inside that pitch, 1 px gutter
 
 # Numbers: single source of truth, traced to article.tex.
 MIGRAINE = {"pooled": 0.791, "pooled_ci": (0.544, 0.890),
@@ -107,7 +114,7 @@ def _draw_cohort(ax) -> None:
     ax.text(0.30, 0.875, "Headache diary", fontsize=8.8, fontweight="bold",
             color=S.INK, transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.80, 0.735, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
+    ax.text(GRID_MID_FRAC, 0.735, "100 typical diary days", fontsize=7.4, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="center")
     gax = ax.inset_axes([0.30, 0.295, 1.0, 0.38])
     gax.set_xlim(0, 10); gax.set_ylim(0, 10)
@@ -115,14 +122,17 @@ def _draw_cohort(ax) -> None:
     n_mig, n_hea = 7, 23                      # per 100 days: 7.2% and 23.5%
     for i in range(100):
         col = mig_col if i < n_mig else (hea_col if i < n_hea else "#e3e3e3")
-        gax.add_patch(Rectangle((i % 10 + 0.08, 9 - i // 10 + 0.08), 0.84, 0.84,
-                                fc=col, ec="none"))
+        # one data unit is GRID_PITCH_PX once main() snaps the box, so a cell of
+        # CELL/PITCH lands on whole pixels and every square rasterises identically
+        gax.add_patch(Rectangle((i % 10, 9 - i // 10),
+                                GRID_CELL_PX / GRID_PITCH_PX,
+                                GRID_CELL_PX / GRID_PITCH_PX, fc=col, ec="none",
+                                antialiased=False))
 
-    # The grid is aspect-equal, so it sits centred inside its full-width inset;
-    # caption and legend are centred on it rather than flush to the panel edge.
-    ax.figure.canvas.draw()
-    pbox, gbox = ax.get_window_extent(), gax.get_window_extent()
-    gx0 = (gbox.x0 - pbox.x0) / pbox.width
+    # main() snaps the grid to GRID_X_FRAC of this panel, so the legend and the
+    # captions take that fraction directly rather than measuring a box that is
+    # still pre-snap at this point.
+    gx0 = GRID_X_FRAC
 
     legend = [(mig_col, "7  migraine"),
               (hea_col, "16  other headache"),
@@ -134,10 +144,38 @@ def _draw_cohort(ax) -> None:
         ax.text(gx0 + 0.085, yy + 0.021, lab, fontsize=7.4, color="#3d3d3d",
                 transform=ax.transAxes, va="center", ha="left")
 
-    ax.text(0.80, -0.030, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
+    ax.text(GRID_MID_FRAC, -0.030, "62 patients, 4,516 diary days", fontsize=7.6, color="#3d3d3d",
             transform=ax.transAxes, va="center", ha="center")
-    ax.text(0.80, -0.105, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
+    ax.text(GRID_MID_FRAC, -0.105, "Park 2016, 2 Korean clinics", fontsize=7.6, color="#5f5f5f",
             transform=ax.transAxes, va="center", ha="center")
+    return gax
+
+
+def _ci_density(ax, xi, est, ci, color, side, zorder):
+    """Draw a confidence interval as a 90-degree-rotated density on the AUROC axis.
+
+    The thin spine spans exactly the interval, so the CI is still read off the
+    y-axis directly; the filled curve beside it shows where the mass sits. Both
+    published intervals are asymmetric about the estimate (migraine pooled runs
+    0.544 to 0.890 around 0.791), so a single Gaussian would misplace the peak.
+    Each half instead takes its own sigma from its own half-width, which is the
+    split-normal the interval already implies.
+
+    Migraine and headache are drawn on opposite sides because at the within-person
+    end the two estimates differ by 0.016 and the intervals sit almost on top of
+    each other; concentric shapes would read as one blob. Both use the same
+    maximum width, so the widths stay comparable between the two targets.
+    """
+    lo, hi = ci
+    sd_lo = max((est - lo) / 1.96, 1e-6)
+    sd_hi = max((hi - est) / 1.96, 1e-6)
+    yy = np.linspace(lo, hi, 240)
+    sd = np.where(yy < est, sd_lo, sd_hi)
+    dens = np.exp(-0.5 * ((yy - est) / sd) ** 2) * CI_BAND_WIDTH * side
+    ax.fill_betweenx(yy, xi, xi + dens, fc=color, ec="none", alpha=0.28,
+                     zorder=zorder)
+    ax.plot(xi + dens, yy, color=color, lw=0.7, alpha=0.9, zorder=zorder + 0.1)
+    ax.plot([xi, xi], [lo, hi], color=color, lw=0.9, alpha=0.55, zorder=zorder + 0.1)
 
 
 def _draw_slopegraph(ax) -> None:
@@ -151,18 +189,17 @@ def _draw_slopegraph(ax) -> None:
     # Migraine slope
     mig_y = [MIGRAINE["pooled"], MIGRAINE["within"]]
     ax.plot(x, mig_y, color=mig_col, lw=2.2, zorder=4,
-            marker="o", markersize=8, mfc=mig_col, mec=S.INK, mew=0.8)
-    # Migraine CI whiskers
+            marker="o", markersize=6.5, mfc=mig_col, mec="white", mew=1.0)
     for xi, yi, ci in [(0, MIGRAINE["pooled"], MIGRAINE["pooled_ci"]),
                        (1, MIGRAINE["within"], MIGRAINE["within_ci"])]:
-        ax.plot([xi, xi], [ci[0], ci[1]], color=mig_col, lw=1.2, alpha=0.7, zorder=3)
+        _ci_density(ax, xi, yi, ci, mig_col, -1, 2.0)
     # Headache slope
     hea_y = [HEADACHE["pooled"], HEADACHE["within"]]
     ax.plot(x, hea_y, color=hea_col, lw=2.2, zorder=4,
-            marker="o", markersize=8, mfc=hea_col, mec=S.INK, mew=0.8)
+            marker="o", markersize=6.5, mfc=hea_col, mec="white", mew=1.0)
     for xi, yi, ci in [(0, HEADACHE["pooled"], HEADACHE["pooled_ci"]),
                        (1, HEADACHE["within"], HEADACHE["within_ci"])]:
-        ax.plot([xi, xi], [ci[0], ci[1]], color=hea_col, lw=1.2, alpha=0.7, zorder=3)
+        _ci_density(ax, xi, yi, ci, hea_col, +1, 2.0)
     # Endpoint value labels: white bbox lifts the text off crossing slopes.
     # Within-person endpoints sit only 0.016 apart in y (migraine 0.558,
     # headache 0.542), which is below the 8.5pt label line-height at this
@@ -170,16 +207,16 @@ def _draw_slopegraph(ax) -> None:
     # to avoid stacking on top of each other. clip_on=False lets labels
     # render into the inter-panel wspace if they exceed the data area.
     label_box = dict(fc="white", ec="none", pad=0.8)
-    ax.text(-0.08, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
+    ax.text(-0.16, MIGRAINE["pooled"], f"{MIGRAINE['pooled']:.2f}", ha="right",
             va="center", fontsize=11, color=MIG_TEXT, fontweight="bold",
             bbox=label_box, clip_on=False)
-    ax.text(1.06, MIGRAINE["within"] + 0.04, f"{MIGRAINE['within']:.2f}",
+    ax.text(1.13, MIGRAINE["within"] + 0.04, f"{MIGRAINE['within']:.2f}",
             ha="left", va="bottom", fontsize=11, color=MIG_TEXT, fontweight="bold",
             bbox=label_box, clip_on=False)
-    ax.text(-0.08, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
+    ax.text(-0.16, HEADACHE["pooled"], f"{HEADACHE['pooled']:.2f}", ha="right",
             va="center", fontsize=11, color=hea_col, fontweight="bold",
             bbox=label_box, clip_on=False)
-    ax.text(1.06, HEADACHE["within"] - 0.04, f"{HEADACHE['within']:.2f}",
+    ax.text(1.13, HEADACHE["within"] - 0.04, f"{HEADACHE['within']:.2f}",
             ha="left", va="top", fontsize=11, color=hea_col, fontweight="bold",
             bbox=label_box, clip_on=False)
     # Delta annotations at midpoint
@@ -298,10 +335,10 @@ def main() -> None:
     plt.rcParams["savefig.bbox"] = "standard"
 
     fig, (ax_cohort, ax_gap, ax_cal) = plt.subplots(
-        1, 3, figsize=(9.21, 3.00), dpi=100,
+        1, 3, figsize=(9.20, 3.00), dpi=100,
         gridspec_kw={"width_ratios": [1.0, 1.85, 1.15]},
     )
-    _draw_cohort(ax_cohort)
+    grid_ax = _draw_cohort(ax_cohort)
     _draw_slopegraph(ax_gap)
     if PER_PATIENT_CSV.exists():
         _draw_per_patient(ax_cal)
@@ -352,6 +389,18 @@ def main() -> None:
     # only the per-patient panel moves left; the hero keeps its width
     _b = ax_cal.get_position()
     ax_cal.set_position([_b.x0 - 0.022, _b.y0, _b.width, _b.height])
+
+    # A 10x10 grid only rasterises evenly if its box is an exact multiple of the
+    # pitch and starts on a pixel boundary; otherwise the first cell loses a pixel.
+    fig.canvas.draw()
+    _fw, _fh = fig.get_size_inches() * fig.dpi
+    _pb = ax_cohort.get_window_extent()
+    _side = 10 * GRID_PITCH_PX
+    _gx = round(_pb.x0 + GRID_X_FRAC * _pb.width)
+    _gy = round(_pb.y0 + GRID_Y_FRAC * _pb.height)
+    grid_ax.set_aspect("auto")
+    grid_ax.set_axes_locator(None)      # inset locators override set_position
+    grid_ax.set_position([_gx / _fw, _gy / _fh, _side / _fw, _side / _fh])
 
     out_png = HERE / "figures" / "graphical_abstract.png"
     fig.savefig(out_png, dpi=100, bbox_inches=None,
