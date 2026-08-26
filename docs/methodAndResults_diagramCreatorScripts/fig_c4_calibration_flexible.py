@@ -2,13 +2,14 @@
 
 Adds the moderate-calibration-level diagnostic of the Van Calster 2016
 calibration hierarchy on top of the weak-calibration (slope + CITL) reporting
-already in body §3.4 and the discrete-bin reliability diagram in fig_c3. The
-loess smooth is fit to the per-leaf out-of-sample (y, p) pairs at the
-composite-tracked migraine and headache headline cells; the patient-cluster
+already in the Results section and the discrete-bin reliability diagram in
+fig_c3. The loess smooth is fit to the per-leaf out-of-sample (y, p) pairs at
+the composite-tracked migraine and headache headline cells; the patient-cluster
 bootstrap 95% band is drawn around the smooth (resampling unit = patient,
-matching the body §2.8 discipline for the headline-cell metrics under the
-§3.5 within-patient serial-dependence finding) so a reader can see at which
-predicted-probability regions the calibration is supported by data.
+matching the Methods section's resampling discipline for the headline-cell
+metrics, alongside the Results section's within-patient serial-dependence
+finding) so a reader can see at which predicted-probability regions the
+calibration is supported by data.
 
 The predicted-probability density is overlaid on a twinned y-axis per the
 pmcalplot convention so a sparse-data region does not get over-interpreted as
@@ -91,9 +92,9 @@ def _loess_with_band(y: np.ndarray, p: np.ndarray, grid: np.ndarray,
 
     Patient-cluster resampling: sample unique patient_id values with
     replacement, concatenate every row belonging to each sampled patient,
-    refit loess on the bootstrap sample. Matches the body §2.8 discipline
-    for the headline-cell metrics under the §3.5 within-patient serial
-    dependence."""
+    refit loess on the bootstrap sample. Matches the Methods section's
+    resampling discipline for the headline-cell metrics, alongside the
+    Results section's within-patient serial-dependence finding."""
     smoothed = lowess(y, p, frac=LOWESS_FRAC, it=LOWESS_IT, return_sorted=True)
     smooth_grid = np.interp(grid, smoothed[:, 0], smoothed[:, 1])
 

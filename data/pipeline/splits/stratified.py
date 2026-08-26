@@ -8,7 +8,7 @@ Supports any number of folds via the `cutpoints` parameter:
 
 Rows are shuffled while preserving class proportions in each fold via
 stratified splitting. This breaks temporal ordering intentionally.
-# See data/processed/dataset_characterization.pdf for current positive rate.
+# See data/processed/<target_mode>/class_balance.pdf for current positive rate.
 """
 from typing import Optional
 

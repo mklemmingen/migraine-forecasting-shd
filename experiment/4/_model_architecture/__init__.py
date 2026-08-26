@@ -6,7 +6,7 @@ via the ``VERSIONS`` tuple, exactly as Addition 1 does for the TabPFN family.
 
 Builder contract
 ----------------
-Every ``build_<arch>(X_train, y_train, *, device='cuda', random_state=0,
+Every ``build_<arch>(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0,
 output_dir=None)`` must:
 
   - take an id-bearing ``X_train`` (pandas.DataFrame still carrying

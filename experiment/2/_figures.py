@@ -50,9 +50,36 @@ def latest_figdata(addition2_dir):
     return files[-1] if files else None
 
 
+def _rebase_leaf_dirs(obj, exp_root):
+    """Re-root every stored ``leaf_dir`` on this checkout.
+
+    figdata records absolute paths captured at run time, so they break whenever the
+    repository is moved or cloned elsewhere. Everything from the ``experiment``
+    component onwards is stable, so rebuild that suffix under the current experiment
+    root and leave anything with an unexpected shape untouched.
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == "leaf_dir" and isinstance(v, str):
+                parts = Path(v).parts
+                if "experiment" in parts:
+                    obj[k] = str(exp_root.parent.joinpath(*parts[parts.index("experiment"):]))
+            else:
+                _rebase_leaf_dirs(v, exp_root)
+    elif isinstance(obj, list):
+        for v in obj:
+            _rebase_leaf_dirs(v, exp_root)
+    return obj
+
+
 def load_figdata(path):
-    """Parse a frozen Addition-2 figure-data JSON into its dict."""
-    return json.loads(Path(path).read_text())
+    """Parse a frozen Addition-2 figure-data JSON into its dict.
+
+    Stored ``leaf_dir`` paths are re-rooted on this checkout so the figure scripts
+    keep working after the repository is moved or cloned.
+    """
+    data = json.loads(Path(path).read_text())
+    return _rebase_leaf_dirs(data, Path(__file__).resolve().parents[1])
 
 
 def _cell_label(target, fset):

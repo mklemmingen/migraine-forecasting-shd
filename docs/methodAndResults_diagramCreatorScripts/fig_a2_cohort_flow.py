@@ -30,11 +30,12 @@ def main():
     d0, d1 = pd.to_datetime(mig["date"]).min(), pd.to_datetime(mig["date"]).max()
     mig_r, hea_r = mig["migraine_target"].mean(), hea["migraine_target"].mean()
     # Headline discrimination (migraine XGB-HP020 AUROC 0.793) is reported on the
-    # chronological 70/30 cell (train / test), matching Fig 8 and the Results
-    # text; the 70/15/15 cell is the internal-validation configuration whose
-    # extra val fold is used for hyperparameter selection. The chronological cut
-    # is by DATE PERCENTILE (70% of the distinct-date span), so with staggered
-    # enrolment ~87% of patient-days fall in "train" despite the nominal "70".
+    # chronological 70/30 cell (train / test), matching the headline-performance
+    # table and the Results text; the 70/15/15 cell is the internal-validation
+    # configuration whose extra val fold is used for hyperparameter selection.
+    # The chronological cut is by DATE PERCENTILE (70% of the distinct-date span),
+    # so with staggered enrolment ~87% of patient-days fall in "train" despite
+    # the nominal "70".
     sizes = {sp: len(pd.read_parquet(BASE / f"migraine/70_30/chrono/diary_{sp}.parquet"))
              for sp in ("train", "test")}
 

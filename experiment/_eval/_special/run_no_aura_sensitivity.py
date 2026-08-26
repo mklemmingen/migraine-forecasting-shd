@@ -3,7 +3,7 @@
 Loads the patient-level aura flags persisted by ``data/pipeline/_special/aura.py``
 at ``data/processed/special/aura_status.parquet``, resolves the migraine and
 headache headline leaves from the latest ``experiment/2/figdata_*.json`` (so the
-composite-tracked headline cells the body §3.2 cites are the ones evaluated),
+composite-tracked headline cells the Results section cites are the ones evaluated),
 invokes the existing ``experiment/5/_personal/_predict_worker.py`` to regenerate
 the val+test (y, p, patient_id) arrays per leaf, and recomputes the headline
 discrimination + calibration metrics on the no-aura subset.
@@ -13,8 +13,8 @@ no-aura-subset numbers, demonstrating that the n=2 aura subset's retention in
 the headline analyses does not drive the cited findings. Output: one summary
 CSV per run under ``experiment/_eval/_special/no_aura_sensitivity_<ts>.csv``.
 
-Patients with unknown aura status (CMC-0066, the one body §3.1 deduplication
-split-daughter without a row in the raw baseline sheet) are treated as no-aura
+Patients with unknown aura status (CMC-0066, the deduplication split-daughter
+described in the Results section without a row in the raw baseline sheet) are treated as no-aura
 for the sensitivity: the 2 aura patients are uniquely identified at the raw
 level (CMC-0026 and DHA-0057), and any deduplication-created daughter inherits
 the parent's no-aura status because neither aura patient has a sibling ID.
@@ -120,7 +120,7 @@ def _resolve_headline_leaves() -> dict[str, Path]:
 
     out: dict[str, Path] = {}
     for tgt in ("migraine", "headache"):
-        # The headline cell per body §3.2: migraine XGB-HP020, headache TabPFN-v2.6.
+        # The headline cell per the Results section: migraine XGB-HP020, headache TabPFN-v2.6.
         # Headline composite picks among "headline" roles first; if the composite
         # rule landed the family elsewhere we still want the named headline cell
         # so we search across both roles per (target, family) ordering.

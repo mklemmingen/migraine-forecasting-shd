@@ -6,7 +6,7 @@ registers each variant via the ``VERSIONS`` tuple - see that file's docstring.
 
 Builder contract
 ----------------
-Every ``build_<variant>(X_train, y_train, *, device='cuda', random_state=0)``
+Every ``build_<variant>(X_train, y_train, *, device=_DEFAULT_DEVICE, random_state=0)``
 must:
 
   - take training features ``X_train`` (pandas.DataFrame or 2-D ndarray) and

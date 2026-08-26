@@ -109,7 +109,7 @@ def within_person_cstatistic(scores: pd.DataFrame, method: str = "PM") -> dict:
     discipline Addition 3 adopted for clustered longitudinal estimates
     (docs/addition3_temporal.md Section 9), applied to discrimination. Per-
     patient variance via Hanley-McNeil; between-patient heterogeneity τ²
-    via either Paule-Mandel (default, preferred under k < 20 per body §2.4)
+    via either Paule-Mandel (default, preferred under k < 20 per the Methods section)
     or DerSimonian-Laird (legacy default, reported here as a sensitivity).
 
     Args:

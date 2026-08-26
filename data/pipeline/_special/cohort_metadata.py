@@ -5,7 +5,7 @@ Like ``_special/aura.py``, these patient-level attributes are baseline
 demographic / recruitment characteristics absent from the engineered diary-day
 feature surface but needed for sensitivity analyses (e.g. stratum
 disaggregation of the within-person C-statistic per the Pierson / equity ask
-at body §3.6, the panel-revision T3-6 work). Reading sheet 0 of the raw XLS
+raised in the Discussion section, the panel-revision T3-6 work). Reading sheet 0 of the raw XLS
 with ``header=1`` recovers 62 patient rows; the same header bug discipline as
 ``_special/aura.py`` applies and a defensive assert guards against silent row
 drops if the XLS structure shifts.
@@ -34,16 +34,17 @@ _SITE_NAME = "병원"                # hospital column (의정부=Uijeongbu, 동
 
 # Korean → English translations for the two attribute domains. Map both the
 # canonical site strings AND a partial-match prefix so 'Uijeongbu St. Mary's'
-# (body §2.1) and '동탄 한림' (raw sheet) both resolve cleanly.
+# (Methods) and '동탄 한림' (raw sheet) both resolve cleanly.
 _SEX_MAP = {"여성": "female", "남성": "male"}
 _SITE_MAP = {"의정부": "Uijeongbu", "동탄 한림": "Dongtan"}
 
 
 def extract_cohort_metadata(raw_xls_path: str | Path) -> pd.DataFrame:
     """Return patient-keyed site + sex metadata from Sheet 0 of the raw Park
-    2016 XLS. Returns 62 rows matching body §2.1 (51 female + 11 male; 32
-    Uijeongbu + 30 Dongtan). patient_id is uppercased to match the canonical
-    processed-parquet ID scheme so downstream joins work without re-mapping.
+    2016 XLS. Returns 62 rows matching the Methods cohort description (51
+    female + 11 male; 32 Uijeongbu + 30 Dongtan). patient_id is uppercased to
+    match the canonical processed-parquet ID scheme so downstream joins work
+    without re-mapping.
     """
     df = pd.read_excel(raw_xls_path, sheet_name=0, header=1)
     df = df[df[_PID_NAME].notna()].copy()
@@ -59,7 +60,7 @@ def extract_cohort_metadata(raw_xls_path: str | Path) -> pd.DataFrame:
 
     # Defensive guards against silent header drift in the raw XLS; the cohort
     # composition is fixed at 62 patients, 51 / 11 sex split, 32 / 30 site
-    # split per Park 2016 SHD enrolment (body §2.1, docs/dataset.md cohort
+    # split per Park 2016 SHD enrolment (Methods, docs/dataset.md cohort
     # table). Any deviation here means the raw read shifted under us.
     assert len(out) == 62, f"Expected 62 patient rows, got {len(out)}"
     assert (out["sex"] == "female").sum() == 51, \

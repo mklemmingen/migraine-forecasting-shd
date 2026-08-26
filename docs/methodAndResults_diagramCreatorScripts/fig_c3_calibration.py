@@ -97,7 +97,7 @@ def _predict(leaf: Path):
 
 def _bootstrap_slope_ci(y, p, n_boot=500, seed=42):
     """Patient-day bootstrap CI on the calibration slope. Matches the
-    body §2.8 patient-day resampling unit."""
+    Methods section's patient-day resampling unit."""
     rng = np.random.default_rng(seed)
     n = len(y)
     slopes = []
