@@ -49,6 +49,12 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "experiment"))
 import _style as S  # noqa: E402
 
+# Shared by the discrimination and per-patient panels so equal AUROC values sit at equal
+# heights in both, making them comparable by eye. Must span the hero's 0.890 CI top and
+# the per-patient cloud's 0.318 floor.
+SHARED_YLIM = (0.30, 0.95)
+SHARED_YTICKS = [0.3, 0.5, 0.7, 0.9]
+
 MIG_TEXT = "#C25100"  # 4.70:1 on white; S.target_color("migraine") is 3.87:1
 
 # Numbers: single source of truth, traced to article.tex.
@@ -191,12 +197,12 @@ def _draw_slopegraph(ax) -> None:
     ax.text(-0.22, 0.5, "chance", fontsize=7.5, color="#5f5f5f", ha="left",
             va="center", bbox=dict(fc="white", ec="none", pad=0.6))
     ax.set_xlim(-0.25, 1.25)
-    ax.set_ylim(0.36, 0.95)
+    ax.set_ylim(SHARED_YLIM)
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["pooled AUROC\n(all patients' days together)",
                         "within-person C-statistic\n(one patient's own days)"],
                        fontsize=8.5)
-    ax.set_yticks([0.5, 0.7, 0.9])
+    ax.set_yticks(SHARED_YTICKS)
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("discrimination", fontsize=8)
     for spine in ("top", "right"):
@@ -274,9 +280,9 @@ def _draw_per_patient(ax) -> None:
             continue
         ax.axhline(d["within"], color=col, lw=1.2, alpha=0.85, zorder=2)
     ax.set_xlim(-0.06, 1.06)
-    ax.set_ylim(0.28, 0.88)
+    ax.set_ylim(SHARED_YLIM)
     ax.set_xticks([])
-    ax.set_yticks([0.3, 0.5, 0.7])
+    ax.set_yticks(SHARED_YTICKS)
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("per-patient AUROC", fontsize=8)
     n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
