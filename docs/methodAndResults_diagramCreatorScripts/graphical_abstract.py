@@ -267,12 +267,6 @@ def _draw_per_patient(ax) -> None:
         x = [i / (len(vals) - 1) for i in range(len(vals))] if len(vals) > 1 else [0.5]
         ax.plot(x, vals, "o", ms=3.4, color=col, alpha=0.85, mec="none", zorder=3)
 
-    # tie the panel to the hero: the same within-person C values the slopegraph lands on
-    for tgt, d, col, txt in (("headache", HEADACHE, hea_col, hea_col),
-                             ("migraine", MIGRAINE, mig_col, MIG_TEXT)):
-        if not series.get(tgt):
-            continue
-        ax.axhline(d["within"], color=col, lw=1.2, alpha=0.85, zorder=2)
     ax.set_xlim(-0.06, 1.06)
     ax.set_ylim(0.28, 0.88)
     ax.set_xticks([])
@@ -280,7 +274,14 @@ def _draw_per_patient(ax) -> None:
     ax.tick_params(axis="y", labelsize=7)
     ax.set_ylabel("per-patient AUROC", fontsize=8)
     n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
-    ax.set_xlabel(f"one dot per patient\n({n_hea} headache, {n_mig} migraine)", fontsize=8)
+    ax.set_xlabel("one dot per patient", fontsize=8)
+    # colour-coded counts double as the panel's key, so blue/orange need no legend
+    ax.text(0.30, -0.135, f"{n_hea} headache", fontsize=8, color=hea_col, fontweight="bold",
+            transform=ax.transAxes, ha="right", va="top")
+    ax.text(0.36, -0.135, "|", fontsize=8, color="#bbbbbb", transform=ax.transAxes,
+            ha="center", va="top")
+    ax.text(0.42, -0.135, f"{n_mig} migraine", fontsize=8, color=MIG_TEXT, fontweight="bold",
+            transform=ax.transAxes, ha="left", va="top")
     ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
 
     for spine in ("top", "right"):
