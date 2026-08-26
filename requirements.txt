@@ -24,7 +24,11 @@ pyarrow>=14.0           # parquet read/write (pandas backend)
 xlrd>=2.0.1             # pd.read_excel on .xls (xlrd 2.0+ supports .xls only; .xlsx requires openpyxl). pandas requires xlrd>=2.0.1.
 
 # ---- Machine learning ----------------------------------------------------------------------------------
-scikit-learn>=1.4       # StackingClassifier, KFold, TimeSeriesSplit,
+scikit-learn==1.7.2     # PINNED, not a floor: the fitted model bundles are pickled
+                        # sklearn estimators. 1.9 reads SimpleImputer._fill_dtype
+                        # (impute/_base.py:631), which 1.7.2 never set, so the
+                        # bundles fail to transform under a newer sklearn.
+                        # StackingClassifier, KFold, TimeSeriesSplit,
                         # CalibratedClassifierCV, LogisticRegression, Pipeline,
                         # SimpleImputer, StandardScaler, IsotonicRegression
 optuna>=4.0             # RandomSampler + NSGAIISampler for the
@@ -41,7 +45,11 @@ torch>=2.5,<3.0         # Transitive dep of tabpfn; pinned to the 2.x major so a
                         # cannot silently drag in torch 3.x. Reference build of
                         # this project uses torch 2.11.0+rocm7.2; the GPU-wheel
                         # install comment under `tabpfn` below covers AMD/NVIDIA.
-tabpfn>=8.0.1           # Prior Labs release. 8.0.1 is the floor: build_tabpfn_v3
+tabpfn==8.0.1           # PINNED, not a floor: 8.4 reads
+                        # AdaptiveQuantileTransformer.extrapolate_ratio, which the
+                        # pickled preprocessors from 8.0.1 never set, so saved
+                        # bundles fail to transform under a newer tabpfn.
+                        # Prior Labs release. 8.0.1 is required: build_tabpfn_v3
                         # (experiment/1) uses ModelVersion.V3 exposed by
                         # tabpfn>=8.0.0, and the bare `version_2-6` builder pins
                         # ModelVersion.V2_6 explicitly (tabpfn 8.x ships TabPFN-3

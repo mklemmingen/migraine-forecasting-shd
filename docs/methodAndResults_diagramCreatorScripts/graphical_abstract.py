@@ -66,11 +66,20 @@ GRID_PITCH_PX = 7                   # day-grid cell-to-cell distance, whole pixe
 GRID_CELL_PX = 6                    # filled square inside that pitch, 1 px gutter
 
 # Numbers: single source of truth, traced to article.tex.
+# within_pi is the 95% prediction interval across patients, est +- 1.96*sqrt(tau^2 + SE^2),
+# from the published Paule-Mandel tau^2 in experiment/5/within_person_summary_cv_*.csv
+# (migraine 0.001344, headache 0.008189) and the SE implied by the published CI. It is the
+# quantity that reconciles this panel with the per-patient panel: the CI is how precisely the
+# MEAN within-person C is known, the prediction interval is where an individual patient sits.
+# Without it a reader compares a 0.066-wide CI band against a dot cloud spanning 0.32 to 0.84
+# on the same axis and reads a contradiction that is not there.
 MIGRAINE = {"pooled": 0.791, "pooled_ci": (0.544, 0.890),
             "within": 0.558,  "within_ci": (0.511, 0.604),
+            "within_pi": (0.472, 0.643),
             "slope": 1.386,   "slope_ci": (0.40, 2.07)}
 HEADACHE = {"pooled": 0.653, "pooled_ci": (0.555, 0.740),
             "within": 0.542,  "within_ci": (0.509, 0.575),
+            "within_pi": (0.361, 0.722),
             "slope": 1.094,   "slope_ci": (0.594, 1.429)}
 
 
@@ -196,6 +205,16 @@ def _ci_density(ax, xi, est, ci, color, side, zorder, reps=None):
     lo, hi = ci
     yy = np.linspace(lo, hi, 240)
     if reps is not None and len(reps) > 50:
+        # Anchor the replicates to the published interval before drawing them. The
+        # band's extent must stay the number the paper prints; only its SHAPE comes
+        # from the resampling distribution. For migraine, whose re-run reproduced the
+        # published CI exactly, this map is the identity. For headache TabPFN it
+        # absorbs the offset from re-running a GPU-fitted cell on CPU (AUROC 0.669
+        # against a published 0.653), which shifts location without telling us the
+        # shape is wrong. Affine, so the skew is carried over unchanged.
+        r_lo, r_hi = np.percentile(reps, [2.5, 97.5])
+        if r_hi > r_lo:
+            reps = lo + (reps - r_lo) * (hi - lo) / (r_hi - r_lo)
         # Silverman bandwidth on the replicates
         sd = float(np.std(reps, ddof=1))
         iqr = float(np.subtract(*np.percentile(reps, [75, 25])))
@@ -263,6 +282,13 @@ def _draw_slopegraph(ax) -> None:
     ax.text(1.13, HEADACHE["within"] - 0.04, f"{HEADACHE['within']:.2f}",
             ha="left", va="top", fontsize=11, color=hea_col, fontweight="bold",
             bbox=label_box, clip_on=False)
+    # Sits between the two within-person endpoint labels, where a reader who has just
+    # looked at the per-patient panel would otherwise read this narrow band as the
+    # spread across patients rather than the precision of their average.
+    ax.text(1.13, (MIGRAINE["within"] + HEADACHE["within"]) / 2,
+            "95% CI\nof the mean", fontsize=6.0, color="#7a7a7a", ha="left",
+            va="center", linespacing=1.25, clip_on=False)
+
     # Delta annotations at midpoint
     mig_delta = MIGRAINE["pooled"] - MIGRAINE["within"]
     hea_delta = HEADACHE["pooled"] - HEADACHE["within"]
