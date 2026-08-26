@@ -115,24 +115,24 @@ def _how_auroc(ax, att, hea):
         _lab(ax, 42, yy, lab, PT_BODY, BODY)
     ax.annotate("", xy=(32, 66), xytext=(32, 42),
                 arrowprops=dict(arrowstyle="-|>", color=S.INK, lw=1.2))
-    _lab(ax, 62, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    _lab(ax, 50, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
 
 
 def _how_within(ax, att):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 34), 52, 50, fc="#f4f4f4", ec="none"))
-    _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
-    for yy, col in ((64, att), (42, "#cfcfcf")):
-        _sq(ax, 24, yy, 11, col)
-    # double-headed arrow beside the pair, long enough to read as a comparison
-    ax.annotate("", xy=(16, 66), xytext=(16, 40),
+    ax.add_patch(Rectangle((4, 40), 50, 48, fc="#f4f4f4", ec="none"))
+    _lab(ax, 8, 82, "one patient's diary", PT_FINE, SECOND)
+    for yy, col in ((68, att), (50, "#cfcfcf")):
+        _sq(ax, 26, yy, 11, col)
+    ax.annotate("", xy=(20, 70), xytext=(20, 48),
                 arrowprops=dict(arrowstyle="<|-|>", color=S.INK, lw=1.1,
                                 mutation_scale=8))
-    _lab(ax, 40, 53, "compared", PT_FINE, BODY)
-    _sq(ax, 72, 58, 11, "#cfcfcf", alpha=0.5)
-    ax.plot([70, 86], [66, 50], color=S.INK, lw=1.2)
-    _lab(ax, 64, 40, "another patient's day:\nnever compared", PT_FINE, SECOND)
+    _lab(ax, 29, 32, "compared", PT_FINE, BODY, ha="center")
+    _sq(ax, 74, 62, 11, "#cfcfcf", alpha=0.5)
+    ax.plot([73, 86], [69, 55], color=S.INK, lw=1.2)
+    _lab(ax, 79, 44, "another patient's day,\nnever compared", PT_FINE, SECOND,
+         ha="center")
 
 
 def _how_brier(ax, hea):
@@ -149,8 +149,10 @@ def _how_brier(ax, hea):
         ax.plot([x, 92], [70, 70], color=col, lw=2.2, alpha=0.55,
                 solid_capstyle="butt")
         sq = (92 - x) * 0.17
-        _sq(ax, x, 34, sq, col, alpha=0.35, anchor="bottom")
-        _lab(ax, x, 27, lab, PT_BODY, BODY)
+        h = _sq(ax, x, 34, sq, col, alpha=0.35, anchor="bottom")
+        ax.plot([x + sq / 2, x + sq / 2], [34 + h, 68], color=col, lw=0.7, alpha=0.45,
+                zorder=0)
+        _lab(ax, x + sq / 2, 28, lab, PT_BODY, BODY, ha="center")
 
 
 def _how_dca(ax, att):
@@ -174,10 +176,10 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt, PT_BODY, BODY)
-    ax.annotate("no improvement", xy=(0.0, 1.62), xytext=(0.055, 1.70),
+    ax.annotate("no improvement", xy=(0.0, 1.34), xytext=(0.045, 1.50),
             fontsize=PT_FINE, color=SECOND, va="center", ha="left",
             arrowprops=dict(arrowstyle="-", color=SECOND, lw=0.8))
-    ax.set_ylim(-0.8, 1.9); ax.set_xlim(-0.32, 0.55)
+    ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.55)
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
     for sp in ("top", "right", "left"):

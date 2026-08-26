@@ -394,7 +394,7 @@ def _draw_per_patient(ax) -> None:
     ax.set_ylabel("per-patient AUROC", fontsize=8)
     n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
     ax.set_xlabel(f"one dot per patient\n({n_hea} headache patients, {n_mig} migraine)", fontsize=8)
-    ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="bottom", ha="left")
+    ax.text(-0.04, 0.5, "chance", fontsize=7.5, color="#5f5f5f", va="top", ha="left")
 
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
