@@ -133,9 +133,8 @@ def _how_auroc(ax):
                 arrowprops=dict(arrowstyle="-|>", color=A_INK, lw=1.2))
     _lab(ax, 44, 61, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
     # the readers could describe the pair test and still not know AUROC *is* the pair count
-    _lab(ax, 6, 23, "AUROC = share of pairs\nranked this way", PT_BODY, BODY)
-    _lab(ax, 6, 6, "0.5 = coin flip   1.0 = every pair\nhigher = better",
-         PT_FINE, SECOND)
+    _lab(ax, 6, 18, "AUROC = share of pairs ranked this way", PT_BODY, BODY)
+    _lab(ax, 6, 4, "0.5 = coin flip chance  \n1.0 = every pair correctly ranked.\nhigher AUROC -> better.", PT_FINE, SECOND)
 
 
 def _how_within(ax):
@@ -316,25 +315,33 @@ def _slope_panel(ax):
                            reps=reps.get(key) if xi == xs[0] else None)
     # left gutter: word above its own value, each value at its marker's height,
     # so no leader is needed and nothing sits on a slope
-    for d, txt, wy in ((GA.MIGRAINE, MIG_TEXT, 0.862), (GA.HEADACHE, HEA_TEXT, 0.726)):
-        ax.text(-0.30, wy, "MIGRAINE" if txt == MIG_TEXT else "HEADACHE",
-                fontsize=PT_VALUE, fontweight="bold", color=txt, ha="right", va="center")
-        ax.text(-0.30, d["pooled"], f"{d['pooled']:.2f}", fontsize=PT_VALUE,
-                fontweight="bold", color=txt, ha="right", va="center")
+    ax.text(-0.30, 0.862, "MIGRAINE", fontsize=PT_VALUE, fontweight="bold",
+            color=MIG_TEXT, ha="right", va="center")
+    ax.text(-0.30, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['pooled']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="right", va="center")
+    # sits at its own pooled dot's x, so the word names the blue series directly
+    ax.text(-0.04, 0.549, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
+            color=HEA_TEXT, ha="left", va="top")
+    ax.text(-0.30, GA.HEADACHE["pooled"], f"{GA.HEADACHE['pooled']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="right", va="center")
     # right gutter: the within-person value with its interval printed, because
     # "does it cross 0.5" is a 0.7 mm judgement at this scale and must not be one
-    for d, txt, ly in ((GA.MIGRAINE, MIG_TEXT, 0.640), (GA.HEADACHE, HEA_TEXT, 0.436)):
-        lo, hi = d["within_ci"]
-        ax.plot([1.14, 1.22], [d["within"], ly], color="#c8c8c8", lw=0.5, zorder=2)
-        ax.text(1.25, ly, f"{d['within']:.2f}", fontsize=PT_VALUE, fontweight="bold",
-                color=txt, ha="left", va="center")
-        ax.text(1.25, ly - 0.055, f"{lo:.2f}\u2013{hi:.2f}", fontsize=PT_FINE,
-                color=SECOND, ha="left", va="center")
-    ax.text(1.25, 0.855, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
+    # labels sit against their own dots, so no leader is needed
+    mlo, mhi = GA.MIGRAINE["within_ci"]
+    ax.text(0.90, 0.680, f"{GA.MIGRAINE['within']:.2f}", fontsize=PT_VALUE,
+            fontweight="bold", color=MIG_TEXT, ha="center", va="bottom")
+    ax.text(0.90, 0.640, f"{mlo:.2f}\u2013{mhi:.2f}", fontsize=PT_FINE,
+            color=SECOND, ha="center", va="bottom")
+    hlo, hhi = GA.HEADACHE["within_ci"]
+    ax.text(1.15, 0.605, f"{GA.HEADACHE['within']:.2f}", fontsize=PT_VALUE,
+            fontweight="bold", color=HEA_TEXT, ha="left", va="center")
+    ax.text(1.15, 0.548, f"{hlo:.2f}\u2013{hhi:.2f}", fontsize=PT_FINE,
+            color=SECOND, ha="left", va="center")
+    ax.text(1.15, 0.705, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
             ha="left", va="center", linespacing=1.3)
     ax.text(0.58, 0.790, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
             fontsize=PT_BODY, fontweight="bold", color=MIG_TEXT, ha="center", va="center")
-    ax.text(0.20, 0.572, f"\u0394 {GA.HEADACHE['pooled'] - GA.HEADACHE['within']:.2f}",
+    ax.text(0.62, 0.548, f"\u0394 {GA.HEADACHE['pooled'] - GA.HEADACHE['within']:.2f}",
             fontsize=PT_BODY, fontweight="bold", color=HEA_TEXT, ha="center", va="center")
     # own chance label, placed clear of the rule instead of across it
     ax.text(-0.76, 0.478, "chance", fontsize=PT_FINE, color=THIRD, ha="left", va="top")

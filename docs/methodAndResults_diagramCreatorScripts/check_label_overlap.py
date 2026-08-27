@@ -43,6 +43,11 @@ def _spy(fig, path):
     def seg_hits_box(ln, e):
         d = ln.get_data()
         pts = ln.get_transform().transform(list(zip(*d)))
+        # an axhline spans the axes; densify so a long horizontal rule is sampled
+        if len(pts) == 2:
+            import numpy as _np
+            pts = [(pts[0][0] + (pts[1][0] - pts[0][0]) * k / 120,
+                    pts[0][1] + (pts[1][1] - pts[0][1]) * k / 120) for k in range(121)]
         for (x1, y1), (x2, y2) in zip(pts[:-1], pts[1:]):
             for t in [i / 24 for i in range(25)]:      # sample along the segment
                 x, y = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
