@@ -139,7 +139,7 @@ def _how_auroc(ax):
 def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 44), 54, 46, fc=A_PANE, ec="#e4e4e4", lw=0.6))
+    ax.add_patch(Rectangle((4, 44), 54, 46, fc="none", ec="#cfcfcf", lw=0.7))
     _lab(ax, 8, 84, "one patient's diary", PT_FINE, SECOND)
     for yy, col, lab in ((72, A_STRONG, "attack day"), (52, A_LIGHT, "quiet day")):
         _sq(ax, 12, yy, 10, col)
@@ -149,7 +149,7 @@ def _how_within(ax):
                                 mutation_scale=7))
     _lab(ax, 24, 62, "compared", PT_FINE, BODY, weight="bold")
     _sq(ax, 74, 66, 10, A_EDGE, outline=True)
-    _lab(ax, 79, 52, "another patient's day,\nnever compared", PT_FINE, SECOND,
+    _lab(ax, 79, 34, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
     _lab(ax, 6, 18, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
 
@@ -235,9 +235,9 @@ def _dca_panel(ax, preds, col):
     ax.plot(ts, nb_all, color=A_MID, lw=0.9, ls=(0, (4, 2)), zorder=4)
     ax.plot(ts, nb, color=col, lw=2.0, zorder=5, solid_capstyle="round")
     j = int(len(ts) * 0.34)
-    _lab(ax, ts[j], nb[j] + 0.010, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
+    _lab(ax, ts[j], nb[j] + 0.019, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
-    _lab(ax, 0.145, -0.041, "treat everyone", PT_FINE, SECOND)
+    _lab(ax, 0.155, -0.050, "treat everyone", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
     ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
     ax.set_ylabel("net benefit", fontsize=PT_AXIS)
@@ -261,6 +261,117 @@ def _question(fig, gs, row, n, question, gloss):
 def _panel_letter(ax, letter):
     ax.text(-0.02, 1.06, f"({letter})", fontsize=PT_HEAD, fontweight="bold",
             color=S.INK, transform=ax.transAxes, ha="left", va="bottom")
+
+
+
+# ---------------------------------------------------------------- forked panels
+# m1(b) and m2(b) were drawn by graphical_abstract.py's own functions. They are
+# forked here because the m-series needs fixes the abstract must not receive:
+# the abstract renders at 920x300 with a claim strip carrying target identity,
+# these render at 183x62mm and must be self-labelling. The abstract keeps its
+# own copies untouched, so "Graphical Abstract.png" is byte-identical.
+
+def _slope_panel(ax):
+    """Pooled AUROC beside within-person C. Capped interval bars replace the
+    densities: a violin is the grammar for a distribution of units, and a CI of
+    a mean is not one, which is what made a blind reader call it 'a preposterously
+    wide confidence interval for a mean'."""
+    import graphical_abstract as GA
+    ORA, BLU = S.target_color("migraine"), S.target_color("headache")
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
+    for d, col, txt, xs, side in ((GA.MIGRAINE, ORA, MIG_TEXT, (-0.06, 0.94), -1),
+                                  (GA.HEADACHE, BLU, HEA_TEXT, (0.06, 1.06), +1)):
+        ax.plot(xs, [d["pooled"], d["within"]], color=col, lw=2.2, zorder=4,
+                marker="o", ms=6.5, mfc=col, mec="white", mew=1.0)
+        for xi, yi, ci in ((xs[0], d["pooled"], d["pooled_ci"]),
+                           (xs[1], d["within"], d["within_ci"])):
+            ax.plot([xi, xi], ci, color=col, lw=1.7, zorder=3,
+                    solid_capstyle="butt")
+            for c in ci:                                   # explicit end caps
+                ax.plot([xi - 0.028, xi + 0.028], [c, c], color=col, lw=1.0, zorder=3)
+    # left gutter: word above its own value, each value at its marker's height,
+    # so no leader is needed and nothing sits on a slope
+    for d, txt, wy in ((GA.MIGRAINE, MIG_TEXT, 0.862), (GA.HEADACHE, HEA_TEXT, 0.726)):
+        ax.text(-0.30, wy, "MIGRAINE" if txt == MIG_TEXT else "HEADACHE",
+                fontsize=PT_VALUE, fontweight="bold", color=txt, ha="right", va="center")
+        ax.text(-0.30, d["pooled"], f"{d['pooled']:.2f}", fontsize=PT_VALUE,
+                fontweight="bold", color=txt, ha="right", va="center")
+    # right gutter: the within-person value with its interval printed, because
+    # "does it cross 0.5" is a 0.7 mm judgement at this scale and must not be one
+    for d, txt, ly in ((GA.MIGRAINE, MIG_TEXT, 0.640), (GA.HEADACHE, HEA_TEXT, 0.436)):
+        lo, hi = d["within_ci"]
+        ax.plot([1.14, 1.22], [d["within"], ly], color="#c8c8c8", lw=0.5, zorder=2)
+        ax.text(1.25, ly, f"{d['within']:.2f}", fontsize=PT_VALUE, fontweight="bold",
+                color=txt, ha="left", va="center")
+        ax.text(1.25, ly - 0.055, f"{lo:.2f}\u2013{hi:.2f}", fontsize=PT_FINE,
+                color=SECOND, ha="left", va="center")
+    ax.text(1.25, 0.855, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
+            ha="left", va="center", linespacing=1.3)
+    ax.text(0.58, 0.790, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
+            fontsize=PT_BODY, fontweight="bold", color=MIG_TEXT, ha="center", va="center")
+    ax.text(0.20, 0.572, f"\u0394 {GA.HEADACHE['pooled'] - GA.HEADACHE['within']:.2f}",
+            fontsize=PT_BODY, fontweight="bold", color=HEA_TEXT, ha="center", va="center")
+    # own chance label, placed clear of the rule instead of across it
+    ax.text(-0.76, 0.478, "chance", fontsize=PT_FINE, color=THIRD, ha="left", va="top")
+    ax.set_xlim(-0.80, 1.62); ax.set_ylim(GA.SHARED_YLIM)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["pooled AUROC\n(all patients' days together)",
+                        "within-person C-statistic\n(one patient's own days)"],
+                       fontsize=PT_AXIS)
+    ax.set_yticks(GA.SHARED_YTICKS); ax.tick_params(axis="y", labelsize=PT_TICK)
+    ax.set_ylabel("discrimination", fontsize=PT_AXIS)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+
+
+def _rank_panel(ax):
+    """Per-patient within-person AUROC. Hazen plotting positions replace
+    i/(k-1), which pinned both series to 0 and 1 regardless of k and made
+    vertical alignment between a blue and an orange dot look meaningful."""
+    import csv, graphical_abstract as GA
+    ORA, BLU = S.target_color("migraine"), S.target_color("headache")
+    series = {}
+    with open(GA.PER_PATIENT_CSV, newline="") as fh:
+        for row in csv.DictReader(fh):
+            series.setdefault(row["target"], []).append(float(row["auroc"]))
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.9, ls="--", alpha=0.7, zorder=1)
+    for tgt, col, ms in (("headache", BLU, 3.0), ("migraine", ORA, 4.2)):
+        vals = sorted(series.get(tgt, []))
+        if not vals:
+            continue
+        k = len(vals)
+        ax.plot([(i + 0.5) / k for i in range(k)], vals, "o", ms=ms,
+                color=col, mec="none", zorder=3)          # no alpha: it shifted the hue
+    for tgt, d, col, txt, ly in (("headache", GA.HEADACHE, BLU, HEA_TEXT, 0.452),
+                                 ("migraine", GA.MIGRAINE, ORA, MIG_TEXT, 0.606)):
+        if not series.get(tgt):
+            continue
+        ax.plot([0, 1.0], [d["within"]] * 2, color=col, lw=1.2, zorder=2)
+        ax.plot([1.0, 1.06], [d["within"], ly], color="#c8c8c8", lw=0.5, zorder=2)
+        ax.text(1.08, ly, f"{d['within']:.2f}", fontsize=PT_BODY, fontweight="bold",
+                color=txt, ha="left", va="center")
+        ax.text(1.08, ly - 0.048, "pooled", fontsize=PT_FINE, color=THIRD,
+                ha="left", va="center")
+    # direct labels in the empty upper-left: the dots are rank-sorted, so nothing
+    # reaches this corner. Swatches are the data marks at their own sizes.
+    for x, y, t, c, ms in ((0.035, 0.905, "MIGRAINE", MIG_TEXT, 4.2),
+                           (0.035, 0.835, "HEADACHE", HEA_TEXT, 3.0)):
+        ax.plot([x], [y], "o", ms=ms, color=ORA if t == "MIGRAINE" else BLU,
+                mec="none", zorder=6)
+        ax.text(x + 0.035, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
+                ha="left", va="center", zorder=6)
+    ax.set_xlim(-0.04, 1.36); ax.set_ylim(GA.SHARED_YLIM)
+    ax.set_xticks([]); ax.set_yticks(GA.SHARED_YTICKS)
+    ax.tick_params(axis="y", labelsize=PT_TICK)
+    ax.set_ylabel("per-patient AUROC", fontsize=PT_AXIS)
+    n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
+    # the old label read as 76 distinct people; both series come from the same 63
+    ax.set_xlabel(f"one dot per patient, ranked\n"
+                  f"(63 records; {n_hea} scorable for headache, {n_mig} for migraine)",
+                  fontsize=PT_AXIS)
+    GA._chance_label(ax)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
 
 
 def _one(name, how, how_args, draw_right, right_args, after=None):
@@ -298,28 +409,8 @@ def main() -> None:
     assert abs(roc_auc_score(y, p) - float(mig_row["auroc"])) < 5e-4, \
         "migraine cached predictions disagree with the published AUROC"
 
-    def _label_slope(ax):
-        """The blind study: neither m1 reader ever learned what orange and blue were."""
-        ax.text(0.24, 0.815, "MIGRAINE", fontsize=PT_VALUE, fontweight="bold",
-                color=MIG_TEXT, ha="left", va="bottom", zorder=6)
-        ax.text(0.08, 0.548, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
-                color=HEA_TEXT, ha="left", va="top", zorder=6)
-
-    def _label_rank(ax):
-        for x, y, t, c in ((0.030, 0.905, "MIGRAINE", MIG_TEXT),
-                           (0.030, 0.835, "HEADACHE", HEA_TEXT)):
-            ax.text(x, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
-                    ha="left", va="center", zorder=6)
-        # Both blind readers counted the dots and asked whether the cohort was 76 people.
-        # It is not: the 19 migraine-scorable records are a strict subset of the 57
-        # headache-scorable ones, both drawn from the same 63. Overridden here rather
-        # than in graphical_abstract.py, which must keep rendering unchanged.
-        ax.set_xlabel("one dot per patient\n"
-                      "(63 records; 57 scorable for headache, 19 for migraine)",
-                      fontsize=PT_AXIS)
-
-    _one("fig_m1_pooled_auroc", _how_auroc, (), GA._draw_slopegraph, (), _label_slope)
-    _one("fig_m2_within_person", _how_within, (), GA._draw_per_patient, (), _label_rank)
+    _one("fig_m1_pooled_auroc", _how_auroc, (), _slope_panel, ())
+    _one("fig_m2_within_person", _how_within, (), _rank_panel, ())
     _one("fig_m3_brier_skill", _how_brier, (), _skill_panel,
          ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
     _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA))
