@@ -139,17 +139,17 @@ def _how_auroc(ax):
 def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 40), 62, 52, fc=A_PANE, ec="#e4e4e4", lw=0.6))
-    _lab(ax, 8, 86, "one patient's diary", PT_FINE, SECOND)
+    ax.add_patch(Rectangle((4, 44), 54, 46, fc=A_PANE, ec="#e4e4e4", lw=0.6))
+    _lab(ax, 8, 84, "one patient's diary", PT_FINE, SECOND)
     for yy, col, lab in ((72, A_STRONG, "attack day"), (52, A_LIGHT, "quiet day")):
-        _sq(ax, 14, yy, 11, col)
+        _sq(ax, 12, yy, 10, col)
         _lab(ax, 24, yy, lab, PT_BODY, BODY)
-    ax.annotate("", xy=(58, 74), xytext=(58, 50),
+    ax.annotate("", xy=(17, 68), xytext=(17, 56),
                 arrowprops=dict(arrowstyle="<|-|>", color=A_INK, lw=1.1,
-                                mutation_scale=8))
-    _lab(ax, 47, 62, "compared", PT_BODY, BODY, weight="bold", ha="center")
-    _sq(ax, 78, 66, 11, A_EDGE, outline=True)
-    _lab(ax, 83, 50, "another patient's day,\nnever compared", PT_FINE, SECOND,
+                                mutation_scale=7))
+    _lab(ax, 24, 62, "compared", PT_FINE, BODY, weight="bold")
+    _sq(ax, 74, 66, 10, A_EDGE, outline=True)
+    _lab(ax, 79, 52, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
     _lab(ax, 6, 18, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
 
@@ -195,8 +195,8 @@ def _how_dca(ax):
     _lab(ax, 12, 40, "days treated for nothing", PT_BODY, BODY)
     # was "weighted by how reluctant one is to treat" -- a clause, and it never named
     # the quantity. These two fragments name it and tie it to the panel (b) x-axis.
-    _lab(ax, 62, 32, "weight = t / (1 \u2212 t)", PT_FINE, SECOND)
-    _lab(ax, 62, 24, "false alarms per\nattack caught", PT_FINE, SECOND)
+    _lab(ax, 12, 14, "weight = t / (1 \u2212 t)", PT_FINE, SECOND)
+    _lab(ax, 12, 6, "false alarms per attack caught", PT_FINE, SECOND)
 
 
 def _skill_panel(ax, rows, cols):
@@ -230,10 +230,12 @@ def _dca_panel(ax, preds, col):
     ax.axhline(0.0, color=S.INK, lw=1.0, zorder=3)
     y, p, _ = preds["migraine"]
     nb, nb_all = _net_benefit(y, p, ts)
-    ax.plot(ts, nb_all, color=col, lw=0.9, ls=(0, (3, 2)), alpha=0.7, zorder=4)
+    # treat-all is a POLICY, not a target, so it is achromatic. Both blind readers read
+    # the old same-hue dashed line as a confidence band on the model.
+    ax.plot(ts, nb_all, color=A_MID, lw=0.9, ls=(0, (4, 2)), zorder=4)
     ax.plot(ts, nb, color=col, lw=2.0, zorder=5, solid_capstyle="round")
     j = int(len(ts) * 0.34)
-    _lab(ax, ts[j], nb[j] + 0.007, "migraine", PT_BODY, col, weight="bold")
+    _lab(ax, ts[j], nb[j] + 0.010, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
     _lab(ax, 0.145, -0.041, "treat everyone", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
@@ -308,6 +310,13 @@ def main() -> None:
                            (0.030, 0.835, "HEADACHE", HEA_TEXT)):
             ax.text(x, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
                     ha="left", va="center", zorder=6)
+        # Both blind readers counted the dots and asked whether the cohort was 76 people.
+        # It is not: the 19 migraine-scorable records are a strict subset of the 57
+        # headache-scorable ones, both drawn from the same 63. Overridden here rather
+        # than in graphical_abstract.py, which must keep rendering unchanged.
+        ax.set_xlabel("one dot per patient\n"
+                      "(63 records; 57 scorable for headache, 19 for migraine)",
+                      fontsize=PT_AXIS)
 
     _one("fig_m1_pooled_auroc", _how_auroc, (), GA._draw_slopegraph, (), _label_slope)
     _one("fig_m2_within_person", _how_within, (), GA._draw_per_patient, (), _label_rank)
