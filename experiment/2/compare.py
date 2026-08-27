@@ -29,8 +29,9 @@ import sys
 from pathlib import Path
 
 # Drop this script's own directory (experiment/2) from sys.path before
-# importing scipy: the local ``select.py`` would otherwise shadow the
-# standard-library ``select`` module that scipy's subprocess import needs.
+# importing scipy: a sibling module here once shadowed the
+# standard-library ``select`` module scipy's subprocess import needs; it
+# has since been renamed to ``leaf_selection``.
 _THIS_DIR = str(Path(__file__).resolve().parent)
 sys.path[:] = [p for p in sys.path if p not in ("", _THIS_DIR)]
 
@@ -84,7 +85,7 @@ def _load_local(name: str):
     return module
 
 
-_select = _load_local("select")
+_select = _load_local("leaf_selection")
 select_insight_leaves = _select.select_insight_leaves
 
 # The five comparison plotters live in the sibling _figures module so both this

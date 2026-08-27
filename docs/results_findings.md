@@ -450,7 +450,7 @@ Specifically:
   rows.
 
 - **Headline-leaf selection is composite, and within-family fragile.**
-  The five-level `composite_sorted` rule in `experiment/2/select.py`
+  The five-level `composite_sorted` rule in `experiment/2/leaf_selection.py`
   uses a 0.02-AUROC tier bucket and a calibration-slope window of
   (0.0, 5.0). A perturbation sweep
   (`experiment/2/sensitivity_composite.py`) shows the cross-architecture

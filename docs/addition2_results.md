@@ -51,7 +51,7 @@ below are read from those artefacts and are reproducible by re-running
 
 ## Selected leaves
 
-The selection (`experiment/2/select.py`) is computed automatically: the
+The selection (`experiment/2/leaf_selection.py`) is computed automatically: the
 top-test-AUROC row per `(target, feature_set)` cell (headline) plus the
 first CI-overlapping row whose architecture family differs (runner-up),
 over the seven scientifically defined cells (headache/park excluded because

@@ -43,7 +43,7 @@ import within_person as WP  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
 # Reuse the figdata loader the g/h scripts use so leaf-path resolution stays
-# in lockstep with the composite_sorted selection in experiment/2/select.py.
+# in lockstep with the composite_sorted selection in experiment/2/leaf_selection.py.
 import importlib.util as _ilu
 _spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
 _F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
