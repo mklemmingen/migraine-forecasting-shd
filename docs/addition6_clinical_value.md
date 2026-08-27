@@ -41,7 +41,8 @@ pathway. DECIDE-AI is the standard for the early-stage clinical evaluation of
 AI-driven decision-support systems and comprises 17 AI-specific reporting items
 [vasey2022decideAI, p. 1]; it is already named in the rigor checklist as the
 guideline a future clinical-evaluation follow-up should adopt
-(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 1d). Addition 6 produces the
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Supplementary
+Files S16 and S17). Addition 6 produces the
 development-stage decision-analytic evidence that such a follow-up would build on,
 without claiming a clinical evaluation has occurred.
 

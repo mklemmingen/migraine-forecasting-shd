@@ -129,7 +129,8 @@ than scattering them through each addition's tree.
 folds. Each model is refit on the other site and applied to the held-out site's
 unseen patients; the threshold is set on a chronological cal sub-split of the
 training site only. `pooled_lr` is the LR reference (per_patient and partial_pool
-collapse onto it under patient-disjoint validation, Section 9a); add0/add1/add4
+collapse onto it under patient-disjoint validation,
+`docs/addition5_personalization.md` Section 9d); add0/add1/add4
 are the Addition 0/1/4 architectures.
 
 **Migraine** (Uijeongbu 8.6% vs Dongtan 5.7% base rate):
