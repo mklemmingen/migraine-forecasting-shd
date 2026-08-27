@@ -180,7 +180,9 @@ def _how_brier(ax):
             if ticks:                               # name the bars once, top row only
                 _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
     _lab(ax, x0, 54, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
-    _lab(ax, x0, 5, "skill = 1 \u2212 (forecast \u00f7 own-rate)", PT_BODY, BODY)
+    _lab(ax, x0, 12, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, 2, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+         PT_BODY, BODY)
 
 
 def _how_dca(ax):
@@ -207,7 +209,15 @@ def _how_dca(ax):
 
 
 def _skill_panel(ax, rows, cols):
-    ax.axvline(0.0, color=S.INK, lw=1.0, zorder=3)
+    # hatched bands, each unique, so "worse" and "better" name a REGION rather than
+    # floating as words under the axis
+    # a band under each side rather than a full-height wash: it names the region
+    # without competing with the intervals drawn on top of it
+    for x0b, w, hat in ((-0.32, 0.32, "\\\\"), (0.0, 0.72, "//")):
+        ax.add_patch(Rectangle((x0b, -0.60), w, 0.26, facecolor="none",
+                               edgecolor="#dcdcdc", hatch=hat, lw=0.0, zorder=0))
+    # vlines rather than axvline, so the rule stops short of its own label
+    ax.vlines(0.0, -0.62, 1.38, color=S.INK, lw=1.0, zorder=3)
     for i, ((tgt, r), col) in enumerate(zip(rows, cols)):
         yy = 1 - i
         lo, hi = float(r["bs_cluster_lo"]), float(r["bs_cluster_hi"])
@@ -215,9 +225,9 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
-    _lab(ax, 0.03, 1.50, "no improvement", PT_FINE, SECOND, ha="left")
-    _lab(ax, -0.30, -0.50, "\u2190 worse than own rate", PT_FINE, THIRD)
-    _lab(ax, 0.70, -0.50, "better than own rate \u2192", PT_FINE, THIRD,
+    _lab(ax, 0.0, 1.48, "no improvement", PT_FINE, SECOND, ha="center")
+    _lab(ax, -0.30, -0.47, "\u2190 worse than own rate", PT_FINE, THIRD)
+    _lab(ax, 0.70, -0.47, "better than own rate \u2192", PT_FINE, THIRD,
          ha="right")
     ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)

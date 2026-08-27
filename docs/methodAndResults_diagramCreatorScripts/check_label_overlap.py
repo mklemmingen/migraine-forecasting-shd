@@ -76,6 +76,8 @@ def _spy(fig, path):
                     v = inter(te, oe)
                     if v and v[0] > 1.5 and v[1] > 1.5:
                         hits.append(("TEXT/FILL", tname, oname, v))
+                elif art.get_linewidth() == 0:
+                    pass          # an outline of zero width draws nothing
                 else:
                     edges = [((oe.x0, oe.y0), (oe.x1, oe.y0)), ((oe.x1, oe.y0), (oe.x1, oe.y1)),
                              ((oe.x1, oe.y1), (oe.x0, oe.y1)), ((oe.x0, oe.y1), (oe.x0, oe.y0))]
