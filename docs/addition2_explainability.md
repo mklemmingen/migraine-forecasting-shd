@@ -360,7 +360,7 @@ experiment/0|1/<...>/<ratio>/<split>/[NonHP|...]/
 
 experiment/2/
     run_insights.py                 # selects 14 leaves, calls the extended _eval_only_runner with EMIT_INSIGHTS=1
-    select.py                       # headline/runner-up selection (reuses _eval/_parsing + a CI-overlap predicate)
+    leaf_selection.py               # headline/runner-up selection (reuses _eval/_parsing + a CI-overlap predicate)
     compare.py                      # cross-leaf SHAP-ranking diff + Park-OR check
     comparison_shap_<ts>.html       # headline-vs-runner-up ranking diffs across the 7 cells
     park_or_check_<ts>.html         # SHAP rank vs Park 2016 Table-4 OR, migraine/park cells
