@@ -187,7 +187,9 @@ experiment/6/
     decision_curve.py             # net benefit vs threshold (3.1)
     skill.py                      # Brier skill score vs per-patient climatology (3.2)
     operating_point.py            # threshold mapping + sensitivity at fixed FPR (3.3)
-    weather_join.py               # optional KMA meteorological join + ablation (3.4)
+    weather_join.py               # NOT IMPLEMENTED (stub, raises NotImplementedError):
+                                  #   optional KMA meteorological join + ablation (3.4),
+                                  #   blocked on an external data decision, see 6
   <target>/<feature_set>/<arch>/<ratio>/<split>/
     decision_curve_<ts>.png
     skill_<ts>.txt                # Brier, Brier skill score, calibration-in-the-large
