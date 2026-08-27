@@ -164,7 +164,7 @@ def _how_brier(ax):
     x0, x1 = 8.0, 66.0
     px = lambda q: x0 + q * (x1 - x0)
     for y, outcome, head, ticks in ((82, 1.0, "attack day", True),
-                                    (40, 0.0, "quiet day  (most days)", False)):
+                                    (44, 0.0, "quiet day  (most days)", False)):
         _lab(ax, x0, y + 7, head, PT_BODY, BODY, weight="bold")
         if ticks:                                   # one probability scale, labelled once
             _lab(ax, x0, y + 13, "0", PT_FINE, THIRD, ha="center")
@@ -179,9 +179,15 @@ def _how_brier(ax):
             ax.add_patch(Rectangle((x0, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
             if ticks:                               # name the bars once, top row only
                 _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
-    _lab(ax, x0, 57, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
-    _lab(ax, x0, 15, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
-    _lab(ax, x0, 2, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+    # the three circles carried no explanation at all
+    ax.plot([x0 + 1], [62], "o", ms=5.0, mfc="white", mec=A_INK, mew=1.4, zorder=4)
+    _lab(ax, x0 + 6, 62, "a prediction", PT_FINE, SECOND)
+    ax.plot([x0 + 46], [62], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
+    _lab(ax, x0 + 51, 62, "what happened", PT_FINE, SECOND)
+    # both rules apply to the whole panel, so they sit together at the foot
+    _lab(ax, x0, 20, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
+    _lab(ax, x0, 11, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, 1, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
          PT_BODY, BODY)
 
 
