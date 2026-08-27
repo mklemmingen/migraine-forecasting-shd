@@ -42,6 +42,7 @@ import _style as S
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import matplotlib.patheffects as pe
 from sklearn.metrics import roc_curve, roc_auc_score
 
 HERE = Path(__file__).resolve().parent
@@ -216,7 +217,7 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
-    _lab(ax, 0.0, 1.50, "no improvement", PT_FINE, SECOND, ha="center")
+    _lab(ax, 0.03, 1.50, "no improvement", PT_FINE, SECOND, ha="left")
     _lab(ax, -0.30, -0.50, "\u2190 worse than own rate", PT_FINE, THIRD)
     _lab(ax, 0.70, -0.50, "better than own rate \u2192", PT_FINE, THIRD,
          ha="right")
@@ -320,26 +321,28 @@ def _slope_panel(ax):
     ax.text(-0.30, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['pooled']:.2f}",
             fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="right", va="center")
     # sits at its own pooled dot's x, so the word names the blue series directly
-    ax.text(-0.04, 0.538, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
-            color=HEA_TEXT, ha="left", va="top")
-    ax.text(-0.30, GA.HEADACHE["pooled"], f"{GA.HEADACHE['pooled']:.2f}",
+    ax.text(-0.30, 0.710, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
+            color=HEA_TEXT, ha="right", va="center",
+            path_effects=[pe.withStroke(linewidth=2.2, foreground="white")])
+    ax.text(-0.30, GA.HEADACHE["pooled"] - 0.014, f"{GA.HEADACHE['pooled']:.2f}",
             fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="right", va="center")
     # right gutter: the within-person value with its interval printed, because
     # "does it cross 0.5" is a 0.7 mm judgement at this scale and must not be one
-    # labels sit against their own dots, so no leader is needed
+    # each within-person value shares a row with the pooled value it is measured
+    # against, so the drop is read across a row rather than reconstructed
     mlo, mhi = GA.MIGRAINE["within_ci"]
-    ax.text(0.94, 0.690, f"{GA.MIGRAINE['within']:.2f}", fontsize=PT_VALUE,
-            fontweight="bold", color=MIG_TEXT, ha="center", va="bottom")
-    ax.text(0.94, 0.650, f"{mlo:.2f}\u2013{mhi:.2f}", fontsize=PT_FINE,
-            color=SECOND, ha="center", va="bottom")
+    ax.text(1.10, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['within']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="left", va="center")
+    ax.text(1.10, GA.MIGRAINE["pooled"] - 0.045, f"{mlo:.2f}\u2013{mhi:.2f}",
+            fontsize=PT_FINE, color=SECOND, ha="left", va="center")
     hlo, hhi = GA.HEADACHE["within_ci"]
-    ax.text(1.15, 0.605, f"{GA.HEADACHE['within']:.2f}", fontsize=PT_VALUE,
-            fontweight="bold", color=HEA_TEXT, ha="left", va="center")
-    ax.text(1.15, 0.548, f"{hlo:.2f}\u2013{hhi:.2f}", fontsize=PT_FINE,
-            color=SECOND, ha="left", va="center")
-    ax.text(1.15, 0.705, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
+    ax.text(1.10, GA.HEADACHE["pooled"] - 0.014, f"{GA.HEADACHE['within']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="left", va="center")
+    ax.text(1.10, GA.HEADACHE["pooled"] - 0.059, f"{hlo:.2f}\u2013{hhi:.2f}",
+            fontsize=PT_FINE, color=SECOND, ha="left", va="center")
+    ax.text(1.38, 0.715, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
             ha="left", va="center", linespacing=1.3)
-    ax.text(0.58, 0.790, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
+    ax.text(0.58, 0.702, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
             fontsize=PT_BODY, fontweight="bold", color=MIG_TEXT, ha="center", va="center")
     ax.text(0.62, 0.548, f"\u0394 {GA.HEADACHE['pooled'] - GA.HEADACHE['within']:.2f}",
             fontsize=PT_BODY, fontweight="bold", color=HEA_TEXT, ha="center", va="center")
@@ -401,7 +404,9 @@ def _rank_panel(ax):
     ax.set_xlabel(f"one dot per patient, ranked\n"
                   f"(63 records; {n_hea} scorable for headache, {n_mig} for migraine)",
                   fontsize=PT_AXIS)
-    GA._chance_label(ax)
+    # GA's helper sets this across the rule; place it clear of the stroke instead
+    ax.text(-0.02, 0.487, "chance", fontsize=PT_FINE, color=THIRD,
+            ha="left", va="top")
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
 

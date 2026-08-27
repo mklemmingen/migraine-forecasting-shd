@@ -28,9 +28,14 @@ def _spy(fig, path):
             if t.get_text().strip():
                 e = bb(t, r)
                 if e: texts.append((t.get_text().replace("\n", " / ")[:38], e, ax))
-        for coll in list(ax.patches) + list(ax.lines):
+        for coll in ax.patches:
             e = bb(coll, r)
             if e: others.append((type(coll).__name__, e, ax, coll))
+        # Lines are NOT filtered by bbox: a horizontal or vertical rule has zero
+        # height or width, so a bbox filter silently drops exactly the rules most
+        # likely to strike through a label (axhline, axvline, CI spines).
+        for ln in ax.lines:
+            others.append(("Line2D", None, ax, ln))
     hits = []
     for i in range(len(texts)):
         for j in range(i + 1, len(texts)):
