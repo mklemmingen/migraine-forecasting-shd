@@ -187,13 +187,14 @@ def _how_brier(ax):
     # all three marks on the rules, in the order they appear along it
     # positions from the measured label widths (19.7, 18.3, 35.2 units) so each
     # mark keeps ~4 units of clear space from the label before it
-    K = 1.5                                   # ~3 px right, so the ring's left edge
+    K, KY = 1.5, 24.5                         # ~3 px right, ~5 px lower; ring and
+                                              # label share KY so they move as one
     for mx, lx, mec, mfc, ms_, txt in (       # lines up with the text block below
             (x0 + K, x0 + 4 + K, A_MID, "white", 5.0, "own rate"),
             (x0 + 28 + K, x0 + 32 + K, A_INK, "white", 5.0, "forecast"),
             (x0 + 55 + K, x0 + 59 + K, "none", A_INK, 5.5, "outcome")):
-        ax.plot([mx], [27], "o", ms=ms_, mfc=mfc, mec=mec, mew=1.4, zorder=4)
-        _lab(ax, lx, 27, txt, PT_FINE, SECOND)
+        ax.plot([mx], [KY], "o", ms=ms_, mfc=mfc, mec=mec, mew=1.4, zorder=4)
+        _lab(ax, lx, KY, txt, PT_FINE, SECOND)
     # both rules apply to the whole panel, so they sit together at the foot
     _lab(ax, x0, 18, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
     _lab(ax, x0, 10, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
