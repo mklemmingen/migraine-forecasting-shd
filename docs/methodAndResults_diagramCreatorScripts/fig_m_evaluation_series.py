@@ -163,8 +163,8 @@ def _how_brier(ax):
     OWN, FC = 0.20, 0.45                       # illustrative, stated in the caption
     x0, x1 = 8.0, 66.0
     px = lambda q: x0 + q * (x1 - x0)
-    for y, outcome, head, ticks in ((82, 1.0, "attack day", True),
-                                    (44, 0.0, "quiet day  (most days)", False)):
+    for y, outcome, head, ticks in ((84, 1.0, "attack day", True),
+                                    (50, 0.0, "quiet day  (most days)", False)):
         _lab(ax, x0, y + 7, head, PT_BODY, BODY, weight="bold")
         if ticks:                                   # one probability scale, labelled once
             _lab(ax, x0, y + 13, "0", PT_FINE, THIRD, ha="center")
@@ -180,13 +180,13 @@ def _how_brier(ax):
             if ticks:                               # name the bars once, top row only
                 _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
     # the three circles carried no explanation at all
-    ax.plot([x0 + 1], [62], "o", ms=5.0, mfc="white", mec=A_INK, mew=1.4, zorder=4)
-    _lab(ax, x0 + 6, 62, "a prediction", PT_FINE, SECOND)
-    ax.plot([x0 + 46], [62], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
-    _lab(ax, x0 + 51, 62, "what happened", PT_FINE, SECOND)
+    ax.plot([x0 + 1], [27], "o", ms=5.0, mfc="white", mec=A_INK, mew=1.4, zorder=4)
+    _lab(ax, x0 + 6, 27, "a prediction", PT_FINE, SECOND)
+    ax.plot([x0 + 46], [27], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
+    _lab(ax, x0 + 51, 27, "what happened", PT_FINE, SECOND)
     # both rules apply to the whole panel, so they sit together at the foot
-    _lab(ax, x0, 20, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
-    _lab(ax, x0, 11, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, 18, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
+    _lab(ax, x0, 10, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
     _lab(ax, x0, 1, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
          PT_BODY, BODY)
 
