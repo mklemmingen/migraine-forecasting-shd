@@ -133,7 +133,7 @@ def _how_auroc(ax):
                 arrowprops=dict(arrowstyle="-|>", color=A_INK, lw=1.2))
     _lab(ax, 44, 61, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
     # the readers could describe the pair test and still not know AUROC *is* the pair count
-    _lab(ax, 6, 18, "AUROC = share of pairs ranked this way", PT_BODY, BODY)
+    _lab(ax, 6, 18, "AUROC = share of pairs ranked correctly", PT_BODY, BODY)
     _lab(ax, 6, 4, "0.5 = coin flip chance  \n1.0 = every pair correctly ranked.\nhigher AUROC -> better.", PT_FINE, SECOND)
 
 
@@ -301,8 +301,8 @@ def _slope_panel(ax):
     import graphical_abstract as GA
     ORA, BLU = S.target_color("migraine"), S.target_color("headache")
     ax.axhline(0.5, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
-    for d, col, txt, xs, side in ((GA.MIGRAINE, ORA, MIG_TEXT, (-0.06, 0.94), -1),
-                                  (GA.HEADACHE, BLU, HEA_TEXT, (0.06, 1.06), +1)):
+    for d, col, txt, xs, side in ((GA.MIGRAINE, ORA, MIG_TEXT, (-0.015, 0.985), -1),
+                                  (GA.HEADACHE, BLU, HEA_TEXT, (0.015, 1.015), +1)):
         ax.plot(xs, [d["pooled"], d["within"]], color=col, lw=2.2, zorder=4,
                 marker="o", ms=6.5, mfc=col, mec="white", mew=1.0)
         reps = GA._load_pooled_replicates()
@@ -320,7 +320,7 @@ def _slope_panel(ax):
     ax.text(-0.30, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['pooled']:.2f}",
             fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="right", va="center")
     # sits at its own pooled dot's x, so the word names the blue series directly
-    ax.text(-0.04, 0.549, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
+    ax.text(-0.04, 0.538, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
             color=HEA_TEXT, ha="left", va="top")
     ax.text(-0.30, GA.HEADACHE["pooled"], f"{GA.HEADACHE['pooled']:.2f}",
             fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="right", va="center")
@@ -328,9 +328,9 @@ def _slope_panel(ax):
     # "does it cross 0.5" is a 0.7 mm judgement at this scale and must not be one
     # labels sit against their own dots, so no leader is needed
     mlo, mhi = GA.MIGRAINE["within_ci"]
-    ax.text(0.90, 0.680, f"{GA.MIGRAINE['within']:.2f}", fontsize=PT_VALUE,
+    ax.text(0.94, 0.690, f"{GA.MIGRAINE['within']:.2f}", fontsize=PT_VALUE,
             fontweight="bold", color=MIG_TEXT, ha="center", va="bottom")
-    ax.text(0.90, 0.640, f"{mlo:.2f}\u2013{mhi:.2f}", fontsize=PT_FINE,
+    ax.text(0.94, 0.650, f"{mlo:.2f}\u2013{mhi:.2f}", fontsize=PT_FINE,
             color=SECOND, ha="center", va="bottom")
     hlo, hhi = GA.HEADACHE["within_ci"]
     ax.text(1.15, 0.605, f"{GA.HEADACHE['within']:.2f}", fontsize=PT_VALUE,
