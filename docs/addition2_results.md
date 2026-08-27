@@ -216,7 +216,9 @@ probability). On the same data slice, AutoTabPFN reached AUROC 0.745
 [0.656, 0.825], calibration slope 0.992 [0.642, 1.346] (the best
 slope in the migraine family; XGBoost-HP020 is 1.386 [0.401, 2.067]
 patient-cluster primary and TabPFN-v2.5-finetuned is 0.964
-[0.604, 1.346]), and the two architectures'
+[0.604, 1.346], `holdout_Calibration Slope` for the
+migraine / full_features / tabpfn / version_2-5-finetuned / 70_30 / chrono
+row of `experiment/comparison_20260531T195001_972f4675.csv`), and the two architectures'
 top-10 rankings overlap on six features:
 
 | rank | AutoTabPFN (perm-importance ×100) | XGBoost-HP020 (KernelSHAP ×100) |
