@@ -173,17 +173,25 @@ def _how_brier(ax):
         for q in (0.0, 1.0):
             ax.plot([px(q), px(q)], [y - 2, y + 2], color=A_MID, lw=1.0)
         ax.plot([px(outcome)], [y], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
-        for q, col, dy, nm in ((OWN, A_MID, -8.0, "own rate"), (FC, A_INK, -14.5, "forecast")):
+        for q, col, dy, nm in ((OWN, A_MID, -10.0, "own rate"),
+                               (FC, A_INK, -17.0, "forecast")):
             ax.plot([px(q)], [y], "o", ms=5.0, mfc="white", mec=col, mew=1.4, zorder=4)
+            # anchored under its own dot and running toward the outcome, so the bar
+            # is unambiguously that dot's; its length is the squared miss
             w = (q - outcome) ** 2 * (x1 - x0)
-            ax.add_patch(Rectangle((x0, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
+            a = px(q) if outcome > q else px(q) - w
+            ax.add_patch(Rectangle((a, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
             if ticks:                               # name the bars once, top row only
-                _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
+                _lab(ax, a + w + 3, y + dy + 1.8, nm, PT_FINE, col)
     # the three circles carried no explanation at all
-    ax.plot([x0 + 1], [27], "o", ms=5.0, mfc="white", mec=A_INK, mew=1.4, zorder=4)
-    _lab(ax, x0 + 6, 27, "a prediction", PT_FINE, SECOND)
-    ax.plot([x0 + 46], [27], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
-    _lab(ax, x0 + 51, 27, "what happened", PT_FINE, SECOND)
+    # all three marks on the rules, in the order they appear along it
+    # positions from the measured label widths (19.7, 18.3, 35.2 units) so each
+    # mark keeps ~4 units of clear space from the label before it
+    for mx, lx, mec, mfc, ms_, txt in ((x0, x0 + 4, A_MID, "white", 5.0, "own rate"),
+                                       (x0 + 28, x0 + 32, A_INK, "white", 5.0, "forecast"),
+                                       (x0 + 55, x0 + 59, "none", A_INK, 5.5, "outcome")):
+        ax.plot([mx], [27], "o", ms=ms_, mfc=mfc, mec=mec, mew=1.4, zorder=4)
+        _lab(ax, lx, 27, txt, PT_FINE, SECOND)
     # both rules apply to the whole panel, so they sit together at the foot
     _lab(ax, x0, 18, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
     _lab(ax, x0, 10, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
