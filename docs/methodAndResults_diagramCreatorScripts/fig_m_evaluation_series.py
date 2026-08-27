@@ -22,7 +22,9 @@ added nothing to what the patient's own rate already said.
 (d) Clinical value. Decision-curve net benefit against the two default policies. A
 model earns a decision only where its curve sits above both treat-all and treat-none.
 
-Usage: python fig_m_evaluation_series.py   (needs figures/headline_predictions.npz)
+Usage: python fig_m_evaluation_series.py
+       The decision-curve panel reads figures/headline_predictions.npz; rebuild that
+       cache with make_headline_predictions.py in this directory.
 """
 # §11 compliance: reports headline-cell metrics.
 #   §11.1 metric + CI + n:               AUROC and skill carry intervals; n in the caption
