@@ -17,7 +17,8 @@ Modules:
   decision_curve.py  - net benefit vs threshold probability (Vickers)
   skill.py           - Brier skill score vs per-patient climatology (Murphy/Brier)
   operating_point.py - val-threshold vs net-benefit-optimal; sensitivity at FPR
-  weather_join.py    - optional measured-weather covariates (headache only)
+  weather_join.py    - NOT IMPLEMENTED: optional measured-weather covariates
+                       (headache only), blocked on an external data decision
 
 Design rationale and decisions (with citations): docs/addition6_clinical_value.md.
 """
