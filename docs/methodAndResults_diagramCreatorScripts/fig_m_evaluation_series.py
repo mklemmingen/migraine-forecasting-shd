@@ -180,8 +180,8 @@ def _how_brier(ax):
             if ticks:                               # name the bars once, top row only
                 _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
     _lab(ax, x0, 54, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
-    _lab(ax, x0, 12, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
-    _lab(ax, x0, 2, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+    _lab(ax, x0, 13, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, 0, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
          PT_BODY, BODY)
 
 
