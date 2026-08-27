@@ -163,12 +163,12 @@ def _how_brier(ax):
     OWN, FC = 0.20, 0.45                       # illustrative, stated in the caption
     x0, x1 = 8.0, 66.0
     px = lambda q: x0 + q * (x1 - x0)
-    for y, outcome, head, ticks in ((79, 1.0, "attack day", True),
-                                    (31, 0.0, "quiet day  (most days)", False)):
-        _lab(ax, x0, y + 9, head, PT_BODY, BODY, weight="bold")
+    for y, outcome, head, ticks in ((82, 1.0, "attack day", True),
+                                    (40, 0.0, "quiet day  (most days)", False)):
+        _lab(ax, x0, y + 7, head, PT_BODY, BODY, weight="bold")
         if ticks:                                   # one probability scale, labelled once
-            _lab(ax, x0, y + 18, "0", PT_FINE, THIRD, ha="center")
-            _lab(ax, x1, y + 18, "1", PT_FINE, THIRD, ha="center")
+            _lab(ax, x0, y + 13, "0", PT_FINE, THIRD, ha="center")
+            _lab(ax, x1, y + 13, "1", PT_FINE, THIRD, ha="center")
         ax.plot([x0, x1], [y, y], color=A_MID, lw=1.0, zorder=1)
         for q in (0.0, 1.0):
             ax.plot([px(q), px(q)], [y - 2, y + 2], color=A_MID, lw=1.0)
@@ -179,9 +179,9 @@ def _how_brier(ax):
             ax.add_patch(Rectangle((x0, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
             if ticks:                               # name the bars once, top row only
                 _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
-    _lab(ax, x0, 54, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
-    _lab(ax, x0, 13, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
-    _lab(ax, x0, 0, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+    _lab(ax, x0, 57, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
+    _lab(ax, x0, 15, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, 2, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
          PT_BODY, BODY)
 
 
