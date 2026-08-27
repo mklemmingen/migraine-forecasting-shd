@@ -141,20 +141,18 @@ def _how_auroc(ax):
 def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((3, 44), 44, 40, fc="none", ec="#cfcfcf", lw=0.7))
-    _lab(ax, 3, 89, "one patient's diary", PT_FINE, SECOND)
-    for yy, col, lab in ((72, A_STRONG, "attack day"), (52, A_LIGHT, "quiet day")):
+    ax.add_patch(Rectangle((3, 38), 52, 50, fc="none", ec="#cfcfcf", lw=0.7))
+    _lab(ax, 3, 93, "one patient's diary", PT_FINE, SECOND)
+    for yy, col, lab in ((78, A_STRONG, "attack day"), (48, A_LIGHT, "quiet day")):
         _sq(ax, 10, yy, 9, col)
-        _lab(ax, 19, yy, lab, PT_BODY, BODY)
-    ax.annotate("", xy=(14, 68), xytext=(14, 56),
+        _lab(ax, 22, yy, lab, PT_BODY, BODY)
+    ax.annotate("", xy=(14, 73), xytext=(14, 53),
                 arrowprops=dict(arrowstyle="<|-|>", color=A_INK, lw=1.1,
                                 mutation_scale=7))
-    _lab(ax, 19, 62, "compared", PT_FINE, BODY, weight="bold")
-    _sq(ax, 76, 74, 10, A_EDGE, outline=True)
-    _lab(ax, 76, 58, "another patient's day,\nnever compared", PT_FINE, SECOND,
-         ha="center")
-    _lab(ax, 6, 24, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
-    _lab(ax, 6, 10, "0.5 = coin flip   higher = better", PT_FINE, SECOND)
+    _lab(ax, 22, 63, "compared", PT_FINE, BODY, weight="bold")
+    _sq(ax, 78, 76, 10, A_EDGE, outline=True)
+    _lab(ax, 58, 60, "another patient's day,\nnever compared", PT_FINE, SECOND)
+    _lab(ax, 6, 22, "AUROC inside one diary = within-person C", PT_BODY, BODY)
 
 
 def _how_brier(ax):
@@ -385,8 +383,8 @@ def _rank_panel(ax):
         ax.plot([1.0, 1.06], [d["within"], ly], color="#c8c8c8", lw=0.5, zorder=2)
         ax.text(1.08, ly, f"{d['within']:.2f}", fontsize=PT_BODY, fontweight="bold",
                 color=txt, ha="left", va="center")
-        ax.text(1.08, ly - 0.048, "pooled", fontsize=PT_FINE, color=THIRD,
-                ha="left", va="center")
+        ax.text(1.08, ly - 0.062, "Paule\u2013Mandel\nrandom effects", fontsize=PT_FINE,
+                color=THIRD, ha="left", va="center", linespacing=1.25)
     # direct labels in the empty upper-left: the dots are rank-sorted, so nothing
     # reaches this corner. Swatches are the data marks at their own sizes.
     for x, y, t, c, ms in ((0.035, 0.905, "MIGRAINE", MIG_TEXT, 4.2),
@@ -395,7 +393,9 @@ def _rank_panel(ax):
                 mec="none", zorder=6)
         ax.text(x + 0.035, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
                 ha="left", va="center", zorder=6)
-    ax.set_xlim(-0.04, 1.36); ax.set_ylim(GA.SHARED_YLIM)
+    ax.text(0.10, 1.045, "within-patient AUROC", transform=ax.transAxes,
+            fontsize=PT_HEAD, fontweight="bold", color=BODY, ha="left", va="bottom")
+    ax.set_xlim(-0.04, 1.58); ax.set_ylim(GA.SHARED_YLIM)
     ax.set_xticks([]); ax.set_yticks(GA.SHARED_YTICKS)
     ax.tick_params(axis="y", labelsize=PT_TICK)
     ax.set_ylabel("per-patient AUROC", fontsize=PT_AXIS)
