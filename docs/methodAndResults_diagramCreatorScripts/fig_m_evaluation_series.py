@@ -82,6 +82,15 @@ def _net_benefit(y, p, thresholds):
 PT_HEAD, PT_VALUE, PT_AXIS, PT_TICK, PT_BODY, PT_FINE = 8.8, 11.0, 8.0, 7.0, 7.4, 6.8
 BODY, SECOND, THIRD = "#3d3d3d", "#5f5f5f", "#7a7a7a"
 
+# Panel (a) is achromatic. The blind readability study found five independent readers
+# reading panel (a)'s hues as a colour key for panel (b) -- orange meant "attack day" on
+# the left and "migraine" on the right. A grey has no chroma, so the confusion cannot
+# survive: every schematic mark is R=G=B, every data mark carries a target hue.
+A_INK, A_STRONG, A_MID = "#222222", "#4a4a4a", "#8e8e8e"
+A_LIGHT, A_EDGE, A_PANE = "#d8d8d8", "#9a9a9a", "#f2f2f2"
+# target words: #D55E00 is 3.87:1 on white and fails as text; #C25100 is 4.70:1
+MIG_TEXT, HEA_TEXT = "#C25100", "#0072B2"
+
 
 def _lab(ax, x, y, t, size=PT_BODY, col=None, ha="left", weight="normal",
          rot=0):
@@ -111,69 +120,83 @@ def _sq(ax, x, y, side, col, alpha=1.0, anchor="center", outline=False):
     return h
 
 
-def _how_auroc(ax, att, hea):
+def _how_auroc(ax):
     """AUROC counts ordered pairs: one attack day against one quiet day."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.annotate("", xy=(14, 92), xytext=(14, 18),
-                arrowprops=dict(arrowstyle="-|>", color=S.GREY, lw=1.0))
-    _lab(ax, 6, 55, "forecast risk", PT_FINE, SECOND, ha="center", rot=90)
-    for yy, col, lab in ((74, att, "attack day"), (34, "#cfcfcf", "quiet day")):
+    ax.annotate("", xy=(14, 92), xytext=(14, 26),
+                arrowprops=dict(arrowstyle="-|>", color=A_MID, lw=1.0))
+    _lab(ax, 6, 60, "forecast risk", PT_FINE, SECOND, ha="center", rot=90)
+    for yy, col, lab in ((78, A_STRONG, "attack day"), (44, A_LIGHT, "quiet day")):
         _sq(ax, 26, yy, 11, col)
         _lab(ax, 42, yy, lab, PT_BODY, BODY)
-    ax.annotate("", xy=(32, 66), xytext=(32, 42),
-                arrowprops=dict(arrowstyle="-|>", color=S.INK, lw=1.2))
-    _lab(ax, 44, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    ax.annotate("", xy=(32, 70), xytext=(32, 52),
+                arrowprops=dict(arrowstyle="-|>", color=A_INK, lw=1.2))
+    _lab(ax, 44, 61, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    # the readers could describe the pair test and still not know AUROC *is* the pair count
+    _lab(ax, 6, 14, "AUROC = share of pairs\nranked this way", PT_BODY, BODY)
 
 
-def _how_within(ax, att):
+def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 32), 62, 52, fc="#f4f4f4", ec="none"))
-    _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
-    for yy, col in ((64, att), (44, "#cfcfcf")):
+    ax.add_patch(Rectangle((4, 40), 62, 52, fc=A_PANE, ec="#e4e4e4", lw=0.6))
+    _lab(ax, 8, 86, "one patient's diary", PT_FINE, SECOND)
+    for yy, col, lab in ((72, A_STRONG, "attack day"), (52, A_LIGHT, "quiet day")):
         _sq(ax, 14, yy, 11, col)
-    ax.annotate("", xy=(32, 66), xytext=(32, 42),
-                arrowprops=dict(arrowstyle="<|-|>", color=S.INK, lw=1.1,
+        _lab(ax, 24, yy, lab, PT_BODY, BODY)
+    ax.annotate("", xy=(58, 74), xytext=(58, 50),
+                arrowprops=dict(arrowstyle="<|-|>", color=A_INK, lw=1.1,
                                 mutation_scale=8))
-    _lab(ax, 38, 54, "compared", PT_BODY, BODY)
-    _sq(ax, 76, 58, 11, "#9a9a9a", outline=True)
-    _lab(ax, 81, 38, "another patient's day,\nnever compared", PT_FINE, SECOND,
+    _lab(ax, 47, 62, "compared", PT_BODY, BODY, weight="bold", ha="center")
+    _sq(ax, 78, 66, 11, A_EDGE, outline=True)
+    _lab(ax, 83, 50, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
+    _lab(ax, 6, 18, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
 
 
-def _how_brier(ax, hea):
-    """Brier compares the squared miss of the forecast with that of the patient's rate."""
+def _how_brier(ax):
+    """One forecast, both outcomes: the same prediction wins on an attack day and
+    loses on a quiet day. The single-outcome version taught "higher is better",
+    which is wrong on the ~93% of days when nothing happens."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.plot([8, 84], [70, 70], color=S.GREY, lw=1.0)
-    for x, t in ((8, "0"), (84, "1")):
-        ax.plot([x, x], [68, 72], color=S.GREY, lw=1.0)
-        _lab(ax, x, 63, t, PT_FINE, SECOND, ha="center")
-    ax.plot([84], [70], "o", ms=6, mfc=S.INK, mec="none")
-    # centred over the outcome dot, so it cannot be read as labelling the forecast
-    _lab(ax, 84, 81, "what happened", PT_BODY, BODY, ha="center")
-    for x, col, lab in ((60, hea, "forecast\nerror"),
-                        (34, "#9a9a9a", "own-rate\nerror")):
-        ax.plot([x], [70], "o", ms=6, mfc="white", mec=col, mew=1.6)
-        ax.plot([x, 84], [70, 70], color=col, lw=2.2, alpha=0.55,
-                solid_capstyle="butt")
-        sq = (84 - x) * 0.19
-        h = _sq(ax, x - sq / 2, 34, sq, col, alpha=0.35, anchor="bottom")
-        ax.plot([x, x], [68, 34 + h], color=col, lw=0.7, alpha=0.45, zorder=0)
-        _lab(ax, x, 24, lab, PT_BODY, BODY, ha="center")
+    OWN, FC = 0.20, 0.45                       # illustrative, stated in the caption
+    x0, x1 = 8.0, 66.0
+    px = lambda q: x0 + q * (x1 - x0)
+    for y, outcome, head, ticks in ((79, 1.0, "attack day", True),
+                                    (31, 0.0, "quiet day  (most days)", False)):
+        _lab(ax, x0, y + 14, head, PT_BODY, BODY, weight="bold")
+        if ticks:                                   # one probability scale, labelled once
+            _lab(ax, x0, y + 7, "0", PT_FINE, THIRD, ha="center")
+            _lab(ax, x1, y + 7, "1", PT_FINE, THIRD, ha="center")
+        ax.plot([x0, x1], [y, y], color=A_MID, lw=1.0, zorder=1)
+        for q in (0.0, 1.0):
+            ax.plot([px(q), px(q)], [y - 2, y + 2], color=A_MID, lw=1.0)
+        ax.plot([px(outcome)], [y], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
+        for q, col, dy, nm in ((OWN, A_MID, -8.0, "own rate"), (FC, A_INK, -14.5, "forecast")):
+            ax.plot([px(q)], [y], "o", ms=5.0, mfc="white", mec=col, mew=1.4, zorder=4)
+            w = (q - outcome) ** 2 * (x1 - x0)
+            ax.add_patch(Rectangle((x0, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
+            if ticks:                               # name the bars once, top row only
+                _lab(ax, x0 + w + 3, y + dy + 1.8, nm, PT_FINE, col)
+    _lab(ax, x0, 54, "bar length = squared miss,  shorter = better", PT_FINE, THIRD)
+    _lab(ax, x0, 5, "skill = 1 \u2212 (forecast \u00f7 own-rate)", PT_BODY, BODY)
 
 
-def _how_dca(ax, att):
+def _how_dca(ax):
     """Net benefit trades attacks caught against unnecessary treatment."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
     for i in range(6):
-        _sq(ax, 12 + i * 8.5, 66, 7, att, anchor="bottom")
+        _sq(ax, 12 + i * 8.5, 66, 7, A_STRONG, anchor="bottom")
     _lab(ax, 12, 80, "attacks caught", PT_BODY, BODY)
     # the operator, so the panel shows a subtraction rather than two unrelated rows
-    ax.text(4, 50, "\u2212", fontsize=13, color=S.INK, ha="center", va="center")
+    ax.text(4, 50, "\u2212", fontsize=13, color=A_INK, ha="center", va="center")
     for i in range(4):
-        _sq(ax, 12 + i * 8.5, 26, 7, "#cfcfcf", anchor="bottom")
+        _sq(ax, 12 + i * 8.5, 26, 7, A_LIGHT, anchor="bottom")
     _lab(ax, 12, 40, "days treated for nothing", PT_BODY, BODY)
-    _lab(ax, 64, 28, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
+    # was "weighted by how reluctant one is to treat" -- a clause, and it never named
+    # the quantity. These two fragments name it and tie it to the panel (b) x-axis.
+    _lab(ax, 62, 32, "weight = t / (1 \u2212 t)", PT_FINE, SECOND)
+    _lab(ax, 62, 24, "false alarms per\nattack caught", PT_FINE, SECOND)
 
 
 def _skill_panel(ax, rows, cols):
@@ -184,9 +207,9 @@ def _skill_panel(ax, rows, cols):
         ax.plot([lo, hi], [yy, yy], color=col, lw=2.6, solid_capstyle="round", zorder=4)
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
-        _lab(ax, hi + 0.02, yy, tgt, PT_BODY, BODY)
+        _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
     _lab(ax, 0.0, 1.46, "no improvement", PT_FINE, SECOND, ha="center")
-    ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.55)
+    ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
     for sp in ("top", "right", "left"):
@@ -238,7 +261,7 @@ def _panel_letter(ax, letter):
             color=S.INK, transform=ax.transAxes, ha="left", va="bottom")
 
 
-def _one(name, how, how_args, draw_right, right_args):
+def _one(name, how, how_args, draw_right, right_args, after=None):
     """One figure in the series: the schematic beside the quantity it explains.
 
     Each is full column width and short, the shape this literature uses for a
@@ -246,7 +269,7 @@ def _one(name, how, how_args, draw_right, right_args):
     now lives in the manuscript caption, which is where a journal expects it.
     """
     fig = plt.figure(figsize=(183 / 25.4, 62 / 25.4))
-    gs = fig.add_gridspec(1, 2, width_ratios=[0.62, 1.0],
+    gs = fig.add_gridspec(1, 2, width_ratios=[0.46, 1.0],
                           left=0.055, right=0.985, top=0.88, bottom=0.185,
                           wspace=0.30)
     axl, axr = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
@@ -255,6 +278,8 @@ def _one(name, how, how_args, draw_right, right_args):
     _panel_letter(axl, "a"); _panel_letter(axr, "b")
     how(axl, *how_args)
     draw_right(axr, *right_args)
+    if after is not None:
+        after(axr)          # annotate on top; the GA's own drawing is never modified
     out = S.save(fig, HERE / "figures" / name)
     print("saved", Path(out).name)
 
@@ -271,11 +296,24 @@ def main() -> None:
     assert abs(roc_auc_score(y, p) - float(mig_row["auroc"])) < 5e-4, \
         "migraine cached predictions disagree with the published AUROC"
 
-    _one("fig_m1_pooled_auroc", _how_auroc, (ORA, BLU), GA._draw_slopegraph, ())
-    _one("fig_m2_within_person", _how_within, (ORA,), GA._draw_per_patient, ())
-    _one("fig_m3_brier_skill", _how_brier, (BLU,), _skill_panel,
+    def _label_slope(ax):
+        """The blind study: neither m1 reader ever learned what orange and blue were."""
+        ax.text(0.24, 0.815, "MIGRAINE", fontsize=PT_VALUE, fontweight="bold",
+                color=MIG_TEXT, ha="left", va="bottom", zorder=6)
+        ax.text(0.08, 0.548, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
+                color=HEA_TEXT, ha="left", va="top", zorder=6)
+
+    def _label_rank(ax):
+        for x, y, t, c in ((0.030, 0.905, "MIGRAINE", MIG_TEXT),
+                           (0.030, 0.835, "HEADACHE", HEA_TEXT)):
+            ax.text(x, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
+                    ha="left", va="center", zorder=6)
+
+    _one("fig_m1_pooled_auroc", _how_auroc, (), GA._draw_slopegraph, (), _label_slope)
+    _one("fig_m2_within_person", _how_within, (), GA._draw_per_patient, (), _label_rank)
+    _one("fig_m3_brier_skill", _how_brier, (), _skill_panel,
          ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
-    _one("fig_m4_net_benefit", _how_dca, (ORA,), _dca_panel, (preds, ORA))
+    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA))
 
 
 if __name__ == "__main__":
