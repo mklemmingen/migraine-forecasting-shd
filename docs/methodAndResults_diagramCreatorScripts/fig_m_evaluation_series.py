@@ -139,17 +139,17 @@ def _how_auroc(ax):
 def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 44), 54, 46, fc="none", ec="#cfcfcf", lw=0.7))
-    _lab(ax, 8, 84, "one patient's diary", PT_FINE, SECOND)
+    ax.add_patch(Rectangle((3, 44), 44, 40, fc="none", ec="#cfcfcf", lw=0.7))
+    _lab(ax, 3, 89, "one patient's diary", PT_FINE, SECOND)
     for yy, col, lab in ((72, A_STRONG, "attack day"), (52, A_LIGHT, "quiet day")):
-        _sq(ax, 12, yy, 10, col)
-        _lab(ax, 24, yy, lab, PT_BODY, BODY)
-    ax.annotate("", xy=(17, 68), xytext=(17, 56),
+        _sq(ax, 10, yy, 9, col)
+        _lab(ax, 19, yy, lab, PT_BODY, BODY)
+    ax.annotate("", xy=(14, 68), xytext=(14, 56),
                 arrowprops=dict(arrowstyle="<|-|>", color=A_INK, lw=1.1,
                                 mutation_scale=7))
-    _lab(ax, 24, 62, "compared", PT_FINE, BODY, weight="bold")
-    _sq(ax, 74, 66, 10, A_EDGE, outline=True)
-    _lab(ax, 79, 34, "another patient's day,\nnever compared", PT_FINE, SECOND,
+    _lab(ax, 19, 62, "compared", PT_FINE, BODY, weight="bold")
+    _sq(ax, 76, 74, 10, A_EDGE, outline=True)
+    _lab(ax, 76, 58, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
     _lab(ax, 6, 18, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
 
@@ -164,10 +164,10 @@ def _how_brier(ax):
     px = lambda q: x0 + q * (x1 - x0)
     for y, outcome, head, ticks in ((79, 1.0, "attack day", True),
                                     (31, 0.0, "quiet day  (most days)", False)):
-        _lab(ax, x0, y + 14, head, PT_BODY, BODY, weight="bold")
+        _lab(ax, x0, y + 9, head, PT_BODY, BODY, weight="bold")
         if ticks:                                   # one probability scale, labelled once
-            _lab(ax, x0, y + 7, "0", PT_FINE, THIRD, ha="center")
-            _lab(ax, x1, y + 7, "1", PT_FINE, THIRD, ha="center")
+            _lab(ax, x0, y + 18, "0", PT_FINE, THIRD, ha="center")
+            _lab(ax, x1, y + 18, "1", PT_FINE, THIRD, ha="center")
         ax.plot([x0, x1], [y, y], color=A_MID, lw=1.0, zorder=1)
         for q in (0.0, 1.0):
             ax.plot([px(q), px(q)], [y - 2, y + 2], color=A_MID, lw=1.0)
@@ -185,18 +185,24 @@ def _how_brier(ax):
 def _how_dca(ax):
     """Net benefit trades attacks caught against unnecessary treatment."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
+    # The operator must have clear space on BOTH sides and be nearer its operands
+    # than any label, or proximity binds it to the words instead and it reads as a
+    # dash -- which is what blind readers reported. Rows are spaced to give it room.
+    X0, W = 18.0, 8.5
     for i in range(6):
-        _sq(ax, 12 + i * 8.5, 66, 7, A_STRONG, anchor="bottom")
-    _lab(ax, 12, 80, "attacks caught", PT_BODY, BODY)
-    # the operator, so the panel shows a subtraction rather than two unrelated rows
-    ax.text(4, 50, "\u2212", fontsize=13, color=A_INK, ha="center", va="center")
+        _sq(ax, X0 + i * W, 78, 7, A_STRONG, anchor="bottom")
+    _lab(ax, X0, 93, "attacks caught", PT_BODY, BODY)
+    # drawn as a rule, not a glyph: length and weight then scale to the icons
+    ax.plot([X0 + 20, X0 + 30], [67, 67], color=A_INK, lw=2.6,
+            solid_capstyle="round", zorder=5)
     for i in range(4):
-        _sq(ax, 12 + i * 8.5, 26, 7, A_LIGHT, anchor="bottom")
-    _lab(ax, 12, 40, "days treated for nothing", PT_BODY, BODY)
-    # was "weighted by how reluctant one is to treat" -- a clause, and it never named
-    # the quantity. These two fragments name it and tie it to the panel (b) x-axis.
-    _lab(ax, 12, 14, "weight = t / (1 \u2212 t)", PT_FINE, SECOND)
-    _lab(ax, 12, 6, "false alarms per attack caught", PT_FINE, SECOND)
+        _sq(ax, X0 + i * W, 44, 7, A_LIGHT, anchor="bottom")
+    _lab(ax, X0, 57, "days treated for nothing", PT_BODY, BODY)
+    _lab(ax, X0, 36, "\u00d7 weight  t / (1 \u2212 t)", PT_FINE, SECOND)
+    ax.plot([X0 - 6, X0 + 5 * W + 9], [29, 29], color=A_MID, lw=1.0, zorder=2)
+    for i in range(2):
+        _sq(ax, X0 + i * W, 15, 7, A_STRONG, anchor="bottom", outline=True)
+    _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
 
 
 def _skill_panel(ax, rows, cols):
@@ -208,7 +214,7 @@ def _skill_panel(ax, rows, cols):
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
-    _lab(ax, 0.0, 1.46, "no improvement", PT_FINE, SECOND, ha="center")
+    _lab(ax, 0.0, 1.50, "no improvement", PT_FINE, SECOND, ha="center")
     ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
@@ -237,7 +243,7 @@ def _dca_panel(ax, preds, col):
     j = int(len(ts) * 0.34)
     _lab(ax, ts[j], nb[j] + 0.019, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
-    _lab(ax, 0.155, -0.050, "treat everyone", PT_FINE, SECOND)
+    _lab(ax, 0.098, -0.030, "treat everyone", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
     ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
     ax.set_ylabel("net benefit", fontsize=PT_AXIS)
@@ -283,12 +289,14 @@ def _slope_panel(ax):
                                   (GA.HEADACHE, BLU, HEA_TEXT, (0.06, 1.06), +1)):
         ax.plot(xs, [d["pooled"], d["within"]], color=col, lw=2.2, zorder=4,
                 marker="o", ms=6.5, mfc=col, mec="white", mew=1.0)
+        reps = GA._load_pooled_replicates()
+        if not {("migraine", "XGBoost"), ("headache", "TabPFN")} <= set(reps):
+            reps = {}
+        key = ("migraine", "XGBoost") if col == ORA else ("headache", "TabPFN")
         for xi, yi, ci in ((xs[0], d["pooled"], d["pooled_ci"]),
                            (xs[1], d["within"], d["within_ci"])):
-            ax.plot([xi, xi], ci, color=col, lw=1.7, zorder=3,
-                    solid_capstyle="butt")
-            for c in ci:                                   # explicit end caps
-                ax.plot([xi - 0.028, xi + 0.028], [c, c], color=col, lw=1.0, zorder=3)
+            GA._ci_density(ax, xi, yi, ci, col, side, 2.0,
+                           reps=reps.get(key) if xi == xs[0] else None)
     # left gutter: word above its own value, each value at its marker's height,
     # so no leader is needed and nothing sits on a slope
     for d, txt, wy in ((GA.MIGRAINE, MIG_TEXT, 0.862), (GA.HEADACHE, HEA_TEXT, 0.726)):
