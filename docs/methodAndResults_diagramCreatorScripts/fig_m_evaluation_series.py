@@ -226,9 +226,13 @@ def _skill_panel(ax, rows, cols):
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
     _lab(ax, 0.0, 1.48, "no improvement", PT_FINE, SECOND, ha="center")
-    _lab(ax, -0.30, -0.47, "\u2190 worse than own rate", PT_FINE, THIRD)
-    _lab(ax, 0.70, -0.47, "better than own rate \u2192", PT_FINE, THIRD,
-         ha="right")
+    # black on the hatching, each letter carrying a thin white surround so the
+    # strokes behind it cannot break up the word
+    halo = [pe.withStroke(linewidth=2.0, foreground="white")]
+    ax.text(-0.30, -0.47, "\u2190 worse than own rate", fontsize=PT_FINE,
+            color=A_INK, ha="left", va="center", path_effects=halo, zorder=6)
+    ax.text(0.70, -0.47, "better than own rate \u2192", fontsize=PT_FINE,
+            color=A_INK, ha="right", va="center", path_effects=halo, zorder=6)
     ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
