@@ -133,7 +133,9 @@ def _how_auroc(ax):
                 arrowprops=dict(arrowstyle="-|>", color=A_INK, lw=1.2))
     _lab(ax, 44, 61, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
     # the readers could describe the pair test and still not know AUROC *is* the pair count
-    _lab(ax, 6, 14, "AUROC = share of pairs\nranked this way", PT_BODY, BODY)
+    _lab(ax, 6, 23, "AUROC = share of pairs\nranked this way", PT_BODY, BODY)
+    _lab(ax, 6, 6, "0.5 = coin flip   1.0 = every pair\nhigher = better",
+         PT_FINE, SECOND)
 
 
 def _how_within(ax):
@@ -151,7 +153,8 @@ def _how_within(ax):
     _sq(ax, 76, 74, 10, A_EDGE, outline=True)
     _lab(ax, 76, 58, "another patient's day,\nnever compared", PT_FINE, SECOND,
          ha="center")
-    _lab(ax, 6, 18, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
+    _lab(ax, 6, 24, "AUROC inside one diary\n= within-person C", PT_BODY, BODY)
+    _lab(ax, 6, 10, "0.5 = coin flip   higher = better", PT_FINE, SECOND)
 
 
 def _how_brier(ax):
@@ -215,6 +218,9 @@ def _skill_panel(ax, rows, cols):
                 mew=2.0, zorder=5)
         _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
     _lab(ax, 0.0, 1.50, "no improvement", PT_FINE, SECOND, ha="center")
+    _lab(ax, -0.30, -0.50, "\u2190 worse than own rate", PT_FINE, THIRD)
+    _lab(ax, 0.70, -0.50, "better than own rate \u2192", PT_FINE, THIRD,
+         ha="right")
     ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
@@ -240,8 +246,19 @@ def _dca_panel(ax, preds, col):
     # the old same-hue dashed line as a confidence band on the model.
     ax.plot(ts, nb_all, color=A_MID, lw=0.9, ls=(0, (4, 2)), zorder=4)
     ax.plot(ts, nb, color=col, lw=2.0, zorder=5, solid_capstyle="round")
-    j = int(len(ts) * 0.34)
-    _lab(ax, ts[j], nb[j] + 0.019, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
+    # anchor where the curve is furthest from the policy line, not at a fixed index,
+    # and offset perpendicular to the local slope in display units so the gap is the
+    # same on a steep segment as on a flat one
+    lo, hi = int(len(ts) * 0.20), int(len(ts) * 0.55)
+    j = lo + int(np.argmax(nb[lo:hi] - nb_all[lo:hi]))
+    inv = ax.transData.inverted()
+    p0 = ax.transData.transform((ts[j], nb[j]))
+    p1 = ax.transData.transform((ts[min(j + 1, len(ts) - 1)], nb[min(j + 1, len(nb) - 1)]))
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    n = (dx * dx + dy * dy) ** 0.5 or 1.0
+    off = 13.0                                   # display points, normal to the curve
+    tx, ty = inv.transform((p0[0] - dy / n * off, p0[1] + dx / n * off))
+    _lab(ax, tx, ty, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
     _lab(ax, 0.098, -0.030, "treat everyone", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
