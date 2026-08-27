@@ -340,7 +340,7 @@ def _slope_panel(ax):
             fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="left", va="center")
     ax.text(1.10, GA.HEADACHE["pooled"] - 0.059, f"{hlo:.2f}\u2013{hhi:.2f}",
             fontsize=PT_FINE, color=SECOND, ha="left", va="center")
-    ax.text(1.38, 0.715, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
+    ax.text(1.38, 0.670, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
             ha="left", va="center", linespacing=1.3)
     ax.text(0.58, 0.702, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
             fontsize=PT_BODY, fontweight="bold", color=MIG_TEXT, ha="center", va="center")
