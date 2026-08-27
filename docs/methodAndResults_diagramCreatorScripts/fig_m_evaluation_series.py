@@ -196,9 +196,9 @@ def _how_brier(ax):
         ax.plot([mx], [KY], "o", ms=ms_, mfc=mfc, mec=mec, mew=1.4, zorder=4)
         _lab(ax, lx, KY, txt, PT_FINE, SECOND)
     # both rules apply to the whole panel, so they sit together at the foot
-    _lab(ax, x0, 18, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
-    _lab(ax, x0, 10, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
-    _lab(ax, x0, 1, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+    _lab(ax, x0, 15.5, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
+    _lab(ax, x0, 7.5, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, -1.5, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
          PT_BODY, BODY)
 
 
