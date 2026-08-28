@@ -3,7 +3,9 @@ and against every drawn artist. Reports intersections in points."""
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt, sys, importlib
 sys.path.insert(0, ".")
-import fig_m_evaluation_series as M
+import importlib
+MOD = sys.argv[1] if len(sys.argv) > 1 else "fig_m_evaluation_series"
+M = importlib.import_module(MOD)
 
 def bb(a, r):
     try:

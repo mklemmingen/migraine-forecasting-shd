@@ -443,14 +443,17 @@ def epv_annotation(ax, target: str, *, cell: str = "full_features",
         "upper left": dict(x=0.02, y=0.96, ha="left", va="top"),
     }
     pos = locmap.get(loc, locmap["lower right"])
+    # Blind readers found this the most consequential text in c2/c4 and also the
+    # smallest and faintest, carrying a raw code identifier they could not decode.
+    # Plain wording, upright, full-opacity, at body size with a visible frame.
     ax.text(pos["x"], pos["y"],
-            "migraine full_features: EPV ~5.5\n"
-            "below Riley criterion (a priori under-powered)",
+            "5.5 events per variable (migraine, all features)\n"
+            "under-powered by the Riley criterion, set before analysis",
             transform=ax.transAxes,
             ha=pos["ha"], va=pos["va"],
-            fontsize=fontsize, color=SOFT, style="italic",
-            bbox=dict(facecolor="white", edgecolor="none",
-                      alpha=0.7, pad=2))
+            fontsize=fontsize + 0.8, color=INK,
+            bbox=dict(facecolor="white", edgecolor="#c8c8c8",
+                      linewidth=0.6, alpha=1.0, pad=3))
 
 
 def cc_by_footer(fig, fontsize: float = 6.5) -> None:

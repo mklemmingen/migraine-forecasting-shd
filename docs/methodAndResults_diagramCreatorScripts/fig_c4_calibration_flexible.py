@@ -73,7 +73,7 @@ def _predict(leaf: Path):
     try:
         r = subprocess.run(
             [sys.executable, str(WORKER), str(leaf), str(out)],
-            capture_output=True, text=True, timeout=1800, env=_env(addition),
+            capture_output=True, text=True, timeout=5400, env=_env(addition),
         )
         if r.returncode != 0 or not out.exists():
             tail = (r.stderr.strip().splitlines() or ["worker failed"])[-1]
@@ -170,6 +170,7 @@ def main() -> None:
     for ax, ltr in zip(axes.ravel(), "ab"):
         S.panel_label(ax, ltr)
     mark = {"XGBoost stack": "o", "TabPFN": "s", "window-MLP": "^"}
+    panel_lims: list[float] = []          # both panels end on the shared maximum
 
     for ax, tgt in zip(axes, ("headache", "migraine")):
         # Cache predictions once per (target, architecture) to avoid
@@ -186,7 +187,11 @@ def main() -> None:
             grid = np.linspace(0.0, p_max, GRID_POINTS)
             band = _loess_with_band(y, p, grid, patient_ids=pid)
             col = S.arch_color(label)
-            ax.fill_between(grid, band["lo"], band["hi"], color=col, alpha=0.18, linewidth=0)
+            ax.fill_between(grid, band["lo"], band["hi"], color=col, alpha=0.10,
+                            linewidth=0, zorder=1)
+            for _edge in ("lo", "hi"):
+                ax.plot(grid, band[_edge], color=col, lw=0.6, alpha=0.55,
+                        zorder=2)
             ax.plot(grid, band["smooth"], color=col, lw=1.5, marker=mark.get(label, "o"),
                     markersize=3, markevery=10, label=label)
             hi_lim = max(hi_lim, p_max, float(np.nanmax(band["hi"])))
@@ -197,7 +202,8 @@ def main() -> None:
         # Calibration plot wants matched x/y range (both axes are
         # probability), not fixed aspect=equal which distorts when data
         # spans only [0, 0.3-0.5] rather than the full [0, 1].
-        lim = min(1.0, hi_lim * 1.1 + 0.02)
+        panel_lims.append(min(1.0, hi_lim * 1.1 + 0.02))
+        lim = panel_lims[-1]
         ax.set_xlim(0, lim); ax.set_ylim(0, lim)
         ax.set_xlabel("mean predicted probability")
         ax.set_ylabel("observed frequency (loess)")
@@ -215,15 +221,26 @@ def main() -> None:
             if counts.max() > 0:
                 normalised = counts / counts.max()
                 centres = 0.5 * (edges[:-1] + edges[1:])
-                base = i * rug_h * lim
+                base = 0.0
                 for c, h in zip(centres, normalised):
                     if h > 0:
                         ax.plot([c, c], [base, base + h * rug_h * lim],
-                                color=col, lw=1.0, alpha=0.85)
+                                color=col, lw=1.0, alpha=0.55, zorder=1)
 
+    # both panels now end on the same maximum, so an eye-comparison between them
+    # is valid; previously they differed by ~18% and the layout invited exactly
+    # the comparison the mismatch invalidated
+    shared = max(panel_lims)
+    for ax in axes:
+        ax.set_xlim(0, shared); ax.set_ylim(0, shared)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",
                bbox_to_anchor=(0.5, -0.04), frameon=False)
+    fig.text(0.5, -0.105,
+             "Shaded bands are 95% confidence intervals, patient-cluster bootstrap.  "
+             "The coloured strips along the bottom of each panel show where that "
+             "model's predictions actually fall.",
+             ha="center", fontsize=7, color="#7a7a7a")
     print("saved", S.save(fig, HERE / "figures" / "fig_c4_calibration_flexible"))
 
 
