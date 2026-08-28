@@ -220,13 +220,19 @@ def _how_dca(ax):
     for i in range(4):
         _sq(ax, X0 + i * W, 44, 7, A_LIGHT, anchor="bottom")
     _lab(ax, X0, 57, "days treated for nothing", PT_BODY, BODY)
-    _lab(ax, X0, 36, "\u00d7 weight  t / (1 \u2212 t)", PT_FINE, SECOND)
+    _lab(ax, X0, 38, "\u00d7 weight  t / (1 \u2212 t)", PT_FINE, SECOND)
+    _lab(ax, X0, 31, "t = threshold probability", PT_FINE, THIRD)
     _lab(ax, NX, 47.5, "4 \u00d7 0.11", PT_BODY, SECOND)
     _lab(ax, NX, 37, "= 0.44", PT_FINE, THIRD)
-    ax.plot([X0 - 4, X0 + 5 * W + 9], [29, 29], color=A_MID, lw=1.0, zorder=2)
-    ax.plot([NX - 2, NX + 22], [29, 29], color=A_MID, lw=1.0, zorder=2)
-    for i in range(2):
-        _sq(ax, X0 + i * W, 15, 7, A_STRONG, anchor="bottom", outline=True)
+    ax.plot([X0 - 4, X0 + 5 * W + 9], [25, 25], color=A_MID, lw=1.0, zorder=2)
+    ax.plot([NX - 2, NX + 22], [25, 25], color=A_MID, lw=1.0, zorder=2)
+    # 5 whole icons plus a 0.6 sliver: the row must equal 6 - 4x0.11 = 5.6, or the
+    # picture says 2 while the column beside it says 5.6
+    for i in range(5):                     # solid outlines stay countable; dashed
+        ax.add_patch(Rectangle((X0 + i * W, 15), 7, 7, fc="none", ec=A_STRONG,
+                               lw=1.0, zorder=3))     # ones merge into a blob
+    ax.add_patch(Rectangle((X0 + 5 * W, 15), 7 * 0.6, 7, fc="none", ec=A_STRONG,
+                           lw=1.0, zorder=3))
     _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
     _lab(ax, NX, 18.5, "5.6", PT_BODY, BODY, weight="bold")
 
@@ -297,9 +303,9 @@ def _dca_panel(ax, preds, col):
     n = (dx * dx + dy * dy) ** 0.5 or 1.0
     tx, ty = inv.transform((p0[0] - dy / n * 11.0, p0[1] + dx / n * 11.0))
     _lab(ax, tx, ty, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
-    ax.set_xlabel("threshold probability  (the risk at which you would treat)",
+    ax.set_xlabel("threshold probability  (the attack risk at which you would treat)",
                   fontsize=PT_AXIS)
-    ax.set_ylabel("net benefit\n(net attacks caught per patient-day)",
+    ax.set_ylabel("net benefit\n(attacks caught per patient-day)",
                   fontsize=PT_AXIS, linespacing=1.4)
     ax.tick_params(labelsize=PT_TICK, length=2)
     for sp in ("top", "right"):
