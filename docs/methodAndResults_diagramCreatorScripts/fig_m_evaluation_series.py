@@ -496,7 +496,7 @@ def main() -> None:
     _one("fig_m2_within_person", _how_within, (), _rank_panel, ())
     _one("fig_m3_brier_skill", _how_brier, (), _skill_panel,
          ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
-    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA), wr=0.66)
+    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA), wr=0.80)
 
 
 if __name__ == "__main__":
