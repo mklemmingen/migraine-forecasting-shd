@@ -160,7 +160,7 @@ def _how_brier(ax):
     loses on a quiet day. The single-outcome version taught "higher is better",
     which is wrong on the ~93% of days when nothing happens."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    OWN, FC = 0.20, 0.45                       # illustrative, stated in the caption
+    OWN, FC = 0.20, 0.45                       # illustrative; flagged in-figure and in the caption
     x0, x1 = 8.0, 66.0
     px = lambda q: x0 + q * (x1 - x0)
     for y, outcome, head, ticks in ((84, 1.0, "attack day", True),
@@ -209,7 +209,7 @@ def _how_dca(ax):
     # than any label, or proximity binds it to the words instead and it reads as a
     # dash -- which is what blind readers reported. Rows are spaced to give it room.
     X0, W, NX = 6.0, 8.5, 62.0            # NX: the worked example, column-aligned
-    _lab(ax, NX, 93, "at threshold 0.10", PT_FINE, THIRD)
+    _lab(ax, NX, 93, "illustrative, at threshold 0.10", PT_FINE, THIRD)
     for i in range(6):
         _sq(ax, X0 + i * W, 78, 7, A_STRONG, anchor="bottom")
     _lab(ax, X0, 93, "attacks caught", PT_BODY, BODY)
@@ -234,6 +234,7 @@ def _how_dca(ax):
     ax.add_patch(Rectangle((X0 + 5 * W, 15), 7 * 0.6, 7, fc="none", ec=A_STRONG,
                            lw=1.0, zorder=3))
     _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
+    _lab(ax, X0, -1, "treat = one pre-emptive abortive dose", PT_FINE, THIRD)
     _lab(ax, NX, 18.5, "5.6", PT_BODY, BODY, weight="bold")
 
 
