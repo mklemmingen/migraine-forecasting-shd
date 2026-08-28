@@ -208,10 +208,12 @@ def _how_dca(ax):
     # The operator must have clear space on BOTH sides and be nearer its operands
     # than any label, or proximity binds it to the words instead and it reads as a
     # dash -- which is what blind readers reported. Rows are spaced to give it room.
-    X0, W = 18.0, 8.5
+    X0, W, NX = 6.0, 8.5, 62.0            # NX: the worked example, column-aligned
+    _lab(ax, NX, 93, "at threshold 0.10", PT_FINE, THIRD)
     for i in range(6):
         _sq(ax, X0 + i * W, 78, 7, A_STRONG, anchor="bottom")
     _lab(ax, X0, 93, "attacks caught", PT_BODY, BODY)
+    _lab(ax, NX, 81.5, "6", PT_BODY, SECOND)
     # drawn as a rule, not a glyph: length and weight then scale to the icons
     ax.plot([X0 + 20, X0 + 30], [67, 67], color=A_INK, lw=2.6,
             solid_capstyle="round", zorder=5)
@@ -219,10 +221,14 @@ def _how_dca(ax):
         _sq(ax, X0 + i * W, 44, 7, A_LIGHT, anchor="bottom")
     _lab(ax, X0, 57, "days treated for nothing", PT_BODY, BODY)
     _lab(ax, X0, 36, "\u00d7 weight  t / (1 \u2212 t)", PT_FINE, SECOND)
-    ax.plot([X0 - 6, X0 + 5 * W + 9], [29, 29], color=A_MID, lw=1.0, zorder=2)
+    _lab(ax, NX, 47.5, "4 \u00d7 0.11", PT_BODY, SECOND)
+    _lab(ax, NX, 37, "= 0.44", PT_FINE, THIRD)
+    ax.plot([X0 - 4, X0 + 5 * W + 9], [29, 29], color=A_MID, lw=1.0, zorder=2)
+    ax.plot([NX - 2, NX + 22], [29, 29], color=A_MID, lw=1.0, zorder=2)
     for i in range(2):
         _sq(ax, X0 + i * W, 15, 7, A_STRONG, anchor="bottom", outline=True)
     _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
+    _lab(ax, NX, 18.5, "5.6", PT_BODY, BODY, weight="bold")
 
 
 def _skill_panel(ax, rows, cols):
@@ -278,21 +284,23 @@ def _dca_panel(ax, preds, col):
     # anchor where the curve is furthest from the policy line, not at a fixed index,
     # and offset perpendicular to the local slope in display units so the gap is the
     # same on a steep segment as on a flat one
-    lo, hi = int(len(ts) * 0.20), int(len(ts) * 0.55)
-    j = lo + int(np.argmax(nb[lo:hi] - nb_all[lo:hi]))
+    _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
+    _lab(ax, 0.098, -0.030, "treat every day", PT_FINE, SECOND)
+    ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
+    # only now is transData the real mapping; computing the perpendicular offset
+    # before the limits are set uses the autoscaled one and throws the label off
+    j = int(len(ts) * 0.30)
     inv = ax.transData.inverted()
     p0 = ax.transData.transform((ts[j], nb[j]))
     p1 = ax.transData.transform((ts[min(j + 1, len(ts) - 1)], nb[min(j + 1, len(nb) - 1)]))
     dx, dy = p1[0] - p0[0], p1[1] - p0[1]
     n = (dx * dx + dy * dy) ** 0.5 or 1.0
-    off = 13.0                                   # display points, normal to the curve
-    tx, ty = inv.transform((p0[0] - dy / n * off, p0[1] + dx / n * off))
+    tx, ty = inv.transform((p0[0] - dy / n * 11.0, p0[1] + dx / n * 11.0))
     _lab(ax, tx, ty, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
-    _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
-    _lab(ax, 0.098, -0.030, "treat everyone", PT_FINE, SECOND)
-    ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
-    ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
-    ax.set_ylabel("net benefit", fontsize=PT_AXIS)
+    ax.set_xlabel("threshold probability  (the risk at which you would treat)",
+                  fontsize=PT_AXIS)
+    ax.set_ylabel("net benefit\n(net attacks caught per patient-day)",
+                  fontsize=PT_AXIS, linespacing=1.4)
     ax.tick_params(labelsize=PT_TICK, length=2)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
@@ -442,7 +450,7 @@ def _rank_panel(ax):
         ax.spines[sp].set_visible(False)
 
 
-def _one(name, how, how_args, draw_right, right_args, after=None):
+def _one(name, how, how_args, draw_right, right_args, after=None, wr=0.46):
     """One figure in the series: the schematic beside the quantity it explains.
 
     Each is full column width and short, the shape this literature uses for a
@@ -450,7 +458,7 @@ def _one(name, how, how_args, draw_right, right_args, after=None):
     now lives in the manuscript caption, which is where a journal expects it.
     """
     fig = plt.figure(figsize=(183 / 25.4, 62 / 25.4))
-    gs = fig.add_gridspec(1, 2, width_ratios=[0.46, 1.0],
+    gs = fig.add_gridspec(1, 2, width_ratios=[wr, 1.0],
                           left=0.055, right=0.985, top=0.88, bottom=0.185,
                           wspace=0.30)
     axl, axr = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
@@ -481,7 +489,7 @@ def main() -> None:
     _one("fig_m2_within_person", _how_within, (), _rank_panel, ())
     _one("fig_m3_brier_skill", _how_brier, (), _skill_panel,
          ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
-    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA))
+    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA), wr=0.66)
 
 
 if __name__ == "__main__":
