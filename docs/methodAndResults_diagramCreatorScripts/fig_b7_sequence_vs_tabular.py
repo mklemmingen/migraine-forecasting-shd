@@ -173,8 +173,10 @@ def main():
                       error_kw={"elinewidth": 0.9})
         for b, v in zip(bars, vals):
             if v == v:
-                ax.text(b.get_x() + b.get_width() / 2, v + 0.018, f"{v:.2f}",
-                        ha="center", fontsize=7)
+                # Beside the bar rather than on top of its whisker, and a size
+                # up: at 7pt these numbers were the smallest thing on the figure.
+                ax.text(b.get_x() + b.get_width(), v, f"{v:.2f}",
+                        ha="left", va="center", fontsize=8)
     S.refline(ax, y=0.5)
     ax.axvline(1.5, color=S.FAINT, lw=1, ls=":")        # tabular | sequence divider
     ax.text(0.5, 0.83, "tabular", ha="center", fontsize=8, color=S.GREY,
@@ -207,7 +209,7 @@ def main():
     # Three structural asymmetries the reader must keep in mind alongside bar heights:
     # tabular = 70/30 + HP-tuned; sequence = 70/15/15 + NonHP. The visible XGB-HP020
     # vs Seq-windowMLP 0.79 vs 0.77 gap absorbs these.
-    ax.text(0.5, -0.32,
+    ax.text(0.5, -0.22,
             "tabular bars 70/30, composite-tracked, tuned; "
             "sequence bars 70/15/15, untuned, wider bootstrap CI",
             transform=ax.transAxes, ha="center", va="top",

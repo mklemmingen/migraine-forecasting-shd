@@ -166,7 +166,7 @@ def main() -> None:
                              constrained_layout=True)
     for ax, tgt, letter in zip(axes, ("migraine", "headache"), ("a", "b")):
         _render_panel(ax, panels[tgt], tgt, letter)
-    S.epv_annotation(axes[0], "migraine", cell="full_features", loc="lower right")
+    S.epv_annotation(axes[0], "migraine", cell="full_features", loc="below")
     print("saved", S.save(fig, HERE / "figures" / "fig_g5_auroc_forest"))
 
 

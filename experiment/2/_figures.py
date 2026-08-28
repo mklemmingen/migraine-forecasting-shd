@@ -296,7 +296,7 @@ def calib_slope_figure(headlines: list[dict], out_png) -> Path | None:
         # may decode to a different ARCH-VAR. Surface the variant inline.
         for x_val, y_val, slug in zip(xs, ys, slugs):
             ax.text(x_val + xmax * 0.012, y_val, slug,
-                    fontsize=6, va="center", color=INK)
+                    fontsize=6, va="center", color=INK, fontweight="bold")
     ax.set_yticks(base)
     ax.set_yticklabels([_cell_label(t, fs) for t, fs in cells], fontsize=8)
     ax.set_xlim(xmax * -0.02, xmax)

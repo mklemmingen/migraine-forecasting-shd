@@ -245,8 +245,13 @@ def box(ax, xy, w, h, text, fc=PALE_FILL, ec=None, role="normal", fontsize=8.5,
 
 
 def arrow(ax, p0, p1, color=SOFT):
+    # shrinkA/shrinkB default to 2 points each, which left a visible gap between
+    # every arrow and the box it was supposed to join. Callers already pass exact
+    # box-edge coordinates, so the shrink is pure loss: set both to zero and the
+    # arrow starts and ends where it is told to.
     ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=12,
-                                 lw=1.1, color=color, zorder=1))
+                                 lw=1.1, color=color, zorder=1,
+                                 shrinkA=0, shrinkB=0))
 
 
 def panel_label(ax, letter, x=-0.06, y=1.04, fontsize=10):
@@ -441,6 +446,10 @@ def epv_annotation(ax, target: str, *, cell: str = "full_features",
         "lower left": dict(x=0.02, y=0.04, ha="left", va="bottom"),
         "upper right": dict(x=0.99, y=0.96, ha="right", va="top"),
         "upper left": dict(x=0.02, y=0.96, ha="left", va="top"),
+        # Outside the axes, under the x-label. The note is two long lines, so in
+        # a dense panel (a forest plot, a full bar grid) no in-axes corner can
+        # hold it without covering data or the row labels.
+        "below": dict(x=0.5, y=-0.20, ha="center", va="top"),
     }
     pos = locmap.get(loc, locmap["lower right"])
     # Blind readers found this the most consequential text in c2/c4 and also the

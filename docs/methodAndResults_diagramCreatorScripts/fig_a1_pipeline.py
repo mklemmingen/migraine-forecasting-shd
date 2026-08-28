@@ -72,8 +72,8 @@ def main():
     # ---- Stage 1: SHD diary source ------------------------------------------
     _stage_box(ax, stage_xs[0], stage_y, stage_w, stage_h, "Diary source")
     ax.text(stage_xs[0], stage_y - 0.25,
-            "Park 2016 SHD\n62 analysed (63 patient_ids)\n4,516 patient-days",
-            ha="center", va="center", fontsize=9, color=S.INK)
+            "Park 2016 SHD\n62 analysed\n(63 diary records)\n4,516 patient-days",
+            ha="center", va="center", fontsize=8.6, color=S.INK)
 
     # ---- Stage 2: Feature sets (4 colour-keyed chips, 2x2 grid) -------------
     _stage_box(ax, stage_xs[1], stage_y, stage_w, stage_h, "Feature sets")
@@ -148,7 +148,7 @@ def main():
         (band_x_left, band_y - band_h/2), band_x_right - band_x_left, band_h,
         boxstyle="round,pad=0.05,rounding_size=0.20",
         fc=S.PALE_FILL, ec=S.SOFT, lw=1.0))
-    ax.text(band_center, band_y + band_h/2 - 0.34,
+    ax.text(band_center, band_y + band_h/2 - 0.24,
             "Analysis & validation layers (consume fitted models + predictions)",
             ha="center", va="top", fontsize=10.5, weight="bold", color=S.INK)
 
@@ -164,21 +164,23 @@ def main():
     spacing = (band_inner_right - band_inner_left) / n_layers
     for j, (tag, name, methods) in enumerate(layer_labels):
         cx = band_inner_left + spacing * (j + 0.5)
-        ax.text(cx, band_y + 0.42, tag, ha="center", va="center",
+        ax.text(cx, band_y + 0.28, tag, ha="center", va="center",
                 fontsize=10, weight="bold", color=S.INK)
-        ax.text(cx, band_y - 0.02, name, ha="center", va="center",
+        ax.text(cx, band_y - 0.16, name, ha="center", va="center",
                 fontsize=9, color=S.INK)
-        ax.text(cx, band_y - 0.62, methods, ha="center", va="center",
+        ax.text(cx, band_y - 0.76, methods, ha="center", va="center",
                 fontsize=8, color=S.SOFT, style="italic")
 
     # ---- Arrows from architectures + evaluation down to the band ------------
     # Unlabelled: the band title already names the two inputs it consumes
     # ("fitted models + predictions"), so labelling each arrow would both repeat
     # that text and force the connector line through the label.
+    # Equal horizontal run over an equal drop, so the two descenders are parallel.
+    _descend = 1.2
     S.arrow(ax, (stage_xs[3], stage_y - stage_h/2),
-            (stage_xs[3] - 1.6, band_y + band_h/2))
+            (stage_xs[3] - _descend, band_y + band_h/2))
     S.arrow(ax, (stage_xs[4], stage_y - stage_h/2),
-            (stage_xs[4] - 0.8, band_y + band_h/2))
+            (stage_xs[4] - _descend, band_y + band_h/2))
 
     # suptitle size inherits the 11.5 pt rcParam (no hardcode).
     fig.suptitle("Benchmark pipeline: source → features → splits → architectures → evaluation\n"
