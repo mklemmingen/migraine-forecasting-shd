@@ -33,8 +33,8 @@ EXP = REPO / "experiment"
 # History (lag/rolling) feature count per set, verified in results_findings.md S1.
 LAG = {"full_features": 17,
        "no_rolling_features": 0, "park_features": 0}
-LABEL = {"full_features": "full",
-         "no_rolling_features": "no_rolling", "park_features": "park"}
+LABEL = {"full_features": "all features",
+         "no_rolling_features": "no rolling", "park_features": "Park subset"}
 
 
 def _auroc(s):

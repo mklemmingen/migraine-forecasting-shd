@@ -141,7 +141,7 @@ def _render_panel(ax, df: pd.DataFrame, target: str, letter: str = "") -> None:
     ax.set_yticks(y)
     ax.set_yticklabels(df["label"].tolist(), fontsize=7.5)
     ax.set_xlabel("pooled holdout AUROC (95% CI)")
-    ax.set_title(f"{target.capitalize()} — full_features, chronological 70/30",
+    ax.set_title(f"{target.capitalize()}, all features, chronological 70/30",
                  fontsize=10.5, loc="left")
     if letter:
         ax.text(-0.02, 1.045, letter, transform=ax.transAxes,

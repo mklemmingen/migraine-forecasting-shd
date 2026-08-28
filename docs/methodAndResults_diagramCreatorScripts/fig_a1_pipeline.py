@@ -102,7 +102,7 @@ def main():
         cy = stage_y + 0.20 - 1.05 * (j // 2)
         _chip(ax, cx, cy, 1.55, 0.55, lbl, S.SPLIT[key])
     ax.text(stage_xs[2], stage_y - 1.95,
-            "70/30 · 70/15/15 · 80/20",
+            "70/30, 70/15/15, 80/20",
             ha="center", va="center", fontsize=8, color=S.INK, weight="bold")
 
     # ---- Stage 4: Architecture families -------------------------------------
@@ -122,7 +122,7 @@ def main():
     _stage_box(ax, stage_xs[4], stage_y, stage_w, stage_h, "Evaluation",
                role="output")
     ax.text(stage_xs[4], stage_y - 0.32,
-            "AUROC · AUPRC\ncalibration slope\nECE · Brier\n1000-it bootstrap",
+            "AUROC, AUPRC\ncalibration slope\nECE, Brier\n1000-it bootstrap",
             ha="center", va="center", fontsize=9, color=S.INK)
 
     # ---- Arrows between stages ----------------------------------------------

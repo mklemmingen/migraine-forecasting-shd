@@ -201,15 +201,15 @@ def main():
     ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
     ax.set_ylim(0.5, 0.88)
     ax.set_ylabel("AUROC (val+test horizon)")
-    ax.set_title("Sequence vs tabular discrimination (Park 2016 SHD, n=62; full_features, chrono)")
+    ax.set_title("Sequence vs tabular discrimination (Park 2016 SHD, n=62; all features, chronological)")
     S.epv_annotation(ax, "migraine", cell="full_features", loc="upper left")
     ax.legend(title="target", loc="upper right")
     # Three structural asymmetries the reader must keep in mind alongside bar heights:
     # tabular = 70/30 + HP-tuned; sequence = 70/15/15 + NonHP. The visible XGB-HP020
     # vs Seq-windowMLP 0.79 vs 0.77 gap absorbs these.
     ax.text(0.5, -0.32,
-            "tabular bars: 70/30 / composite-tracked / HP-tuned · "
-            "sequence bars: 70/15/15 / NonHP / wider bootstrap CI",
+            "tabular bars 70/30, composite-tracked, tuned; "
+            "sequence bars 70/15/15, untuned, wider bootstrap CI",
             transform=ax.transAxes, ha="center", va="top",
             fontsize=6.5, color=S.SOFT, style="italic")
     print("saved", S.save(fig, HERE / "figures" / "fig_b7_sequence_vs_tabular"))

@@ -82,8 +82,19 @@ def load_figdata(path):
     return _rebase_leaf_dirs(data, Path(__file__).resolve().parents[1])
 
 
+# Reader-facing names for the feature sets. Stripping "_features" left
+# "no_rolling" on the published axis, a column name no reader can decode.
+_FSET_LABEL = {
+    "full_features": "all features",
+    "no_rolling_features": "no rolling",
+    "park_features": "Park subset",
+    "spano_features": "Spano subset",
+}
+
+
 def _cell_label(target, fset):
-    return f"{target}\n{fset.replace('_features', '')}"
+    name = _FSET_LABEL.get(fset, fset.replace("_features", "").replace("_", " "))
+    return f"{target}\n{name}"
 
 
 def split_auroc_figure(headlines: list[dict], out_png) -> Path | None:
