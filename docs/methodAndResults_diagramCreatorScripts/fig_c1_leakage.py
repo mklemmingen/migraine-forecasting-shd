@@ -105,7 +105,7 @@ def main():
                  fontsize=9.5)
     ax.legend(title="target")
     # §11.7 EPV annotation: the migraine `full_features` point sits at x=17
-    S.epv_annotation(ax, "migraine", cell="full_features", loc="upper right")
+    S.epv_annotation(ax, "migraine", cell="full_features", loc="below")
     print("saved", S.save(fig, HERE / "figures" / "fig_c1_leakage"))
 
 
