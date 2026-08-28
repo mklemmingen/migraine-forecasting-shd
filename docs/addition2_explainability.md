@@ -314,7 +314,7 @@ the exhaustive-budget migraine/park cell in Claim 5.
 Running all artefacts on every leaf produces hundreds of figures, too many
 to read and too expensive to compute. The headline-plus-runner-up rules are applied
 rules from `insights_leaf_selection.md`, implemented in
-`experiment/2/select.py`:
+`experiment/2/leaf_selection.py`:
 
 - **Rule A (headline)**: the top leaf per `(target, feature_set, split_type)`
   group under `composite_sorted`. Discrimination is primary but bucketed at a
@@ -360,7 +360,7 @@ experiment/0|1/<...>/<ratio>/<split>/[NonHP|...]/
 
 experiment/2/
     run_insights.py                 # selects 14 leaves, calls the extended _eval_only_runner with EMIT_INSIGHTS=1
-    select.py                       # headline/runner-up selection (reuses _eval/_parsing + a CI-overlap predicate)
+    leaf_selection.py               # headline/runner-up selection (reuses _eval/_parsing + a CI-overlap predicate)
     compare.py                      # cross-leaf SHAP-ranking diff + Park-OR check
     comparison_shap_<ts>.html       # headline-vs-runner-up ranking diffs across the 7 cells
     park_or_check_<ts>.html         # SHAP rank vs Park 2016 Table-4 OR, migraine/park cells
@@ -393,7 +393,7 @@ experiment/2/
    `experiment/1/_templates/evaluate_*.py.tpl`, plumb an
    `EMIT_INSIGHTS` env-var or `--insights` arg, re-scaffold. The flag
    defaults off so a normal sweep is unchanged.
-6. `experiment/2/select.py`: build the (headline, runner-up) leaf list
+6. `experiment/2/leaf_selection.py`: build the (headline, runner-up) leaf list
    from the pure parsing layer - `find_results_dirs`, `parse_path`,
    `find_latest_files`, `parse_file`, `postprocess_cv` from
    `_eval/_parsing.py` plus `parse_mean_ci` from `_eval/_metric_palette.py`

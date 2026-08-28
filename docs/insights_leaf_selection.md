@@ -21,7 +21,7 @@ Three artefact kinds, all available via `tabpfn-extensions[interpretability]` on
 
 For each `(target, feature_set, split_type)` group, the sweep produces one
 results row per version × ratio combination. After the sweep finishes, the
-selection logic in `experiment/2/select.py` ranks those rows by a
+selection logic in `experiment/2/leaf_selection.py` ranks those rows by a
 multi-metric composite and applies two rules.
 
 A **headline** result is the top-composite row per group (the one the
@@ -36,7 +36,7 @@ Selection runs over 21 groups: the seven scientifically defined
 stratified, patient).
 
 **Rule A (headline)**: the top leaf per group under `composite_sorted`
-(`experiment/2/select.py`), a multi-metric ranking that prevents
+(`experiment/2/leaf_selection.py`), a multi-metric ranking that prevents
 noise-level AUROC differences from deciding the winner:
 
 1. Degenerate calibration sorts last. A leaf whose calibration slope is

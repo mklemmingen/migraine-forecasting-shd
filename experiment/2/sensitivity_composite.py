@@ -28,7 +28,7 @@ sys.path.insert(0, str(HERE))
 
 # Import select once, then monkey-patch its constants and re-run the
 # selector function for each parameter setting.
-import select as _select  # type: ignore
+import leaf_selection as _select  # type: ignore
 
 # Default values, restored at the end:
 ORIG_AUROC_TOL = _select.AUROC_TOL

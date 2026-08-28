@@ -22,7 +22,9 @@ added nothing to what the patient's own rate already said.
 (d) Clinical value. Decision-curve net benefit against the two default policies. A
 model earns a decision only where its curve sits above both treat-all and treat-none.
 
-Usage: python fig_m_evaluation_series.py   (needs figures/headline_predictions.npz)
+Usage: python fig_m_evaluation_series.py
+       The decision-curve panel reads figures/headline_predictions.npz; rebuild that
+       cache with make_headline_predictions.py in this directory.
 """
 # §11 compliance: reports headline-cell metrics.
 #   §11.1 metric + CI + n:               AUROC and skill carry intervals; n in the caption
@@ -40,6 +42,7 @@ import _style as S
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import matplotlib.patheffects as pe
 from sklearn.metrics import roc_curve, roc_auc_score
 
 HERE = Path(__file__).resolve().parent
@@ -80,6 +83,15 @@ def _net_benefit(y, p, thresholds):
 PT_HEAD, PT_VALUE, PT_AXIS, PT_TICK, PT_BODY, PT_FINE = 8.8, 11.0, 8.0, 7.0, 7.4, 6.8
 BODY, SECOND, THIRD = "#3d3d3d", "#5f5f5f", "#7a7a7a"
 
+# Panel (a) is achromatic. The blind readability study found five independent readers
+# reading panel (a)'s hues as a colour key for panel (b) -- orange meant "attack day" on
+# the left and "migraine" on the right. A grey has no chroma, so the confusion cannot
+# survive: every schematic mark is R=G=B, every data mark carries a target hue.
+A_INK, A_STRONG, A_MID = "#222222", "#4a4a4a", "#8e8e8e"
+A_LIGHT, A_EDGE, A_PANE = "#d8d8d8", "#9a9a9a", "#f2f2f2"
+# target words: #D55E00 is 3.87:1 on white and fails as text; #C25100 is 4.70:1
+MIG_TEXT, HEA_TEXT = "#C25100", "#0072B2"
+
 
 def _lab(ax, x, y, t, size=PT_BODY, col=None, ha="left", weight="normal",
          rot=0):
@@ -109,82 +121,148 @@ def _sq(ax, x, y, side, col, alpha=1.0, anchor="center", outline=False):
     return h
 
 
-def _how_auroc(ax, att, hea):
+def _how_auroc(ax):
     """AUROC counts ordered pairs: one attack day against one quiet day."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.annotate("", xy=(14, 92), xytext=(14, 18),
-                arrowprops=dict(arrowstyle="-|>", color=S.GREY, lw=1.0))
-    _lab(ax, 6, 55, "forecast risk", PT_FINE, SECOND, ha="center", rot=90)
-    for yy, col, lab in ((74, att, "attack day"), (34, "#cfcfcf", "quiet day")):
+    ax.annotate("", xy=(14, 92), xytext=(14, 26),
+                arrowprops=dict(arrowstyle="-|>", color=A_MID, lw=1.0))
+    _lab(ax, 6, 60, "forecast risk", PT_FINE, SECOND, ha="center", rot=90)
+    for yy, col, lab in ((78, A_STRONG, "attack day"), (44, A_LIGHT, "quiet day")):
         _sq(ax, 26, yy, 11, col)
         _lab(ax, 42, yy, lab, PT_BODY, BODY)
-    ax.annotate("", xy=(32, 66), xytext=(32, 42),
-                arrowprops=dict(arrowstyle="-|>", color=S.INK, lw=1.2))
-    _lab(ax, 44, 54, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    ax.annotate("", xy=(32, 70), xytext=(32, 52),
+                arrowprops=dict(arrowstyle="-|>", color=A_INK, lw=1.2))
+    _lab(ax, 44, 61, "ranked\ncorrectly", PT_BODY, BODY, weight="bold")
+    # the readers could describe the pair test and still not know AUROC *is* the pair count
+    _lab(ax, 6, 18, "AUROC = share of pairs ranked correctly", PT_BODY, BODY)
+    _lab(ax, 6, 4, "0.5 = coin flip chance  \n1.0 = every pair correctly ranked.\nhigher AUROC -> better.", PT_FINE, SECOND)
 
 
-def _how_within(ax, att):
+def _how_within(ax):
     """The same pair test, confined to one patient's own diary."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.add_patch(Rectangle((4, 32), 62, 52, fc="#f4f4f4", ec="none"))
-    _lab(ax, 8, 78, "one patient's diary", PT_FINE, SECOND)
-    for yy, col in ((64, att), (44, "#cfcfcf")):
-        _sq(ax, 14, yy, 11, col)
-    ax.annotate("", xy=(32, 66), xytext=(32, 42),
-                arrowprops=dict(arrowstyle="<|-|>", color=S.INK, lw=1.1,
-                                mutation_scale=8))
-    _lab(ax, 38, 54, "compared", PT_BODY, BODY)
-    _sq(ax, 76, 58, 11, "#9a9a9a", outline=True)
-    _lab(ax, 81, 38, "another patient's day,\nnever compared", PT_FINE, SECOND,
-         ha="center")
+    ax.add_patch(Rectangle((3, 38), 52, 50, fc="none", ec="#cfcfcf", lw=0.7))
+    _lab(ax, 3, 93, "one patient's diary", PT_FINE, SECOND)
+    for yy, col, lab in ((78, A_STRONG, "attack day"), (48, A_LIGHT, "quiet day")):
+        _sq(ax, 10, yy, 9, col)
+        _lab(ax, 22, yy, lab, PT_BODY, BODY)
+    ax.annotate("", xy=(14, 73), xytext=(14, 53),
+                arrowprops=dict(arrowstyle="<|-|>", color=A_INK, lw=1.1,
+                                mutation_scale=7))
+    _lab(ax, 22, 63, "compared", PT_FINE, BODY, weight="bold")
+    _sq(ax, 78, 76, 10, A_EDGE, outline=True)
+    _lab(ax, 58, 60, "another patient's day,\nnever compared", PT_FINE, SECOND)
+    _lab(ax, 6, 22, "AUROC inside one diary = within-person C", PT_BODY, BODY)
 
 
-def _how_brier(ax, hea):
-    """Brier compares the squared miss of the forecast with that of the patient's rate."""
+def _how_brier(ax):
+    """One forecast, both outcomes: the same prediction wins on an attack day and
+    loses on a quiet day. The single-outcome version taught "higher is better",
+    which is wrong on the ~93% of days when nothing happens."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
-    ax.plot([8, 84], [70, 70], color=S.GREY, lw=1.0)
-    for x, t in ((8, "0"), (84, "1")):
-        ax.plot([x, x], [68, 72], color=S.GREY, lw=1.0)
-        _lab(ax, x, 63, t, PT_FINE, SECOND, ha="center")
-    ax.plot([84], [70], "o", ms=6, mfc=S.INK, mec="none")
-    # centred over the outcome dot, so it cannot be read as labelling the forecast
-    _lab(ax, 84, 81, "what happened", PT_BODY, BODY, ha="center")
-    for x, col, lab in ((60, hea, "forecast\nerror"),
-                        (34, "#9a9a9a", "own-rate\nerror")):
-        ax.plot([x], [70], "o", ms=6, mfc="white", mec=col, mew=1.6)
-        ax.plot([x, 84], [70, 70], color=col, lw=2.2, alpha=0.55,
-                solid_capstyle="butt")
-        sq = (84 - x) * 0.19
-        h = _sq(ax, x - sq / 2, 34, sq, col, alpha=0.35, anchor="bottom")
-        ax.plot([x, x], [68, 34 + h], color=col, lw=0.7, alpha=0.45, zorder=0)
-        _lab(ax, x, 24, lab, PT_BODY, BODY, ha="center")
+    OWN, FC = 0.20, 0.45                       # illustrative; flagged in-figure and in the caption
+    x0, x1 = 8.0, 66.0
+    px = lambda q: x0 + q * (x1 - x0)
+    for y, outcome, head, ticks in ((84, 1.0, "attack day", True),
+                                    (50, 0.0, "quiet day  (most days)", False)):
+        _lab(ax, x0, y + 7, head, PT_BODY, BODY, weight="bold")
+        if ticks:                                   # one probability scale, labelled once
+            _lab(ax, x0, y + 13, "0", PT_FINE, THIRD, ha="center")
+            _lab(ax, x1, y + 13, "1", PT_FINE, THIRD, ha="center")
+        ax.plot([x0, x1], [y, y], color=A_MID, lw=1.0, zorder=1)
+        for q in (0.0, 1.0):
+            ax.plot([px(q), px(q)], [y - 2, y + 2], color=A_MID, lw=1.0)
+        ax.plot([px(outcome)], [y], "o", ms=5.5, mfc=A_INK, mec="none", zorder=4)
+        for q, col, dy, nm in ((OWN, A_MID, -10.0, "own rate"),
+                               (FC, A_INK, -17.0, "forecast")):
+            ax.plot([px(q)], [y], "o", ms=5.0, mfc="white", mec=col, mew=1.4, zorder=4)
+            # anchored under its own dot and running toward the outcome, so the bar
+            # is unambiguously that dot's; its length is the squared miss
+            w = (q - outcome) ** 2 * (x1 - x0)
+            a = px(q) if outcome > q else px(q) - w
+            ax.add_patch(Rectangle((a, y + dy), w, 3.6, fc=col, ec="none", zorder=3))
+            if ticks:                               # name the bars once, top row only
+                _lab(ax, a + w + 3, y + dy + 1.8, nm, PT_FINE, col)
+    # the three circles carried no explanation at all
+    # all three marks on the rules, in the order they appear along it
+    # positions from the measured label widths (19.7, 18.3, 35.2 units) so each
+    # mark keeps ~4 units of clear space from the label before it
+    K, KY = 1.5, 24.5                         # ~3 px right, ~5 px lower; ring and
+                                              # label share KY so they move as one
+    for mx, lx, mec, mfc, ms_, txt in (       # lines up with the text block below
+            (x0 + K, x0 + 4 + K, A_MID, "white", 5.0, "own rate"),
+            (x0 + 28 + K, x0 + 32 + K, A_INK, "white", 5.0, "forecast"),
+            (x0 + 55 + K, x0 + 59 + K, "none", A_INK, 5.5, "outcome")):
+        ax.plot([mx], [KY], "o", ms=ms_, mfc=mfc, mec=mec, mew=1.4, zorder=4)
+        _lab(ax, lx, KY, txt, PT_FINE, SECOND)
+    # both rules apply to the whole panel, so they sit together at the foot
+    _lab(ax, x0, 15.5, "bar length = squared miss,  shorter = better", PT_FINE, SECOND)
+    _lab(ax, x0, 7.5, "own rate = all attack days \u00f7 all diary days", PT_FINE, SECOND)
+    _lab(ax, x0, -1.5, "Brier skill = 1 \u2212 (forecast miss \u00f7 own-rate miss)",
+         PT_BODY, BODY)
 
 
-def _how_dca(ax, att):
+def _how_dca(ax):
     """Net benefit trades attacks caught against unnecessary treatment."""
     ax.axis("off"); ax.set_xlim(0, 100); ax.set_ylim(0, 100)
+    # The operator must have clear space on BOTH sides and be nearer its operands
+    # than any label, or proximity binds it to the words instead and it reads as a
+    # dash -- which is what blind readers reported. Rows are spaced to give it room.
+    X0, W, NX = 6.0, 8.5, 62.0            # NX: the worked example, column-aligned
+    _lab(ax, NX, 93, "illustrative, at threshold 0.10", PT_FINE, THIRD)
     for i in range(6):
-        _sq(ax, 12 + i * 8.5, 66, 7, att, anchor="bottom")
-    _lab(ax, 12, 80, "attacks caught", PT_BODY, BODY)
-    # the operator, so the panel shows a subtraction rather than two unrelated rows
-    ax.text(4, 50, "\u2212", fontsize=13, color=S.INK, ha="center", va="center")
+        _sq(ax, X0 + i * W, 78, 7, A_STRONG, anchor="bottom")
+    _lab(ax, X0, 93, "attacks caught", PT_BODY, BODY)
+    _lab(ax, NX, 81.5, "6", PT_BODY, SECOND)
+    # drawn as a rule, not a glyph: length and weight then scale to the icons
+    ax.plot([X0 + 20, X0 + 30], [67, 67], color=A_INK, lw=2.6,
+            solid_capstyle="round", zorder=5)
     for i in range(4):
-        _sq(ax, 12 + i * 8.5, 26, 7, "#cfcfcf", anchor="bottom")
-    _lab(ax, 12, 40, "days treated for nothing", PT_BODY, BODY)
-    _lab(ax, 64, 28, "weighted by how\nreluctant one is\nto treat", PT_FINE, SECOND)
+        _sq(ax, X0 + i * W, 44, 7, A_LIGHT, anchor="bottom")
+    _lab(ax, X0, 57, "days treated for nothing", PT_BODY, BODY)
+    _lab(ax, X0, 38, "\u00d7 weight  t / (1 \u2212 t)", PT_FINE, SECOND)
+    _lab(ax, X0, 31, "t = threshold probability", PT_FINE, THIRD)
+    _lab(ax, NX, 47.5, "4 \u00d7 0.11", PT_BODY, SECOND)
+    _lab(ax, NX, 37, "= 0.44", PT_FINE, THIRD)
+    ax.plot([X0 - 4, X0 + 5 * W + 9], [25, 25], color=A_MID, lw=1.0, zorder=2)
+    ax.plot([NX - 2, NX + 22], [25, 25], color=A_MID, lw=1.0, zorder=2)
+    # 5 whole icons plus a 0.6 sliver: the row must equal 6 - 4x0.11 = 5.6, or the
+    # picture says 2 while the column beside it says 5.6
+    for i in range(5):                     # solid outlines stay countable; dashed
+        ax.add_patch(Rectangle((X0 + i * W, 15), 7, 7, fc="none", ec=A_STRONG,
+                               lw=1.0, zorder=3))     # ones merge into a blob
+    ax.add_patch(Rectangle((X0 + 5 * W, 15), 7 * 0.6, 7, fc="none", ec=A_STRONG,
+                           lw=1.0, zorder=3))
+    _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
+    _lab(ax, NX, 18.5, "5.6", PT_BODY, BODY, weight="bold")
 
 
 def _skill_panel(ax, rows, cols):
-    ax.axvline(0.0, color=S.INK, lw=1.0, zorder=3)
+    # hatched bands, each unique, so "worse" and "better" name a REGION rather than
+    # floating as words under the axis
+    # a band under each side rather than a full-height wash: it names the region
+    # without competing with the intervals drawn on top of it
+    for x0b, w, hat in ((-0.32, 0.32, "\\\\"), (0.0, 0.72, "//")):
+        ax.add_patch(Rectangle((x0b, -0.60), w, 0.26, facecolor="none",
+                               edgecolor="#dcdcdc", hatch=hat, lw=0.0, zorder=0))
+    # vlines rather than axvline, so the rule stops short of its own label
+    ax.vlines(0.0, -0.62, 1.38, color=S.INK, lw=1.0, zorder=3)
     for i, ((tgt, r), col) in enumerate(zip(rows, cols)):
         yy = 1 - i
         lo, hi = float(r["bs_cluster_lo"]), float(r["bs_cluster_hi"])
         ax.plot([lo, hi], [yy, yy], color=col, lw=2.6, solid_capstyle="round", zorder=4)
         ax.plot([float(r["brier_skill"])], [yy], "o", ms=7, mfc="white", mec=col,
                 mew=2.0, zorder=5)
-        _lab(ax, hi + 0.02, yy, tgt, PT_BODY, BODY)
-    _lab(ax, 0.0, 1.46, "no improvement", PT_FINE, SECOND, ha="center")
-    ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.55)
+        _lab(ax, hi + 0.02, yy, tgt.upper(), PT_VALUE, MIG_TEXT if tgt == "migraine" else HEA_TEXT, weight="bold")
+    _lab(ax, 0.0, 1.48, "no improvement", PT_FINE, SECOND, ha="center")
+    # black on the hatching, each letter carrying a thin white surround so the
+    # strokes behind it cannot break up the word
+    halo = [pe.withStroke(linewidth=2.0, foreground="white")]
+    ax.text(-0.30, -0.47, "\u2190 worse than own rate", fontsize=PT_FINE,
+            color=A_INK, ha="left", va="center", path_effects=halo, zorder=6)
+    ax.text(0.70, -0.47, "better than own rate \u2192", fontsize=PT_FINE,
+            color=A_INK, ha="right", va="center", path_effects=halo, zorder=6)
+    ax.set_ylim(-0.62, 1.62); ax.set_xlim(-0.32, 0.72)  # room for the 11pt target word
     ax.set_yticks([]); ax.tick_params(axis="x", labelsize=PT_TICK, length=2)
     ax.set_xlabel("Brier skill against the patient's own attack rate", fontsize=PT_AXIS)
     for sp in ("top", "right", "left"):
@@ -205,15 +283,30 @@ def _dca_panel(ax, preds, col):
     ax.axhline(0.0, color=S.INK, lw=1.0, zorder=3)
     y, p, _ = preds["migraine"]
     nb, nb_all = _net_benefit(y, p, ts)
-    ax.plot(ts, nb_all, color=col, lw=0.9, ls=(0, (3, 2)), alpha=0.7, zorder=4)
+    # treat-all is a POLICY, not a target, so it is achromatic. Both blind readers read
+    # the old same-hue dashed line as a confidence band on the model.
+    ax.plot(ts, nb_all, color=A_MID, lw=0.9, ls=(0, (4, 2)), zorder=4)
     ax.plot(ts, nb, color=col, lw=2.0, zorder=5, solid_capstyle="round")
-    j = int(len(ts) * 0.34)
-    _lab(ax, ts[j], nb[j] + 0.007, "migraine", PT_BODY, col, weight="bold")
+    # anchor where the curve is furthest from the policy line, not at a fixed index,
+    # and offset perpendicular to the local slope in display units so the gap is the
+    # same on a steep segment as on a flat one
     _lab(ax, 0.505, 0.0, "treat none", PT_FINE, BODY)
-    _lab(ax, 0.145, -0.041, "treat everyone", PT_FINE, SECOND)
+    _lab(ax, 0.098, -0.030, "treat every day", PT_FINE, SECOND)
     ax.set_xlim(0.01, 0.50); ax.set_ylim(-0.065, 0.105)
-    ax.set_xlabel("threshold probability", fontsize=PT_AXIS)
-    ax.set_ylabel("net benefit", fontsize=PT_AXIS)
+    # only now is transData the real mapping; computing the perpendicular offset
+    # before the limits are set uses the autoscaled one and throws the label off
+    j = int(len(ts) * 0.30)
+    inv = ax.transData.inverted()
+    p0 = ax.transData.transform((ts[j], nb[j]))
+    p1 = ax.transData.transform((ts[min(j + 1, len(ts) - 1)], nb[min(j + 1, len(nb) - 1)]))
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    n = (dx * dx + dy * dy) ** 0.5 or 1.0
+    tx, ty = inv.transform((p0[0] - dy / n * 11.0, p0[1] + dx / n * 11.0))
+    _lab(ax, tx, ty, "MIGRAINE", PT_VALUE, MIG_TEXT, weight="bold")
+    ax.set_xlabel("threshold probability  (the attack risk at which you would treat)",
+                  fontsize=PT_AXIS)
+    ax.set_ylabel("net benefit\n(attacks caught per patient-day)",
+                  fontsize=PT_AXIS, linespacing=1.4)
     ax.tick_params(labelsize=PT_TICK, length=2)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
@@ -236,7 +329,134 @@ def _panel_letter(ax, letter):
             color=S.INK, transform=ax.transAxes, ha="left", va="bottom")
 
 
-def _one(name, how, how_args, draw_right, right_args):
+
+# ---------------------------------------------------------------- forked panels
+# m1(b) and m2(b) were drawn by graphical_abstract.py's own functions. They are
+# forked here because the m-series needs fixes the abstract must not receive:
+# the abstract renders at 920x300 with a claim strip carrying target identity,
+# these render at 183x62mm and must be self-labelling. The abstract keeps its
+# own copies untouched, so "Graphical Abstract.png" is byte-identical.
+
+def _slope_panel(ax):
+    """Pooled AUROC beside within-person C. Capped interval bars replace the
+    densities: a violin is the grammar for a distribution of units, and a CI of
+    a mean is not one, which is what made a blind reader call it 'a preposterously
+    wide confidence interval for a mean'."""
+    import graphical_abstract as GA
+    ORA, BLU = S.target_color("migraine"), S.target_color("headache")
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.8, ls="--", alpha=0.6, zorder=1)
+    for d, col, txt, xs, side in ((GA.MIGRAINE, ORA, MIG_TEXT, (-0.015, 0.985), -1),
+                                  (GA.HEADACHE, BLU, HEA_TEXT, (0.015, 1.015), +1)):
+        ax.plot(xs, [d["pooled"], d["within"]], color=col, lw=2.2, zorder=4,
+                marker="o", ms=6.5, mfc=col, mec="white", mew=1.0)
+        reps = GA._load_pooled_replicates()
+        if not {("migraine", "XGBoost"), ("headache", "TabPFN")} <= set(reps):
+            reps = {}
+        key = ("migraine", "XGBoost") if col == ORA else ("headache", "TabPFN")
+        for xi, yi, ci in ((xs[0], d["pooled"], d["pooled_ci"]),
+                           (xs[1], d["within"], d["within_ci"])):
+            GA._ci_density(ax, xi, yi, ci, col, side, 2.0,
+                           reps=reps.get(key) if xi == xs[0] else None)
+    # left gutter: word above its own value, each value at its marker's height,
+    # so no leader is needed and nothing sits on a slope
+    ax.text(-0.30, 0.862, "MIGRAINE", fontsize=PT_VALUE, fontweight="bold",
+            color=MIG_TEXT, ha="right", va="center")
+    ax.text(-0.30, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['pooled']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="right", va="center")
+    # sits at its own pooled dot's x, so the word names the blue series directly
+    ax.text(-0.30, 0.710, "HEADACHE", fontsize=PT_VALUE, fontweight="bold",
+            color=HEA_TEXT, ha="right", va="center",
+            path_effects=[pe.withStroke(linewidth=2.2, foreground="white")])
+    ax.text(-0.30, GA.HEADACHE["pooled"] - 0.014, f"{GA.HEADACHE['pooled']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="right", va="center")
+    # right gutter: the within-person value with its interval printed, because
+    # "does it cross 0.5" is a 0.7 mm judgement at this scale and must not be one
+    # each within-person value shares a row with the pooled value it is measured
+    # against, so the drop is read across a row rather than reconstructed
+    mlo, mhi = GA.MIGRAINE["within_ci"]
+    ax.text(1.10, GA.MIGRAINE["pooled"], f"{GA.MIGRAINE['within']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=MIG_TEXT, ha="left", va="center")
+    ax.text(1.10, GA.MIGRAINE["pooled"] - 0.045, f"{mlo:.2f}\u2013{mhi:.2f}",
+            fontsize=PT_FINE, color=SECOND, ha="left", va="center")
+    hlo, hhi = GA.HEADACHE["within_ci"]
+    ax.text(1.10, GA.HEADACHE["pooled"] - 0.014, f"{GA.HEADACHE['within']:.2f}",
+            fontsize=PT_VALUE, fontweight="bold", color=HEA_TEXT, ha="left", va="center")
+    ax.text(1.10, GA.HEADACHE["pooled"] - 0.059, f"{hlo:.2f}\u2013{hhi:.2f}",
+            fontsize=PT_FINE, color=SECOND, ha="left", va="center")
+    ax.text(1.38, 0.670, "95% CI\nof the mean", fontsize=PT_FINE, color=THIRD,
+            ha="left", va="center", linespacing=1.3)
+    ax.text(0.58, 0.702, f"\u0394 {GA.MIGRAINE['pooled'] - GA.MIGRAINE['within']:.2f}",
+            fontsize=PT_BODY, fontweight="bold", color=MIG_TEXT, ha="center", va="center")
+    ax.text(0.62, 0.548, f"\u0394 {GA.HEADACHE['pooled'] - GA.HEADACHE['within']:.2f}",
+            fontsize=PT_BODY, fontweight="bold", color=HEA_TEXT, ha="center", va="center")
+    # own chance label, placed clear of the rule instead of across it
+    ax.text(-0.76, 0.478, "chance", fontsize=PT_FINE, color=THIRD, ha="left", va="top")
+    ax.set_xlim(-0.80, 1.62); ax.set_ylim(GA.SHARED_YLIM)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["pooled AUROC\n(all patients' days together)",
+                        "within-person C-statistic\n(one patient's own days)"],
+                       fontsize=PT_AXIS)
+    ax.set_yticks(GA.SHARED_YTICKS); ax.tick_params(axis="y", labelsize=PT_TICK)
+    ax.set_ylabel("discrimination", fontsize=PT_AXIS)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+
+
+def _rank_panel(ax):
+    """Per-patient within-person AUROC. Hazen plotting positions replace
+    i/(k-1), which pinned both series to 0 and 1 regardless of k and made
+    vertical alignment between a blue and an orange dot look meaningful."""
+    import csv, graphical_abstract as GA
+    ORA, BLU = S.target_color("migraine"), S.target_color("headache")
+    series = {}
+    with open(GA.PER_PATIENT_CSV, newline="") as fh:
+        for row in csv.DictReader(fh):
+            series.setdefault(row["target"], []).append(float(row["auroc"]))
+    ax.axhline(0.5, color=S.REF_COLOR, lw=0.9, ls="--", alpha=0.7, zorder=1)
+    for tgt, col, ms in (("headache", BLU, 3.0), ("migraine", ORA, 4.2)):
+        vals = sorted(series.get(tgt, []))
+        if not vals:
+            continue
+        k = len(vals)
+        ax.plot([(i + 0.5) / k for i in range(k)], vals, "o", ms=ms,
+                color=col, mec="none", zorder=3)          # no alpha: it shifted the hue
+    for tgt, d, col, txt, ly in (("headache", GA.HEADACHE, BLU, HEA_TEXT, 0.452),
+                                 ("migraine", GA.MIGRAINE, ORA, MIG_TEXT, 0.606)):
+        if not series.get(tgt):
+            continue
+        ax.plot([0, 1.0], [d["within"]] * 2, color=col, lw=1.2, zorder=2)
+        ax.plot([1.0, 1.06], [d["within"], ly], color="#c8c8c8", lw=0.5, zorder=2)
+        ax.text(1.08, ly, f"{d['within']:.2f}", fontsize=PT_BODY, fontweight="bold",
+                color=txt, ha="left", va="center")
+        ax.text(1.08, ly - 0.062, "Paule\u2013Mandel\nrandom effects", fontsize=PT_FINE,
+                color=THIRD, ha="left", va="center", linespacing=1.25)
+    # direct labels in the empty upper-left: the dots are rank-sorted, so nothing
+    # reaches this corner. Swatches are the data marks at their own sizes.
+    for x, y, t, c, ms in ((0.035, 0.905, "MIGRAINE", MIG_TEXT, 4.2),
+                           (0.035, 0.835, "HEADACHE", HEA_TEXT, 3.0)):
+        ax.plot([x], [y], "o", ms=ms, color=ORA if t == "MIGRAINE" else BLU,
+                mec="none", zorder=6)
+        ax.text(x + 0.035, y, t, fontsize=PT_VALUE, fontweight="bold", color=c,
+                ha="left", va="center", zorder=6)
+    ax.text(0.10, 1.045, "within-patient AUROC", transform=ax.transAxes,
+            fontsize=PT_HEAD, fontweight="bold", color=BODY, ha="left", va="bottom")
+    ax.set_xlim(-0.04, 1.58); ax.set_ylim(GA.SHARED_YLIM)
+    ax.set_xticks([]); ax.set_yticks(GA.SHARED_YTICKS)
+    ax.tick_params(axis="y", labelsize=PT_TICK)
+    ax.set_ylabel("per-patient AUROC", fontsize=PT_AXIS)
+    n_mig, n_hea = len(series.get("migraine", [])), len(series.get("headache", []))
+    # the old label read as 76 distinct people; both series come from the same 63
+    ax.set_xlabel(f"one dot per patient, ranked\n"
+                  f"(63 records; {n_hea} scorable for headache, {n_mig} for migraine)",
+                  fontsize=PT_AXIS)
+    # GA's helper sets this across the rule; place it clear of the stroke instead
+    ax.text(-0.02, 0.487, "chance", fontsize=PT_FINE, color=THIRD,
+            ha="left", va="top")
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+
+
+def _one(name, how, how_args, draw_right, right_args, after=None, wr=0.46):
     """One figure in the series: the schematic beside the quantity it explains.
 
     Each is full column width and short, the shape this literature uses for a
@@ -244,7 +464,7 @@ def _one(name, how, how_args, draw_right, right_args):
     now lives in the manuscript caption, which is where a journal expects it.
     """
     fig = plt.figure(figsize=(183 / 25.4, 62 / 25.4))
-    gs = fig.add_gridspec(1, 2, width_ratios=[0.62, 1.0],
+    gs = fig.add_gridspec(1, 2, width_ratios=[wr, 1.0],
                           left=0.055, right=0.985, top=0.88, bottom=0.185,
                           wspace=0.30)
     axl, axr = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
@@ -253,6 +473,8 @@ def _one(name, how, how_args, draw_right, right_args):
     _panel_letter(axl, "a"); _panel_letter(axr, "b")
     how(axl, *how_args)
     draw_right(axr, *right_args)
+    if after is not None:
+        after(axr)          # annotate on top; the GA's own drawing is never modified
     out = S.save(fig, HERE / "figures" / name)
     print("saved", Path(out).name)
 
@@ -269,11 +491,11 @@ def main() -> None:
     assert abs(roc_auc_score(y, p) - float(mig_row["auroc"])) < 5e-4, \
         "migraine cached predictions disagree with the published AUROC"
 
-    _one("fig_m1_pooled_auroc", _how_auroc, (ORA, BLU), GA._draw_slopegraph, ())
-    _one("fig_m2_within_person", _how_within, (ORA,), GA._draw_per_patient, ())
-    _one("fig_m3_brier_skill", _how_brier, (BLU,), _skill_panel,
+    _one("fig_m1_pooled_auroc", _how_auroc, (), _slope_panel, ())
+    _one("fig_m2_within_person", _how_within, (), _rank_panel, ())
+    _one("fig_m3_brier_skill", _how_brier, (), _skill_panel,
          ([("migraine", mig_row), ("headache", hea_row)], [ORA, BLU]))
-    _one("fig_m4_net_benefit", _how_dca, (ORA,), _dca_panel, (preds, ORA))
+    _one("fig_m4_net_benefit", _how_dca, (), _dca_panel, (preds, ORA), wr=0.80)
 
 
 if __name__ == "__main__":

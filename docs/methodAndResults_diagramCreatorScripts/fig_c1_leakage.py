@@ -33,8 +33,8 @@ EXP = REPO / "experiment"
 # History (lag/rolling) feature count per set, verified in results_findings.md S1.
 LAG = {"full_features": 17,
        "no_rolling_features": 0, "park_features": 0}
-LABEL = {"full_features": "full",
-         "no_rolling_features": "no_rolling", "park_features": "park"}
+LABEL = {"full_features": "all features",
+         "no_rolling_features": "no rolling", "park_features": "Park subset"}
 
 
 def _auroc(s):
@@ -105,7 +105,7 @@ def main():
                  fontsize=9.5)
     ax.legend(title="target")
     # §11.7 EPV annotation: the migraine `full_features` point sits at x=17
-    S.epv_annotation(ax, "migraine", cell="full_features", loc="upper right")
+    S.epv_annotation(ax, "migraine", cell="full_features", loc="below")
     print("saved", S.save(fig, HERE / "figures" / "fig_c1_leakage"))
 
 

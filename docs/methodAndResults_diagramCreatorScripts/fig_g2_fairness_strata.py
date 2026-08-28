@@ -90,9 +90,13 @@ def _draw_panel(ax, df: pd.DataFrame, target: str) -> None:
         stratum_rows = sub[(sub["stratum_dim"] == dim) & (sub["stratum"] == val)]
         if len(stratum_rows) and bool(stratum_rows.iloc[0]["below_floor"]):
             n_est = int(stratum_rows.iloc[0]["n_estimable"])
-            ax.text(0.50, stratum_idx,
+            # Starts clear of the dashed chance rule at 0.50, which used to run
+            # straight through the first characters, and in INK rather than the
+            # muted grey: this note explains a MISSING estimate, so it is the
+            # most important thing in its row, not the least.
+            ax.text(0.535, stratum_idx,
                     f"n = {n_est}, not estimable (below 5-patient floor)",
-                    va="center", ha="left", fontsize=7, color=S.MUTED)
+                    va="center", ha="left", fontsize=7.4, color=S.INK)
             continue
 
         for arch in ARCH_ORDER:

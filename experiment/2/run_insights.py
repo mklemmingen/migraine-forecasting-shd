@@ -25,9 +25,10 @@ import sys
 from pathlib import Path
 
 # The interpreter prepends this script's own directory (experiment/2) to
-# sys.path, where the local ``select.py`` would shadow the standard-library
-# ``select`` module that subprocess/selectors import. Drop it before any
-# such import; sibling modules are loaded explicitly by file path below.
+# sys.path. The module that used to shadow the standard-library ``select``
+# from here has been renamed to ``leaf_selection``, so that hazard is gone;
+# the directory is still dropped as defence in depth, and sibling modules
+# are loaded explicitly by file path below.
 _THIS_DIR = str(Path(__file__).resolve().parent)
 sys.path[:] = [p for p in sys.path if p not in ("", _THIS_DIR)]
 
@@ -41,8 +42,7 @@ from _eval_only_runner import run_subset, REPO_ROOT  # noqa: E402
 
 
 def _load_local(name: str):
-    """Import a sibling module by file path so the local ``select.py`` does
-    not shadow the standard-library ``select`` module."""
+    """Import a sibling module by file path, independent of sys.path."""
     spec = importlib.util.spec_from_file_location(
         f"_exp2_{name}", Path(__file__).resolve().parent / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
@@ -50,7 +50,7 @@ def _load_local(name: str):
     return module
 
 
-_select = _load_local("select")
+_select = _load_local("leaf_selection")
 select_insight_leaves = _select.select_insight_leaves
 _describe = _select._describe
 

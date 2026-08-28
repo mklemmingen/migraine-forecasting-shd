@@ -27,8 +27,10 @@ import sys as _sys
 import importlib.util as _ilu
 from pathlib import Path as _Path
 _EXP = _Path(__file__).resolve().parents[2] / "experiment"
-# experiment/ on the path for _style; load _figures by file path rather than
-# adding experiment/2 to sys.path, where its select.py shadows the stdlib select.
+# experiment/ on the path for _style; _figures is loaded by file path rather
+# than by adding experiment/2 to sys.path. The module that once shadowed the
+# stdlib select from there is now named leaf_selection, so this is hygiene
+# rather than a workaround.
 _sys.path.insert(0, str(_EXP))
 _spec = _ilu.spec_from_file_location("_exp2_figures", _EXP / "2" / "_figures.py")
 F = _ilu.module_from_spec(_spec)

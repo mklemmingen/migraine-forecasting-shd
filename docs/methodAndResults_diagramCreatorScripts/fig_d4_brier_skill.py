@@ -149,12 +149,14 @@ def main():
                        yerr=yerr, capsize=3, ecolor=S.SOFT, label=tgt)
         for b, v, lo, hi in zip(bars, vals, lows, highs):
             if v == v:
-                # CI bracket sits above positive bars, below negative ones, away from the whisker
-                offset_y = 8 if v >= 0 else -8
+                # Centred above/below the bar top, the bracket landed straight on
+                # the error whisker. Anchored to the bar's right edge and centred
+                # on its own value it sits BESIDE the interval it reports, which
+                # also makes clear which bar it belongs to.
                 ax.annotate(f"{v:+.2f}\n[{lo:+.2f}, {hi:+.2f}]",
-                            (b.get_x() + b.get_width() / 2, v),
-                            ha="center", va="bottom" if v >= 0 else "top", fontsize=6.5,
-                            xytext=(0, offset_y), textcoords="offset points")
+                            (b.get_x() + b.get_width(), v),
+                            ha="left", va="center", fontsize=6.5,
+                            xytext=(4, 0), textcoords="offset points")
     ax.axhline(0, color=S.REF_COLOR, lw=1)
     # Slug-bearing tick labels: the same family name can decode to different
     # leaves per target (e.g. TabPFN-v2.6 on headache vs TabPFN-v2.5f on

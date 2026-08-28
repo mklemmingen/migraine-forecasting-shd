@@ -70,8 +70,13 @@ def main():
         # neutral reference line + per-panel value, so the shared legend swatch
         # cannot mismatch the drawn colour (the internal estimate is target-specific)
         ax.axhline(INTERNAL[tgt], color=S.SOFT, lw=1.4)
+        # Sat directly on its own rule and ran into the leftmost marker. Nudged
+        # up off the line and given a white ground so the rule does not strike
+        # through the glyphs.
         ax.text(0.02, INTERNAL[tgt], f"internal C {INTERNAL[tgt]:.2f}",
-                transform=ax.get_yaxis_transform(), va="bottom", fontsize=7, color=S.SOFT)
+                transform=ax.get_yaxis_transform(), va="bottom", fontsize=7,
+                color=S.INK,
+                bbox=dict(facecolor="white", edgecolor="none", pad=1.4))
         # Add estimability denominator annotation per panel (bottom-left, away from legend).
         ks = [int(r.get("within_k", 0)) for s in SITES for m in MODELS
               if (r := d.get((tgt, s, m))) is not None]
@@ -85,7 +90,7 @@ def main():
         ax.set_xticklabels([f"held-out\n{s}" for s in SITES])
         ax.set_ylim(0.40, 0.85)
         ax.set_title(tgt)
-        S.epv_annotation(ax, tgt, cell="full_features", loc="upper right")
+        S.epv_annotation(ax, tgt, cell="full_features", loc="below")
     axes[0].set_ylabel("within-person C-statistic")
     axes[0].legend(fontsize=8, loc="upper center", ncol=2)
     fig.suptitle("Within-person discrimination stays near chance off-site\n"

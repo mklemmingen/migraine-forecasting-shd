@@ -41,7 +41,8 @@ pathway. DECIDE-AI is the standard for the early-stage clinical evaluation of
 AI-driven decision-support systems and comprises 17 AI-specific reporting items
 [vasey2022decideAI, p. 1]; it is already named in the rigor checklist as the
 guideline a future clinical-evaluation follow-up should adopt
-(the paper's TRIPOD+AI and PROBAST+AI checklists, Section 1d). Addition 6 produces the
+(the paper's TRIPOD+AI and PROBAST+AI checklists, Supplementary
+Files S16 and S17). Addition 6 produces the
 development-stage decision-analytic evidence that such a follow-up would build on,
 without claiming a clinical evaluation has occurred.
 
@@ -187,7 +188,9 @@ experiment/6/
     decision_curve.py             # net benefit vs threshold (3.1)
     skill.py                      # Brier skill score vs per-patient climatology (3.2)
     operating_point.py            # threshold mapping + sensitivity at fixed FPR (3.3)
-    weather_join.py               # optional KMA meteorological join + ablation (3.4)
+    weather_join.py               # NOT IMPLEMENTED (stub, raises NotImplementedError):
+                                  #   optional KMA meteorological join + ablation (3.4),
+                                  #   blocked on an external data decision, see 6
   <target>/<feature_set>/<arch>/<ratio>/<split>/
     decision_curve_<ts>.png
     skill_<ts>.txt                # Brier, Brier skill score, calibration-in-the-large

@@ -28,7 +28,7 @@ Two constraints that are correctness, not taste:
     #D55E00 is 3.87:1 and fails the 4.5:1 WCAG floor; it stays on marks and lines.
   * CIs are patient-CLUSTER, not patient-day. Table 2 of article.tex.
 
-Numbers trace to article.tex and supplementary_body.tex; see
+Numbers trace to article.tex and supplementary.tex; see
 graphical_abstract_review.md in the paper working tree before changing any value.
 
 Usage: python graphical_abstract.py

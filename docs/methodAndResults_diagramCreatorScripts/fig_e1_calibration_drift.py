@@ -71,15 +71,27 @@ def main():
                 print(f"  {tgt:<9} {site:<10} {m:<16} O:E {oe:.2f} "
                       f"[{oe_lo:.2f}-{oe_hi:.2f}]")
         S.refline(ax, y=1.0)
-        ax.text(0.5, 1.0, "perfect (O:E = 1)", transform=ax.get_yaxis_transform(),
-                ha="center", va="bottom", fontsize=7, color=S.INK)
+        # Sat centred ON the rule and on top of a bar. Moved to the left, just
+        # under the line, where both panels are empty, and given its own white
+        # ground so nothing shows through it.
+        ax.text(0.015, 1.0, "perfect (O:E = 1)", transform=ax.get_yaxis_transform(),
+                ha="left", va="top", fontsize=7, color=S.INK,
+                bbox=dict(facecolor="white", edgecolor="none", pad=1.6))
         ax.set_ylim(0.4, 1.65)
-        ax.text(0.99, 0.72, "under-predicts", transform=ax.transAxes, ha="right",
-                va="center", fontsize=7, color=S.GREY, style="italic")
-        ax.text(0.99, 0.18, "over-predicts", transform=ax.transAxes, ha="right",
-                va="center", fontsize=7, color=S.GREY, style="italic")
+        # These name the two halves of the plot, so they carry an arrow pointing
+        # away from the reference line and are set in INK, not muted grey.
+        # under-predicts goes upper-right and over-predicts lower-LEFT: in both
+        # panels every bar below the reference line sits in the right-hand
+        # (dongtan) group, so the lower left is the only reliably empty corner.
+        for lbl, x, ha, yfrac, dy in (("under-predicts", 0.985, "right", 0.80, 0.06),
+                                      ("over-predicts", 0.015, "left", 0.20, -0.06)):
+            ax.annotate(lbl, xy=(x, yfrac + dy), xytext=(x, yfrac),
+                        xycoords="axes fraction", textcoords="axes fraction",
+                        ha=ha, va="center", fontsize=7, color=S.INK,
+                        bbox=dict(facecolor="white", edgecolor="none", pad=1.4),
+                        arrowprops=dict(arrowstyle="->", color=S.SOFT, lw=0.9))
         ax.set_xticks(range(len(SITES))); ax.set_xticklabels(xticklab, fontsize=8)
-        S.epv_annotation(ax, tgt, cell="full_features", loc="upper right")
+        S.epv_annotation(ax, tgt, cell="full_features", loc="below")
     axes[0].set_ylabel("observed / expected (O:E)")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center",

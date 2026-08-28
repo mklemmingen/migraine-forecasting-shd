@@ -173,8 +173,10 @@ def main():
                       error_kw={"elinewidth": 0.9})
         for b, v in zip(bars, vals):
             if v == v:
-                ax.text(b.get_x() + b.get_width() / 2, v + 0.018, f"{v:.2f}",
-                        ha="center", fontsize=7)
+                # Beside the bar rather than on top of its whisker, and a size
+                # up: at 7pt these numbers were the smallest thing on the figure.
+                ax.text(b.get_x() + b.get_width(), v, f"{v:.2f}",
+                        ha="left", va="center", fontsize=8)
     S.refline(ax, y=0.5)
     ax.axvline(1.5, color=S.FAINT, lw=1, ls=":")        # tabular | sequence divider
     ax.text(0.5, 0.83, "tabular", ha="center", fontsize=8, color=S.GREY,
@@ -201,15 +203,15 @@ def main():
     ax.set_xticks(x); ax.set_xticklabels(tick_labels, fontsize=7.5)
     ax.set_ylim(0.5, 0.88)
     ax.set_ylabel("AUROC (val+test horizon)")
-    ax.set_title("Sequence vs tabular discrimination (Park 2016 SHD, n=62; full_features, chrono)")
+    ax.set_title("Sequence vs tabular discrimination (Park 2016 SHD, n=62; all features, chronological)")
     S.epv_annotation(ax, "migraine", cell="full_features", loc="upper left")
     ax.legend(title="target", loc="upper right")
     # Three structural asymmetries the reader must keep in mind alongside bar heights:
     # tabular = 70/30 + HP-tuned; sequence = 70/15/15 + NonHP. The visible XGB-HP020
     # vs Seq-windowMLP 0.79 vs 0.77 gap absorbs these.
-    ax.text(0.5, -0.32,
-            "tabular bars: 70/30 / composite-tracked / HP-tuned · "
-            "sequence bars: 70/15/15 / NonHP / wider bootstrap CI",
+    ax.text(0.5, -0.22,
+            "tabular bars 70/30, composite-tracked, tuned; "
+            "sequence bars 70/15/15, untuned, wider bootstrap CI",
             transform=ax.transAxes, ha="center", va="top",
             fontsize=6.5, color=S.SOFT, style="italic")
     print("saved", S.save(fig, HERE / "figures" / "fig_b7_sequence_vs_tabular"))

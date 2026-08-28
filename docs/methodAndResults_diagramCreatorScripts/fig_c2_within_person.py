@@ -43,7 +43,7 @@ import within_person as WP  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
 # Reuse the figdata loader the g/h scripts use so leaf-path resolution stays
-# in lockstep with the composite_sorted selection in experiment/2/select.py.
+# in lockstep with the composite_sorted selection in experiment/2/leaf_selection.py.
 import importlib.util as _ilu
 _spec = _ilu.spec_from_file_location("_exp2_figures", EXP / "2" / "_figures.py")
 _F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
@@ -164,8 +164,11 @@ def _panel(ax, tgt, y, p, pid):
     x = np.arange(len(est))
     err = np.array([1.96 * np.sqrt(WP._hanley_mcneil_var(
         r.auroc, int(r.n_pos), int(r.n - r.n_pos))) for r in est.itertuples()])
-    ax.errorbar(x, est["auroc"], yerr=err, fmt="o", ms=3, lw=0.5,
-                color=S.TARGET[tgt], alpha=0.6, ecolor=S.FAINT, capsize=0)
+    ax.errorbar(x, est["auroc"], yerr=err, fmt="none", lw=0.6,
+                ecolor="#9a9a9a", capsize=0, zorder=2)
+    npos = est["n_pos"].to_numpy(dtype=float)
+    ax.scatter(x, est["auroc"], s=6.0 + 26.0 * npos / max(npos.max(), 1.0),
+               color=S.TARGET[tgt], alpha=0.85, edgecolors="none", zorder=3)
     ax.axhspan(within["ci_low"], within["ci_high"], color=S.GREY,
                alpha=S.CI_ALPHA, zorder=0)
     ax.axhspan(pooled_lo, pooled_hi, color=S.ARCH["TabPFN"],
@@ -177,10 +180,17 @@ def _panel(ax, tgt, y, p, pid):
     ax.axhline(pooled, color=S.ARCH["TabPFN"], lw=1.6,
                label=f"pooled AUROC {pooled:.2f} "
                      f"[{pooled_lo:.2f}-{pooled_hi:.2f}]")
-    ax.set_ylim(0, 1)
-    ax.set_xlabel(f"patient, sorted by AUROC ({len(est)} of 63 estimable)")
+    lo = min(0.5, float((est["auroc"] - err).min()), within["ci_low"], pooled_lo)
+    hi = max(0.5, float((est["auroc"] + err).max()), within["ci_high"], pooled_hi)
+    pad = (hi - lo) * 0.10
+    ax.set_ylim(max(0.0, lo - pad), min(1.0, hi + pad))
+    ax.set_xticks([])
+    ax.set_xlabel(f"one dot per patient, ranked by their own AUROC   "
+                  f"(dot size = that patient's attack days)\n"
+                  f"{len(est)} of 63 records scorable at the five-positive floor")
     ax.set_ylabel("per-patient AUROC")
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper left", framealpha=1.0, edgecolor="#c8c8c8",
+              fancybox=False, borderpad=0.6).set_zorder(6)
     S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
     print(f"  {tgt:<9} pooled {pooled:.3f} [{pooled_lo:.3f}-{pooled_hi:.3f}] "
           f"| within {within['estimate']:.3f} "
