@@ -234,7 +234,6 @@ def _how_dca(ax):
     ax.add_patch(Rectangle((X0 + 5 * W, 15), 7 * 0.6, 7, fc="none", ec=A_STRONG,
                            lw=1.0, zorder=3))
     _lab(ax, X0, 7, "net attacks caught", PT_BODY, BODY, weight="bold")
-    _lab(ax, X0, -3.5, "treat = one pre-emptive abortive dose", PT_FINE, THIRD)
     _lab(ax, NX, 18.5, "5.6", PT_BODY, BODY, weight="bold")
 
 
