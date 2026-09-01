@@ -77,6 +77,26 @@ def _net_benefit(y, p, thresholds):
     return np.array(nb_model), np.array(nb_all)
 
 
+def _net_benefit_band(y, p, pid, thresholds, n_boot=500, seed=42):
+    """Patient-cluster bootstrap 95% band for the model's net-benefit curve.
+
+    Methods already state net benefit is reported with bootstrap 95% CIs, so drawing
+    the curve without them made the figure contradict the text. Resampling is over
+    PATIENTS, not days, to respect within-patient serial dependence.
+    """
+    rng = np.random.default_rng(seed)
+    pats = np.unique(pid)
+    idx_by = {q: np.flatnonzero(pid == q) for q in pats}
+    draws = []
+    for _ in range(n_boot):
+        sel = rng.choice(pats, size=len(pats), replace=True)
+        ii = np.concatenate([idx_by[q] for q in sel])
+        nb_b, _ = _net_benefit(y[ii], p[ii], thresholds)
+        draws.append(nb_b)
+    d = np.vstack(draws)
+    return np.percentile(d, 2.5, axis=0), np.percentile(d, 97.5, axis=0)
+
+
 # The graphical abstract's scale, adopted verbatim so the two figures read as one
 # family: headings 8.8 bold, values 11 bold, axis labels 8, ticks 7, body 7.4, and
 # its three greys for body / secondary / tertiary text.
@@ -281,11 +301,13 @@ def _dca_panel(ax, preds, col):
     """
     ts = np.linspace(0.01, 0.50, 120)
     ax.axhline(0.0, color=S.INK, lw=1.0, zorder=3)
-    y, p, _ = preds["migraine"]
+    y, p, pid = preds["migraine"]
     nb, nb_all = _net_benefit(y, p, ts)
+    lo_b, hi_b = _net_benefit_band(y, p, pid, ts)
     # treat-all is a POLICY, not a target, so it is achromatic. Both blind readers read
     # the old same-hue dashed line as a confidence band on the model.
     ax.plot(ts, nb_all, color=A_MID, lw=0.9, ls=(0, (4, 2)), zorder=4)
+    ax.fill_between(ts, lo_b, hi_b, color=col, alpha=0.16, lw=0, zorder=2)
     ax.plot(ts, nb, color=col, lw=2.0, zorder=5, solid_capstyle="round")
     # anchor where the curve is furthest from the policy line, not at a fixed index,
     # and offset perpendicular to the local slope in display units so the gap is the
