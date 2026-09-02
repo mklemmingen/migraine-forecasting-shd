@@ -51,6 +51,19 @@ _F = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_F)
 CV_WORKER = EXP / "5" / "_personal" / "_cv_oof_worker.py"
 MIN_POS = 5
 
+# The within-person headline cell, which is what this figure is about, is not
+# always the cell figdata tracks. figdata records the pooled-discrimination
+# headline and its runner-up; for migraine those are the tuned XGB-HP020 and a
+# finetuned-TabPFN variant, while the within-person C the paper reports (0.558)
+# comes from the NON-hyperparameter-tuned stack. Name that cell directly so the
+# panel matches both the caption ("non-hyperparameter-tuned") and the reported
+# number. It is also the only one of the three that is a cache hit: the
+# finetuned-TabPFN refit ran out of GPU memory twice on a 12 GB card.
+WITHIN_PERSON_LEAF = {
+    "migraine": EXP / "0" / "migraine" / "full_features"
+                / "stacked_2xgb_meta_lr" / "70_30" / "chrono",
+}
+
 
 def _rebase_leaf(leaf_dir: str) -> Path:
     """Rebase a figdata ``leaf_dir`` onto this checkout.
@@ -155,7 +168,7 @@ def _bootstrap_pooled_auroc_ci(y, p, n_boot=1000, seed=42):
     return float(np.percentile(aucs, 2.5)), float(np.percentile(aucs, 97.5))
 
 
-def _panel(ax, tgt, y, p, pid):
+def _panel(ax, tgt, y, p, pid, arch="TabPFN"):
     scores = WP.per_patient_scores(y, p, pid, MIN_POS)
     est = scores[scores["estimable"]].sort_values("auroc").reset_index(drop=True)
     within = WP.within_person_cstatistic(scores)
@@ -171,13 +184,13 @@ def _panel(ax, tgt, y, p, pid):
                color=S.TARGET[tgt], alpha=0.85, edgecolors="none", zorder=3)
     ax.axhspan(within["ci_low"], within["ci_high"], color=S.GREY,
                alpha=S.CI_ALPHA, zorder=0)
-    ax.axhspan(pooled_lo, pooled_hi, color=S.ARCH["TabPFN"],
+    ax.axhspan(pooled_lo, pooled_hi, color=S.ARCH[arch],
                alpha=0.12, zorder=0)
     S.refline(ax, y=0.5, label="chance (0.5)")
     ax.axhline(within["estimate"], color=S.SOFT, lw=1.5,
                label=f"within-person C {within['estimate']:.2f} "
                      f"[{within['ci_low']:.2f}-{within['ci_high']:.2f}]")
-    ax.axhline(pooled, color=S.ARCH["TabPFN"], lw=1.6,
+    ax.axhline(pooled, color=S.ARCH[arch], lw=1.6,
                label=f"pooled AUROC {pooled:.2f} "
                      f"[{pooled_lo:.2f}-{pooled_hi:.2f}]")
     lo = min(0.5, float((est["auroc"] - err).min()), within["ci_low"], pooled_lo)
@@ -185,13 +198,14 @@ def _panel(ax, tgt, y, p, pid):
     pad = (hi - lo) * 0.10
     ax.set_ylim(max(0.0, lo - pad), min(1.0, hi + pad))
     ax.set_xticks([])
-    ax.set_xlabel(f"one dot per patient, ranked by their own AUROC   "
-                  f"(dot size = that patient's attack days)\n"
-                  f"{len(est)} of 63 records scorable at the five-positive floor")
+    ax.set_xlabel("one dot per patient, ranked by their own AUROC\n"
+                  "(dot size = that patient's attack days)\n"
+                  f"{len(est)} of 63 records scorable at the five-positive floor",
+                  fontsize=7.5, linespacing=1.35)
     ax.set_ylabel("per-patient AUROC")
     ax.legend(loc="upper left", framealpha=1.0, edgecolor="#c8c8c8",
               fancybox=False, borderpad=0.6).set_zorder(6)
-    S.epv_annotation(ax, tgt, cell="full_features", loc="lower right")
+    S.epv_annotation(ax, tgt, cell="full_features", loc="below")
     print(f"  {tgt:<9} pooled {pooled:.3f} [{pooled_lo:.3f}-{pooled_hi:.3f}] "
           f"| within {within['estimate']:.3f} "
           f"[{within['ci_low']:.3f}-{within['ci_high']:.3f}] | k={len(est)}")
@@ -204,19 +218,22 @@ def main():
         raise SystemExit("no figdata_*.json in experiment/2/ - run experiment/2/compare.py first")
     headlines = _F.load_figdata(figdata_path).get("headlines", [])
     print(f"  source {figdata_path.name} ({len(headlines)} headline rows)")
-    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 4.6))
+    fig, axes = plt.subplots(1, 2, figsize=S.figsize("double", 5.2))
     for _ax, _lt in zip(axes.ravel(), "abcdefgh"):
         S.panel_label(_ax, _lt)
     for ax, tgt in zip(axes, ("headache", "migraine")):
-        leaf = _resolve_tabpfn_leaf(headlines, tgt)
+        leaf = WITHIN_PERSON_LEAF.get(tgt)
+        if leaf is None or not leaf.exists():
+            leaf = _resolve_tabpfn_leaf(headlines, tgt)
         if leaf is None:
-            print(f"  no tabpfn entry for {tgt} in figdata; skipping panel "
+            print(f"  no leaf for {tgt} in figdata; skipping panel "
                   "(re-run experiment/2/compare.py to refresh leaf_dir)")
             continue
-        print(f"  {tgt} TabPFN leaf: {leaf.relative_to(EXP)}")
+        arch = "stacked_2xgb_meta_lr" if "stacked_2xgb_meta_lr" in leaf.parts else "TabPFN"
+        print(f"  {tgt} leaf: {leaf.relative_to(EXP)}")
         r = _cv_predict(leaf)
         if r is not None:
-            _panel(ax, tgt, *r)
+            _panel(ax, tgt, *r, arch=arch)
     print("saved", S.save(fig, HERE / "figures" / "fig_c2_within_person"))
 
 
