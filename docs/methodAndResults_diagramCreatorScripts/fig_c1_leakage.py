@@ -92,8 +92,11 @@ def main():
         for x, y, lab in pts:
             k = placed.get(x, 0); placed[x] = k + 1
             dy = (12 + 18 * k) if tgt == "headache" else -(12 + 18 * k)  # wider stagger
-            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(10, dy),
-                        fontsize=7, color=S.TARGET[tgt], va="center")
+            ax.annotate(lab, (x, y), textcoords="offset points", xytext=(14, dy),
+                        fontsize=7, color=S.TARGET[tgt], va="center",
+                        bbox=dict(facecolor="white", edgecolor="none", pad=0.6),
+                        arrowprops=dict(arrowstyle="-", color=S.FAINT, lw=0.6,
+                                        shrinkA=0, shrinkB=2))
     ax.set_ylim(bottom=-0.10, top=0.16)   # headroom for the staggered x=0 cluster labels
     S.refline(ax, y=0)
     ax.set_xlabel("history (lag / rolling) features in set")

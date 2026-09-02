@@ -49,6 +49,13 @@ sys.path.insert(0, str(EXP))
 import _style as S  # noqa: E402
 
 WORKER = EXP / "5" / "_personal" / "_predict_worker.py"
+# Raw worker predictions are cached so the figure can be rebuilt without re-running
+# inference. Mirrors c2's figures/_cv_oof_cache. Delete a file to force a refit.
+PRED_CACHE = HERE / "figures" / "_predict_cache"
+
+
+def _pred_cache_path(leaf: Path) -> Path:
+    return PRED_CACHE / (leaf.relative_to(EXP).as_posix().replace("/", "__") + ".npz")
 
 # Loess + bootstrap parameters
 LOWESS_FRAC = 0.5      # smoothness fraction; smaller -> more flex
@@ -69,6 +76,11 @@ def _env(addition: str) -> dict:
 
 def _predict(leaf: Path):
     addition = leaf.relative_to(EXP).parts[0]
+    cached = _pred_cache_path(leaf)
+    if cached.exists():
+        z = np.load(cached, allow_pickle=True)
+        print(f"  cache hit {cached.name}")
+        return z["y"].astype(float), z["p"].astype(float), z["pid"]
     out = Path(tempfile.gettempdir()) / f"c4_{uuid.uuid4().hex}.npz"
     try:
         r = subprocess.run(
@@ -80,7 +92,13 @@ def _predict(leaf: Path):
             print(f"  SKIP {leaf.name}: {tail}")
             return None
         z = np.load(out, allow_pickle=True)
-        return z["y"].astype(float), z["p"].astype(float), z["pid"]
+        y, pp, pid = z["y"].astype(float), z["p"].astype(float), z["pid"]
+        # persist the RAW predictions before the figure consumes them, so a later
+        # rebuild reads the cache instead of re-running the worker
+        PRED_CACHE.mkdir(parents=True, exist_ok=True)
+        np.savez(cached, y=y, p=pp, pid=pid)
+        print(f"  cached {cached.name}")
+        return y, pp, pid
     finally:
         out.unlink(missing_ok=True)
 
