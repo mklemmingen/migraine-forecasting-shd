@@ -1,6 +1,16 @@
 # shd-migraine-benchmark
 
-Benchmark comparing ML approaches for **next-day migraine forecasting** on the Korean Smartphone Headache Diary cohort [1].
+Diary-based migraine forecasts are usually scored with pooled AUROC, which mixes every patient's days together. That score rewards two different abilities. One is telling a patient's attack days apart from their own quiet days, and the other is telling frequent-attack patients apart from infrequent ones. Only the first helps an individual patient.
+
+This benchmark measures both. It compares gradient-boosted trees, a tabular foundation model (TabPFN) and sequence baselines on the Park 2016 smartphone-diary cohort (62 patients, two Korean clinics).
+
+Within a patient, forecasts were close to chance for both headache and migraine.
+Pooled AUROC was higher because it rewards separating patients by their base rate, and it fell below chance on patients the model had never seen.
+Per-patient and partially pooled models did no better than one pooled model.
+Migraine forecasts did not beat a patient's own attack rate. Headache forecasts did, though not by enough to guide dosing.
+The results come from one cohort without external validation, so none of these models is ready for clinical use.
+
+This Repository therefore holds as a Benchmark comparing ML approaches for **next-day migraine forecasting** on the Korean Smartphone Headache Diary cohort [1].
 
 ---
 
